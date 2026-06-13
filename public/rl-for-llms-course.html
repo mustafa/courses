@@ -1,0 +1,2697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RL for LLMs: Building Coursera's AI Moat</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0f1a;--surface:#121a2e;--surface2:#1a2540;--surface3:#223058;--accent:#4ea8de;--accent2:#7dd3fc;--text:#e2e8f0;--text-muted:#94a3b8;--text-dim:#64748b;--green:#4ade80;--yellow:#facc15;--red:#f87171;--orange:#fb923c;--border:#1e3050;--code-bg:#0d1117;--radius:12px;--radius-sm:8px}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.7;font-size:16px}
+a{color:var(--accent);text-decoration:none;transition:color .2s}
+a:hover{color:var(--accent2)}
+h1,h2,h3,h4{color:#fff;font-weight:700;line-height:1.3}
+h2{font-size:1.8rem;margin:2rem 0 1rem;padding-bottom:.5rem;border-bottom:2px solid var(--border)}
+h3{font-size:1.35rem;margin:1.8rem 0 .8rem;color:var(--accent2)}
+h4{font-size:1.1rem;margin:1.5rem 0 .6rem;color:var(--accent)}
+p{margin:.6rem 0}
+ul,ol{margin:.6rem 0 .6rem 1.5rem}
+li{margin:.3rem 0}
+strong{color:#fff}
+em{color:var(--accent2)}
+hr{border:none;border-top:1px solid var(--border);margin:2rem 0}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.9rem;background:var(--surface);border-radius:var(--radius-sm);overflow:hidden}
+thead{background:var(--surface2)}
+th{padding:.75rem 1rem;text-align:left;color:var(--accent2);font-weight:600;border-bottom:2px solid var(--border)}
+td{padding:.65rem 1rem;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+tr:hover{background:var(--surface2)}
+
+/* Progress bar */
+#progress-bar-container{position:fixed;top:0;left:0;right:0;height:4px;background:var(--surface);z-index:1001}
+#progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .4s ease}
+
+/* Nav */
+nav{position:fixed;top:4px;left:0;right:0;background:rgba(10,15,26,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);z-index:1000;padding:0 1.5rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;height:60px;gap:1.5rem;overflow-x:auto}
+.nav-logo{font-weight:800;font-size:1.1rem;color:#fff;white-space:nowrap;flex-shrink:0}
+.nav-logo span{color:var(--accent)}
+.nav-links{display:flex;gap:.25rem;overflow-x:auto;scrollbar-width:none;flex:1}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{padding:.4rem .7rem;border-radius:6px;font-size:.78rem;color:var(--text-muted);white-space:nowrap;transition:all .2s;font-weight:500;cursor:pointer}
+.nav-link:hover,.nav-link.active{background:var(--surface2);color:var(--accent2)}
+.nav-progress-text{font-size:.75rem;color:var(--text-dim);white-space:nowrap;flex-shrink:0;font-weight:600}
+
+/* Hero */
+.hero{padding:8rem 2rem 4rem;text-align:center;background:linear-gradient(180deg,#0d1525 0%,var(--bg) 100%);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(78,168,222,.08) 0%,transparent 70%);pointer-events:none}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);max-width:900px;margin:0 auto .8rem;background:linear-gradient(135deg,#fff 30%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .subtitle{font-size:1.15rem;color:var(--text-muted);max-width:700px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem}
+.hero-badge{display:flex;align-items:center;gap:.4rem;padding:.5rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:99px;font-size:.85rem;color:var(--text-muted)}
+.hero-badge svg{width:16px;height:16px;color:var(--accent)}
+
+/* Main container */
+.container{max-width:900px;margin:0 auto;padding:0 1.5rem 4rem}
+
+/* Module overview cards */
+.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin:2rem 0 3rem}
+.module-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.module-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 30px rgba(78,168,222,.1)}
+.module-card .mod-num{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.4rem}
+.module-card .mod-title{font-size:.95rem;font-weight:600;color:#fff;margin-bottom:.5rem;line-height:1.4}
+.module-card .mod-time{font-size:.75rem;color:var(--text-dim);display:flex;align-items:center;gap:.3rem}
+.module-card .mod-check{position:absolute;top:1rem;right:1rem;width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;transition:all .3s}
+.module-card .mod-check.done{background:var(--green);border-color:var(--green);color:var(--bg)}
+
+/* Sections */
+.module-section{margin:3rem 0;padding-top:1rem}
+.module-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.module-header h2{flex:1;margin:0;padding:0;border:none;min-width:200px}
+.time-badge{padding:.35rem .8rem;background:var(--surface);border:1px solid var(--border);border-radius:99px;font-size:.8rem;color:var(--accent2);white-space:nowrap;display:flex;align-items:center;gap:.3rem}
+.check-module{display:flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none;padding:.3rem .8rem;border-radius:99px;border:1px solid var(--border);background:var(--surface);font-size:.8rem;color:var(--text-muted);transition:all .3s;white-space:nowrap}
+.check-module:hover{border-color:var(--accent)}
+.check-module.completed{background:rgba(74,222,128,.12);border-color:var(--green);color:var(--green)}
+.check-module input{display:none}
+
+/* Learning objectives */
+.objectives{background:linear-gradient(135deg,rgba(78,168,222,.08),rgba(125,211,252,.04));border:1px solid rgba(78,168,222,.2);border-radius:var(--radius);padding:1.2rem 1.5rem;margin:1rem 0}
+.objectives h4{color:var(--accent2);margin:0 0 .5rem;font-size:.9rem;text-transform:uppercase;letter-spacing:.05em}
+.objectives ul{margin:.5rem 0 0 1.2rem}
+.objectives li{color:var(--text);font-size:.92rem;margin:.25rem 0}
+
+/* Code blocks */
+pre[class*="language-"]{background:var(--code-bg)!important;border:1px solid var(--border);border-radius:var(--radius-sm);margin:1rem 0;position:relative;font-size:.85rem}
+code[class*="language-"]{font-family:'JetBrains Mono','Fira Code','Cascadia Code',monospace!important;font-size:.83rem!important}
+.code-header{display:flex;justify-content:space-between;align-items:center;padding:.5rem 1rem;background:var(--surface2);border-bottom:1px solid var(--border);border-radius:var(--radius-sm) var(--radius-sm) 0 0;font-size:.75rem;color:var(--text-dim)}
+.copy-btn{padding:.25rem .6rem;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text-muted);cursor:pointer;font-size:.72rem;transition:all .2s}
+.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.copy-btn.copied{border-color:var(--green);color:var(--green)}
+
+/* Inline code */
+:not(pre)>code{background:var(--surface2);padding:.15rem .4rem;border-radius:4px;font-size:.88em;color:var(--accent2);font-family:'JetBrains Mono','Fira Code',monospace}
+
+/* Callout boxes */
+.callout{border-radius:var(--radius-sm);padding:1rem 1.2rem;margin:1rem 0;border-left:4px solid}
+.callout-title{font-weight:700;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem}
+.callout.tip{background:rgba(78,168,222,.08);border-color:var(--accent)}
+.callout.tip .callout-title{color:var(--accent)}
+.callout.warning{background:rgba(250,204,21,.06);border-color:var(--yellow)}
+.callout.warning .callout-title{color:var(--yellow)}
+.callout.insight{background:rgba(74,222,128,.06);border-color:var(--green)}
+.callout.insight .callout-title{color:var(--green)}
+.callout.compute{background:rgba(251,146,60,.06);border-color:var(--orange)}
+.callout.compute .callout-title{color:var(--orange)}
+
+/* Decision tree */
+.decision-tree{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.8;white-space:pre-wrap;overflow-x:auto}
+
+/* ASCII diagrams */
+.ascii-diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;margin:1rem 0;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.6;white-space:pre;overflow-x:auto;color:var(--accent2)}
+
+/* Paper references */
+.readings{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;margin:1.5rem 0}
+.readings h4{color:var(--accent);margin:0 0 .6rem;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em}
+.readings ul{list-style:none;margin:0;padding:0}
+.readings li{padding:.35rem 0;border-bottom:1px solid rgba(30,48,80,.5);font-size:.9rem}
+.readings li:last-child{border-bottom:none}
+.readings a{color:var(--accent2)}
+
+/* Pitfalls */
+.pitfall{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.2rem;margin:.8rem 0}
+.pitfall strong{color:var(--yellow)}
+.pitfall p{margin:.3rem 0;font-size:.92rem}
+
+/* Appendix */
+.appendix{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin:2rem 0}
+.appendix h3{color:var(--accent2);margin-top:0}
+
+/* Glossary */
+.glossary-item{padding:.6rem 0;border-bottom:1px solid var(--border)}
+.glossary-item:last-child{border-bottom:none}
+.glossary-term{font-weight:700;color:var(--accent2)}
+
+/* Math */
+.math{font-family:'Cambria Math','Latin Modern Math',serif;font-style:italic;color:var(--accent2);background:var(--surface);padding:.15rem .5rem;border-radius:4px;display:inline-block;margin:.2rem 0}
+.math-block{display:block;text-align:center;padding:.8rem;margin:.8rem 0;font-size:1.05rem}
+
+/* Scroll to top */
+.scroll-top{position:fixed;bottom:2rem;right:2rem;width:44px;height:44px;border-radius:50%;background:var(--accent);color:var(--bg);border:none;cursor:pointer;font-size:1.2rem;display:none;align-items:center;justify-content:center;transition:all .3s;z-index:999;box-shadow:0 4px 15px rgba(78,168,222,.3)}
+.scroll-top:hover{background:var(--accent2);transform:translateY(-2px)}
+.scroll-top.visible{display:flex}
+
+/* Footer */
+footer{text-align:center;padding:3rem 1.5rem;color:var(--text-dim);font-size:.85rem;border-top:1px solid var(--border)}
+
+/* Responsive */
+@media(max-width:768px){
+.hero{padding:6rem 1rem 2.5rem}
+.hero h1{font-size:1.8rem}
+.module-grid{grid-template-columns:1fr}
+.container{padding:0 1rem 3rem}
+.nav-links{display:none}
+nav{padding:0 1rem}
+.module-header{flex-direction:column;align-items:flex-start;gap:.5rem}
+table{font-size:.78rem;display:block;overflow-x:auto}
+th,td{padding:.5rem .6rem}
+pre[class*="language-"]{font-size:.75rem}
+}
+@media(max-width:480px){
+.hero-meta{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<!-- Navigation -->
+<nav>
+<div class="nav-inner">
+<div class="nav-logo"><span>RL</span>forLLMs</div>
+<div class="nav-links">
+<a class="nav-link" href="#overview">Overview</a>
+<a class="nav-link" href="#module-1">M1: Foundations</a>
+<a class="nav-link" href="#module-2">M2: SFT</a>
+<a class="nav-link" href="#module-3">M3: Rewards</a>
+<a class="nav-link" href="#module-4">M4: RLHF</a>
+<a class="nav-link" href="#module-5">M5: DPO</a>
+<a class="nav-link" href="#module-6">M6: GRPO</a>
+<a class="nav-link" href="#module-7">M7: Agentic</a>
+<a class="nav-link" href="#module-8">M8: Flywheel</a>
+<a class="nav-link" href="#module-9">M9: Deploy</a>
+<a class="nav-link" href="#module-10">M10: Capstone</a>
+</div>
+<div class="nav-progress-text" id="nav-progress">0% complete</div>
+</div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="overview">
+<h1>Reinforcement Learning for Large Language Models: Building Coursera's AI Moat</h1>
+<p class="subtitle">A hands-on course for engineering leaders — from zero to deploying RL-tuned open-source LLMs optimized for conversational learning.</p>
+<div class="hero-meta">
+<div class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4–6 weeks part-time</div>
+<div class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> 8–10 hrs/week</div>
+<div class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> 10 modules</div>
+<div class="hero-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> ~$200 compute</div>
+</div>
+</section>
+
+<!-- Main Content -->
+<div class="container">
+
+<p>This course takes you from zero to deploying RL-tuned open-source LLMs optimized for conversational learning. By the end, you'll have the technical depth to architect Coursera's next-generation agentic learning system — one that improves with every student interaction, creating a compounding data flywheel that competitors cannot replicate.</p>
+
+<div class="callout insight">
+<div class="callout-title">&#x1f4a1; Strategic Thesis</div>
+<p>Coursera's moat isn't content (that's commoditized). It's a <strong>proprietary model that learns how to teach better from millions of student interactions</strong> — something no competitor can bootstrap without the student base.</p>
+</div>
+
+<p><strong>Prerequisites:</strong> Python fluency, basic ML/DL knowledge, familiarity with transformer architecture.</p>
+
+<!-- Module Overview Cards -->
+<h2 style="margin-top:3rem">Course Modules</h2>
+<div class="module-grid" id="module-cards">
+<div class="module-card" onclick="document.getElementById('module-1').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-1"></div>
+<div class="mod-num">Module 1</div>
+<div class="mod-title">Foundations — The Open Source LLM Landscape</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4–5 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-2').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-2"></div>
+<div class="mod-num">Module 2</div>
+<div class="mod-title">Supervised Fine-Tuning (SFT) — The Foundation</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-3').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-3"></div>
+<div class="mod-num">Module 3</div>
+<div class="mod-title">Reward Modeling — Teaching "Good Teaching"</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-4').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-4"></div>
+<div class="mod-num">Module 4</div>
+<div class="mod-title">RLHF — Reinforcement Learning from Human Feedback</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8–10 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-5').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-5"></div>
+<div class="mod-num">Module 5</div>
+<div class="mod-title">DPO & Modern Alternatives to RLHF</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-6').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-6"></div>
+<div class="mod-num">Module 6</div>
+<div class="mod-title">GRPO & Reasoning (DeepSeek-R1 Approach)</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8–10 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-7').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-7"></div>
+<div class="mod-num">Module 7</div>
+<div class="mod-title">Building the Coursera Moat — Agentic Learning</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8–10 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-8').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-8"></div>
+<div class="mod-num">Module 8</div>
+<div class="mod-title">Data Flywheel — The Real Moat</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-9').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-9"></div>
+<div class="mod-num">Module 9</div>
+<div class="mod-title">Deployment & Inference at Scale</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5–6 hours</div>
+</div>
+<div class="module-card" onclick="document.getElementById('module-10').scrollIntoView({behavior:'smooth'})">
+<div class="mod-check" id="card-check-10"></div>
+<div class="mod-num">Module 10</div>
+<div class="mod-title">Capstone Project</div>
+<div class="mod-time"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 15–20 hours</div>
+</div>
+</div>
+
+
+<!-- ============ MODULE 1 ============ -->
+<section class="module-section" id="module-1">
+<div class="module-header">
+<h2>Module 1: Foundations — The Open Source LLM Landscape</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 4–5 hours</span>
+<label class="check-module" id="check-1" onclick="toggleModule(1)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Evaluate open-source model families by capability, size, and license for commercial use</li>
+<li>Determine when fine-tuning beats prompt engineering or RAG</li>
+<li>Set up a reproducible GPU development environment</li>
+<li>Navigate the Hugging Face ecosystem confidently</li>
+</ul>
+</div>
+
+<h3>The Model Landscape (as of 2025–2026)</h3>
+
+<table>
+<thead><tr><th>Model Family</th><th>Key Sizes</th><th>License</th><th>Strengths</th><th>Best For</th></tr></thead>
+<tbody>
+<tr><td><strong>Llama 3.x</strong> (Meta)</td><td>8B, 70B, 405B</td><td>Llama 3 Community</td><td>Broad capability, huge community</td><td>General fine-tuning, production</td></tr>
+<tr><td><strong>Mistral / Mixtral</strong></td><td>7B, 8x7B, 8x22B</td><td>Apache 2.0</td><td>Efficiency, MoE architecture</td><td>Cost-sensitive deployment</td></tr>
+<tr><td><strong>Qwen 2.5</strong> (Alibaba)</td><td>7B, 14B, 72B</td><td>Apache 2.0</td><td>Multilingual, strong reasoning</td><td>Global education platform</td></tr>
+<tr><td><strong>Gemma 2</strong> (Google)</td><td>2B, 9B, 27B</td><td>Gemma license</td><td>Small but capable, research-friendly</td><td>Edge/mobile, experimentation</td></tr>
+<tr><td><strong>Phi-3/4</strong> (Microsoft)</td><td>3.8B, 14B</td><td>MIT</td><td>Punches above weight class</td><td>Rapid prototyping, cost control</td></tr>
+</tbody>
+</table>
+
+<div class="callout tip">
+<div class="callout-title">&#x2139;&#xFE0F; Recommendation</div>
+<p><strong>For Coursera's use case, start with Llama 3.1 8B or Qwen 2.5 7B.</strong> They're large enough to be capable tutors, small enough to iterate quickly, and have permissive enough licenses for commercial deployment.</p>
+</div>
+
+<h3>Decision Framework: Fine-tune vs. Prompt-Engineer vs. RAG</h3>
+
+<div class="decision-tree">Is the behavior change about <strong>KNOWLEDGE</strong> (facts, course content)?
+  → RAG (retrieve course materials, lecture transcripts)
+
+Is it about <strong>STYLE/FORMAT</strong> (how the model responds)?
+  → Prompt engineering first, then SFT if prompts get unwieldy
+
+Is it about <strong>JUDGMENT</strong> (what makes a good teaching interaction)?
+  → RL fine-tuning — this is where the moat lives
+
+Is it about following complex multi-step <strong>PROCEDURES</strong>?
+  → SFT + RL combined</div>
+
+<p>For Coursera, you'll likely use all three in combination: RAG for course-specific content, SFT for teaching style and format, RL for optimizing learning outcomes (the unique value).</p>
+
+<h3>Compute Requirements</h3>
+
+<table>
+<thead><tr><th>Task</th><th>Minimum GPU</th><th>Recommended</th><th>Cloud Cost (approx)</th></tr></thead>
+<tbody>
+<tr><td>Inference (8B model)</td><td>1x A10G (24GB)</td><td>1x A100 (40GB)</td><td>$1–2/hr</td></tr>
+<tr><td>QLoRA fine-tuning (8B)</td><td>1x A100 (40GB)</td><td>1x A100 (80GB)</td><td>$2–4/hr</td></tr>
+<tr><td>Full RLHF pipeline (8B)</td><td>2x A100 (80GB)</td><td>4x A100 (80GB)</td><td>$8–16/hr</td></tr>
+<tr><td>Full fine-tune (70B)</td><td>8x A100 (80GB)</td><td>8x H100 (80GB)</td><td>$30–80/hr</td></tr>
+</tbody>
+</table>
+
+<h3>Setting Up the Environment</h3>
+
+<div class="code-header"><span>python — environment setup</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code># environment.yaml — use conda or pip
+# Core dependencies for this entire course
+
+# Option 1: pip install
+"""
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install transformers>=4.45.0
+pip install datasets>=3.0.0
+pip install accelerate>=0.34.0
+pip install peft>=0.13.0
+pip install trl>=0.12.0
+pip install bitsandbytes>=0.44.0
+pip install wandb
+pip install vllm>=0.6.0
+pip install flash-attn --no-build-isolation
+pip install sentencepiece protobuf
+"""
+
+# Verify GPU setup
+import torch
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+print(f"GPU: {torch.cuda.get_device_name(0)}")
+print(f"VRAM: {torch.cuda.get_device_properties(0).total_mem / 1e9:.1f} GB")</code></pre>
+
+<div class="code-header"><span>python — quick sanity check</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code># Quick sanity check: load a model and generate
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+messages = [
+    {"role": "system", "content": "You are a helpful tutor."},
+    {"role": "user", "content": "Explain gradient descent like I'm 15."},
+]
+
+input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+output = model.generate(input_ids, max_new_tokens=256, temperature=0.7)
+print(tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True))</code></pre>
+
+<h3>GPU Platform Options</h3>
+<p><strong>For this course (experimentation + training):</strong></p>
+<ol>
+<li><strong>Lambda Cloud</strong> — Best price/performance for multi-GPU. $1.10/hr for A10G, $2.49/hr for A100 80GB.</li>
+<li><strong>RunPod</strong> — Flexible spot instances. Good for short training runs. ~$1.64/hr A100 40GB.</li>
+<li><strong>Google Colab Pro+</strong> — $50/mo, A100 access (limited hours). Good for Modules 1–3.</li>
+<li><strong>Local M-series Mac</strong> — Good for inference and tiny experiments (MLX framework), not for serious training.</li>
+<li><strong>Modal</strong> — Serverless GPUs, pay per second. Great for CI/CD of model training.</li>
+</ol>
+
+<h3>Hands-On Exercise 1.1: Model Exploration</h3>
+
+<div class="code-header"><span>python — exercise 1.1: compare models (~30 min)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Exercise: Compare base vs. instruct models on a teaching task.
+Time: ~30 minutes
+Compute: 1x GPU with 24GB+ VRAM (or Colab)
+"""
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+def compare_models(prompt: str, model_ids: list[str]):
+    """Generate responses from multiple models for comparison."""
+    results = {}
+    
+    for model_id in model_ids:
+        print(f"\n{'='*60}")
+        print(f"Model: {model_id}")
+        print(f"{'='*60}")
+        
+        tokenizer = AutoTokenizer.from_pretrained(model_id)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+            load_in_4bit=True,  # Save VRAM for comparison
+        )
+        
+        if tokenizer.chat_template:
+            messages = [{"role": "user", "content": prompt}]
+            input_ids = tokenizer.apply_chat_template(
+                messages, return_tensors="pt"
+            ).to("cuda")
+        else:
+            input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to("cuda")
+        
+        output = model.generate(
+            input_ids, max_new_tokens=512, temperature=0.7, do_sample=True
+        )
+        response = tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True)
+        results[model_id] = response
+        print(response[:500])
+        
+        del model
+        torch.cuda.empty_cache()
+    
+    return results
+
+# Teaching prompt to evaluate
+teaching_prompt = """A student just got this wrong on a quiz:
+
+Question: What is the time complexity of binary search?
+Student's answer: O(n)
+Correct answer: O(log n)
+
+Help them understand why it's O(log n), not O(n). Adapt to their level."""
+
+models_to_compare = [
+    "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "Qwen/Qwen2.5-7B-Instruct",
+    "microsoft/Phi-3.5-mini-instruct",
+]
+
+results = compare_models(teaching_prompt, models_to_compare)</code></pre>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2407.21783" target="_blank">Llama 3 paper</a> — Meta's training methodology</li>
+<li><a href="https://huggingface.co/docs/transformers" target="_blank">Hugging Face Transformers documentation</a> — Your daily reference</li>
+<li>Chip Huyen, "Designing Machine Learning Systems" — Chapter on model selection</li>
+<li><a href="http://www.incompleteideas.net/IncIdeas/BitterLesson.html" target="_blank">The Bitter Lesson</a> (Rich Sutton) — Why scale matters</li>
+</ul>
+</div>
+</section>
+
+
+<!-- ============ MODULE 2 ============ -->
+<section class="module-section" id="module-2">
+<div class="module-header">
+<h2>Module 2: Supervised Fine-Tuning (SFT) — The Foundation</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</span>
+<label class="check-module" id="check-2" onclick="toggleModule(2)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Understand why SFT is the prerequisite for RL-based training</li>
+<li>Design and create instruction-tuning datasets for educational use cases</li>
+<li>Implement QLoRA fine-tuning efficiently</li>
+<li>Evaluate fine-tuned models with appropriate metrics</li>
+<li>Avoid common pitfalls (catastrophic forgetting, overfitting)</li>
+</ul>
+</div>
+
+<h3>Why SFT Before RL</h3>
+<p>Think of it as teaching someone to play chess:</p>
+<ol>
+<li><strong>SFT</strong> = Teaching the rules and common patterns (how to move pieces, basic openings)</li>
+<li><strong>RL</strong> = Playing thousands of games to develop strategy and intuition</li>
+</ol>
+<p>If you skip SFT and go straight to RL, the model doesn't have a coherent foundation to optimize. RLHF/DPO works by making small adjustments to an already-capable model — it sharpens judgment, not basic competence.</p>
+
+<div class="callout insight">
+<div class="callout-title">&#x1f4a1; Key Insight</div>
+<p>For Coursera: SFT teaches the model <em>how to be a tutor</em> (format, tone, Socratic questioning). RL teaches it <em>how to be a great tutor</em> (adapting to the student, knowing when to give hints vs. explanations).</p>
+</div>
+
+<h3>LoRA and QLoRA</h3>
+<p><strong>LoRA</strong> (Low-Rank Adaptation): Instead of updating all model weights (billions of parameters), inject small trainable matrices into attention layers. A rank-16 LoRA on Llama 3 8B trains ~0.1% of parameters.</p>
+<p><strong>QLoRA</strong>: Load the base model in 4-bit quantized format, apply LoRA on top. This lets you fine-tune an 8B model on a single 24GB GPU.</p>
+
+<div class="callout compute">
+<div class="callout-title">&#x1f4bb; Compute Savings</div>
+<p>Full fine-tune of 8B model: ~60GB VRAM needed<br>
+QLoRA fine-tune of 8B model: ~12GB VRAM needed (<strong>6x reduction!</strong>)</p>
+</div>
+
+<h3>Creating Educational Datasets</h3>
+<p>Your SFT dataset should capture <em>how you want the model to teach</em>. Format: instruction/input/output triplets or multi-turn conversations.</p>
+
+<div class="code-header"><span>python — educational dataset schema</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Dataset schema for educational SFT.
+Each example is a teaching interaction you want the model to emulate.
+"""
+
+# Example dataset entries (JSON Lines format)
+examples = [
+    {
+        "conversations": [
+            {
+                "role": "system",
+                "content": "You are a Coursera learning assistant. You use Socratic questioning, "
+                           "adapt explanations to the student's level, and check understanding "
+                           "before moving on. You are encouraging but accurate."
+            },
+            {
+                "role": "user", 
+                "content": "I don't understand recursion at all. It seems like magic."
+            },
+            {
+                "role": "assistant",
+                "content": "That's a really common feeling — recursion does feel like a trick "
+                           "until it clicks! Let me ask you something first: have you ever "
+                           "looked up a word in the dictionary, and the definition used another "
+                           "word you didn't know, so you had to look THAT up too?\n\n"
+                           "That's actually the core idea behind recursion. A function that "
+                           "\"looks itself up\" to solve a smaller version of the same problem.\n\n"
+                           "Can you think of a real-world task that works this way — where solving "
+                           "the big version requires solving a smaller version of the same thing?"
+            },
+            {
+                "role": "user",
+                "content": "Um, maybe like Russian nesting dolls? Each one has a smaller one inside?"
+            },
+            {
+                "role": "assistant",
+                "content": "That's a great analogy! And here's the key part that maps perfectly to "
+                           "code: at some point, you reach the tiniest doll that doesn't open — "
+                           "there's nothing smaller inside. In recursion, we call that the "
+                           "**base case**. It's what stops the function from calling itself forever.\n\n"
+                           "So recursion always has two parts:\n"
+                           "1. **Base case**: The smallest, simplest version you can solve directly\n"
+                           "2. **Recursive case**: Break the problem down and call yourself on the "
+                           "smaller piece\n\n"
+                           "Want to try writing a recursive function together? We could start with "
+                           "something simple like calculating a factorial (5! = 5 × 4 × 3 × 2 × 1)."
+            }
+        ]
+    },
+]</code></pre>
+
+<h3>Hands-On Exercise 2.1: Fine-Tune Llama 3 8B with QLoRA</h3>
+
+<div class="callout compute">
+<div class="callout-title">&#x1f4bb; Compute Requirements</div>
+<p>1x A100 40GB (or 1x A10G 24GB with smaller batch size) · ~2-4 hours for 1 epoch on 10k examples · Cost: ~$5-15</p>
+</div>
+
+<div class="code-header"><span>python — full QLoRA fine-tuning script</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Full QLoRA fine-tuning script for educational tutoring.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    TrainingArguments,
+)
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from trl import SFTTrainer, SFTConfig
+import json
+
+# === 1. Configuration ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-tutor-sft"
+WANDB_PROJECT = "coursera-rl-course"
+
+# QLoRA quantization config
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True,
+)
+
+# LoRA config — targeting attention layers
+lora_config = LoraConfig(
+    r=16,                        # Rank — higher = more capacity, more VRAM
+    lora_alpha=32,               # Scaling factor (alpha/r = effective learning rate scale)
+    target_modules=[             # Which layers to adapt
+        "q_proj", "k_proj", "v_proj", "o_proj",  # Attention
+        "gate_proj", "up_proj", "down_proj",      # MLP
+    ],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# === 2. Load Model and Tokenizer ===
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_ID,
+    quantization_config=bnb_config,
+    device_map="auto",
+    attn_implementation="flash_attention_2",  # Faster training
+)
+
+model = prepare_model_for_kbit_training(model)
+model = get_peft_model(model, lora_config)
+
+# Print trainable parameters
+trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Trainable: {trainable_params:,} / {total_params:,} "
+      f"({100 * trainable_params / total_params:.2f}%)")
+
+# === 3. Prepare Dataset ===
+
+dataset = load_dataset("HuggingFaceH4/ultrachat_200k", split="train_sft[:10000]")
+
+# Format with chat template
+dataset = dataset.map(
+    lambda x: {"text": tokenizer.apply_chat_template(
+        x["messages"], tokenize=False, add_generation_prompt=False
+    )},
+    remove_columns=dataset.column_names,
+)
+
+# Train/eval split
+dataset = dataset.train_test_split(test_size=0.05, seed=42)
+
+# === 4. Training ===
+
+training_args = SFTConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,       # Effective batch size = 16
+    learning_rate=2e-4,
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.05,
+    weight_decay=0.01,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="steps",
+    save_steps=200,
+    eval_strategy="steps",
+    eval_steps=200,
+    max_seq_length=2048,
+    packing=True,                        # Pack short examples together
+    dataset_text_field="text",
+    report_to="wandb",
+    run_name="coursera-tutor-sft-v1",
+)
+
+trainer = SFTTrainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+)
+
+# Train!
+trainer.train()
+
+# Save the LoRA adapter
+trainer.save_model(OUTPUT_DIR)
+tokenizer.save_pretrained(OUTPUT_DIR)
+
+print(f"\nModel saved to {OUTPUT_DIR}")
+print("To merge LoRA weights with base model, see merge_and_push.py")</code></pre>
+
+<div class="code-header"><span>python — merge LoRA weights and test</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Merge LoRA weights and test the fine-tuned model.
+"""
+
+from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+# Load base model (full precision for merging)
+base_model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+# Load and merge LoRA adapter
+model = PeftModel.from_pretrained(base_model, "./coursera-tutor-sft")
+model = model.merge_and_unload()
+
+# Save merged model
+model.save_pretrained("./coursera-tutor-merged")
+
+# Test it
+tokenizer = AutoTokenizer.from_pretrained("./coursera-tutor-sft")
+messages = [
+    {"role": "system", "content": "You are a Coursera learning assistant."},
+    {"role": "user", "content": "I keep getting confused between == and === in JavaScript. What's the difference?"},
+]
+
+input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+output = model.generate(input_ids, max_new_tokens=512, temperature=0.7)
+print(tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True))</code></pre>
+
+<h3>Evaluation</h3>
+
+<div class="code-header"><span>python — evaluation framework</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Evaluation framework for educational fine-tuning.
+"""
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import json
+import torch
+
+def evaluate_teaching_quality(model, tokenizer, test_cases: list[dict]) -> dict:
+    """
+    Evaluate model on teaching-specific criteria.
+    
+    Metrics:
+    1. Format compliance: Does it follow the teaching format?
+    2. Socratic ratio: Does it ask questions rather than just lecturing?
+    3. Adaptation: Does it respond differently to different student levels?
+    4. Accuracy: Is the content factually correct?
+    """
+    results = {
+        "asks_questions": 0,
+        "uses_examples": 0, 
+        "checks_understanding": 0,
+        "appropriate_length": 0,
+        "total": len(test_cases),
+    }
+    
+    for case in test_cases:
+        messages = case["messages"]
+        input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+        
+        with torch.no_grad():
+            output = model.generate(input_ids, max_new_tokens=512, temperature=0.1)
+        
+        response = tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True)
+        
+        # Simple heuristic checks (in practice, use an LLM-as-judge)
+        if "?" in response:
+            results["asks_questions"] += 1
+        if any(w in response.lower() for w in ["for example", "imagine", "think of", "like when"]):
+            results["uses_examples"] += 1
+        if any(w in response.lower() for w in ["does that make sense", "try", "what do you think"]):
+            results["checks_understanding"] += 1
+        if 100 < len(response.split()) < 400:
+            results["appropriate_length"] += 1
+    
+    # Convert to percentages
+    for key in results:
+        if key != "total":
+            results[key] = results[key] / results["total"]
+    
+    return results
+
+
+# More rigorous: LLM-as-judge evaluation
+def llm_judge_evaluation(response: str, context: str, judge_model="claude-3-5-sonnet") -> dict:
+    """
+    Use a frontier model to evaluate teaching quality.
+    This is the gold standard for evaluation.
+    """
+    judge_prompt = f"""Rate this tutoring response on a 1-5 scale for each criterion:
+
+Student context: {context}
+Tutor response: {response}
+
+Criteria:
+1. Pedagogical quality (uses good teaching techniques)
+2. Clarity (explanation is clear and well-structured)  
+3. Engagement (response is motivating and encouraging)
+4. Accuracy (content is factually correct)
+5. Adaptation (response matches apparent student level)
+
+Return JSON: {{"pedagogy": X, "clarity": X, "engagement": X, "accuracy": X, "adaptation": X}}"""
+    
+    # Call your judge model here
+    # scores = call_anthropic_api(judge_prompt)
+    # return json.loads(scores)
+    pass</code></pre>
+
+<h3>Common Pitfalls</h3>
+
+<div class="pitfall">
+<strong>Catastrophic forgetting:</strong> The model loses general capabilities after fine-tuning on narrow data.
+<p>Solution: Mix 10-20% general instruction data with your educational data</p>
+<p>Solution: Keep LoRA rank moderate (16-64), don't overtrain</p>
+</div>
+
+<div class="pitfall">
+<strong>Overfitting on small datasets:</strong> Model memorizes instead of generalizing.
+<p>Solution: Need at minimum 5,000 diverse examples for SFT</p>
+<p>Solution: Use data augmentation (rephrase questions, vary student levels)</p>
+<p>Solution: Monitor eval loss — stop when it starts increasing</p>
+</div>
+
+<div class="pitfall">
+<strong>Format collapse:</strong> Model produces repetitive structures.
+<p>Solution: Diverse examples in training data (different subjects, different interaction types)</p>
+<p>Solution: Lower learning rate, fewer epochs</p>
+</div>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2106.09685" target="_blank">LoRA: Low-Rank Adaptation of Large Language Models</a> (Hu et al., 2021)</li>
+<li><a href="https://arxiv.org/abs/2305.14314" target="_blank">QLoRA: Efficient Finetuning of Quantized LLMs</a> (Dettmers et al., 2023)</li>
+<li><a href="https://arxiv.org/abs/2305.11206" target="_blank">LIMA: Less Is More for Alignment</a> — Shows 1000 high-quality examples can go far</li>
+<li><a href="https://huggingface.co/docs/trl" target="_blank">TRL documentation</a> — Your main library reference</li>
+</ul>
+</div>
+</section>
+
+
+<!-- ============ MODULE 3 ============ -->
+<section class="module-section" id="module-3">
+<div class="module-header">
+<h2>Module 3: Reward Modeling — Teaching the Model What "Good Teaching" Means</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</span>
+<label class="check-module" id="check-3" onclick="toggleModule(3)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Design reward signals that capture educational quality</li>
+<li>Collect and structure preference data for education</li>
+<li>Train a reward model from pairwise comparisons</li>
+<li>Evaluate reward model accuracy and calibration</li>
+<li>Understand failure modes (reward hacking, distribution shift)</li>
+</ul>
+</div>
+
+<h3>What is a Reward Model?</h3>
+<p>A reward model is a separate neural network that takes a (prompt, response) pair and outputs a scalar score indicating quality. It's trained on human preferences: "Given this student question, Response A is better than Response B for learning."</p>
+<p>For Coursera, the reward model encodes <em>what makes a good teaching interaction</em> — something you define through your pedagogical expertise and student outcome data.</p>
+
+<h3>Preference Data Collection</h3>
+<p>You need pairs of responses where annotators indicate which is better <em>for learning</em>. This is fundamentally different from general helpfulness — a response can be helpful but pedagogically poor (e.g., just giving the answer without building understanding).</p>
+
+<div class="code-header"><span>python — preference data schema</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Preference data schema for educational reward modeling.
+"""
+
+preference_example = {
+    "prompt": [
+        {"role": "system", "content": "You are a Coursera learning assistant."},
+        {"role": "user", "content": "What's a pointer in C? I'm so confused."}
+    ],
+    "chosen": (  # Better for learning
+        "I get it — pointers are one of those things that seems abstract until it clicks. "
+        "Let me try a concrete analogy:\n\n"
+        "Think of computer memory like a giant hotel. Each room has a number (the memory address) "
+        "and something stored inside (the value). A pointer is just a piece of paper with a room "
+        "number written on it.\n\n"
+        "```c\n"
+        "int x = 42;       // Room 1000 contains the value 42\n"
+        "int *p = &x;      // 'p' is a piece of paper that says '1000'\n"
+        "printf(\"%d\", *p); // Go to room 1000, tell me what's inside → 42\n"
+        "```\n\n"
+        "The `&` means 'what room number is this in?' and `*` means 'go to that room number "
+        "and look inside.'\n\n"
+        "What trips you up most — the syntax (`*` and `&`) or the concept of why you'd want "
+        "to reference a room number instead of just using the value directly?"
+    ),
+    "rejected": (  # Correct but pedagogically weaker
+        "A pointer is a variable that stores the memory address of another variable. "
+        "In C, you declare a pointer using the * operator, like `int *p`. You can get the "
+        "address of a variable using the & operator, like `p = &x`. To dereference a pointer "
+        "(access the value it points to), you use * again, like `*p`. Pointers are used for "
+        "dynamic memory allocation, passing by reference, and data structures like linked lists."
+    ),
+    "preference_reason": "Chosen uses analogy, builds intuition, asks follow-up question. "
+                         "Rejected is accurate but lectures without checking understanding."
+}</code></pre>
+
+<h3>The Bradley-Terry Model</h3>
+<p>The mathematical foundation: given two responses y₁ and y₂ to prompt x, the probability that y₁ is preferred is:</p>
+<div class="math math-block">P(y₁ ≻ y₂ | x) = σ(r(x, y₁) - r(x, y₂))</div>
+<p>where r is the reward model and σ is the sigmoid function. Training minimizes:</p>
+<div class="math math-block">L = -E[log σ(r(x, y_w) - r(x, y_l))]</div>
+<p>where y_w is the chosen (winning) response and y_l is the rejected (losing) response.</p>
+
+<h3>Hands-On Exercise 3.1: Train a Reward Model</h3>
+
+<div class="callout compute">
+<div class="callout-title">&#x1f4bb; Compute Requirements</div>
+<p>1x A100 40GB · ~1-2 hours on 10k preference pairs · Cost: ~$3-8</p>
+</div>
+
+<div class="code-header"><span>python — train a reward model</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Train a reward model for educational quality.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from trl import RewardTrainer, RewardConfig
+import json
+
+# === 1. Load base model as reward model ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-reward-model"
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+
+# Load as sequence classification model (outputs scalar reward)
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_ID,
+    num_labels=1,           # Single scalar output
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+    load_in_4bit=True,      # Save VRAM
+)
+
+# === 2. Prepare preference dataset ===
+
+dataset = load_dataset(
+    "argilla/ultrafeedback-binarized-preferences-cleaned",
+    split="train[:10000]"
+)
+
+dataset = dataset.train_test_split(test_size=0.1, seed=42)
+
+# === 3. Train the reward model ===
+
+training_args = RewardConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=1,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=1e-5,            # Lower LR for reward models
+    bf16=True,
+    logging_steps=10,
+    eval_strategy="steps",
+    eval_steps=100,
+    save_steps=200,
+    max_length=2048,
+    report_to="wandb",
+    run_name="coursera-reward-model-v1",
+)
+
+trainer = RewardTrainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+)
+
+trainer.train()
+trainer.save_model(OUTPUT_DIR)
+
+# === 4. Evaluate: Accuracy on held-out preferences ===
+metrics = trainer.evaluate()
+print(f"Reward model accuracy: {metrics['eval_accuracy']:.2%}")
+# Target: >70% accuracy (random = 50%)</code></pre>
+
+<div class="code-header"><span>python — use the reward model to score responses</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Use the trained reward model to score teaching responses.
+"""
+
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+# Load trained reward model
+rm_model = AutoModelForSequenceClassification.from_pretrained(
+    "./coursera-reward-model",
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+tokenizer = AutoTokenizer.from_pretrained("./coursera-reward-model")
+
+def score_response(conversation: list[dict]) -> float:
+    """Score a teaching interaction using the reward model."""
+    text = tokenizer.apply_chat_template(conversation, tokenize=False)
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=2048).to("cuda")
+    
+    with torch.no_grad():
+        reward = rm_model(**inputs).logits[0].item()
+    
+    return reward
+
+
+# Compare two teaching approaches
+question = "Why do we use try/except in Python?"
+
+# Approach A: Socratic
+socratic_response = [
+    {"role": "user", "content": question},
+    {"role": "assistant", "content": (
+        "Good question! Before I explain, let me ask: what happens right now in your "
+        "code when something goes wrong — like dividing by zero or opening a file that "
+        "doesn't exist? What does Python do?"
+    )},
+]
+
+# Approach B: Direct lecture  
+lecture_response = [
+    {"role": "user", "content": question},
+    {"role": "assistant", "content": (
+        "Try/except is Python's exception handling mechanism. The try block contains code "
+        "that might raise an exception, and the except block contains code that runs if an "
+        "exception occurs. This prevents your program from crashing."
+    )},
+]
+
+score_a = score_response(socratic_response)
+score_b = score_response(lecture_response)
+print(f"Socratic approach score: {score_a:.3f}")
+print(f"Lecture approach score: {score_b:.3f}")
+print(f"Preferred: {'Socratic' if score_a > score_b else 'Lecture'}")</code></pre>
+
+<h3>Multi-Dimensional Reward Signals for Education</h3>
+
+<div class="code-header"><span>python — multi-dimensional reward framework</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Multi-dimensional reward framework for educational interactions.
+"""
+
+from dataclasses import dataclass
+
+@dataclass
+class EducationalRewardSignals:
+    """
+    Decomposed reward for educational interactions.
+    Final reward = weighted combination of these signals.
+    """
+    comprehension: float    # Did the response build understanding?
+    clarity: float          # Was it clear and well-structured?
+    personalization: float  # Did it adapt to the student's level?
+    engagement: float       # Was it motivating and interesting?
+    accuracy: float         # Was the content factually correct?
+    socratic: float         # Did it promote active thinking?
+    
+    def combined_reward(self, weights: dict = None) -> float:
+        """Weighted combination of signals."""
+        if weights is None:
+            weights = {
+                "comprehension": 0.25,
+                "clarity": 0.20,
+                "personalization": 0.20,
+                "engagement": 0.15,
+                "accuracy": 0.15,
+                "socratic": 0.05,
+            }
+        
+        return sum(
+            weights[field] * getattr(self, field) 
+            for field in weights
+        )
+
+# In practice, you can approximate these signals from:
+# 1. Human annotations (expensive, gold standard)
+# 2. LLM-as-judge (cheaper, good for bootstrapping)
+# 3. Student behavior signals (implicit, scalable):
+#    - comprehension: quiz score after interaction
+#    - clarity: did student ask follow-up clarification?
+#    - personalization: time spent reading (too fast = too easy, too slow = too hard)
+#    - engagement: did student continue or bounce?
+#    - accuracy: verified against course content
+#    - socratic: did student attempt before getting answer?</code></pre>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2203.02155" target="_blank">Training language models to follow instructions with human feedback</a> (InstructGPT, Ouyang et al., 2022) — The original RLHF paper</li>
+<li><a href="https://arxiv.org/abs/2210.10760" target="_blank">Scaling Laws for Reward Model Overoptimization</a> — Why bigger isn't always better for reward models</li>
+<li><a href="https://arxiv.org/abs/2309.00267" target="_blank">RLAIF: Reinforcement Learning from AI Feedback</a> — Using AI to generate preferences at scale</li>
+</ul>
+</div>
+</section>
+
+
+<!-- ============ MODULE 4 ============ -->
+<section class="module-section" id="module-4">
+<div class="module-header">
+<h2>Module 4: RLHF — Reinforcement Learning from Human Feedback</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8–10 hours</span>
+<label class="check-module" id="check-4" onclick="toggleModule(4)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Understand PPO's role in the RLHF pipeline</li>
+<li>Implement the full RLHF loop: SFT model → Reward Model → PPO training</li>
+<li>Tune the KL divergence penalty to prevent reward hacking</li>
+<li>Diagnose common RLHF failures</li>
+<li>Make informed decisions about when RLHF is worth the complexity</li>
+</ul>
+</div>
+
+<h3>The RLHF Pipeline</h3>
+<div class="ascii-diagram">┌─────────┐     ┌──────────────┐     ┌─────────────┐
+│ SFT Model│ ──▶ │ Reward Model │ ──▶ │ PPO Training │ ──▶ Final Model
+│ (Policy) │     │ (Critic)     │     │              │
+└─────────┘     └──────────────┘     └─────────────┘
+     │                   │                    │
+     │                   │                    ▼
+     │                   │          ┌──────────────────┐
+     │                   └────────▶ │ Score generations │
+     │                              │ from current policy│
+     └────────────────────────────▶ │ KL penalty vs.   │
+                                    │ original SFT model │
+                                    └──────────────────┘</div>
+
+<p><strong>PPO for LLMs, simplified:</strong></p>
+<ol>
+<li>The model (policy) generates responses to prompts</li>
+<li>The reward model scores each response</li>
+<li>PPO updates the model to produce higher-scoring responses</li>
+<li>A KL penalty prevents the model from drifting too far from the SFT base (this prevents reward hacking)</li>
+</ol>
+
+<h3>Why KL Divergence Matters</h3>
+
+<div class="callout warning">
+<div class="callout-title">&#x26A0;&#xFE0F; Warning: Without KL Penalty</div>
+<p>Without the KL penalty, the model will find degenerate ways to maximize reward: repeating phrases the reward model likes, generating extremely long responses, or producing outputs that "game" the reward model's weaknesses.</p>
+</div>
+
+<p>The KL term says: "Improve, but don't become unrecognizable from where you started."</p>
+<div class="math math-block">objective = E[r(x, y)] - β · D_KL(π_θ ‖ π_ref)</div>
+<p>where β controls the strength of the constraint. Typical values: 0.01–0.2.</p>
+
+<h3>Hands-On Exercise 4.1: Full RLHF Training Loop</h3>
+
+<div class="callout compute">
+<div class="callout-title">&#x1f4bb; Compute Requirements</div>
+<p>2x A100 80GB (or 4x A100 40GB) · 4-8 hours · Cost: ~$30-60</p>
+<p><strong>Note:</strong> For most educational use cases, DPO (Module 5) achieves 80-90% of RLHF's quality at 10% of the compute cost. This module is for understanding the full pipeline.</p>
+</div>
+
+<div class="code-header"><span>python — complete RLHF training with PPO</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Complete RLHF training using TRL's PPOTrainer.
+"""
+
+import torch
+from datasets import load_dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModelForSequenceClassification
+from trl import PPOConfig, PPOTrainer, AutoModelForCausalLMWithValueHead
+from trl.core import LengthSampler
+from peft import LoraConfig
+import wandb
+
+# === 1. Configuration ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # Or your SFT checkpoint
+REWARD_MODEL_ID = "./coursera-reward-model"           # From Module 3
+
+ppo_config = PPOConfig(
+    model_name=MODEL_ID,
+    learning_rate=1e-5,
+    batch_size=16,
+    mini_batch_size=4,
+    gradient_accumulation_steps=4,
+    ppo_epochs=4,                    # PPO inner epochs per batch
+    
+    # KL penalty — critical hyperparameter
+    init_kl_coef=0.2,               # Starting KL coefficient
+    target_kl=6.0,                   # Adaptive KL target
+    kl_penalty="kl",                 # "kl" or "abs" or "mse"
+    
+    # Generation parameters
+    temperature=0.7,
+    top_p=0.9,
+    max_new_tokens=512,
+    
+    # Logging
+    log_with="wandb",
+    project_name="coursera-rlhf",
+)
+
+# LoRA for memory efficiency during PPO
+lora_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# === 2. Load Models ===
+
+# Policy model (the one we're training)
+model = AutoModelForCausalLMWithValueHead.from_pretrained(
+    MODEL_ID,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+    peft_config=lora_config,
+)
+
+# Reference model (frozen SFT model for KL computation)
+ref_model = AutoModelForCausalLMWithValueHead.from_pretrained(
+    MODEL_ID,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+# Reward model
+reward_model = AutoModelForSequenceClassification.from_pretrained(
+    REWARD_MODEL_ID,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+
+# === 3-5. Training Loop (abbreviated for space) ===
+
+ppo_trainer = PPOTrainer(
+    config=ppo_config,
+    model=model,
+    ref_model=ref_model,
+    tokenizer=tokenizer,
+    dataset=prompts_dataset,
+)
+
+for epoch in range(ppo_config.ppo_epochs):
+    for batch in ppo_trainer.dataloader:
+        query_tensors = batch["input_ids"]
+        
+        # Generate responses from current policy
+        response_tensors = ppo_trainer.generate(
+            query_tensors, max_new_tokens=512, temperature=0.7, do_sample=True,
+        )
+        
+        # Decode for reward computation
+        response_texts = tokenizer.batch_decode(response_tensors, skip_special_tokens=True)
+        query_texts = tokenizer.batch_decode(query_tensors, skip_special_tokens=True)
+        
+        # Compute rewards
+        rewards = compute_reward(response_texts, query_texts)
+        
+        # PPO step
+        stats = ppo_trainer.step(query_tensors, response_tensors, rewards)
+        ppo_trainer.log_stats(stats, batch, rewards)
+
+# Save final model
+ppo_trainer.save_pretrained("./coursera-rlhf-model")
+print("RLHF training complete!")</code></pre>
+
+<h3>Diagnosing RLHF Issues</h3>
+
+<table>
+<thead><tr><th>Symptom</th><th>Likely Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>Reward increases but quality decreases</td><td>Reward hacking</td><td>Increase KL coefficient, improve reward model</td></tr>
+<tr><td>KL divergence explodes</td><td>Learning rate too high</td><td>Reduce LR, increase init_kl_coef</td></tr>
+<tr><td>No improvement in reward</td><td>KL penalty too strong</td><td>Reduce beta, or reward model isn't discriminative enough</td></tr>
+<tr><td>Repetitive outputs</td><td>Mode collapse</td><td>Increase temperature, add entropy bonus</td></tr>
+<tr><td>Training is unstable (reward oscillates)</td><td>Batch size too small</td><td>Increase batch size, reduce LR</td></tr>
+</tbody>
+</table>
+
+<h3>When RLHF Is Worth It</h3>
+
+<div class="callout insight">
+<div class="callout-title">&#x1f4a1; Use RLHF when:</div>
+<p>You have a strong reward model (>75% agreement with humans), you need nuanced behavioral changes that SFT can't capture, you're optimizing for multi-dimensional quality, and you have the compute budget ($100-1000+ per training run).</p>
+</div>
+
+<div class="callout tip">
+<div class="callout-title">&#x2139;&#xFE0F; Skip RLHF (use DPO instead) when:</div>
+<p>You have good preference data but limited compute, the behavior change is relatively straightforward, you want faster iteration cycles, or you're still in the experimentation phase.</p>
+</div>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/1707.06347" target="_blank">Proximal Policy Optimization Algorithms</a> (Schulman et al., 2017)</li>
+<li><a href="https://arxiv.org/abs/2203.02155" target="_blank">InstructGPT paper</a> — The canonical RLHF implementation</li>
+<li><a href="https://arxiv.org/abs/2307.04964" target="_blank">Secrets of RLHF in Large Language Models Part I</a> — Practical tricks</li>
+<li><a href="https://huggingface.co/docs/trl/ppo_trainer" target="_blank">TRL PPO documentation</a></li>
+</ul>
+</div>
+</section>
+
+<!-- ============ MODULE 5 ============ -->
+<section class="module-section" id="module-5">
+<div class="module-header">
+<h2>Module 5: DPO & Modern Alternatives to RLHF</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</span>
+<label class="check-module" id="check-5" onclick="toggleModule(5)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Understand DPO's mathematical relationship to RLHF</li>
+<li>Implement DPO training on educational preference data</li>
+<li>Compare DPO, ORPO, SimPO, and KTO</li>
+<li>Choose the right alignment technique for your use case</li>
+<li>Achieve RLHF-quality results at a fraction of the compute cost</li>
+</ul>
+</div>
+
+<h3>Direct Preference Optimization (DPO)</h3>
+<p>DPO's key insight: you can skip the reward model entirely. Instead of training a reward model and then doing RL, DPO directly optimizes the language model using preference data.</p>
+<p><strong>The math:</strong> DPO shows that the optimal policy under the RLHF objective has a closed-form solution. You can reparameterize the reward in terms of the policy itself, leading to a simple classification loss:</p>
+<div class="math math-block">L_DPO = -E[log σ(β log π_θ(y_w|x)/π_ref(y_w|x) - β log π_θ(y_l|x)/π_ref(y_l|x))]</div>
+<p><strong>In plain English:</strong> Increase the probability of chosen responses relative to rejected ones, but don't drift too far from the reference model.</p>
+
+<h3>Why DPO is Often Better for Practitioners</h3>
+
+<table>
+<thead><tr><th>Aspect</th><th>RLHF (PPO)</th><th>DPO</th></tr></thead>
+<tbody>
+<tr><td>Compute cost</td><td>4-8x SFT</td><td>1.5-2x SFT</td></tr>
+<tr><td>GPU memory</td><td>Need 3+ models in memory</td><td>Need 2 models</td></tr>
+<tr><td>Stability</td><td>Finicky, many hyperparameters</td><td>Stable, few hyperparameters</td></tr>
+<tr><td>Quality ceiling</td><td>Slightly higher (in theory)</td><td>90-95% of RLHF quality</td></tr>
+<tr><td>Iteration speed</td><td>Days per experiment</td><td>Hours per experiment</td></tr>
+</tbody>
+</table>
+
+<h4>Other Modern Alternatives</h4>
+<p><strong>ORPO</strong> (Odds Ratio Preference Optimization): Combines SFT and preference optimization in a single step. No reference model needed.</p>
+<p><strong>SimPO</strong> (Simple Preference Optimization): Uses average log probability as implicit reward. Simpler than DPO, competitive results.</p>
+<p><strong>KTO</strong> (Kahneman-Tversky Optimization): Works with binary feedback (good/bad) rather than pairwise preferences. Useful when you can't get preference pairs.</p>
+
+<h3>Hands-On Exercise 5.1: DPO Fine-Tuning</h3>
+
+<div class="callout compute">
+<div class="callout-title">&#x1f4bb; Compute Requirements</div>
+<p>1x A100 80GB (or 2x A100 40GB) · 2-4 hours · Cost: ~$8-15</p>
+</div>
+
+<div class="code-header"><span>python — DPO training on educational preference data</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+DPO training on educational preference data.
+This is likely your go-to method for Coursera's use case.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from trl import DPOConfig, DPOTrainer
+from peft import LoraConfig
+import json
+
+# === Configuration ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-dpo-model"
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+
+lora_config = LoraConfig(
+    r=32,                           # Slightly higher rank for DPO
+    lora_alpha=64,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# === Load Model ===
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_ID,
+    quantization_config=bnb_config,
+    device_map="auto",
+    attn_implementation="flash_attention_2",
+)
+
+# === DPO Training ===
+
+dpo_config = DPOConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=3,
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=8,
+    learning_rate=5e-6,              # DPO uses lower LR than SFT
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.1,
+    bf16=True,
+    
+    # DPO-specific parameters
+    beta=0.1,                        # KL penalty strength (0.05-0.5 typical)
+    loss_type="sigmoid",             # "sigmoid" (standard DPO) or "hinge" or "ipo"
+    
+    max_length=2048,
+    max_prompt_length=1024,
+    
+    logging_steps=10,
+    save_strategy="steps",
+    save_steps=200,
+    eval_strategy="steps",
+    eval_steps=100,
+    report_to="wandb",
+    run_name="coursera-dpo-v1",
+)
+
+trainer = DPOTrainer(
+    model=model,
+    args=dpo_config,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+    peft_config=lora_config,
+)
+
+# Train!
+trainer.train()
+trainer.save_model(OUTPUT_DIR)
+
+# === Key metrics to monitor ===
+# - train/rewards/chosen: reward of chosen examples (should increase)
+# - train/rewards/rejected: reward of rejected examples (should decrease)
+# - train/rewards/margins: chosen - rejected (should increase)
+# - train/logps/rejected: log probs of rejected (should decrease)</code></pre>
+
+<h3>Decision Guide: Which Technique to Use</h3>
+
+<div class="decision-tree">Do you have <strong>PAIRWISE preference data</strong> (A is better than B)?
+├── YES → How much compute do you have?
+│   ├── Limited (1-2 GPUs) → <strong>DPO</strong> (best effort/quality tradeoff)
+│   ├── Moderate (2-4 GPUs) → DPO or <strong>ORPO</strong> (skip SFT step)
+│   └── Large (4-8 GPUs) → <strong>RLHF/PPO</strong> (maximum quality ceiling)
+│
+└── NO → What kind of feedback do you have?
+    ├── Binary (good/bad per response) → <strong>KTO</strong>
+    ├── Scalar ratings → Convert to pairs, use <strong>DPO</strong>
+    └── Implicit signals only → <strong>GRPO</strong> with verifiable rewards (Module 6)</div>
+
+<div class="callout insight">
+<div class="callout-title">&#x1f4a1; Recommendation</div>
+<p><strong>For Coursera's starting point: DPO with educational preference data.</strong> It's the best balance of quality, compute cost, and iteration speed. Move to RLHF/PPO only when you've exhausted DPO's ceiling and have the infrastructure for it.</p>
+</div>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2305.18290" target="_blank">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a> (Rafailov et al., 2023)</li>
+<li><a href="https://arxiv.org/abs/2403.07691" target="_blank">ORPO: Monolithic Preference Optimization without Reference Model</a></li>
+<li><a href="https://arxiv.org/abs/2405.14734" target="_blank">SimPO: Simple Preference Optimization with a Reference-Free Reward</a></li>
+<li><a href="https://arxiv.org/abs/2402.01306" target="_blank">KTO: Model Alignment as Prospect Theoretic Optimization</a></li>
+</ul>
+</div>
+</section>
+
+
+<!-- ============ MODULE 6 ============ -->
+<section class="module-section" id="module-6">
+<div class="module-header">
+<h2>Module 6: GRPO & Reasoning (The DeepSeek-R1 Approach)</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8–10 hours</span>
+<label class="check-module" id="check-6" onclick="toggleModule(6)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Understand Group Relative Policy Optimization (GRPO) and how it differs from PPO</li>
+<li>Implement verifiable reward functions for educational tasks</li>
+<li>Use RL to improve model reasoning (chain-of-thought emergence)</li>
+<li>Apply the DeepSeek-R1 approach to math and science tutoring</li>
+<li>Design reward functions that don't require human annotation</li>
+</ul>
+</div>
+
+<h3>Why GRPO Matters for Education</h3>
+<p>The DeepSeek-R1 breakthrough showed that RL can teach models to <em>reason better</em> — not just produce prettier outputs, but actually think more carefully. For education, this is transformative: a model that reasons step-by-step can show its work, catch its own errors, and teach problem-solving processes.</p>
+
+<h3>GRPO vs. PPO</h3>
+<p><strong>PPO</strong> uses a separate value model (critic) to estimate advantages. This adds memory cost and training complexity.</p>
+<p><strong>GRPO</strong> (Group Relative Policy Optimization) eliminates the value model by computing advantages <em>within a group of samples</em>:</p>
+
+<div class="ascii-diagram">For prompt x, generate G responses: y₁, y₂, ..., yG
+Score each: r₁, r₂, ..., rG
+Normalize scores within group: advantage_i = (r_i - mean(r)) / std(r)
+Update policy to increase probability of high-advantage responses</div>
+
+<p>This is cheaper (no value model), more stable, and works especially well with <em>verifiable rewards</em>.</p>
+
+<h3>Verifiable Rewards for Education</h3>
+
+<div class="callout insight">
+<div class="callout-title">&#x1f4a1; The Magic of GRPO for Educational AI</div>
+<p>Many learning tasks have verifiable outcomes — math answers that can be checked, code that can be executed, logical statements that can be validated. This means you can train without human annotators.</p>
+</div>
+
+<div class="code-header"><span>python — verifiable reward functions</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Verifiable reward functions for educational tasks.
+These don't require human annotation — they're programmatic.
+"""
+
+import re
+import subprocess
+import json
+from typing import Optional
+
+def math_reward(response: str, correct_answer: float, tolerance: float = 0.01) -> float:
+    """
+    Reward for math problem solving.
+    Extracts the final numerical answer and checks correctness.
+    """
+    patterns = [
+        r'\\boxed\{([^}]+)\}',
+        r'(?:answer|result|=)\s*([+-]?\d+\.?\d*)',
+        r'(?:^|\n)\s*([+-]?\d+\.?\d*)\s*$',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, response, re.IGNORECASE | re.MULTILINE)
+        if match:
+            try:
+                extracted = float(match.group(1))
+                if abs(extracted - correct_answer) < tolerance:
+                    return 1.0  # Correct
+                else:
+                    return -0.5  # Wrong answer
+            except ValueError:
+                continue
+    
+    return -0.1  # Couldn't extract an answer
+
+
+def code_execution_reward(response: str, test_cases: list[dict]) -> float:
+    """
+    Reward for code generation tasks.
+    Actually runs the code and checks against test cases.
+    """
+    code_match = re.search(r'```python\n(.*?)```', response, re.DOTALL)
+    if not code_match:
+        return -0.1
+    
+    code = code_match.group(1)
+    passed = 0
+    total = len(test_cases)
+    
+    for test in test_cases:
+        test_code = code + "\n" + test["test"]
+        try:
+            result = subprocess.run(
+                ["python", "-c", test_code],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                passed += 1
+        except (subprocess.TimeoutExpired, Exception):
+            continue
+    
+    return (passed / total) * 2 - 1  # Scale to [-1, 1]
+
+
+def combined_educational_reward(
+    response: str, task_type: str,
+    ground_truth: Optional[str] = None, **kwargs
+) -> float:
+    """Combined reward function that dispatches based on task type."""
+    if task_type == "math":
+        correctness = math_reward(response, float(ground_truth))
+        explanation = explanation_quality_reward(response, kwargs.get("concept", ""))
+        return 0.7 * correctness + 0.3 * explanation
+    elif task_type == "code":
+        correctness = code_execution_reward(response, kwargs.get("test_cases", []))
+        explanation = explanation_quality_reward(response, kwargs.get("concept", ""))
+        return 0.6 * correctness + 0.4 * explanation
+    else:
+        return explanation_quality_reward(response, "")</code></pre>
+
+<h3>Hands-On Exercise 6.1: GRPO Training for Math Tutoring</h3>
+
+<div class="callout compute">
+<div class="callout-title">&#x1f4bb; Compute Requirements</div>
+<p>2x A100 80GB · 4-8 hours · Cost: ~$20-40</p>
+</div>
+
+<div class="code-header"><span>python — GRPO training for math tutoring</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+GRPO training for math/science tutoring.
+The model learns to reason step-by-step through RL with verifiable rewards.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from trl import GRPOConfig, GRPOTrainer
+from peft import LoraConfig
+import re
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-grpo-math"
+
+lora_config = LoraConfig(
+    r=32, lora_alpha=64,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+    lora_dropout=0.05, bias="none", task_type="CAUSAL_LM",
+)
+
+# Prepare math tutoring dataset from GSM8K
+def create_math_tutoring_dataset():
+    gsm8k = load_dataset("openai/gsm8k", "main", split="train")
+    formatted = []
+    for example in gsm8k:
+        answer_text = example["answer"]
+        final_answer = answer_text.split("####")[-1].strip()
+        formatted.append({
+            "prompt": (
+                f"&lt;|begin_of_text|&gt;&lt;|start_header_id|&gt;system&lt;|end_header_id|&gt;\n\n"
+                f"You are a math tutor. Solve the problem step by step, showing your "
+                f"reasoning clearly. End with your final answer on a new line as: "
+                f"Answer: &lt;number&gt;&lt;|eot_id|&gt;"
+                f"&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;\n\n"
+                f"{example['question']}&lt;|eot_id|&gt;"
+                f"&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;\n\n"
+            ),
+            "ground_truth": final_answer,
+        })
+    return Dataset.from_list(formatted)
+
+dataset = create_math_tutoring_dataset()
+
+# GRPO config
+grpo_config = GRPOConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=2,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=1e-5,
+    num_generations=8,          # Generate 8 responses per prompt (the "group")
+    max_new_tokens=512,
+    temperature=0.8,            # Higher temp for diversity in the group
+    beta=0.04,                  # Lower than DPO since rewards are more informative
+    bf16=True,
+    logging_steps=5,
+    save_steps=100,
+    report_to="wandb",
+    run_name="coursera-grpo-math-v1",
+)
+
+trainer = GRPOTrainer(
+    model=model, args=grpo_config,
+    train_dataset=dataset, tokenizer=tokenizer,
+    reward_funcs=reward_fn, peft_config=lora_config,
+)
+
+trainer.train()
+trainer.save_model(OUTPUT_DIR)</code></pre>
+
+<h3>Chain-of-Thought Emergence Through RL</h3>
+
+<div class="callout insight">
+<div class="callout-title">&#x1f4a1; Remarkable Finding from DeepSeek-R1</div>
+<p>When you reward models for correct answers (not for showing work), they <strong>spontaneously develop chain-of-thought reasoning</strong>. The RL process discovers that "thinking step by step" leads to higher rewards. For Coursera, this means you can train models that naturally explain their reasoning to students — not because you told them to, but because reasoning out loud helps them arrive at correct answers.</p>
+</div>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2501.12948" target="_blank">DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning</a></li>
+<li><a href="https://arxiv.org/abs/2305.20050" target="_blank">Let's Verify Step by Step</a> (Lightman et al., 2023) — Process reward models</li>
+<li><a href="https://arxiv.org/abs/2312.08935" target="_blank">Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations</a></li>
+<li><a href="https://huggingface.co/docs/trl/grpo_trainer" target="_blank">GRPO in TRL</a></li>
+</ul>
+</div>
+</section>
+
+
+<!-- ============ MODULE 7 ============ -->
+<section class="module-section" id="module-7">
+<div class="module-header">
+<h2>Module 7: Building the Coursera Moat — Agentic Learning</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 8–10 hours</span>
+<label class="check-module" id="check-7" onclick="toggleModule(7)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Design an agentic tutoring system with tool use</li>
+<li>Implement multi-turn conversation optimization</li>
+<li>Build student state tracking for personalization</li>
+<li>Combine RL-tuned models with tool calling for adaptive learning</li>
+<li>Apply Constitutional AI principles to educational agents</li>
+</ul>
+</div>
+
+<h3>The Agentic Tutor Architecture</h3>
+<div class="ascii-diagram">┌─────────────────────────────────────────────────────────────┐
+│                    AGENTIC TUTOR SYSTEM                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────┐    ┌───────────────┐    ┌──────────────┐ │
+│  │ RL-Tuned LLM │◀──▶│ Student State │◀──▶│ Tool Router  │ │
+│  │ (Core Brain) │    │   Tracker     │    │              │  │
+│  └──────┬───────┘    └───────────────┘    └──────┬───────┘ │
+│         │                                         │          │
+│         ▼                                         ▼          │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                    TOOL SUITE                          │   │
+│  ├──────────┬──────────┬──────────┬──────────┬──────────┤   │
+│  │ Quiz Gen │ Code     │ Diagram  │ Video    │ Concept  │   │
+│  │          │ Sandbox  │ Creator  │ Finder   │ Map      │   │
+│  └──────────┴──────────┴──────────┴──────────┴──────────┘   │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘</div>
+
+<h3>Student State Tracking</h3>
+
+<div class="code-header"><span>python — student state model for personalization</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Student state model for personalization.
+The RL-tuned model uses this context to adapt its teaching.
+"""
+
+from dataclasses import dataclass, field
+from typing import Optional
+import json
+
+@dataclass
+class StudentState:
+    """Tracks a student's learning state across a session."""
+    # Knowledge state
+    topic: str = ""
+    subtopics_mastered: list[str] = field(default_factory=list)
+    subtopics_struggling: list[str] = field(default_factory=list)
+    current_difficulty: float = 0.5  # 0=beginner, 1=expert
+    
+    # Engagement state
+    turns_in_session: int = 0
+    consecutive_correct: int = 0
+    consecutive_wrong: int = 0
+    last_engagement_signal: str = "neutral"
+    
+    # Learning preferences
+    prefers_examples: bool = True
+    prefers_formal_definitions: bool = False
+    prefers_visual: bool = False
+    response_length_preference: str = "medium"
+    
+    # History
+    recent_interactions: list[dict] = field(default_factory=list)
+    quiz_scores: list[float] = field(default_factory=list)
+    
+    def to_system_context(self) -> str:
+        """Convert state to natural language context for the model."""
+        context_parts = [
+            f"Student is studying: {self.topic}",
+            f"Current level: {'beginner' if self.current_difficulty < 0.3 else 'intermediate' if self.current_difficulty < 0.7 else 'advanced'}",
+        ]
+        
+        if self.subtopics_struggling:
+            context_parts.append(f"Struggling with: {', '.join(self.subtopics_struggling)}")
+        
+        if self.consecutive_wrong >= 2:
+            context_parts.append("Student has gotten several questions wrong. Simplify and encourage.")
+        elif self.consecutive_correct >= 3:
+            context_parts.append("Student is on a streak. Consider increasing difficulty.")
+        
+        return "\n".join(context_parts)
+    
+    def update_from_interaction(self, user_msg: str, assistant_msg: str, quiz_result: Optional[float] = None):
+        """Update state based on the latest interaction."""
+        self.turns_in_session += 1
+        
+        if quiz_result is not None:
+            self.quiz_scores.append(quiz_result)
+            if quiz_result >= 0.8:
+                self.consecutive_correct += 1
+                self.consecutive_wrong = 0
+            else:
+                self.consecutive_wrong += 1
+                self.consecutive_correct = 0
+            
+            if self.consecutive_correct >= 3:
+                self.current_difficulty = min(1.0, self.current_difficulty + 0.1)
+            elif self.consecutive_wrong >= 2:
+                self.current_difficulty = max(0.0, self.current_difficulty - 0.15)</code></pre>
+
+<h3>Hands-On Exercise 7.1: Build an Agentic Tutor</h3>
+
+<div class="code-header"><span>python — agentic tutor with tool use</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Agentic tutor with tool use and RL-tuned base model.
+Combines everything from Modules 1-6 into a working system.
+"""
+
+import json
+import re
+from dataclasses import dataclass
+from typing import Callable
+
+TOOLS = [
+    {"name": "generate_quiz", "description": "Generate a quiz question to test understanding."},
+    {"name": "run_code", "description": "Execute Python code in a sandbox."},
+    {"name": "create_diagram", "description": "Generate a visual diagram explaining a concept."},
+    {"name": "search_course_content", "description": "Search Coursera course materials."},
+    {"name": "adjust_difficulty", "description": "Change the difficulty level."},
+]
+
+class AgenticTutor:
+    """
+    An agentic tutor that combines:
+    1. RL-tuned base model for core teaching ability
+    2. Student state tracking for personalization
+    3. Tool use for interactive learning experiences
+    """
+    
+    def __init__(self, model, tokenizer, tools: dict[str, Callable]):
+        self.model = model
+        self.tokenizer = tokenizer
+        self.tools = tools
+        self.student_state = StudentState()
+        self.conversation_history = []
+    
+    def build_system_prompt(self) -> str:
+        """Dynamic system prompt incorporating student state and available tools."""
+        base_prompt = (
+            "You are a Coursera AI tutor. Your goal is to help the student truly "
+            "understand concepts, not just give them answers.\n\n"
+            "TEACHING PRINCIPLES:\n"
+            "- Use Socratic questioning: guide students to discover answers\n"
+            "- Adapt to the student's level and learning state\n"
+            "- Use tools when they would enhance learning\n"
+            "- Check understanding before moving to new topics\n"
+            "- Be encouraging but honest about mistakes\n\n"
+        )
+        
+        state_context = self.student_state.to_system_context()
+        if state_context:
+            base_prompt += f"CURRENT STUDENT STATE:\n{state_context}\n\n"
+        
+        return base_prompt
+    
+    def generate_response(self, user_message: str) -> str:
+        """Generate a tutoring response, potentially with tool calls."""
+        messages = [{"role": "system", "content": self.build_system_prompt()}]
+        
+        for turn in self.conversation_history[-10:]:
+            messages.append(turn)
+        
+        messages.append({"role": "user", "content": user_message})
+        
+        input_ids = self.tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+        
+        with torch.no_grad():
+            output = self.model.generate(input_ids, max_new_tokens=1024, temperature=0.7)
+        
+        response = self.tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True)
+        response = self.execute_tool_calls(response)
+        self.student_state.update_from_interaction(user_message, response)
+        
+        return response</code></pre>
+
+<h3>Constitutional AI for Education</h3>
+
+<div class="code-header"><span>python — educational AI constitution</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Constitutional AI principles for educational agents.
+"""
+
+EDUCATIONAL_CONSTITUTION = [
+    # Accuracy
+    "If you are unsure about a factual claim, say so explicitly rather than stating it confidently.",
+    "Never make up citations, formulas, or code that you haven't verified.",
+    
+    # Pedagogy
+    "Prefer helping the student arrive at the answer over giving the answer directly.",
+    "When a student is wrong, identify the specific misconception rather than just saying 'that's wrong.'",
+    "Celebrate genuine effort and progress, not just correct answers.",
+    
+    # Safety
+    "Never generate content that could be used to cheat on graded assessments.",
+    "If a student asks you to write an entire assignment for them, offer to help them "
+    "understand the concepts instead.",
+    "Maintain academic integrity — help students learn, not bypass learning.",
+    
+    # Engagement
+    "If the student seems disengaged after 3+ turns, change your approach significantly.",
+    "Use concrete examples from the student's likely experience before abstract definitions.",
+    "Keep explanations concise — if you can say it in 3 sentences, don't use 10.",
+    
+    # Boundaries
+    "You are a tutor, not a therapist. If a student expresses serious distress, "
+    "direct them to appropriate support resources.",
+    "Stay focused on the learning topic. Gently redirect off-topic conversations.",
+]
+
+# These principles can be enforced via:
+# 1. System prompt (weakest but simplest)
+# 2. Constitutional AI training (RL from AI feedback using these principles)
+# 3. Output filtering (check responses against principles before serving)</code></pre>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2302.04761" target="_blank">Toolformer: Language Models Can Teach Themselves to Use Tools</a></li>
+<li><a href="https://arxiv.org/abs/2212.08073" target="_blank">Constitutional AI: Harmlessness from AI Feedback</a></li>
+<li><a href="https://arxiv.org/abs/2210.03629" target="_blank">ReAct: Synergizing Reasoning and Acting in Language Models</a></li>
+<li><a href="https://arxiv.org/abs/2304.03442" target="_blank">Generative Agents: Interactive Simulacra of Human Behavior</a></li>
+</ul>
+</div>
+</section>
+
+<!-- ============ MODULE 8 ============ -->
+<section class="module-section" id="module-8">
+<div class="module-header">
+<h2>Module 8: Data Flywheel — The Real Moat</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 6–8 hours</span>
+<label class="check-module" id="check-8" onclick="toggleModule(8)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Design data collection systems for learning interactions</li>
+<li>Extract implicit reward signals from student behavior</li>
+<li>Implement online learning from A/B test results</li>
+<li>Build a continuous improvement pipeline</li>
+<li>Navigate privacy and ethical considerations in educational AI</li>
+<li>Understand the competitive dynamics of data flywheels</li>
+</ul>
+</div>
+
+<h3>The Data Flywheel</h3>
+<div class="ascii-diagram">                    ┌──────────────────────┐
+                    │   Better Model       │
+                    │   (higher quality    │
+                    │    tutoring)         │
+                    └──────────┬───────────┘
+                               │
+                    Attracts   │   Generates
+                               ▼
+┌──────────────────┐                    ┌──────────────────┐
+│  More Students   │◀───────────────────│  Better Learning │
+│  (network effect)│                    │  Outcomes        │
+└────────┬─────────┘                    └──────────────────┘
+         │                                       ▲
+         │ Generates                             │ Enables
+         ▼                                       │
+┌──────────────────┐                    ┌────────┴─────────┐
+│  More Interaction │──────────────────▶│  More Training   │
+│  Data            │     Feeds into     │  Signal          │
+└──────────────────┘                    └──────────────────┘</div>
+
+<div class="callout insight">
+<div class="callout-title">&#x1f4a1; The True Moat</div>
+<p><strong>No competitor can replicate millions of real student learning interactions.</strong> They'd need both the platform (students) and the infrastructure (data pipeline + training loop).</p>
+</div>
+
+<h3>Implicit Reward Signals from Student Behavior</h3>
+
+<div class="code-header"><span>python — mining reward signals from student behavior</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Mining reward signals from student behavior — no explicit feedback needed.
+"""
+
+from dataclasses import dataclass
+from typing import Optional
+import numpy as np
+
+@dataclass 
+class InteractionSignals:
+    """Signals collected during a learning interaction."""
+    # Time-based signals
+    time_to_respond_seconds: float
+    time_reading_response_seconds: float
+    session_duration_seconds: float
+    
+    # Behavioral signals
+    did_ask_followup: bool
+    did_request_clarification: bool
+    did_abandon_session: bool
+    did_complete_exercise: bool
+    times_re_read_response: int
+    
+    # Learning outcome signals
+    quiz_score_before: Optional[float]
+    quiz_score_after: Optional[float]
+    concept_retention_1day: Optional[float]
+    concept_retention_7day: Optional[float]
+    
+    # Downstream signals
+    course_completion: bool
+    next_topic_success: bool
+
+
+def compute_implicit_reward(signals: InteractionSignals) -> float:
+    """Compute a reward score from implicit signals."""
+    reward = 0.0
+    
+    # Learning outcome (strongest signal, but delayed)
+    if signals.quiz_score_after is not None and signals.quiz_score_before is not None:
+        improvement = signals.quiz_score_after - signals.quiz_score_before
+        reward += improvement * 2.0
+    
+    # Engagement (immediate signal)
+    if signals.did_ask_followup:
+        reward += 0.3
+    if signals.did_abandon_session:
+        reward -= 0.5
+    if signals.did_complete_exercise:
+        reward += 0.4
+    
+    # Comprehension proxies
+    if signals.did_request_clarification:
+        reward -= 0.2
+    
+    # Retention (strongest long-term signal)
+    if signals.concept_retention_7day is not None:
+        if signals.concept_retention_7day > 0.8:
+            reward += 0.5
+        elif signals.concept_retention_7day < 0.4:
+            reward -= 0.3
+    
+    return reward</code></pre>
+
+<h3>A/B Testing Model Versions</h3>
+
+<div class="code-header"><span>python — A/B testing framework</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+A/B testing framework for model versions.
+Route students to different models, measure learning outcomes.
+"""
+
+import hashlib
+import numpy as np
+from scipy import stats
+
+class ModelABTest:
+    def __init__(self, control_model: str, treatment_model: str, traffic_split: float = 0.1):
+        self.control = control_model
+        self.treatment = treatment_model
+        self.split = traffic_split
+        self.results = {"control": [], "treatment": []}
+    
+    def assign_variant(self, student_id: str) -> str:
+        """Deterministically assign a student to a variant."""
+        hash_val = int(hashlib.md5(student_id.encode()).hexdigest(), 16)
+        if (hash_val % 1000) / 1000 < self.split:
+            return "treatment"
+        return "control"
+    
+    def analyze(self) -> dict:
+        """Statistical analysis of A/B test results."""
+        control_scores = [r.get("quiz_improvement", 0) for r in self.results["control"]]
+        treatment_scores = [r.get("quiz_improvement", 0) for r in self.results["treatment"]]
+        
+        t_stat, p_value = stats.ttest_ind(treatment_scores, control_scores)
+        
+        return {
+            "control_mean": np.mean(control_scores),
+            "treatment_mean": np.mean(treatment_scores),
+            "lift": (np.mean(treatment_scores) - np.mean(control_scores)) / max(np.mean(control_scores), 0.01),
+            "p_value": p_value,
+            "significant": p_value < 0.05,
+        }</code></pre>
+
+<h3>The Continuous Training Pipeline</h3>
+
+<div class="code-header"><span>python — continuous improvement loop</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Continuous improvement loop: deploy → collect → train → deploy
+This system architecture creates an ever-widening moat.
+"""
+
+class ContinuousImprovementPipeline:
+    """Orchestrates the ongoing improvement of the tutoring model."""
+    
+    def run_improvement_cycle(self):
+        """
+        One cycle of the improvement loop:
+        1. Collect new interaction data
+        2. Create preference pairs from implicit rewards
+        3. DPO training on new preferences
+        4. Evaluate new model
+        5. A/B test if evaluation passes
+        6. Promote if A/B test passes
+        """
+        
+        new_data = self.collect_new_interactions(days=7)
+        print(f"Collected {len(new_data)} new interactions")
+        
+        preference_pairs = self.create_preference_pairs(new_data)
+        
+        # Quality filter — only high-confidence pairs
+        filtered_pairs = [
+            p for p in preference_pairs 
+            if abs(p["chosen_reward"] - p["rejected_reward"]) > 0.3
+        ]
+        
+        if len(filtered_pairs) < self.config.min_pairs_for_training:
+            print("Not enough data for training. Waiting for more interactions.")
+            return
+        
+        new_model = self.train_dpo(filtered_pairs)
+        
+        eval_results = self.evaluate_model(new_model)
+        if eval_results["win_rate_vs_current"] < 0.52:
+            print("New model not significantly better. Discarding.")
+            return
+        
+        # Deploy to A/B test (10% traffic)
+        self.deploy_ab_test(new_model, traffic_fraction=0.1)
+        print(f"Model v{self.current_model_version + 1} deployed to 10% traffic")</code></pre>
+
+<h3>Privacy and Ethics</h3>
+<div class="callout warning">
+<div class="callout-title">&#x26A0;&#xFE0F; Key Considerations for Educational AI Data</div>
+<ol>
+<li><strong>Student consent</strong>: Students must know their interactions are used for model improvement</li>
+<li><strong>Anonymization</strong>: Remove personally identifiable information before training</li>
+<li><strong>Minor protection</strong>: Extra safeguards for K-12 interactions (COPPA compliance)</li>
+<li><strong>Opt-out</strong>: Students must be able to opt out of data collection</li>
+<li><strong>Data retention</strong>: Define clear retention policies</li>
+<li><strong>Bias monitoring</strong>: Regular audits for demographic bias in model performance</li>
+<li><strong>Transparency</strong>: Publish how the model is trained and what data is used</li>
+</ol>
+</div>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2305.16264" target="_blank">Scaling Data-Constrained Language Models</a> — How to maximize limited data</li>
+<li><a href="https://arxiv.org/abs/2405.07863" target="_blank">RLHF Workflow: From Reward Modeling to Online RLHF</a> — Continuous training</li>
+<li><a href="https://www.latent.space/p/data-flywheels" target="_blank">Data Flywheels for LLMs</a> — Strategic overview</li>
+</ul>
+</div>
+</section>
+
+
+<!-- ============ MODULE 9 ============ -->
+<section class="module-section" id="module-9">
+<div class="module-header">
+<h2>Module 9: Deployment & Inference at Scale</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 5–6 hours</span>
+<label class="check-module" id="check-9" onclick="toggleModule(9)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Learning Objectives</h4>
+<ul>
+<li>Deploy fine-tuned models for production inference</li>
+<li>Apply quantization for cost-efficient serving</li>
+<li>Optimize latency for real-time tutoring</li>
+<li>Build a cost model for self-hosted vs. API</li>
+<li>Implement model versioning and rollback</li>
+</ul>
+</div>
+
+<h3>Inference Stack Comparison</h3>
+
+<table>
+<thead><tr><th>Tool</th><th>Best For</th><th>Throughput</th><th>Latency</th><th>Ease</th></tr></thead>
+<tbody>
+<tr><td><strong>vLLM</strong></td><td>Production at scale</td><td>Very high (PagedAttention)</td><td>Low</td><td>Medium</td></tr>
+<tr><td><strong>TGI</strong> (HuggingFace)</td><td>Quick deployment</td><td>High</td><td>Low</td><td>Easy</td></tr>
+<tr><td><strong>Ollama</strong></td><td>Local dev/testing</td><td>Medium</td><td>Medium</td><td>Very easy</td></tr>
+<tr><td><strong>SGLang</strong></td><td>Complex pipelines</td><td>Very high</td><td>Very low</td><td>Medium</td></tr>
+</tbody>
+</table>
+
+<h3>Quantization for Production</h3>
+
+<div class="code-header"><span>python — quantization options</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Quantization reduces model size and inference cost.
+Key trade-off: smaller = faster + cheaper, but slightly lower quality.
+"""
+
+# === Option 1: GPTQ (GPU inference) ===
+# Best for: production GPU serving
+# Compression: 4-bit, ~4x smaller
+# Quality loss: minimal for 8B+ models
+
+from transformers import AutoModelForCausalLM, GPTQConfig
+
+quantization_config = GPTQConfig(
+    bits=4,
+    dataset="wikitext2",    # Calibration dataset
+    group_size=128,         # Quantization granularity
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    "./coursera-tutor-merged",
+    quantization_config=quantization_config,
+    device_map="auto",
+)
+model.save_pretrained("./coursera-tutor-gptq-4bit")
+
+
+# === Option 2: AWQ (better for batched inference) ===
+# Best for: vLLM serving with high concurrency
+
+# === Option 3: GGUF (CPU/Mac inference, edge deployment) ===
+# Best for: development, edge cases, fallback
+# Convert using llama.cpp</code></pre>
+
+<h3>vLLM Deployment</h3>
+
+<div class="code-header"><span>bash — start vLLM server</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-bash"><code># Start vLLM server:
+python -m vllm.entrypoints.openai.api_server \
+    --model ./coursera-tutor-awq-4bit \
+    --quantization awq \
+    --dtype float16 \
+    --max-model-len 4096 \
+    --gpu-memory-utilization 0.9 \
+    --tensor-parallel-size 1 \
+    --port 8000 \
+    --api-key your-secret-key</code></pre>
+
+<div class="code-header"><span>python — production client code</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8000/v1",
+    api_key="your-secret-key",
+)
+
+def tutor_response(student_message: str, conversation_history: list, student_state: dict) -> str:
+    """Production inference call to the tutor model."""
+    system_prompt = build_system_prompt(student_state)
+    
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(conversation_history[-10:])
+    messages.append({"role": "user", "content": student_message})
+    
+    response = client.chat.completions.create(
+        model="./coursera-tutor-awq-4bit",
+        messages=messages,
+        max_tokens=512,
+        temperature=0.7,
+        stream=True,  # Stream for lower perceived latency
+    )
+    
+    full_response = ""
+    for chunk in response:
+        if chunk.choices[0].delta.content:
+            full_response += chunk.choices[0].delta.content
+            yield chunk.choices[0].delta.content
+    
+    return full_response</code></pre>
+
+<h3>Cost Analysis</h3>
+
+<div class="code-header"><span>python — self-hosted vs. API cost comparison</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Cost model: Self-hosted fine-tuned model vs. API calls.
+"""
+
+def monthly_cost_comparison(
+    daily_interactions: int,
+    avg_input_tokens: int = 500,
+    avg_output_tokens: int = 300,
+):
+    monthly_interactions = daily_interactions * 30
+    
+    # === Option A: Claude API (Sonnet) ===
+    api_input_cost_per_1k = 0.003
+    api_output_cost_per_1k = 0.015
+    
+    api_monthly = monthly_interactions * (
+        avg_input_tokens / 1000 * api_input_cost_per_1k +
+        avg_output_tokens / 1000 * api_output_cost_per_1k
+    )
+    
+    # === Option B: Self-hosted (1x A100 80GB with vLLM) ===
+    gpu_monthly = 2.50 * 24 * 30  # $1,800/month
+    
+    # === Option C: Self-hosted (smaller instance) ===
+    gpu_monthly_small = 0.60 * 24 * 30  # $432/month
+    
+    breakeven_interactions = gpu_monthly_small / (
+        avg_input_tokens / 1000 * api_input_cost_per_1k +
+        avg_output_tokens / 1000 * api_output_cost_per_1k
+    )
+    
+    return {
+        "api_monthly_cost": f"${api_monthly:,.0f}",
+        "self_hosted_a100_monthly": f"${gpu_monthly:,.0f}",
+        "self_hosted_a10g_monthly": f"${gpu_monthly_small:,.0f}",
+        "breakeven_daily_interactions": f"{breakeven_interactions/30:,.0f}",
+        "recommendation": (
+            "Self-host" if monthly_interactions > breakeven_interactions 
+            else "Use API"
+        ),
+    }
+
+# At 100k daily interactions, self-hosting saves ~10x vs API
+print(monthly_cost_comparison(daily_interactions=100_000))
+
+# At 1k daily interactions, API is simpler and cheaper
+print(monthly_cost_comparison(daily_interactions=1_000))</code></pre>
+
+<h3>Latency Optimization</h3>
+<div class="callout tip">
+<div class="callout-title">&#x2139;&#xFE0F; Latency Targets for Real-Time Tutoring</div>
+<p><strong>First token:</strong> &lt;500ms (perceived responsiveness) · <strong>Full response:</strong> &lt;5s for typical responses · <strong>Tool calls:</strong> &lt;2s additional per tool</p>
+<p>Techniques: speculative decoding (use a small draft model), prompt caching (reuse KV cache for system prompt), continuous batching (vLLM handles this), streaming (always stream in production).</p>
+</div>
+
+<div class="readings">
+<h4>Recommended Readings</h4>
+<ul>
+<li><a href="https://arxiv.org/abs/2309.06180" target="_blank">vLLM: Efficient Memory Management for LLM Serving with PagedAttention</a></li>
+<li><a href="https://arxiv.org/abs/2210.17323" target="_blank">GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers</a></li>
+<li><a href="https://arxiv.org/abs/2306.00978" target="_blank">AWQ: Activation-aware Weight Quantization</a></li>
+</ul>
+</div>
+</section>
+
+<!-- ============ MODULE 10 ============ -->
+<section class="module-section" id="module-10">
+<div class="module-header">
+<h2>Module 10: Capstone Project</h2>
+<span class="time-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 15–20 hours</span>
+<label class="check-module" id="check-10" onclick="toggleModule(10)"><input type="checkbox"> Mark Complete</label>
+</div>
+
+<div class="objectives">
+<h4>Project Objective</h4>
+<ul>
+<li>Build an end-to-end RL-tuned educational agent for a specific Coursera course domain</li>
+<li>This capstone brings together everything from Modules 1–9 into a deployable system</li>
+</ul>
+</div>
+
+<h3>Phase 1: Data & SFT (Days 1–3)</h3>
+<div class="code-header"><span>python — step 1: dataset and SFT</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Step 1: Choose a domain and create your dataset.
+Suggested: Python programming (abundant data, verifiable rewards).
+"""
+
+# 1.1 Collect/create teaching conversations for your domain
+# Target: 5,000-10,000 high-quality examples
+# Sources:
+#   - Convert existing Coursera forum Q&As into teaching dialogues
+#   - Use Claude to generate synthetic teaching conversations (then filter)
+#   - Adapt open educational datasets
+
+# 1.2 Fine-tune with QLoRA (Module 2)
+# Target: Model that follows your teaching format consistently
+
+# 1.3 Evaluate SFT model
+# Does it: ask questions? use examples? check understanding? stay on topic?</code></pre>
+
+<h3>Phase 2: Preference Data & DPO (Days 4–6)</h3>
+<div class="code-header"><span>python — step 2: preference data and DPO</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Step 2: Create preference data and run DPO.
+"""
+
+# 2.1 Generate preference pairs
+# Method A: Use SFT model to generate pairs, have domain experts rank them
+# Method B: Use Claude as judge to create initial preference pairs
+# Method C: Use verifiable rewards (for coding domain)
+
+def generate_preference_pair(model, tokenizer, prompt, judge_model):
+    """Generate two responses and have a judge pick the better one."""
+    responses = []
+    for _ in range(2):
+        output = model.generate(prompt, temperature=0.9)
+        responses.append(output)
+    
+    judgment = judge_model.evaluate(
+        prompt=prompt,
+        response_a=responses[0],
+        response_b=responses[1],
+        criteria="Which response better helps the student understand the concept?"
+    )
+    
+    return {
+        "prompt": prompt,
+        "chosen": responses[judgment.preferred],
+        "rejected": responses[1 - judgment.preferred],
+    }
+
+# 2.2 Run DPO training (Module 5)
+# 2.3 Evaluate: does DPO model produce better teaching than SFT model?</code></pre>
+
+<h3>Phase 3: GRPO for Reasoning (Days 7–9)</h3>
+<div class="code-header"><span>python — step 3: GRPO with verifiable rewards</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Step 3: Apply GRPO for verifiable tasks in your domain.
+"""
+
+# For Python programming domain:
+# - Reward = does the code actually work?
+# - Bonus reward = does the explanation make sense?
+# - Bonus reward = is it pedagogically structured?
+
+# For math domain:
+# - Reward = is the final answer correct?
+# - Bonus reward = are intermediate steps shown?
+# - Bonus reward = is there error checking?
+
+# 3.1 Create verifiable reward function for your domain
+# 3.2 Run GRPO training (Module 6)
+# 3.3 Evaluate: does the model reason better? Show its work more?</code></pre>
+
+<h3>Phase 4: Agentic System (Days 10–12)</h3>
+<div class="code-header"><span>python — step 4: agentic system with Gradio</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Step 4: Wrap the RL-tuned model in an agentic framework.
+"""
+
+# 4.1 Implement student state tracking (Module 7)
+# 4.2 Add tool use (quiz generation, code execution)
+# 4.3 Implement the constitutional AI guardrails
+# 4.4 Build a simple web interface (Gradio or Streamlit)
+
+import gradio as gr
+
+def demo_interface():
+    """Simple demo interface for the capstone."""
+    
+    with gr.Blocks(title="Coursera AI Tutor") as demo:
+        gr.Markdown("# Coursera AI Tutor (Capstone Demo)")
+        
+        chatbot = gr.Chatbot(height=500)
+        msg = gr.Textbox(placeholder="Ask me anything about Python...")
+        
+        with gr.Accordion("Student State (Debug)", open=False):
+            state_display = gr.JSON()
+        
+        def respond(message, history):
+            response = tutor.generate_response(message)
+            history.append((message, response))
+            return "", history, tutor.student_state.__dict__
+        
+        msg.submit(respond, [msg, chatbot], [msg, chatbot, state_display])
+    
+    return demo
+
+# demo = demo_interface()
+# demo.launch()</code></pre>
+
+<h3>Phase 5: Deploy & Measure (Days 13–14)</h3>
+<div class="code-header"><span>python — step 5: deployment and evaluation</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+<pre class="language-python"><code>"""
+Step 5: Deploy and measure.
+"""
+
+# 5.1 Quantize model (AWQ or GPTQ)
+# 5.2 Deploy with vLLM
+# 5.3 Run evaluation suite:
+#     - Automated metrics (accuracy on verifiable tasks)
+#     - LLM-as-judge (teaching quality)
+#     - Human eval (if possible, have 5 people interact with it)
+# 5.4 Compare: base model vs. SFT vs. DPO vs. GRPO
+# 5.5 Write up results</code></pre>
+
+<h3>Phase 6: Strategy Memo</h3>
+<p>Write a 2-3 page memo: <strong>"How Coursera Builds an AI Moat Through Reinforcement Learning"</strong></p>
+<p>Cover: The opportunity (why RL-tuned models are the moat), Technical approach (SFT → DPO/GRPO → Data flywheel), Data advantage (how Coursera's scale enables continuous improvement), Competitive analysis (why competitors can't easily replicate this), Roadmap (6-month plan to production), Investment needed (team, compute, timeline, cost estimates), Risks (what could go wrong and how to mitigate).</p>
+
+<h3>Evaluation Rubric</h3>
+<table>
+<thead><tr><th>Component</th><th>Weight</th><th>Criteria</th></tr></thead>
+<tbody>
+<tr><td>SFT model quality</td><td>20%</td><td>Follows teaching format, factually accurate</td></tr>
+<tr><td>DPO/GRPO improvement</td><td>25%</td><td>Measurable improvement over SFT baseline</td></tr>
+<tr><td>Agentic system design</td><td>20%</td><td>Tool use works, student state updates, adapts</td></tr>
+<tr><td>Deployment readiness</td><td>15%</td><td>Quantized, served, latency acceptable</td></tr>
+<tr><td>Strategy memo</td><td>20%</td><td>Clear, actionable, technically grounded</td></tr>
+</tbody>
+</table>
+</section>
+
+
+<!-- ============ APPENDICES ============ -->
+<section class="module-section" id="appendices">
+<h2>Appendices</h2>
+
+<div class="appendix">
+<h3>Appendix A: Compute Budget Summary</h3>
+<table>
+<thead><tr><th>Module</th><th>Exercise</th><th>Min GPU</th><th>Time</th><th>Approx Cost</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Model exploration</td><td>1x A10G</td><td>1 hr</td><td>$1</td></tr>
+<tr><td>2</td><td>QLoRA SFT</td><td>1x A100 40GB</td><td>3 hrs</td><td>$8</td></tr>
+<tr><td>3</td><td>Reward model</td><td>1x A100 40GB</td><td>2 hrs</td><td>$6</td></tr>
+<tr><td>4</td><td>Full RLHF/PPO</td><td>2x A100 80GB</td><td>6 hrs</td><td>$50</td></tr>
+<tr><td>5</td><td>DPO training</td><td>1x A100 80GB</td><td>3 hrs</td><td>$10</td></tr>
+<tr><td>6</td><td>GRPO training</td><td>2x A100 80GB</td><td>5 hrs</td><td>$35</td></tr>
+<tr><td>7</td><td>Agentic system</td><td>1x A100 40GB</td><td>2 hrs</td><td>$5</td></tr>
+<tr><td>9</td><td>Deployment</td><td>1x A10G</td><td>2 hrs</td><td>$2</td></tr>
+<tr><td>10</td><td>Capstone</td><td>2x A100 80GB</td><td>10 hrs</td><td>$80</td></tr>
+<tr style="font-weight:700;background:var(--surface2)"><td>Total</td><td></td><td></td><td>~35 hrs</td><td>~$200</td></tr>
+</tbody>
+</table>
+<div class="callout tip" style="margin-top:1rem">
+<div class="callout-title">&#x2139;&#xFE0F; Budget Tip</div>
+<p>Skip Module 4 (full RLHF) and use DPO throughout. This reduces total cost to ~$120.</p>
+</div>
+</div>
+
+<div class="appendix">
+<h3>Appendix B: Key Papers Reference List</h3>
+<ol>
+<li><strong>InstructGPT</strong> — Ouyang et al., 2022. <a href="https://arxiv.org/abs/2203.02155" target="_blank">arxiv.org/abs/2203.02155</a></li>
+<li><strong>DPO</strong> — Rafailov et al., 2023. <a href="https://arxiv.org/abs/2305.18290" target="_blank">arxiv.org/abs/2305.18290</a></li>
+<li><strong>DeepSeek-R1</strong> — DeepSeek, 2025. <a href="https://arxiv.org/abs/2501.12948" target="_blank">arxiv.org/abs/2501.12948</a></li>
+<li><strong>Constitutional AI</strong> — Bai et al., 2022. <a href="https://arxiv.org/abs/2212.08073" target="_blank">arxiv.org/abs/2212.08073</a></li>
+<li><strong>LoRA</strong> — Hu et al., 2021. <a href="https://arxiv.org/abs/2106.09685" target="_blank">arxiv.org/abs/2106.09685</a></li>
+<li><strong>QLoRA</strong> — Dettmers et al., 2023. <a href="https://arxiv.org/abs/2305.14314" target="_blank">arxiv.org/abs/2305.14314</a></li>
+<li><strong>PPO</strong> — Schulman et al., 2017. <a href="https://arxiv.org/abs/1707.06347" target="_blank">arxiv.org/abs/1707.06347</a></li>
+<li><strong>ORPO</strong> — Hong et al., 2024. <a href="https://arxiv.org/abs/2403.07691" target="_blank">arxiv.org/abs/2403.07691</a></li>
+<li><strong>vLLM</strong> — Kwon et al., 2023. <a href="https://arxiv.org/abs/2309.06180" target="_blank">arxiv.org/abs/2309.06180</a></li>
+<li><strong>LIMA</strong> — Zhou et al., 2023. <a href="https://arxiv.org/abs/2305.11206" target="_blank">arxiv.org/abs/2305.11206</a></li>
+</ol>
+</div>
+
+<div class="appendix">
+<h3>Appendix C: Glossary</h3>
+<div class="glossary-item"><span class="glossary-term">SFT</span> — Supervised Fine-Tuning — teaching a model new behaviors through examples</div>
+<div class="glossary-item"><span class="glossary-term">RLHF</span> — Reinforcement Learning from Human Feedback — optimizing a model using human preferences</div>
+<div class="glossary-item"><span class="glossary-term">DPO</span> — Direct Preference Optimization — a simpler alternative to RLHF that skips the reward model</div>
+<div class="glossary-item"><span class="glossary-term">GRPO</span> — Group Relative Policy Optimization — RL method that computes advantages from a group of samples</div>
+<div class="glossary-item"><span class="glossary-term">LoRA</span> — Low-Rank Adaptation — parameter-efficient fine-tuning using small injected matrices</div>
+<div class="glossary-item"><span class="glossary-term">QLoRA</span> — Quantized LoRA — combines 4-bit quantization with LoRA for extreme memory efficiency</div>
+<div class="glossary-item"><span class="glossary-term">PPO</span> — Proximal Policy Optimization — the RL algorithm used in RLHF</div>
+<div class="glossary-item"><span class="glossary-term">KL divergence</span> — Measures how much the fine-tuned model has drifted from the base model</div>
+<div class="glossary-item"><span class="glossary-term">Reward hacking</span> — When a model finds exploits in the reward function rather than genuinely improving</div>
+<div class="glossary-item"><span class="glossary-term">Data flywheel</span> — A self-reinforcing cycle where more usage generates more data, which improves the model, which attracts more users</div>
+</div>
+
+</section>
+
+</div><!-- end container -->
+
+<!-- Scroll to top -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#x2191;</button>
+
+<!-- Footer -->
+<footer>
+<p>Course created May 2026. Model landscape and library versions evolve rapidly — verify against latest documentation before implementing.</p>
+</footer>
+
+<!-- Prism.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+
+<script>
+// ============ Progress Tracking ============
+const TOTAL_MODULES = 10;
+let completedModules = new Set();
+
+// Load saved progress
+try {
+    const saved = JSON.parse(localStorage.getItem('rl-course-progress') || '[]');
+    saved.forEach(m => completedModules.add(m));
+} catch(e) {}
+
+function updateProgress() {
+    const pct = Math.round((completedModules.size / TOTAL_MODULES) * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('nav-progress').textContent = pct + '% complete';
+    
+    // Update card checks
+    for (let i = 1; i <= TOTAL_MODULES; i++) {
+        const cardCheck = document.getElementById('card-check-' + i);
+        const checkLabel = document.getElementById('check-' + i);
+        if (completedModules.has(i)) {
+            if (cardCheck) { cardCheck.classList.add('done'); cardCheck.innerHTML = '&#x2713;'; }
+            if (checkLabel) { checkLabel.classList.add('completed'); checkLabel.querySelector('input').checked = true; }
+        } else {
+            if (cardCheck) { cardCheck.classList.remove('done'); cardCheck.innerHTML = ''; }
+            if (checkLabel) { checkLabel.classList.remove('completed'); checkLabel.querySelector('input').checked = false; }
+        }
+    }
+    
+    try { localStorage.setItem('rl-course-progress', JSON.stringify([...completedModules])); } catch(e) {}
+}
+
+function toggleModule(num) {
+    if (completedModules.has(num)) {
+        completedModules.delete(num);
+    } else {
+        completedModules.add(num);
+    }
+    updateProgress();
+}
+
+updateProgress();
+
+// ============ Copy Code ============
+function copyCode(btn) {
+    const pre = btn.closest('.code-header').nextElementSibling;
+    const code = pre.querySelector('code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+// ============ Active Nav Highlighting ============
+const sections = document.querySelectorAll('.module-section');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+        }
+    });
+}, { rootMargin: '-80px 0px -70% 0px' });
+
+sections.forEach(section => observer.observe(section));
+
+// ============ Scroll to Top Button ============
+window.addEventListener('scroll', () => {
+    const btn = document.getElementById('scrollTop');
+    btn.classList.toggle('visible', window.scrollY > 500);
+});
+
+// ============ Smooth scroll for nav links ============
+navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+});
+</script>
+
+</body>
+</html>

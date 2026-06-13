@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice AI for Education — Building the Next Interface for Learning</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1a2332;
+  --bg-card: #151d2e;
+  --bg-code: #0d1117;
+  --accent: #22c55e;
+  --accent-dim: #166534;
+  --accent-glow: rgba(34,197,94,0.15);
+  --accent-border: rgba(34,197,94,0.3);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --border: #1e293b;
+  --border-light: #334155;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  --purple: #a78bfa;
+  --cyan: #22d3ee;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", Menlo, monospace;
+  --max-width: 860px;
+  --nav-height: 56px;
+}
+
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-height) + 20px); }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.75;
+  font-size: 17px;
+  min-height: 100vh;
+}
+
+/* ── Sticky Nav ── */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(10,15,26,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.nav-logo svg { flex-shrink: 0; }
+.nav-progress-wrap {
+  flex: 1;
+  max-width: 200px;
+  margin: 0 20px;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.nav-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+.nav-progress-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: right;
+}
+.nav-hamburger {
+  display: none;
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* ── Layout ── */
+.layout {
+  display: flex;
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: calc(100vh - var(--nav-height));
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  padding: 24px 16px;
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: var(--nav-height);
+  height: calc(100vh - var(--nav-height));
+  overflow-y: auto;
+}
+.sidebar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-left: 8px;
+}
+.sidebar-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  line-height: 1.4;
+  transition: all 0.2s;
+  margin-bottom: 2px;
+}
+.sidebar-link:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.sidebar-link.active { background: var(--accent-glow); color: var(--accent); }
+.sidebar-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 20px;
+  padding-top: 2px;
+}
+.sidebar-link.active .sidebar-num { color: var(--accent); }
+
+/* ── Main Content ── */
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 40px 48px 80px;
+}
+
+/* ── Hero ── */
+.hero {
+  text-align: center;
+  padding: 60px 0 50px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 48px;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.hero h1 {
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-sub {
+  font-size: 19px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+.hero-meta {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.hero-meta span { display: flex; align-items: center; gap: 5px; }
+
+/* ── Module Sections ── */
+.module {
+  margin-bottom: 48px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s;
+}
+.module-header:hover { background: var(--bg-tertiary); }
+.module-header.open { border-bottom-color: var(--border); }
+.module-num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--bg-primary);
+  background: var(--accent);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.module-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 700;
+}
+.module-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+.module-chevron {
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+.module-header.open .module-chevron { transform: rotate(180deg); }
+.module-body {
+  display: none;
+  padding: 28px 24px 32px;
+}
+.module-header.open + .module-body { display: block; }
+
+/* ── Progress Checkbox ── */
+.module-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.module-check input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-light);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.module-check input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.module-check input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 6px;
+  height: 11px;
+  border: solid var(--bg-primary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.module-check label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+/* ── Typography ── */
+.main h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 36px 0 16px;
+  color: var(--text-primary);
+}
+.main h2:first-child { margin-top: 0; }
+.main h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 28px 0 12px;
+  color: var(--text-primary);
+}
+.main h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 20px 0 8px;
+  color: var(--accent);
+}
+.main p { margin-bottom: 16px; color: var(--text-primary); }
+.main ul, .main ol {
+  margin: 0 0 16px 24px;
+  color: var(--text-primary);
+}
+.main li { margin-bottom: 6px; }
+.main strong { color: #fff; font-weight: 600; }
+.main a { color: var(--accent); text-decoration: none; }
+.main a:hover { text-decoration: underline; }
+
+/* ── Code Blocks ── */
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 16px 0;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #c9d1d9;
+}
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+p code, li code {
+  background: var(--bg-tertiary);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: var(--accent);
+}
+.code-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+/* Syntax highlighting keywords */
+.kw { color: #ff7b72; }
+.str { color: #a5d6ff; }
+.cm { color: #8b949e; font-style: italic; }
+.fn { color: #d2a8ff; }
+.num { color: #79c0ff; }
+.op { color: #ff7b72; }
+.type { color: #ffa657; }
+.dec { color: #ffa657; }
+
+/* ── Callout Boxes ── */
+.callout {
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.callout-title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.callout.info {
+  background: rgba(59,130,246,0.1);
+  border-left: 3px solid var(--info);
+}
+.callout.info .callout-title { color: var(--info); }
+.callout.warn {
+  background: rgba(245,158,11,0.1);
+  border-left: 3px solid var(--warning);
+}
+.callout.warn .callout-title { color: var(--warning); }
+.callout.tip {
+  background: var(--accent-glow);
+  border-left: 3px solid var(--accent);
+}
+.callout.tip .callout-title { color: var(--accent); }
+.callout.danger {
+  background: rgba(239,68,68,0.1);
+  border-left: 3px solid var(--error);
+}
+.callout.danger .callout-title { color: var(--error); }
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+th, td {
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+}
+th {
+  background: var(--bg-tertiary);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+td { color: var(--text-primary); }
+tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+/* ── Diagram Boxes ── */
+.diagram {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 20px 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.8;
+  white-space: pre;
+  overflow-x: auto;
+  color: var(--text-secondary);
+}
+.diagram .accent { color: var(--accent); font-weight: 700; }
+.diagram .purple { color: var(--purple); }
+.diagram .cyan { color: var(--cyan); }
+.diagram .warn { color: var(--warning); }
+.diagram .dim { color: var(--text-muted); }
+
+/* ── Pill Tags ── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: 0.3px;
+}
+.tag-green { background: rgba(34,197,94,0.15); color: var(--accent); }
+.tag-blue { background: rgba(59,130,246,0.15); color: var(--info); }
+.tag-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+.tag-yellow { background: rgba(245,158,11,0.15); color: var(--warning); }
+
+/* ── Section Dividers ── */
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 32px 0;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .sidebar.mobile-open {
+    display: block;
+    position: fixed;
+    top: var(--nav-height);
+    left: 0;
+    width: 280px;
+    height: calc(100vh - var(--nav-height));
+    background: var(--bg-primary);
+    z-index: 999;
+    border-right: 1px solid var(--border);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+  .nav-hamburger { display: block; }
+  .main { padding: 28px 20px 60px; }
+  .hero h1 { font-size: 28px; }
+  .hero-sub { font-size: 16px; }
+  pre { font-size: 12px; padding: 14px; }
+  .module-header { padding: 14px 16px; }
+  .module-body { padding: 20px 16px 24px; }
+  .hero { padding: 36px 0 32px; }
+}
+@media (max-width: 480px) {
+  .hero-meta { flex-direction: column; align-items: center; gap: 8px; }
+  .nav-progress-wrap { max-width: 100px; }
+  table { font-size: 12px; }
+  th, td { padding: 6px 8px; }
+}
+
+/* ── Overlay for mobile sidebar ── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: var(--nav-height);
+  background: rgba(0,0,0,0.5);
+  z-index: 998;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ── Print ── */
+@media print {
+  .nav, .sidebar { display: none; }
+  .module-body { display: block !important; }
+  .main { padding: 0; }
+  body { background: #fff; color: #000; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Navigation ── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#top" class="nav-logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+      Voice AI for Education
+    </a>
+    <div class="nav-progress-wrap">
+      <div class="nav-progress-bar" id="progressBar"></div>
+    </div>
+    <span class="nav-progress-text" id="progressText">0%</span>
+    <button class="nav-hamburger" id="hamburger" aria-label="Toggle navigation">&#9776;</button>
+  </div>
+</nav>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="layout">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">Modules</div>
+    <a href="#mod1" class="sidebar-link" data-mod="1"><span class="sidebar-num">01</span>The Voice Revolution</a>
+    <a href="#mod2" class="sidebar-link" data-mod="2"><span class="sidebar-num">02</span>OpenAI Realtime API</a>
+    <a href="#mod3" class="sidebar-link" data-mod="3"><span class="sidebar-num">03</span>Building a Voice Tutor</a>
+    <a href="#mod4" class="sidebar-link" data-mod="4"><span class="sidebar-num">04</span>Pronunciation &amp; Language</a>
+    <a href="#mod5" class="sidebar-link" data-mod="5"><span class="sidebar-num">05</span>Voice + Tools</a>
+    <a href="#mod6" class="sidebar-link" data-mod="6"><span class="sidebar-num">06</span>Accessibility</a>
+    <a href="#mod7" class="sidebar-link" data-mod="7"><span class="sidebar-num">07</span>Production Challenges</a>
+    <a href="#mod8" class="sidebar-link" data-mod="8"><span class="sidebar-num">08</span>Capstone: Coursera Voice Tutor</a>
+  </aside>
+
+  <!-- ── Main Content ── -->
+  <main class="main" id="top">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+        Voice AI Course
+      </div>
+      <h1>Voice AI for Education</h1>
+      <p class="hero-sub">Building voice tutors, pronunciation coaches, and accessible learning experiences with OpenAI's Realtime API &amp; Agents SDK.</p>
+      <div class="hero-meta">
+        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 2-3 hours</span>
+        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg> 8 Modules</span>
+        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg> VP Engineering</span>
+        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Python + Agents SDK</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 1 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod1">
+      <div class="module-header open" data-module="1">
+        <span class="module-num">1</span>
+        <span class="module-title">The Voice Revolution in Education</span>
+        <span class="module-time">~15 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>Why Voice Changes Everything</h2>
+        <p>Education has always been a fundamentally spoken art. Socrates never wrote a word — he taught through conversation. The printing press, then the internet, then video shifted learning toward visual media. But voice AI is now completing the circle: we can finally build learning experiences that <strong>talk back</strong>.</p>
+
+        <p>The convergence of three technologies makes this moment unique: real-time speech-to-speech models (GPT-Realtime-2), affordable WebRTC infrastructure, and agent frameworks that let voice conversations trigger actions. Together, they enable a tutor that listens, speaks, draws diagrams, generates quizzes, and adapts — all in real time.</p>
+
+        <h3>The Learning Science Case</h3>
+        <p>Voice isn't just another modality. It activates different cognitive pathways than reading or watching video:</p>
+        <ul>
+          <li><strong>Conversational engagement:</strong> Learners retain 2-3x more from interactive dialogue than passive consumption. Voice creates natural back-and-forth that mirrors the most effective form of teaching: one-on-one tutoring.</li>
+          <li><strong>Reduced cognitive load:</strong> Speaking is faster and lower-effort than typing for most people. Learners can focus on <em>thinking</em> rather than <em>typing</em>.</li>
+          <li><strong>Emotional signaling:</strong> Tone, pace, and hesitation carry information text cannot. A voice tutor can detect confusion from a learner's tone before they articulate it.</li>
+          <li><strong>Hands-free, eyes-free:</strong> Exercise while reviewing flashcards. Cook while practicing vocabulary. Commute while solving problems. Voice unlocks learning time that screens cannot reach.</li>
+        </ul>
+
+        <h3>Accessibility as a First-Order Concern</h3>
+        <p>Voice AI is not optional for accessibility — it is the <em>primary interface</em> for millions of learners. Screen reader users, learners with motor disabilities, low-literacy populations, and young children who cannot type all need voice-first experiences. Building voice tutors is not a feature addition; it is removing a barrier.</p>
+
+        <div class="callout info">
+          <div class="callout-title">Context: Learn Imagine v3</div>
+          Mustafa's <strong>Learn Imagine v3</strong> demonstrated how AI can generate rich visual learning experiences — interactive diagrams, visual explanations, concept maps. Think of voice AI as the <em>auditory counterpart</em>: where Learn Imagine makes abstract concepts visible, voice AI makes them conversational. The most powerful learning experiences will combine both — a tutor that can explain a concept verbally while simultaneously generating a visual on screen.
+        </div>
+
+        <h3>Where Voice Fits in the Coursera Stack</h3>
+        <p>Coursera's learning experience today is primarily video lectures + reading + assessments. Voice AI adds a new layer:</p>
+
+        <table>
+          <tr><th>Current</th><th>Voice-Enhanced</th></tr>
+          <tr><td>Watch 10-min video lecture</td><td>Voice tutor summarizes key points, answers questions in real-time</td></tr>
+          <tr><td>Read assigned material</td><td>Voice companion reads aloud, pauses to check understanding</td></tr>
+          <tr><td>Take multiple-choice quiz</td><td>Oral exam with follow-up questions based on answers</td></tr>
+          <tr><td>Peer discussion forum</td><td>Voice study groups with AI moderator</td></tr>
+          <tr><td>Submit written assignment</td><td>Talk through your solution, AI gives real-time feedback</td></tr>
+        </table>
+
+        <h3>The Competitive Landscape (May 2025)</h3>
+        <p>Duolingo shipped voice features in early 2024. Khan Academy's Khanmigo supports voice. Google's NotebookLM generates podcast-style audio summaries. ElevenLabs powers custom voice tutors. The market is moving fast — the window to lead is narrow.</p>
+
+        <p>But none of these platforms have Coursera's catalog depth (7,000+ courses), institutional relationships (300+ university partners), or enterprise footprint (1,000+ companies). Coursera's advantage is not in building the best voice model — it's in integrating voice with the richest structured learning content in the world.</p>
+
+        <div class="module-check">
+          <input type="checkbox" id="check1" data-module="1">
+          <label for="check1">I've completed Module 1: The Voice Revolution</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 2 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod2">
+      <div class="module-header" data-module="2">
+        <span class="module-num">2</span>
+        <span class="module-title">OpenAI Realtime API Deep Dive</span>
+        <span class="module-time">~25 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>GPT-Realtime-2: Speech-to-Speech</h2>
+        <p>OpenAI's Realtime API is the foundation for everything in this course. Unlike the standard Chat Completions API (text in, text out), the Realtime API handles <strong>speech-to-speech</strong> — audio goes in, audio comes out, with no intermediate text transcription required. This is critical because:</p>
+        <ul>
+          <li><strong>Latency:</strong> Eliminating the STT → LLM → TTS pipeline cuts round-trip time from 2-3 seconds to ~300ms.</li>
+          <li><strong>Expressiveness:</strong> The model can modulate tone, pacing, and emphasis based on content.</li>
+          <li><strong>Interruption handling:</strong> The model can be interrupted mid-sentence and respond naturally.</li>
+        </ul>
+
+        <h3>Architecture: Two Connection Models</h3>
+        <div class="diagram"><span class="accent">WebSocket (Server-Side)</span>
+┌──────────┐     WSS      ┌──────────────┐     WSS      ┌───────────┐
+│  Browser  │ ──────────▶ │  Your Server  │ ──────────▶ │  OpenAI   │
+│  (mic)    │ ◀────────── │  (Node/Py)    │ ◀────────── │  Realtime │
+└──────────┘   audio      └──────────────┘   audio      └───────────┘
+<span class="dim">  ▲ Your server proxies audio and can inject system messages,</span>
+<span class="dim">  ▲ log conversations, enforce business rules.</span>
+
+<span class="cyan">WebRTC (Client-Side / Ephemeral Key)</span>
+┌──────────┐    WebRTC     ┌───────────┐
+│  Browser  │ ◀──────────▶ │  OpenAI   │
+│  (mic)    │   peer conn  │  Realtime │
+└──────────┘               └───────────┘
+       │ ephemeral key from
+       ▼ your server (REST)
+┌──────────────┐
+│  Your Server  │  <span class="warn">← cannot see audio stream</span>
+└──────────────┘</div>
+
+        <p><strong>WebSocket</strong> gives you full server-side control — you see every audio frame, can inject system messages, log transcripts, and apply business logic. <strong>WebRTC</strong> is lower latency (peer-to-peer) but your server only provides the ephemeral key; it never sees the audio. For education, <strong>WebSocket is almost always the right choice</strong> because you need server-side logging, content safety, and integration with your learning platform.</p>
+
+        <h3>Session Lifecycle</h3>
+        <p>A Realtime API session follows this lifecycle:</p>
+
+        <div class="code-label">Python — Creating a Realtime Session (WebSocket)</div>
+<pre><span class="kw">import</span> asyncio
+<span class="kw">import</span> websockets
+<span class="kw">import</span> json
+<span class="kw">import</span> base64
+
+<span class="kw">async def</span> <span class="fn">create_realtime_session</span>():
+    url = <span class="str">"wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview"</span>
+    headers = {
+        <span class="str">"Authorization"</span>: <span class="str">f"Bearer </span>{OPENAI_API_KEY}<span class="str">"</span>,
+        <span class="str">"OpenAI-Beta"</span>: <span class="str">"realtime=v1"</span>,
+    }
+
+    <span class="kw">async with</span> websockets.connect(url, extra_headers=headers) <span class="kw">as</span> ws:
+        <span class="cm"># Configure the session</span>
+        <span class="kw">await</span> ws.send(json.dumps({
+            <span class="str">"type"</span>: <span class="str">"session.update"</span>,
+            <span class="str">"session"</span>: {
+                <span class="str">"modalities"</span>: [<span class="str">"text"</span>, <span class="str">"audio"</span>],
+                <span class="str">"instructions"</span>: <span class="str">"""You are a patient, encouraging tutor
+                    for an introductory Python course. Use the Socratic method:
+                    ask guiding questions rather than giving answers directly.
+                    Speak clearly and at a moderate pace."""</span>,
+                <span class="str">"voice"</span>: <span class="str">"alloy"</span>,
+                <span class="str">"input_audio_format"</span>: <span class="str">"pcm16"</span>,
+                <span class="str">"output_audio_format"</span>: <span class="str">"pcm16"</span>,
+                <span class="str">"input_audio_transcription"</span>: {
+                    <span class="str">"model"</span>: <span class="str">"whisper-1"</span>
+                },
+                <span class="str">"turn_detection"</span>: {
+                    <span class="str">"type"</span>: <span class="str">"server_vad"</span>,
+                    <span class="str">"threshold"</span>: <span class="num">0.5</span>,
+                    <span class="str">"prefix_padding_ms"</span>: <span class="num">300</span>,
+                    <span class="str">"silence_duration_ms"</span>: <span class="num">500</span>,
+                },
+                <span class="str">"tools"</span>: [],  <span class="cm"># We'll add these in Module 5</span>
+            }
+        }))
+
+        <span class="cm"># Listen for events</span>
+        <span class="kw">async for</span> message <span class="kw">in</span> ws:
+            event = json.loads(message)
+            <span class="kw">await</span> handle_event(event)</pre>
+
+        <h3>Key Events</h3>
+        <table>
+          <tr><th>Event</th><th>Direction</th><th>Purpose</th></tr>
+          <tr><td><code>session.created</code></td><td>Server → Client</td><td>Confirms session is ready</td></tr>
+          <tr><td><code>session.update</code></td><td>Client → Server</td><td>Update instructions, tools, voice</td></tr>
+          <tr><td><code>input_audio_buffer.append</code></td><td>Client → Server</td><td>Stream user audio (base64 PCM16)</td></tr>
+          <tr><td><code>input_audio_buffer.commit</code></td><td>Client → Server</td><td>Manual turn end (if VAD disabled)</td></tr>
+          <tr><td><code>conversation.item.created</code></td><td>Server → Client</td><td>New conversation turn</td></tr>
+          <tr><td><code>response.audio.delta</code></td><td>Server → Client</td><td>Streaming audio chunk from model</td></tr>
+          <tr><td><code>response.audio_transcript.delta</code></td><td>Server → Client</td><td>Real-time transcript of model speech</td></tr>
+          <tr><td><code>response.done</code></td><td>Server → Client</td><td>Model finished speaking</td></tr>
+          <tr><td><code>input_audio_buffer.speech_started</code></td><td>Server → Client</td><td>VAD detected user started speaking</td></tr>
+          <tr><td><code>input_audio_buffer.speech_stopped</code></td><td>Server → Client</td><td>VAD detected user stopped speaking</td></tr>
+        </table>
+
+        <h3>Turn Detection: Server VAD</h3>
+        <p>Turn detection determines when the user has finished speaking and the model should respond. The Realtime API uses <strong>server-side Voice Activity Detection (VAD)</strong> with configurable parameters:</p>
+        <ul>
+          <li><code>threshold</code> (0.0-1.0): Sensitivity. Lower = more sensitive. For quiet environments, use 0.3-0.5. For noisy classrooms, raise to 0.7+.</li>
+          <li><code>prefix_padding_ms</code>: Audio to include before speech detection. 300ms captures the start of words.</li>
+          <li><code>silence_duration_ms</code>: How long to wait after speech stops before triggering a response. 500ms is conversational; 1500ms gives learners more thinking time.</li>
+        </ul>
+
+        <div class="callout tip">
+          <div class="callout-title">Education-Specific VAD Tuning</div>
+          In tutoring contexts, <strong>increase <code>silence_duration_ms</code> to 1000-2000ms</strong>. Students often pause to think mid-sentence. A 500ms threshold (natural conversation) will cause the tutor to interrupt students who are still formulating their thoughts. This is one of the most impactful tuning decisions you will make.
+        </div>
+
+        <h3>Ephemeral Keys for WebRTC</h3>
+        <p>If you opt for the WebRTC path (e.g., for a lightweight mobile experience), your server generates short-lived tokens:</p>
+
+        <div class="code-label">Python — Ephemeral Key Endpoint</div>
+<pre><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+
+app = FastAPI()
+client = OpenAI()
+
+<span class="dec">@app.post</span>(<span class="str">"/api/realtime/token"</span>)
+<span class="kw">async def</span> <span class="fn">get_ephemeral_token</span>(course_id: <span class="type">str</span>, user_id: <span class="type">str</span>):
+    <span class="cm"># Verify user is enrolled, rate-limit, etc.</span>
+    response = client.realtime.sessions.create(
+        model=<span class="str">"gpt-4o-realtime-preview"</span>,
+        voice=<span class="str">"alloy"</span>,
+        instructions=get_tutor_instructions(course_id),
+        tools=get_course_tools(course_id),
+    )
+    <span class="kw">return</span> {
+        <span class="str">"token"</span>: response.client_secret.value,
+        <span class="str">"expires_at"</span>: response.client_secret.expires_at,
+    }</pre>
+
+        <h3>Pricing (as of May 2025)</h3>
+        <table>
+          <tr><th>Component</th><th>Input</th><th>Output</th></tr>
+          <tr><td>Audio (GPT-4o Realtime)</td><td>$40 / 1M tokens</td><td>$80 / 1M tokens</td></tr>
+          <tr><td>Text (cached)</td><td>$2.50 / 1M tokens</td><td>—</td></tr>
+          <tr><td>Audio approximation</td><td colspan="2">~$0.06/min input, ~$0.24/min output</td></tr>
+        </table>
+
+        <div class="callout warn">
+          <div class="callout-title">Cost Reality Check</div>
+          A 15-minute voice tutoring session costs roughly <strong>$2-5</strong> depending on how much the model speaks vs. listens. At Coursera scale (100M+ registered users), even 1% adoption of voice features means budgeting for tens of millions in API costs annually. Module 7 covers cost optimization strategies.
+        </div>
+
+        <div class="module-check">
+          <input type="checkbox" id="check2" data-module="2">
+          <label for="check2">I've completed Module 2: OpenAI Realtime API</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 3 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod3">
+      <div class="module-header" data-module="3">
+        <span class="module-num">3</span>
+        <span class="module-title">Building a Voice Tutor</span>
+        <span class="module-time">~25 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>Architecture Overview</h2>
+        <p>A production voice tutor is not just a WebSocket connection to OpenAI. It is a stateful system that manages conversation context, enforces pedagogical strategies, integrates with your LMS, and handles edge cases like network drops and student frustration. Here is the high-level architecture:</p>
+
+        <div class="diagram"><span class="accent">Voice Tutor Architecture</span>
+
+┌─────────────────────────────────────────────────────────┐
+│  <span class="cyan">Client (Browser/Mobile)</span>                                │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐  │
+│  │ Mic/Audio │  │ UI State │  │ Visual Panel         │  │
+│  │ Capture   │  │ Manager  │  │ (Learn Imagine v3)   │  │
+│  └─────┬─────┘  └────┬─────┘  └──────────┬───────────┘  │
+│        └──────────────┼──────────────────┘              │
+│                       │ WebSocket                       │
+└───────────────────────┼─────────────────────────────────┘
+                        │
+┌───────────────────────┼─────────────────────────────────┐
+│  <span class="purple">Voice Tutor Server</span>                                     │
+│  ┌────────────────────┼────────────────────────────┐    │
+│  │  Session Manager   │                            │    │
+│  │  ┌─────────────┐   │   ┌──────────────────┐     │    │
+│  │  │ Conversation │   │   │ Pedagogy Engine   │     │    │
+│  │  │ State        │───┼──▶│ - Socratic mode   │     │    │
+│  │  │              │   │   │ - Hint escalation  │     │    │
+│  │  └─────────────┘   │   │ - Misconception DB │     │    │
+│  │                     │   └──────────────────┘     │    │
+│  └────────────────────┼────────────────────────────┘    │
+│                       │                                  │
+│  ┌────────────┐  ┌────┴─────┐  ┌───────────────────┐   │
+│  │ LMS        │  │ OpenAI   │  │ Content Store      │   │
+│  │ Integration │  │ Realtime │  │ (Syllabus, Quizzes │   │
+│  │ (Grades,   │  │ API      │  │  Explanations)     │   │
+│  │  Progress) │  └──────────┘  └───────────────────┘   │
+│  └────────────┘                                         │
+└─────────────────────────────────────────────────────────┘</div>
+
+        <h3>Using the Agents SDK for Voice</h3>
+        <p>OpenAI's Agents SDK provides a higher-level abstraction over the Realtime API. Instead of managing raw WebSocket events, you define <strong>agents</strong> with instructions, tools, and handoff rules. This is the recommended approach for production voice tutors.</p>
+
+        <div class="code-label">Python — Voice Tutor Agent with Agents SDK</div>
+<pre><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+<span class="kw">from</span> agents <span class="kw">import</span> Agent, Runner, function_tool
+<span class="kw">from</span> agents.voice <span class="kw">import</span> (
+    VoicePipeline,
+    AudioInput,
+    SingleAgentVoiceWorkflow,
+)
+
+<span class="cm"># Define tools the tutor can use while speaking</span>
+<span class="dec">@function_tool</span>
+<span class="kw">def</span> <span class="fn">get_course_content</span>(topic: <span class="type">str</span>, course_id: <span class="type">str</span>) -> <span class="type">str</span>:
+    <span class="str">"""Retrieve relevant course material for the current topic."""</span>
+    <span class="cm"># Query your content store / vector DB</span>
+    <span class="kw">return</span> content_store.search(topic, course_id=course_id)
+
+<span class="dec">@function_tool</span>
+<span class="kw">def</span> <span class="fn">generate_quiz_question</span>(topic: <span class="type">str</span>, difficulty: <span class="type">str</span>) -> <span class="type">str</span>:
+    <span class="str">"""Generate a quiz question to check understanding."""</span>
+    <span class="kw">return</span> quiz_engine.generate(topic, difficulty)
+
+<span class="dec">@function_tool</span>
+<span class="kw">def</span> <span class="fn">record_progress</span>(user_id: <span class="type">str</span>, module: <span class="type">str</span>, score: <span class="type">float</span>) -> <span class="type">str</span>:
+    <span class="str">"""Record the learner's progress in the LMS."""</span>
+    lms.update_progress(user_id, module, score)
+    <span class="kw">return</span> <span class="str">"Progress recorded."</span>
+
+<span class="cm"># Define the tutor agent</span>
+tutor_agent = Agent(
+    name=<span class="str">"CourseTutor"</span>,
+    instructions=<span class="str">"""You are a Coursera voice tutor for {course_name}.
+
+PEDAGOGY RULES:
+1. Use the Socratic method: ask guiding questions before giving answers.
+2. When the student is wrong, don't say "wrong" — ask a question that
+   reveals the contradiction in their reasoning.
+3. After explaining a concept, always check understanding with a question.
+4. If the student is frustrated (detected by tone/words), switch to
+   encouragement mode: validate their effort, simplify the explanation.
+5. Use thinking pauses: "Hmm, that's a great question. Let me think
+   about the best way to explain this..." (gives student time too).
+
+VOICE BEHAVIOR:
+- Speak at a moderate pace. Slow down for complex concepts.
+- Use verbal signposting: "First... Second... Finally..."
+- After asking a question, WAIT. Do not fill silence immediately.
+
+TOOLS:
+- Use get_course_content when you need to reference specific material.
+- Use generate_quiz_question after covering a concept.
+- Use record_progress when the student demonstrates mastery."""</span>,
+    model=<span class="str">"gpt-4o-realtime-preview"</span>,
+    tools=[get_course_content, generate_quiz_question, record_progress],
+)
+
+<span class="cm"># Run the voice pipeline</span>
+<span class="kw">async def</span> <span class="fn">start_tutoring_session</span>(user_id, course_id):
+    workflow = SingleAgentVoiceWorkflow(tutor_agent)
+    pipeline = VoicePipeline(workflow=workflow)
+
+    audio_input = AudioInput()  <span class="cm"># Captures from microphone</span>
+    result = <span class="kw">await</span> pipeline.run(audio_input)
+
+    <span class="cm"># Stream audio output to speaker</span>
+    <span class="kw">async for</span> event <span class="kw">in</span> result.stream():
+        <span class="kw">if</span> event.type == <span class="str">"audio"</span>:
+            play_audio(event.data)</pre>
+
+        <h3>Conversation Flow Design</h3>
+        <p>A well-designed voice tutor follows a pedagogical conversation flow, not a chatbot flow. The key difference is <strong>intentional structure</strong>:</p>
+
+        <h4>1. Greeting &amp; Context Setting (10-15 seconds)</h4>
+        <p>The tutor establishes context based on the learner's history: "Welcome back! Last time we covered list comprehensions in Python. You were working on the filtering exercise. Want to pick up where we left off, or is there something else you'd like to work on?"</p>
+
+        <h4>2. Concept Exploration (Socratic Loop)</h4>
+        <p>The core teaching loop uses Socratic dialogue. Instead of lecturing, the tutor asks questions that guide the learner toward understanding:</p>
+<pre><span class="cm"># Socratic prompt engineering pattern</span>
+SOCRATIC_INSTRUCTION = <span class="str">"""
+When teaching a concept:
+1. ASK what the student already knows: "What do you know about recursion?"
+2. BUILD on their knowledge: "Right, so if a function calls itself..."
+3. CHALLENGE with edge cases: "What happens when there's no base case?"
+4. CONFIRM understanding: "Can you explain it back to me in your own words?"
+5. APPLY with a problem: "Let's try writing a factorial function together."
+
+NEVER give a complete answer immediately. Always guide first.
+If the student says "just tell me," acknowledge their frustration,
+then offer a simplified explanation WITH a follow-up question.
+"""</span></pre>
+
+        <h4>3. Interruption Handling</h4>
+        <p>Unlike text chat, voice conversations have interruptions. The tutor must handle these gracefully:</p>
+        <ul>
+          <li><strong>Student interrupts with a question:</strong> Stop immediately, address the question, then offer to resume the previous explanation.</li>
+          <li><strong>Student interrupts with "wait" or "hold on":</strong> Pause and wait. Do not restart the explanation from the beginning.</li>
+          <li><strong>Student goes silent for 10+ seconds:</strong> Gently check in: "Are you still there?" or "Take your time — let me know when you're ready."</li>
+          <li><strong>Background noise triggers false turn:</strong> "Sorry, it sounded like you might have said something. Go ahead whenever you're ready."</li>
+        </ul>
+
+        <h4>4. Thinking Pauses</h4>
+        <p>One of the most powerful techniques in voice tutoring is the <strong>deliberate thinking pause</strong>. When the tutor says "Hmm, let me think about how to explain this..." it accomplishes three things: it models that thinking is normal and good, it gives the student time to think too, and it sets up the explanation as considered rather than rote.</p>
+
+        <div class="code-label">Python — Implementing Thinking Pauses</div>
+<pre><span class="cm"># In your session.update instructions, add:</span>
+THINKING_PAUSE_INSTRUCTION = <span class="str">"""
+For complex questions, use a thinking pause before answering:
+- "That's a really interesting question. Let me think about
+  the clearest way to explain this..."
+- "Hmm, good question. So there are a few ways to think about this..."
+- "Okay, let me organize my thoughts on this..."
+
+The pause should be 2-3 seconds of natural filler, not silence.
+This models metacognition and gives the learner processing time.
+"""</span></pre>
+
+        <h4>5. Session Wrap-Up</h4>
+        <p>End every session with a summary and next steps: "Great work today! We covered the basics of recursion, wrote a factorial function together, and you correctly identified why the base case matters. Next time, we'll tackle recursive tree traversal. Any questions before we wrap up?"</p>
+
+        <h3>Multi-Agent Handoff for Complex Scenarios</h3>
+        <p>Sometimes a single tutor persona isn't enough. The Agents SDK supports <strong>handoffs</strong> between agents, which maps naturally to pedagogical scenarios:</p>
+
+        <div class="code-label">Python — Multi-Agent Voice Tutor</div>
+<pre><span class="kw">from</span> agents <span class="kw">import</span> Agent
+
+<span class="cm"># Specialist agents</span>
+concept_explainer = Agent(
+    name=<span class="str">"ConceptExplainer"</span>,
+    instructions=<span class="str">"You explain CS concepts with analogies and examples."</span>,
+    model=<span class="str">"gpt-4o-realtime-preview"</span>,
+)
+
+code_reviewer = Agent(
+    name=<span class="str">"CodeReviewer"</span>,
+    instructions=<span class="str">"You review code, find bugs, and suggest improvements."</span>,
+    model=<span class="str">"gpt-4o-realtime-preview"</span>,
+)
+
+encourager = Agent(
+    name=<span class="str">"Encourager"</span>,
+    instructions=<span class="str">"""You are a supportive learning coach. When students
+    are frustrated, you validate their feelings, remind them of
+    progress they've made, and break problems into smaller steps."""</span>,
+    model=<span class="str">"gpt-4o-realtime-preview"</span>,
+)
+
+<span class="cm"># Main tutor orchestrates handoffs</span>
+main_tutor = Agent(
+    name=<span class="str">"MainTutor"</span>,
+    instructions=<span class="str">"""You are the primary tutor. Detect when to hand off:
+    - Student asks "why does X work?" → hand off to ConceptExplainer
+    - Student shares code with bugs → hand off to CodeReviewer
+    - Student expresses frustration → hand off to Encourager
+    Always hand back to yourself after the specialist finishes."""</span>,
+    model=<span class="str">"gpt-4o-realtime-preview"</span>,
+    handoffs=[concept_explainer, code_reviewer, encourager],
+)</pre>
+
+        <div class="callout info">
+          <div class="callout-title">Design Decision: Visible vs. Invisible Handoffs</div>
+          Should the student know they are being handed off to a different agent? In most cases, <strong>no</strong>. The tutor should seamlessly change behavior (more empathetic, more technical) without announcing "I'm transferring you to the code review specialist." The exception is when the handoff represents a genuine role change, like moving from a lecture to a quiz proctor.
+        </div>
+
+        <div class="module-check">
+          <input type="checkbox" id="check3" data-module="3">
+          <label for="check3">I've completed Module 3: Building a Voice Tutor</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 4 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod4">
+      <div class="module-header" data-module="4">
+        <span class="module-num">4</span>
+        <span class="module-title">Pronunciation &amp; Language Learning</span>
+        <span class="module-time">~20 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>Voice AI's Killer App: Language Learning</h2>
+        <p>Language learning is the use case where voice AI provides the most dramatic improvement over text. You simply cannot learn pronunciation from a textbook. The traditional approach — listen to a recording, try to repeat, get no feedback — is like learning to drive by reading about it. Voice AI closes the loop: the learner speaks, the system evaluates, and provides targeted feedback in real time.</p>
+
+        <h3>Architecture: Pronunciation Coach</h3>
+        <div class="diagram"><span class="accent">Pronunciation Feedback Loop</span>
+
+Learner speaks    ─▶  <span class="cyan">Whisper STT</span>  ─▶  Transcript + timestamps
+       │                                        │
+       │          ┌─────────────────────────────┘
+       │          ▼
+       │   <span class="purple">Pronunciation Analyzer</span>
+       │   ├── Phoneme alignment
+       │   ├── Stress pattern detection
+       │   ├── Intonation contour
+       │   └── Fluency score (pauses, fillers, rate)
+       │          │
+       │          ▼
+       │   <span class="accent">Feedback Generator</span>  (GPT-4o)
+       │   ├── Specific feedback: "Try rounding your lips more on 'boat'"
+       │   ├── Demonstration: Model speaks the word correctly
+       │   └── Drill: "Let's practice these three words..."
+       │          │
+       ▼          ▼
+  ┌──────────────────┐
+  │  Realtime Voice   │  ← Model demonstrates correct pronunciation
+  │  Response         │  ← Then asks learner to try again
+  └──────────────────┘</div>
+
+        <h3>Using Whisper for Speech Analysis</h3>
+        <p>The Realtime API includes Whisper-based transcription via the <code>input_audio_transcription</code> config. But for pronunciation coaching, you need more than just the transcript — you need <strong>word-level timestamps and confidence scores</strong>.</p>
+
+        <div class="code-label">Python — Pronunciation Analysis with Whisper</div>
+<pre><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+
+client = OpenAI()
+
+<span class="kw">def</span> <span class="fn">analyze_pronunciation</span>(audio_file_path: <span class="type">str</span>, expected_text: <span class="type">str</span>):
+    <span class="str">"""Analyze pronunciation using Whisper with word timestamps."""</span>
+
+    <span class="cm"># Get detailed transcription</span>
+    <span class="kw">with</span> open(audio_file_path, <span class="str">"rb"</span>) <span class="kw">as</span> f:
+        transcript = client.audio.transcriptions.create(
+            model=<span class="str">"whisper-1"</span>,
+            file=f,
+            response_format=<span class="str">"verbose_json"</span>,
+            timestamp_granularities=[<span class="str">"word"</span>, <span class="str">"segment"</span>],
+            language=<span class="str">"en"</span>,
+        )
+
+    <span class="cm"># Compare against expected text</span>
+    spoken_words = [w.word.lower().strip() <span class="kw">for</span> w <span class="kw">in</span> transcript.words]
+    expected_words = expected_text.lower().split()
+
+    results = []
+    <span class="kw">for</span> i, (spoken, expected) <span class="kw">in</span> enumerate(
+        zip(spoken_words, expected_words)
+    ):
+        results.append({
+            <span class="str">"word"</span>: expected,
+            <span class="str">"spoken"</span>: spoken,
+            <span class="str">"match"</span>: spoken == expected,
+            <span class="str">"timestamp"</span>: transcript.words[i].start,
+        })
+
+    <span class="cm"># Calculate fluency metrics</span>
+    total_duration = transcript.segments[-<span class="num">1</span>].end - transcript.segments[<span class="num">0</span>].start
+    word_count = len(spoken_words)
+    words_per_minute = (word_count / total_duration) * <span class="num">60</span>
+
+    <span class="kw">return</span> {
+        <span class="str">"word_analysis"</span>: results,
+        <span class="str">"words_per_minute"</span>: words_per_minute,
+        <span class="str">"accuracy"</span>: sum(<span class="num">1</span> <span class="kw">for</span> r <span class="kw">in</span> results <span class="kw">if</span> r[<span class="str">"match"</span>]) / len(results),
+        <span class="str">"transcript"</span>: transcript.text,
+    }</pre>
+
+        <h3>Building a Pronunciation Coach Agent</h3>
+        <div class="code-label">Python — Pronunciation Coach with Agents SDK</div>
+<pre><span class="kw">from</span> agents <span class="kw">import</span> Agent, function_tool
+
+<span class="dec">@function_tool</span>
+<span class="kw">def</span> <span class="fn">score_pronunciation</span>(
+    spoken_text: <span class="type">str</span>,
+    target_text: <span class="type">str</span>,
+    language: <span class="type">str</span>
+) -> <span class="type">str</span>:
+    <span class="str">"""Score the learner's pronunciation against the target."""</span>
+    analysis = analyze_pronunciation(spoken_text, target_text)
+    <span class="kw">return</span> json.dumps(analysis)
+
+<span class="dec">@function_tool</span>
+<span class="kw">def</span> <span class="fn">get_phonetic_guide</span>(word: <span class="type">str</span>, language: <span class="type">str</span>) -> <span class="type">str</span>:
+    <span class="str">"""Get IPA transcription and mouth position guide for a word."""</span>
+    <span class="kw">return</span> phonetics_db.lookup(word, language)
+
+pronunciation_coach = Agent(
+    name=<span class="str">"PronunciationCoach"</span>,
+    instructions=<span class="str">"""You are a pronunciation coach. Your approach:
+
+1. LISTEN to the learner's attempt.
+2. IDENTIFY specific sounds they struggle with (not just "good try!").
+3. DEMONSTRATE the correct pronunciation by saying the word clearly.
+4. EXPLAIN the mouth position: "Put your tongue behind your top teeth..."
+5. DRILL with minimal pairs: "Try 'ship' vs 'sheep' — hear the difference?"
+
+Be specific and encouraging. Instead of "Your R sounds off," say:
+"Your R in 'really' was close! Try curling your tongue back a bit more.
+Listen to me say it: 'really.' Now you try."
+
+For tonal languages (Mandarin, Vietnamese), pay special attention to
+tone contours. Use comparisons: "That was a rising tone — we need
+a falling-rising tone for third tone. Like asking a question but
+then answering it in one syllable."
+
+ALWAYS end a correction cycle with something the learner did WELL.
+"""</span>,
+    model=<span class="str">"gpt-4o-realtime-preview"</span>,
+    tools=[score_pronunciation, get_phonetic_guide],
+)</pre>
+
+        <h3>Multilingual Support</h3>
+        <p>The Realtime API supports multilingual conversations natively. For language learning, the key patterns are:</p>
+
+        <ul>
+          <li><strong>Code-switching:</strong> The tutor speaks in the target language but can explain grammar in the learner's native language when needed.</li>
+          <li><strong>Progressive immersion:</strong> Start sessions with 70% native / 30% target, gradually increasing target language proportion as the learner advances.</li>
+          <li><strong>Real-time translation assistance:</strong> When the learner gets stuck, the tutor can offer the word in their native language, then immediately drill it in the target language.</li>
+        </ul>
+
+        <div class="code-label">Python — Multilingual Tutor Configuration</div>
+<pre>language_tutor = Agent(
+    name=<span class="str">"LanguageTutor"</span>,
+    instructions=<span class="str">f"""You are teaching {target_language} to a
+    {native_language} speaker at {proficiency_level} level.
+
+    LANGUAGE MIX RULES:
+    - Beginner: Speak 70% {native_language}, 30% {target_language}
+    - Intermediate: Speak 30% {native_language}, 70% {target_language}
+    - Advanced: Speak 95% {target_language}, only use {native_language}
+      for complex grammar explanations
+
+    When switching languages, signal it: "In English, we'd say..."
+    or "En español, decimos..."
+
+    PRONUNCIATION PRIORITY ({target_language}):
+    {pronunciation_priorities}
+    """</span>,
+    model=<span class="str">"gpt-4o-realtime-preview"</span>,
+)</pre>
+
+        <h3>Accent Detection and Adaptation</h3>
+        <p>Whisper's transcription can reveal accent patterns through consistent mismatches between expected and transcribed phonemes. For example, if a Mandarin speaker consistently produces "r" sounds that Whisper transcribes as "l," the tutor can focus drills on the r/l distinction. This is accent-adaptive teaching — meeting learners where they are rather than applying generic pronunciation drills.</p>
+
+        <div class="callout tip">
+          <div class="callout-title">Coursera Opportunity: 120+ Million Global Learners</div>
+          Coursera's learner base spans nearly every language community on Earth. A voice pronunciation coach integrated into language courses would be a category-defining feature. The key insight: you don't need to build pronunciation scoring from scratch. Whisper's word-level transcription + GPT-4o's linguistic knowledge = a pronunciation coach that can teach any language pair.
+        </div>
+
+        <div class="module-check">
+          <input type="checkbox" id="check4" data-module="4">
+          <label for="check4">I've completed Module 4: Pronunciation &amp; Language Learning</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 5 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod5">
+      <div class="module-header" data-module="5">
+        <span class="module-num">5</span>
+        <span class="module-title">Voice + Tools: Function Calling</span>
+        <span class="module-time">~20 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>The Tutor That Can Do Things</h2>
+        <p>A voice tutor that can only talk is like a teacher who cannot write on a whiteboard, hand out worksheets, or look things up. <strong>Function calling</strong> in the Realtime API transforms a voice conversation into a voice <em>agent</em> — the tutor can take actions while speaking.</p>
+
+        <p>Think of it this way: the student asks "Can you show me what a binary tree looks like?" and the tutor says "Sure, let me draw that for you" — and simultaneously triggers a function that generates a visual diagram on the student's screen. This is where voice AI and Mustafa's Learn Imagine v3 converge.</p>
+
+        <h3>How Function Calling Works in Realtime</h3>
+        <p>Function calling in the Realtime API works similarly to the Chat Completions API, but with a critical difference: <strong>the model can call functions while it is speaking</strong>. It does not pause to wait for the function result (unless you configure it to). This creates a natural conversational flow:</p>
+
+        <div class="diagram"><span class="accent">Voice + Function Calling Flow</span>
+
+<span class="cyan">Student:</span> "Can you quiz me on sorting algorithms?"
+
+<span class="purple">Model:</span>  [speaks] "Sure, let me pull up a question..."
+         [simultaneously calls] generate_quiz(topic="sorting")
+         [function returns quiz data]
+         [continues speaking] "Okay, here's one: You have an array
+          that's almost sorted, with only a few elements out of place.
+          Which sorting algorithm would be most efficient here?"
+
+<span class="cyan">Student:</span> "Insertion sort?"
+
+<span class="purple">Model:</span>  [speaks] "Exactly right! Insertion sort is O(n) for nearly
+          sorted arrays. Let me record that..."
+         [calls] record_answer(correct=true, topic="sorting")
+         [calls] update_visual(show="insertion_sort_animation")
+         [continues] "...and here's a visual showing why. See how
+          each element only needs to move a short distance?"</div>
+
+        <h3>Defining Tools for the Realtime API</h3>
+        <div class="code-label">Python — Tool Definitions</div>
+<pre><span class="cm"># Tools are defined in the session configuration</span>
+tools = [
+    {
+        <span class="str">"type"</span>: <span class="str">"function"</span>,
+        <span class="str">"name"</span>: <span class="str">"draw_diagram"</span>,
+        <span class="str">"description"</span>: <span class="str">"Generate a visual diagram and display it on the student's screen."</span>,
+        <span class="str">"parameters"</span>: {
+            <span class="str">"type"</span>: <span class="str">"object"</span>,
+            <span class="str">"properties"</span>: {
+                <span class="str">"diagram_type"</span>: {
+                    <span class="str">"type"</span>: <span class="str">"string"</span>,
+                    <span class="str">"enum"</span>: [<span class="str">"tree"</span>, <span class="str">"graph"</span>, <span class="str">"flowchart"</span>, <span class="str">"uml"</span>, <span class="str">"math"</span>],
+                },
+                <span class="str">"description"</span>: {
+                    <span class="str">"type"</span>: <span class="str">"string"</span>,
+                    <span class="str">"description"</span>: <span class="str">"Natural language description of what to draw"</span>,
+                },
+            },
+            <span class="str">"required"</span>: [<span class="str">"diagram_type"</span>, <span class="str">"description"</span>],
+        },
+    },
+    {
+        <span class="str">"type"</span>: <span class="str">"function"</span>,
+        <span class="str">"name"</span>: <span class="str">"search_knowledge_base"</span>,
+        <span class="str">"description"</span>: <span class="str">"Search the course knowledge base for relevant information."</span>,
+        <span class="str">"parameters"</span>: {
+            <span class="str">"type"</span>: <span class="str">"object"</span>,
+            <span class="str">"properties"</span>: {
+                <span class="str">"query"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>},
+                <span class="str">"course_id"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>},
+            },
+            <span class="str">"required"</span>: [<span class="str">"query"</span>],
+        },
+    },
+    {
+        <span class="str">"type"</span>: <span class="str">"function"</span>,
+        <span class="str">"name"</span>: <span class="str">"generate_quiz"</span>,
+        <span class="str">"description"</span>: <span class="str">"Generate a quiz question on the given topic."</span>,
+        <span class="str">"parameters"</span>: {
+            <span class="str">"type"</span>: <span class="str">"object"</span>,
+            <span class="str">"properties"</span>: {
+                <span class="str">"topic"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>},
+                <span class="str">"difficulty"</span>: {
+                    <span class="str">"type"</span>: <span class="str">"string"</span>,
+                    <span class="str">"enum"</span>: [<span class="str">"easy"</span>, <span class="str">"medium"</span>, <span class="str">"hard"</span>],
+                },
+                <span class="str">"format"</span>: {
+                    <span class="str">"type"</span>: <span class="str">"string"</span>,
+                    <span class="str">"enum"</span>: [<span class="str">"multiple_choice"</span>, <span class="str">"open_ended"</span>, <span class="str">"code_challenge"</span>],
+                },
+            },
+            <span class="str">"required"</span>: [<span class="str">"topic"</span>],
+        },
+    },
+]</pre>
+
+        <h3>Handling Function Results During Speech</h3>
+        <p>When the model calls a function mid-speech, you need to execute the function and return the result. The model will incorporate the result into its ongoing speech.</p>
+
+        <div class="code-label">Python — Function Execution Handler</div>
+<pre><span class="kw">async def</span> <span class="fn">handle_event</span>(event, ws):
+    <span class="kw">if</span> event[<span class="str">"type"</span>] == <span class="str">"response.function_call_arguments.done"</span>:
+        fn_name = event[<span class="str">"name"</span>]
+        fn_args = json.loads(event[<span class="str">"arguments"</span>])
+        call_id = event[<span class="str">"call_id"</span>]
+
+        <span class="cm"># Execute the function</span>
+        <span class="kw">if</span> fn_name == <span class="str">"draw_diagram"</span>:
+            result = <span class="kw">await</span> generate_diagram(**fn_args)
+            <span class="cm"># Also push the diagram to the client's visual panel</span>
+            <span class="kw">await</span> push_to_visual_panel(result[<span class="str">"svg_url"</span>])
+
+        <span class="kw">elif</span> fn_name == <span class="str">"search_knowledge_base"</span>:
+            result = <span class="kw">await</span> knowledge_base.search(**fn_args)
+
+        <span class="kw">elif</span> fn_name == <span class="str">"generate_quiz"</span>:
+            result = <span class="kw">await</span> quiz_engine.generate(**fn_args)
+            <span class="cm"># Show quiz UI on client</span>
+            <span class="kw">await</span> push_quiz_ui(result)
+
+        <span class="cm"># Return result to the model so it can continue speaking</span>
+        <span class="kw">await</span> ws.send(json.dumps({
+            <span class="str">"type"</span>: <span class="str">"conversation.item.create"</span>,
+            <span class="str">"item"</span>: {
+                <span class="str">"type"</span>: <span class="str">"function_call_output"</span>,
+                <span class="str">"call_id"</span>: call_id,
+                <span class="str">"output"</span>: json.dumps(result),
+            }
+        }))
+
+        <span class="cm"># Trigger the model to continue responding</span>
+        <span class="kw">await</span> ws.send(json.dumps({
+            <span class="str">"type"</span>: <span class="str">"response.create"</span>
+        }))</pre>
+
+        <h3>Tool Design Patterns for Education</h3>
+
+        <h4>Pattern 1: The Visual Whiteboard</h4>
+        <p>The tutor calls <code>draw_diagram</code> to generate visuals. This is where the Learn Imagine v3 pipeline integrates — the same visual generation system that creates static learning visuals can be invoked as a tool during a live voice conversation.</p>
+
+        <h4>Pattern 2: Adaptive Quiz Generation</h4>
+        <p>The tutor calls <code>generate_quiz</code> with difficulty calibrated to the student's recent performance. After the student answers verbally, the tutor evaluates and adjusts difficulty for the next question.</p>
+
+        <h4>Pattern 3: Knowledge Base RAG</h4>
+        <p>When the student asks something outside the model's training data (e.g., specifics about a Coursera course's grading rubric), the tutor searches the knowledge base and synthesizes the answer into speech.</p>
+
+        <h4>Pattern 4: Progress Tracking</h4>
+        <p>Every correct answer, completed exercise, and demonstrated skill triggers a <code>record_progress</code> call that updates the LMS. The student never has to click "submit" — the conversation <em>is</em> the assessment.</p>
+
+        <div class="callout info">
+          <div class="callout-title">The Voice + Visual Convergence</div>
+          The most powerful learning experience combines voice and visual simultaneously: the tutor explains a concept verbally while a diagram appears on screen, then asks the student to describe what they see. This dual-coding (auditory + visual) approach is well-supported by learning science and uniquely enabled by function calling in voice conversations. This is the bridge between Learn Imagine v3 and voice AI.
+        </div>
+
+        <div class="module-check">
+          <input type="checkbox" id="check5" data-module="5">
+          <label for="check5">I've completed Module 5: Voice + Tools</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 6 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod6">
+      <div class="module-header" data-module="6">
+        <span class="module-num">6</span>
+        <span class="module-title">Accessibility</span>
+        <span class="module-time">~15 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>Voice-First Accessibility</h2>
+        <p>Accessibility is not a feature to add after launch. It is a design principle that shapes every architectural decision. Voice AI has the potential to make education radically more accessible — or, if designed poorly, to create new barriers. This module covers both the opportunities and the pitfalls.</p>
+
+        <h3>Screen Reader Integration</h3>
+        <p>For visually impaired learners, a voice tutor is not a nice-to-have — it may be their primary (or only) effective way to interact with complex educational content. The key design principles:</p>
+
+        <ul>
+          <li><strong>Voice as the primary interface:</strong> The entire tutoring experience should be navigable without a screen. Every function the tutor performs (drawing diagrams, generating quizzes, showing progress) must have a spoken equivalent.</li>
+          <li><strong>Complement, don't conflict with screen readers:</strong> If a learner uses VoiceOver or NVDA, your voice output must not clash. Provide controls to pause the tutor while the screen reader speaks, and vice versa.</li>
+          <li><strong>Audio descriptions of visual content:</strong> When the tutor generates a diagram via <code>draw_diagram</code>, it must also generate a detailed verbal description: "I've drawn a binary tree with node A at the root, B and C as children..."</li>
+        </ul>
+
+        <div class="code-label">Python — Accessible Tool Output</div>
+<pre><span class="dec">@function_tool</span>
+<span class="kw">def</span> <span class="fn">draw_diagram_accessible</span>(
+    diagram_type: <span class="type">str</span>,
+    description: <span class="type">str</span>,
+) -> <span class="type">str</span>:
+    <span class="str">"""Generate a visual diagram with an audio description."""</span>
+    <span class="cm"># Generate the visual</span>
+    visual = diagram_engine.generate(diagram_type, description)
+
+    <span class="cm"># Generate an audio description</span>
+    audio_desc = client.chat.completions.create(
+        model=<span class="str">"gpt-4o"</span>,
+        messages=[{
+            <span class="str">"role"</span>: <span class="str">"system"</span>,
+            <span class="str">"content"</span>: <span class="str">"Describe this diagram in detail for a visually "
+                       "impaired learner. Be specific about spatial "
+                       "relationships, connections, and labels."</span>
+        }, {
+            <span class="str">"role"</span>: <span class="str">"user"</span>,
+            <span class="str">"content"</span>: [
+                {<span class="str">"type"</span>: <span class="str">"text"</span>, <span class="str">"text"</span>: description},
+                {<span class="str">"type"</span>: <span class="str">"image_url"</span>, <span class="str">"image_url"</span>: {<span class="str">"url"</span>: visual.url}},
+            ]
+        }]
+    )
+
+    <span class="kw">return</span> json.dumps({
+        <span class="str">"visual_url"</span>: visual.url,
+        <span class="str">"audio_description"</span>: audio_desc.choices[<span class="num">0</span>].message.content,
+        <span class="str">"alt_text"</span>: visual.alt_text,
+    })</pre>
+
+        <h3>Cognitive Accessibility</h3>
+        <p>Voice AI can adapt to learners with cognitive disabilities in ways text-based interfaces cannot:</p>
+
+        <ul>
+          <li><strong>Processing speed adaptation:</strong> Detect when a learner needs more time and automatically slow the pace. Increase <code>silence_duration_ms</code> for learners who process more slowly.</li>
+          <li><strong>Simplified language mode:</strong> When instructed, the tutor uses shorter sentences, more common vocabulary, and more repetition. This is controlled via dynamic system instructions.</li>
+          <li><strong>Emotional regulation support:</strong> For learners with anxiety, the tutor maintains a consistently calm tone, never uses time pressure language ("hurry up," "you're running behind"), and includes more frequent encouragement.</li>
+          <li><strong>Attention management:</strong> For learners with ADHD, the tutor uses more frequent check-ins, shorter explanation segments, and more interactive elements (questions, activities) to maintain engagement.</li>
+        </ul>
+
+        <div class="code-label">Python — Adaptive Accessibility Profile</div>
+<pre>accessibility_profiles = {
+    <span class="str">"visual_impairment"</span>: {
+        <span class="str">"voice_primary"</span>: <span class="kw">True</span>,
+        <span class="str">"auto_describe_visuals"</span>: <span class="kw">True</span>,
+        <span class="str">"screen_reader_compatible"</span>: <span class="kw">True</span>,
+        <span class="str">"additional_instructions"</span>: <span class="str">"Always verbally describe any visual "
+            "content you generate. Use spatial language: above, below, "
+            "left, right, connected to."</span>,
+    },
+    <span class="str">"cognitive_support"</span>: {
+        <span class="str">"silence_duration_ms"</span>: <span class="num">3000</span>,  <span class="cm"># Extra thinking time</span>
+        <span class="str">"max_sentence_length"</span>: <span class="num">15</span>,   <span class="cm"># Shorter sentences</span>
+        <span class="str">"repetition_enabled"</span>: <span class="kw">True</span>,
+        <span class="str">"additional_instructions"</span>: <span class="str">"Use simple language. After each "
+            "concept, ask 'Would you like me to explain that again?' "
+            "Break complex ideas into very small steps."</span>,
+    },
+    <span class="str">"attention_support"</span>: {
+        <span class="str">"max_explanation_length"</span>: <span class="num">60</span>,  <span class="cm"># seconds before check-in</span>
+        <span class="str">"interactive_frequency"</span>: <span class="str">"high"</span>,
+        <span class="str">"additional_instructions"</span>: <span class="str">"Keep explanations under 1 minute. "
+            "Follow every explanation with an interactive element: "
+            "a question, a mini-challenge, or a 'what do you think?' "
+            "moment. Use variety to maintain engagement."</span>,
+    },
+}</pre>
+
+        <h3>Multi-Modal Fallbacks</h3>
+        <p>Not every learner can use voice, and not every environment supports it. A robust system provides fallback paths:</p>
+
+        <table>
+          <tr><th>Primary Mode</th><th>Fallback</th><th>When</th></tr>
+          <tr><td>Voice input</td><td>Text chat input</td><td>Noisy environment, speech disability, public setting</td></tr>
+          <tr><td>Voice output</td><td>Text display + TTS toggle</td><td>Hearing impairment, volume restrictions</td></tr>
+          <tr><td>Visual diagrams</td><td>Audio descriptions + text</td><td>Visual impairment, low bandwidth</td></tr>
+          <tr><td>Real-time conversation</td><td>Async voice messages</td><td>High latency, unstable connection</td></tr>
+        </table>
+
+        <div class="callout warn">
+          <div class="callout-title">Legal Requirements</div>
+          For Coursera's enterprise and university partners, accessibility is not optional — it is legally required. WCAG 2.1 AA compliance, Section 508 (US federal), and the European Accessibility Act all mandate that digital learning tools be accessible. Voice AI features must be designed for compliance from day one, not retrofitted.
+        </div>
+
+        <div class="module-check">
+          <input type="checkbox" id="check6" data-module="6">
+          <label for="check6">I've completed Module 6: Accessibility</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 7 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod7">
+      <div class="module-header" data-module="7">
+        <span class="module-num">7</span>
+        <span class="module-title">Production Challenges</span>
+        <span class="module-time">~20 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>From Demo to Production</h2>
+        <p>Building a voice tutor demo takes a weekend. Building a production voice tutor that works reliably for millions of learners across diverse environments, devices, and use cases takes months of careful engineering. This module covers the hard problems.</p>
+
+        <h3>Latency Optimization</h3>
+        <p>In voice conversations, latency is the enemy of naturalness. The goal is &lt;500ms end-to-end latency (user finishes speaking → model audio starts playing). Here's where latency comes from and how to reduce it:</p>
+
+        <table>
+          <tr><th>Component</th><th>Typical Latency</th><th>Optimization</th></tr>
+          <tr><td>Audio capture + encoding</td><td>50-100ms</td><td>Use PCM16 (no compression overhead). Buffer in 20ms chunks.</td></tr>
+          <tr><td>Network (client → server)</td><td>20-100ms</td><td>WebSocket keep-alive. Regional server deployment. WebRTC for P2P.</td></tr>
+          <tr><td>VAD processing</td><td>silence_duration_ms</td><td>Tune per use case. 500ms conversation, 1500ms tutoring.</td></tr>
+          <tr><td>Model inference</td><td>200-500ms</td><td>Cannot control. First token latency is OpenAI's problem.</td></tr>
+          <tr><td>Network (server → client)</td><td>20-100ms</td><td>Stream audio chunks immediately. Don't buffer full response.</td></tr>
+          <tr><td>Audio playback buffer</td><td>50-100ms</td><td>Start playback after 2-3 chunks, not full response.</td></tr>
+        </table>
+
+        <div class="code-label">Python — Streaming Audio Playback</div>
+<pre><span class="kw">import</span> asyncio
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+
+<span class="kw">class</span> <span class="type">AudioStreamPlayer</span>:
+    <span class="str">"""Low-latency audio player that starts playback before
+    the full response is received."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, min_buffer_chunks=<span class="num">3</span>):
+        self.buffer = deque()
+        self.min_buffer = min_buffer_chunks
+        self.playing = <span class="kw">False</span>
+
+    <span class="kw">async def</span> <span class="fn">add_chunk</span>(self, audio_data: <span class="type">bytes</span>):
+        self.buffer.append(audio_data)
+        <span class="kw">if</span> <span class="kw">not</span> self.playing <span class="kw">and</span> len(self.buffer) >= self.min_buffer:
+            self.playing = <span class="kw">True</span>
+            asyncio.create_task(self._play_loop())
+
+    <span class="kw">async def</span> <span class="fn">_play_loop</span>(self):
+        <span class="kw">while</span> self.buffer <span class="kw">or</span> self.playing:
+            <span class="kw">if</span> self.buffer:
+                chunk = self.buffer.popleft()
+                <span class="kw">await</span> self._play_audio(chunk)
+            <span class="kw">else</span>:
+                <span class="kw">await</span> asyncio.sleep(<span class="num">0.01</span>)
+
+    <span class="kw">def</span> <span class="fn">interrupt</span>(self):
+        <span class="str">"""Clear buffer when user interrupts."""</span>
+        self.buffer.clear()
+        self.playing = <span class="kw">False</span></pre>
+
+        <h3>Cost Management</h3>
+        <p>At Coursera's scale, voice AI costs require careful architecture:</p>
+
+        <h4>Cost Model</h4>
+        <table>
+          <tr><th>Scenario</th><th>Duration</th><th>Estimated Cost</th><th>Monthly at Scale</th></tr>
+          <tr><td>Quick Q&amp;A</td><td>2 min</td><td>$0.30-0.60</td><td>$300K (1M sessions)</td></tr>
+          <tr><td>Tutoring session</td><td>15 min</td><td>$2-5</td><td>$2-5M (1M sessions)</td></tr>
+          <tr><td>Language drill</td><td>5 min</td><td>$0.60-1.50</td><td>$600K-1.5M (1M sessions)</td></tr>
+          <tr><td>Full course companion</td><td>60 min</td><td>$8-20</td><td>Not viable at scale</td></tr>
+        </table>
+
+        <h4>Cost Optimization Strategies</h4>
+        <ul>
+          <li><strong>Hybrid mode:</strong> Use text (Chat Completions) for low-value interactions, voice only for high-value moments. "Let me type that code example for you" costs 10x less than speaking it.</li>
+          <li><strong>Session time limits:</strong> Cap voice sessions at 10-15 minutes per interaction. Research shows tutoring effectiveness plateaus after ~15 minutes anyway.</li>
+          <li><strong>Context caching:</strong> Use cached system prompts and conversation history. Cached text input is $2.50/1M tokens vs. $5/1M for uncached.</li>
+          <li><strong>Tiered access:</strong> Offer voice features to Coursera Plus subscribers (premium tier) and limited free sessions for discovery.</li>
+          <li><strong>Smart silence handling:</strong> When the student is silently thinking, don't keep the Realtime connection active. Pause after 30s of silence, reconnect when the student speaks.</li>
+        </ul>
+
+        <div class="code-label">Python — Cost-Aware Session Manager</div>
+<pre><span class="kw">class</span> <span class="type">CostAwareSessionManager</span>:
+    MAX_SESSION_MINUTES = <span class="num">15</span>
+    COST_WARNING_THRESHOLD = <span class="num">3.00</span>  <span class="cm"># dollars</span>
+    SILENCE_TIMEOUT = <span class="num">30</span>  <span class="cm"># seconds</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, user_tier: <span class="type">str</span>):
+        self.start_time = time.time()
+        self.estimated_cost = <span class="num">0.0</span>
+        self.user_tier = user_tier
+        self.last_speech_time = time.time()
+
+    <span class="kw">def</span> <span class="fn">track_audio</span>(self, direction: <span class="type">str</span>, duration_ms: <span class="type">int</span>):
+        <span class="cm"># ~1 token per 16ms of audio</span>
+        tokens = duration_ms / <span class="num">16</span>
+        <span class="kw">if</span> direction == <span class="str">"input"</span>:
+            self.estimated_cost += tokens * (<span class="num">40</span> / <span class="num">1_000_000</span>)
+        <span class="kw">else</span>:
+            self.estimated_cost += tokens * (<span class="num">80</span> / <span class="num">1_000_000</span>)
+
+    <span class="kw">def</span> <span class="fn">should_warn</span>(self) -> <span class="type">bool</span>:
+        <span class="kw">return</span> self.estimated_cost > self.COST_WARNING_THRESHOLD
+
+    <span class="kw">def</span> <span class="fn">should_end</span>(self) -> <span class="type">bool</span>:
+        elapsed = (time.time() - self.start_time) / <span class="num">60</span>
+        <span class="kw">return</span> elapsed > self.MAX_SESSION_MINUTES
+
+    <span class="kw">def</span> <span class="fn">should_pause</span>(self) -> <span class="type">bool</span>:
+        <span class="kw">return</span> (time.time() - self.last_speech_time) > self.SILENCE_TIMEOUT</pre>
+
+        <h3>Noise Handling</h3>
+        <p>Real-world voice input is noisy. Students use voice tutors in dorm rooms, coffee shops, libraries, and on buses. Production considerations:</p>
+        <ul>
+          <li><strong>VAD threshold tuning:</strong> Use a higher <code>threshold</code> (0.7+) and detect background noise levels at session start. Auto-calibrate.</li>
+          <li><strong>Graceful noise recovery:</strong> When the tutor detects unintelligible input, it should not guess — it should ask: "I didn't quite catch that. Could you say it again?"</li>
+          <li><strong>Client-side noise suppression:</strong> Apply WebRTC noise suppression (built into browsers) before sending audio to the server.</li>
+        </ul>
+
+        <h3>Multi-Speaker Detection</h3>
+        <p>In group tutoring scenarios (study groups, classroom use), you may have multiple speakers. The Realtime API does not natively support speaker diarization. Strategies:</p>
+        <ul>
+          <li>Use Whisper separately for post-session transcription with speaker labels.</li>
+          <li>Have students identify themselves: "This is Alex, I think the answer is..."</li>
+          <li>Use individual device connections rather than a shared microphone.</li>
+        </ul>
+
+        <h3>Privacy and Recording Consent</h3>
+        <p>Voice data is biometric data. This has profound privacy implications:</p>
+
+        <div class="callout danger">
+          <div class="callout-title">Critical: Voice Data Privacy</div>
+          <ul>
+            <li><strong>Recording consent:</strong> Always get explicit consent before recording or processing voice. Two-party consent laws in many jurisdictions require all parties to agree. Display a clear consent dialog before the microphone activates.</li>
+            <li><strong>Data retention:</strong> Define and enforce retention policies. Do you store the audio? Just the transcript? For how long? GDPR/CCPA require this to be documented and enforced.</li>
+            <li><strong>COPPA compliance:</strong> If any learners are under 13, voice data collection requires parental consent under COPPA (US) and similar regulations globally.</li>
+            <li><strong>FERPA:</strong> For university partners, voice tutoring data is an education record under FERPA. It must be protected accordingly.</li>
+            <li><strong>OpenAI data handling:</strong> Review OpenAI's data usage policy. By default, Realtime API data may be used for model training. Use the API with <code>data_retention: "zero"</code> for sensitive educational contexts.</li>
+          </ul>
+        </div>
+
+        <div class="code-label">Python — Consent and Privacy Manager</div>
+<pre><span class="kw">class</span> <span class="type">VoicePrivacyManager</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, user_id: <span class="type">str</span>, jurisdiction: <span class="type">str</span>):
+        self.user_id = user_id
+        self.jurisdiction = jurisdiction
+        self.consent_obtained = <span class="kw">False</span>
+        self.recording_enabled = <span class="kw">False</span>
+
+    <span class="kw">def</span> <span class="fn">check_consent</span>(self) -> <span class="type">dict</span>:
+        <span class="str">"""Check consent status before starting voice session."""</span>
+        consent = db.get_consent(self.user_id)
+        requirements = self._get_jurisdiction_requirements()
+
+        <span class="kw">return</span> {
+            <span class="str">"can_start"</span>: consent.voice_processing_agreed,
+            <span class="str">"can_record"</span>: consent.recording_agreed,
+            <span class="str">"can_store_transcript"</span>: consent.transcript_storage_agreed,
+            <span class="str">"data_retention_days"</span>: requirements.max_retention_days,
+            <span class="str">"requires_parental_consent"</span>: consent.user_age < <span class="num">13</span>,
+        }
+
+    <span class="kw">def</span> <span class="fn">create_session_config</span>(self) -> <span class="type">dict</span>:
+        <span class="str">"""Generate privacy-safe session configuration."""</span>
+        <span class="kw">return</span> {
+            <span class="str">"store_audio"</span>: <span class="kw">False</span>,  <span class="cm"># Never store raw audio by default</span>
+            <span class="str">"store_transcript"</span>: self.consent_obtained,
+            <span class="str">"anonymize_after_days"</span>: <span class="num">30</span>,
+            <span class="str">"openai_data_retention"</span>: <span class="str">"zero"</span>,
+        }</pre>
+
+        <div class="module-check">
+          <input type="checkbox" id="check7" data-module="7">
+          <label for="check7">I've completed Module 7: Production Challenges</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- MODULE 8 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="module" id="mod8">
+      <div class="module-header" data-module="8">
+        <span class="module-num">8</span>
+        <span class="module-title">Capstone: Coursera Voice Tutor</span>
+        <span class="module-time">~25 min</span>
+        <svg class="module-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="module-body">
+
+        <h2>Designing a Voice-Powered Coursera Experience</h2>
+        <p>This capstone pulls together everything from the previous seven modules into a concrete product design: a voice tutor integrated into the Coursera platform. We will cover architecture, user experience, cost modeling, and a phased launch plan.</p>
+
+        <h3>Product Vision</h3>
+        <p>The Coursera Voice Tutor is an AI companion that can join any course on the platform and provide real-time, conversational tutoring. It knows the course content, understands the learner's progress, and can explain, quiz, demonstrate, and encourage — all through voice. Combined with Learn Imagine v3's visual generation, it creates a multimodal tutoring experience that approaches the effectiveness of a human tutor at a fraction of the cost.</p>
+
+        <h3>System Architecture</h3>
+        <div class="diagram"><span class="accent">Coursera Voice Tutor — Production Architecture</span>
+
+┌─────────────────────────────────────────────────────────────────┐
+│  <span class="cyan">Coursera Web/Mobile Client</span>                                     │
+│  ┌────────────┐ ┌──────────────┐ ┌──────────────────────────┐  │
+│  │ Voice UI   │ │ Course       │ │ Visual Panel              │  │
+│  │ Component  │ │ Player       │ │ (Learn Imagine v3)        │  │
+│  │ - Mic ctrl │ │ - Video sync │ │ - Diagrams, Animations    │  │
+│  │ - Waveform │ │ - Transcript │ │ - Quiz UI, Code Editor    │  │
+│  └─────┬──────┘ └──────┬───────┘ └─────────────┬────────────┘  │
+│        └────────────────┼───────────────────────┘              │
+│                    WebSocket                                    │
+└────────────────────────┼────────────────────────────────────────┘
+                         │
+┌────────────────────────┼────────────────────────────────────────┐
+│  <span class="purple">Voice Gateway</span> (Regional Edge — us-east, eu-west, ap-south)      │
+│  ┌───────────────────┐ ┌───────────────────┐                    │
+│  │ Connection Manager│ │ Audio Router       │                    │
+│  │ - Auth + consent  │ │ - Stream to OpenAI │                    │
+│  │ - Rate limiting   │ │ - Noise detection  │                    │
+│  │ - Session state   │ │ - Interruption mgr │                    │
+│  └─────────┬─────────┘ └────────┬──────────┘                    │
+│            │                     │                               │
+│  ┌─────────┴─────────────────────┴──────────┐                   │
+│  │         <span class="accent">Tutor Orchestrator</span>                 │                   │
+│  │  ┌─────────────┐  ┌──────────────────┐   │                   │
+│  │  │ Agent SDK    │  │ Pedagogy Engine  │   │                   │
+│  │  │ - Tutor      │  │ - Socratic rules │   │                   │
+│  │  │ - Pronounce  │  │ - Difficulty adj. │   │                   │
+│  │  │ - Quiz       │  │ - Learning model │   │                   │
+│  │  │ - Encourage  │  │ - Misconceptions │   │                   │
+│  │  └──────┬──────┘  └────────┬─────────┘   │                   │
+│  │         │                   │              │                   │
+│  │  ┌──────┴───────────────────┴──────────┐  │                   │
+│  │  │          Tool Registry               │  │                   │
+│  │  │ draw_diagram │ generate_quiz         │  │                   │
+│  │  │ search_kb    │ record_progress       │  │                   │
+│  │  │ get_hint     │ show_code_example     │  │                   │
+│  │  │ translate    │ play_pronunciation    │  │                   │
+│  │  └──────────────────────────────────────┘  │                   │
+│  └────────────────────────────────────────────┘                   │
+│                                                                   │
+│  ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐       │
+│  │ Content Store │ │ Coursera LMS │ │ Analytics Pipeline │       │
+│  │ - Course RAG  │ │ - Grades     │ │ - Session logs     │       │
+│  │ - Syllabus    │ │ - Progress   │ │ - Learning metrics │       │
+│  │ - Assessments │ │ - Enrollment │ │ - Cost tracking    │       │
+│  └──────────────┘ └──────────────┘ └────────────────────┘       │
+└─────────────────────────────────────────────────────────────────┘
+                         │
+                    ┌────┴──────┐
+                    │  OpenAI   │
+                    │ Realtime  │
+                    │ API       │
+                    └───────────┘</div>
+
+        <h3>User Experience Flow</h3>
+        <h4>Entry Points</h4>
+        <p>The voice tutor should be available from multiple entry points within the Coursera experience:</p>
+        <ul>
+          <li><strong>Floating microphone button</strong> on every course page — always accessible, never obtrusive.</li>
+          <li><strong>"Ask the Tutor" prompt</strong> after completing a video lecture — captures the moment of highest curiosity.</li>
+          <li><strong>Quiz review screen</strong> — when a learner gets a question wrong, offer voice explanation.</li>
+          <li><strong>Study plan page</strong> — "Want to review today's topics? Let's talk through them."</li>
+        </ul>
+
+        <h4>Session Flow</h4>
+        <p>A typical session follows this arc:</p>
+        <ol>
+          <li><strong>Activation:</strong> Learner clicks mic button. Consent check (first time only). Brief connecting animation.</li>
+          <li><strong>Context loading (1-2s):</strong> System loads the learner's current course, module, recent quiz scores, and last session summary. This becomes the system prompt context.</li>
+          <li><strong>Greeting:</strong> "Hi Mustafa! You're on Week 3 of Machine Learning Foundations. Last time we talked about gradient descent. Want to continue, or is there something specific you'd like to work on?"</li>
+          <li><strong>Interaction loop:</strong> Socratic dialogue with function calling for visuals, quizzes, and knowledge base lookups.</li>
+          <li><strong>Wrap-up:</strong> Summary of what was covered, progress update, suggested next steps.</li>
+          <li><strong>Post-session:</strong> Transcript saved (with consent). Progress synced to LMS. Analytics logged.</li>
+        </ol>
+
+        <h3>Cost Model: Coursera Scale</h3>
+        <p>Let's model the costs for a phased rollout:</p>
+
+        <h4>Phase 1: Beta (3 months)</h4>
+        <table>
+          <tr><th>Metric</th><th>Value</th></tr>
+          <tr><td>Target users</td><td>10,000 Coursera Plus subscribers</td></tr>
+          <tr><td>Avg sessions/user/month</td><td>4</td></tr>
+          <tr><td>Avg session duration</td><td>8 minutes</td></tr>
+          <tr><td>Monthly sessions</td><td>40,000</td></tr>
+          <tr><td>Cost per session (avg)</td><td>$1.20</td></tr>
+          <tr><td><strong>Monthly API cost</strong></td><td><strong>$48,000</strong></td></tr>
+          <tr><td>Infrastructure (servers, etc.)</td><td>$15,000/mo</td></tr>
+          <tr><td><strong>Total monthly cost</strong></td><td><strong>$63,000</strong></td></tr>
+        </table>
+
+        <h4>Phase 2: General Availability (6-12 months)</h4>
+        <table>
+          <tr><th>Metric</th><th>Value</th></tr>
+          <tr><td>Target users</td><td>500,000 (Coursera Plus)</td></tr>
+          <tr><td>Avg sessions/user/month</td><td>3 (novelty wears off)</td></tr>
+          <tr><td>Avg session duration</td><td>6 minutes (optimized)</td></tr>
+          <tr><td>Monthly sessions</td><td>1,500,000</td></tr>
+          <tr><td>Cost per session (w/ optimization)</td><td>$0.80</td></tr>
+          <tr><td><strong>Monthly API cost</strong></td><td><strong>$1,200,000</strong></td></tr>
+          <tr><td>Infrastructure</td><td>$200,000/mo</td></tr>
+          <tr><td><strong>Total monthly cost</strong></td><td><strong>$1,400,000</strong></td></tr>
+        </table>
+
+        <h4>Cost Justification</h4>
+        <p>At $1.4M/month, voice tutoring must drive measurable business outcomes:</p>
+        <ul>
+          <li><strong>Retention:</strong> If voice tutoring increases Coursera Plus retention by even 2%, the LTV increase on 500K subscribers more than covers the cost.</li>
+          <li><strong>Completion rates:</strong> Coursera's average course completion rate is ~5-15%. If voice tutoring doubles completion for users who engage with it, that translates to better learner outcomes and more certificates (a revenue driver).</li>
+          <li><strong>Premium tier justification:</strong> Voice tutoring becomes a flagship feature of Coursera Plus, justifying a price increase or reducing churn.</li>
+          <li><strong>Enterprise value:</strong> Enterprise customers pay significantly more per seat. AI tutoring is a high-value differentiator against LinkedIn Learning, Udemy Business, and others.</li>
+        </ul>
+
+        <h3>Launch Plan</h3>
+
+        <h4>Phase 0: Infrastructure (Weeks 1-4)</h4>
+        <ul>
+          <li>Deploy Voice Gateway on regional edge servers.</li>
+          <li>Build content ingestion pipeline (course materials → vector store for RAG).</li>
+          <li>Implement privacy/consent framework.</li>
+          <li>Set up cost monitoring and alerting.</li>
+        </ul>
+
+        <h4>Phase 1: Internal Dogfood (Weeks 5-8)</h4>
+        <ul>
+          <li>Deploy to Coursera employees as alpha users.</li>
+          <li>Focus on 5 courses across different domains (CS, business, language, data science, humanities).</li>
+          <li>Iterate on tutor personality, pedagogical rules, and tool integrations.</li>
+          <li>Establish quality metrics: learner satisfaction, session duration, re-engagement rate.</li>
+        </ul>
+
+        <h4>Phase 2: Closed Beta (Weeks 9-16)</h4>
+        <ul>
+          <li>Invite 10,000 Coursera Plus subscribers (diverse demographics, geographies, device types).</li>
+          <li>A/B test: voice tutor vs. control (no voice) on engagement and completion metrics.</li>
+          <li>Expand to 50 courses.</li>
+          <li>Iterate on accessibility, multi-language support, and edge cases.</li>
+        </ul>
+
+        <h4>Phase 3: General Availability (Weeks 17-24)</h4>
+        <ul>
+          <li>Launch to all Coursera Plus subscribers.</li>
+          <li>Enable for all courses (generic tutor mode for courses without custom content ingestion).</li>
+          <li>Begin enterprise rollout with pilot partners.</li>
+          <li>Launch pronunciation coaching for language courses.</li>
+        </ul>
+
+        <h3>Success Metrics</h3>
+        <table>
+          <tr><th>Metric</th><th>Target (Phase 2)</th><th>Target (Phase 3)</th></tr>
+          <tr><td>Session NPS</td><td>&gt; 40</td><td>&gt; 50</td></tr>
+          <tr><td>Return rate (sessions/user/month)</td><td>&gt; 2</td><td>&gt; 3</td></tr>
+          <tr><td>Course completion (voice users vs. control)</td><td>+30%</td><td>+50%</td></tr>
+          <tr><td>Coursera Plus retention (voice users)</td><td>+2%</td><td>+5%</td></tr>
+          <tr><td>Average session duration</td><td>8 min</td><td>6 min (efficiency improves)</td></tr>
+          <tr><td>Cost per session</td><td>&lt; $1.50</td><td>&lt; $0.80</td></tr>
+          <tr><td>P95 latency (first model audio)</td><td>&lt; 800ms</td><td>&lt; 500ms</td></tr>
+        </table>
+
+        <h3>Risks and Mitigations</h3>
+        <table>
+          <tr><th>Risk</th><th>Impact</th><th>Mitigation</th></tr>
+          <tr><td>OpenAI API costs increase</td><td>High</td><td>Multi-vendor strategy (also evaluate Gemini Live, Claude voice). Build abstraction layer.</td></tr>
+          <tr><td>API reliability (outages)</td><td>High</td><td>Graceful fallback to text chat. Redundant providers. SLA monitoring.</td></tr>
+          <tr><td>Privacy incident (voice data leak)</td><td>Critical</td><td>Zero audio storage default. Encryption at rest. Regular security audits. Incident response plan.</td></tr>
+          <tr><td>Learners use tutor to cheat on assessments</td><td>Medium</td><td>Disable voice tutor during graded assessments. Academic integrity monitoring.</td></tr>
+          <tr><td>Low adoption</td><td>Medium</td><td>Contextual prompts (after quiz failure, after video). Gamification (streaks). Social proof.</td></tr>
+          <tr><td>Hallucination in course content</td><td>High</td><td>RAG over verified course materials. Confidence thresholds. "I'm not sure about that, let me check..."</td></tr>
+        </table>
+
+        <div class="callout tip">
+          <div class="callout-title">The Voice + Learn Imagine v3 Synthesis</div>
+          The ultimate product vision is a tutor that can <em>talk and show</em> simultaneously. When a student asks "How does backpropagation work?", the tutor explains verbally while Learn Imagine v3 generates an animated neural network visualization on screen. When the student says "I don't understand the chain rule part," the tutor zooms into that section of the visualization and explains with voice + pointing. This multimodal, conversational, visual learning experience has no equivalent in the market today. It is the intersection of everything Coursera has been building toward.
+        </div>
+
+        <h3>Final Reflection</h3>
+        <p>Voice AI for education is not a technology in search of a problem. It is a solution to the oldest problem in education: the scarcity of great teachers. Every student deserves a patient, knowledgeable, encouraging tutor who is always available. We cannot hire enough human tutors to serve the world. But we can build AI tutors that approach human-level effectiveness — and voice is the interface that makes those tutors feel real.</p>
+
+        <p>The technology is ready. The APIs exist. The costs are manageable at scale. The learning science supports it. The question is not <em>whether</em> Coursera should build voice tutoring — it is <em>how fast</em>.</p>
+
+        <div class="module-check">
+          <input type="checkbox" id="check8" data-module="8">
+          <label for="check8">I've completed Module 8: Capstone</label>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ── JavaScript ── -->
+<script>
+(function() {
+  // Module collapsing
+  document.querySelectorAll('.module-header').forEach(header => {
+    header.addEventListener('click', () => {
+      // Close others optionally (remove this block to allow multiple open)
+      header.classList.toggle('open');
+    });
+  });
+
+  // Progress tracking
+  const checkboxes = document.querySelectorAll('.module-check input[type="checkbox"]');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const STORAGE_KEY = 'voice-ai-course-progress';
+
+  function loadProgress() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      checkboxes.forEach(cb => {
+        if (saved[cb.id]) cb.checked = true;
+      });
+    } catch(e) {}
+    updateProgress();
+  }
+
+  function saveProgress() {
+    const state = {};
+    checkboxes.forEach(cb => { state[cb.id] = cb.checked; });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  function updateProgress() {
+    const total = checkboxes.length;
+    const done = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const pct = Math.round((done / total) * 100);
+    progressBar.style.width = pct + '%';
+    progressText.textContent = pct + '%';
+  }
+
+  checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+      saveProgress();
+      updateProgress();
+    });
+  });
+
+  loadProgress();
+
+  // Sidebar active state on scroll
+  const sidebarLinks = document.querySelectorAll('.sidebar-link');
+  const modules = document.querySelectorAll('.module');
+  const navHeight = 56;
+
+  function updateActiveSidebar() {
+    let current = '';
+    modules.forEach(mod => {
+      const rect = mod.getBoundingClientRect();
+      if (rect.top <= navHeight + 100) {
+        current = mod.id;
+      }
+    });
+    sidebarLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  }
+
+  window.addEventListener('scroll', updateActiveSidebar, { passive: true });
+  updateActiveSidebar();
+
+  // Mobile hamburger
+  const hamburger = document.getElementById('hamburger');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  function toggleMobileSidebar() {
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('active');
+  }
+
+  hamburger.addEventListener('click', toggleMobileSidebar);
+  overlay.addEventListener('click', toggleMobileSidebar);
+
+  sidebarLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (sidebar.classList.contains('mobile-open')) {
+        toggleMobileSidebar();
+      }
+    });
+  });
+
+  // Smooth scroll for sidebar links
+  sidebarLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        const header = target.querySelector('.module-header');
+        if (header && !header.classList.contains('open')) {
+          header.classList.add('open');
+        }
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

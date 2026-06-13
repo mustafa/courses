@@ -1,0 +1,2143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gemma 4 12B — Local AI Masterclass</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;--bg2:#111827;--bg3:#1a2236;--bg4:#243049;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --accent:#4285f4;--accent2:#5b9bff;--accent-dim:rgba(66,133,244,.12);
+  --green:#34d399;--orange:#fb923c;--red:#f87171;--purple:#a78bfa;
+  --radius:10px;--transition:all .25s ease;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"SF Mono","Fira Code","Fira Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;font-size:16px;min-height:100vh}
+a{color:var(--accent2);text-decoration:none;transition:var(--transition)}
+a:hover{color:#fff;text-decoration:underline}
+h1,h2,h3,h4{font-weight:700;line-height:1.3;color:#fff}
+h1{font-size:clamp(1.8rem,4vw,2.8rem)}
+h2{font-size:clamp(1.4rem,3vw,2rem);margin-bottom:.5em}
+h3{font-size:clamp(1.1rem,2.5vw,1.4rem);margin:1.2em 0 .5em;color:var(--accent2)}
+h4{font-size:1.05rem;margin:1em 0 .4em;color:var(--green)}
+p{margin-bottom:1em;color:var(--text)}
+ul,ol{margin:0 0 1em 1.5em;color:var(--text)}
+li{margin-bottom:.4em}
+strong{color:#fff}
+em{color:var(--accent2);font-style:normal}
+hr{border:none;border-top:1px solid var(--bg4);margin:2em 0}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--bg4);padding:0 1.5rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.1rem;color:#fff}
+.nav-brand svg{width:28px;height:28px}
+.nav-links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{padding:6px 12px;border-radius:6px;font-size:.82rem;font-weight:600;color:var(--text2);white-space:nowrap;transition:var(--transition);cursor:pointer;border:none;background:none}
+.nav-link:hover,.nav-link.active{color:#fff;background:var(--accent-dim)}
+.progress-bar{height:3px;background:var(--bg3);position:absolute;bottom:0;left:0;right:0}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .4s ease;width:0%}
+.menu-toggle{display:none;background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer}
+
+/* HERO */
+.hero{padding:4rem 1.5rem 3rem;text-align:center;background:linear-gradient(180deg,rgba(66,133,244,.08) 0%,transparent 100%)}
+.hero-inner{max-width:800px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--accent-dim);border:1px solid rgba(66,133,244,.25);border-radius:20px;padding:6px 16px;font-size:.82rem;font-weight:600;color:var(--accent2);margin-bottom:1.5rem}
+.hero h1{margin-bottom:.8rem}
+.hero h1 span{background:linear-gradient(135deg,var(--accent),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:1.1rem;color:var(--text2);max-width:650px;margin:0 auto 2rem}
+.hero-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:1.5rem;margin-top:2rem}
+.stat{text-align:center}
+.stat-value{font-size:1.6rem;font-weight:800;color:#fff}
+.stat-label{font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+
+/* CONTAINER */
+.container{max-width:900px;margin:0 auto;padding:0 1.5rem 4rem}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--radius);margin-bottom:1.2rem;overflow:hidden;transition:var(--transition)}
+.module.completed-module{border-color:rgba(52,211,153,.3)}
+.module-header{display:flex;align-items:center;gap:12px;padding:1rem 1.2rem;cursor:pointer;user-select:none;transition:var(--transition)}
+.module-header:hover{background:var(--bg3)}
+.module-num{width:36px;height:36px;border-radius:8px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0;transition:var(--transition)}
+.completed-module .module-num{background:rgba(52,211,153,.15);color:var(--green)}
+.module-title{flex:1;font-weight:700;font-size:1.05rem;color:#fff}
+.module-meta{font-size:.78rem;color:var(--text3);margin-right:8px}
+.module-chevron{width:20px;height:20px;color:var(--text3);transition:transform .3s ease;flex-shrink:0}
+.module.open .module-chevron{transform:rotate(180deg)}
+.module-body{display:none;padding:0 1.2rem 1.5rem;border-top:1px solid var(--bg4)}
+.module.open .module-body{display:block}
+
+/* LESSONS */
+.lesson{display:flex;align-items:flex-start;gap:12px;padding:.8rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.lesson:last-child{border-bottom:none}
+.lesson-check{appearance:none;-webkit-appearance:none;width:22px;height:22px;border:2px solid var(--bg4);border-radius:6px;cursor:pointer;flex-shrink:0;margin-top:2px;position:relative;transition:var(--transition);background:transparent}
+.lesson-check:checked{background:var(--green);border-color:var(--green)}
+.lesson-check:checked::after{content:"✓";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#000;font-size:14px;font-weight:700}
+.lesson-content{flex:1;min-width:0}
+.lesson-title-text{font-weight:600;font-size:.95rem;color:var(--text);display:block;margin-bottom:.3em}
+.lesson-desc{font-size:.88rem;color:var(--text2);line-height:1.6}
+
+/* CODE BLOCKS */
+pre{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;margin:1em 0;font-size:.85rem;line-height:1.6;position:relative}
+code{font-family:var(--mono);font-size:.85rem}
+pre code{color:var(--text)}
+p code,li code{background:var(--bg3);padding:2px 7px;border-radius:4px;font-size:.82rem;color:var(--accent2)}
+.code-label{position:absolute;top:8px;right:12px;font-size:.7rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;font-family:var(--font)}
+.copy-btn{position:absolute;top:6px;right:8px;background:var(--bg3);border:1px solid var(--bg4);color:var(--text2);padding:4px 10px;border-radius:5px;font-size:.72rem;cursor:pointer;font-family:var(--font);transition:var(--transition);opacity:0}
+pre:hover .copy-btn{opacity:1}
+.copy-btn:hover{color:#fff;background:var(--accent)}
+
+/* CALLOUTS */
+.callout{border-radius:8px;padding:1rem 1.2rem;margin:1.2em 0;border-left:3px solid}
+.callout-title{font-weight:700;font-size:.88rem;margin-bottom:.3em;display:flex;align-items:center;gap:6px}
+.callout p{margin:0;font-size:.9rem}
+.callout-tip{background:rgba(52,211,153,.08);border-color:var(--green)}
+.callout-tip .callout-title{color:var(--green)}
+.callout-warn{background:rgba(251,146,60,.08);border-color:var(--orange)}
+.callout-warn .callout-title{color:var(--orange)}
+.callout-info{background:rgba(66,133,244,.08);border-color:var(--accent)}
+.callout-info .callout-title{color:var(--accent)}
+.callout-danger{background:rgba(248,113,113,.08);border-color:var(--red)}
+.callout-danger .callout-title{color:var(--red)}
+
+/* TABLES */
+.table-wrap{overflow-x:auto;margin:1.2em 0;border-radius:8px;border:1px solid var(--bg4)}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--bg3);color:#fff;font-weight:700;text-align:left;padding:10px 14px;white-space:nowrap}
+td{padding:10px 14px;border-top:1px solid var(--bg4);color:var(--text)}
+tr:hover td{background:rgba(66,133,244,.04)}
+
+/* COMPARISON CARDS */
+.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:1.2em 0}
+.compare-card{background:var(--bg);border:1px solid var(--bg4);border-radius:8px;padding:1rem;transition:var(--transition)}
+.compare-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.compare-card h4{margin:0 0 .3em;font-size:.95rem}
+.compare-card p{margin:0;font-size:.82rem;color:var(--text2)}
+
+/* BENCHMARK BAR */
+.bench-bar{margin:.6em 0}
+.bench-label{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px}
+.bench-label span:first-child{color:var(--text)}
+.bench-label span:last-child{color:var(--accent2);font-weight:700}
+.bench-track{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.bench-fill{height:100%;border-radius:4px;transition:width 1s ease}
+
+/* HANDS-ON */
+.hands-on{background:linear-gradient(135deg,rgba(66,133,244,.06),rgba(52,211,153,.06));border:1px solid rgba(66,133,244,.2);border-radius:8px;padding:1.2rem;margin:1.5em 0}
+.hands-on-label{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.8em}
+
+/* FOOTER */
+footer{text-align:center;padding:3rem 1.5rem;border-top:1px solid var(--bg4);color:var(--text3);font-size:.85rem}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .nav-links{display:none;position:absolute;top:60px;left:0;right:0;background:var(--bg2);border-bottom:1px solid var(--bg4);flex-direction:column;padding:1rem}
+  .nav-links.show{display:flex}
+  .menu-toggle{display:block}
+  .hero{padding:2.5rem 1rem 2rem}
+  .hero-stats{gap:1rem}
+  .stat-value{font-size:1.3rem}
+  .module-header{padding:.8rem 1rem}
+  .module-body{padding:0 1rem 1.2rem}
+  pre{font-size:.78rem;padding:.8rem}
+  .compare-grid{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .module-meta{display:none}
+  .hero h1{font-size:1.5rem}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+<div class="nav-inner">
+  <div class="nav-brand">
+    <svg viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="6" fill="#4285f4"/><path d="M8 14l4 4 8-8" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Gemma 4 Masterclass
+  </div>
+  <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('show')" aria-label="Menu">☰</button>
+  <div class="nav-links" id="navLinks">
+    <button class="nav-link" onclick="scrollToModule(0)">1 — Intro</button>
+    <button class="nav-link" onclick="scrollToModule(1)">2 — Install</button>
+    <button class="nav-link" onclick="scrollToModule(2)">3 — Performance</button>
+    <button class="nav-link" onclick="scrollToModule(3)">4 — Multimodal</button>
+    <button class="nav-link" onclick="scrollToModule(4)">5 — Agentic</button>
+    <button class="nav-link" onclick="scrollToModule(5)">6 — Fine-Tune</button>
+    <button class="nav-link" onclick="scrollToModule(6)">7 — Serving</button>
+    <button class="nav-link" onclick="scrollToModule(7)">8 — Strategy</button>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+<div class="hero-inner">
+  <div class="hero-badge">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#4285f4" stroke-width="2"/><circle cx="7" cy="7" r="2.5" fill="#4285f4"/></svg>
+    Released June 3, 2026 — Google DeepMind
+  </div>
+  <h1>Master <span>Gemma 4 12B</span> Locally on Your Mac</h1>
+  <p>A complete, offline course on running Google's most capable open model on Apple Silicon. From first install to agentic workflows — no cloud required.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-value">12B</div><div class="stat-label">Parameters</div></div>
+    <div class="stat"><div class="stat-value">256K</div><div class="stat-label">Context Window</div></div>
+    <div class="stat"><div class="stat-value">4</div><div class="stat-label">Modalities</div></div>
+    <div class="stat"><div class="stat-value">Apache 2.0</div><div class="stat-label">License</div></div>
+    <div class="stat"><div class="stat-value">16 GB</div><div class="stat-label">Min Memory</div></div>
+    <div class="stat"><div class="stat-value" id="progressPercent">0%</div><div class="stat-label">Completed</div></div>
+  </div>
+</div>
+</section>
+
+<div class="container" id="modulesContainer">
+
+<!-- ═══════════════ MODULE 1 ═══════════════ -->
+<div class="module open" id="module0">
+<div class="module-header" onclick="toggleModule(0)">
+  <div class="module-num">1</div>
+  <div class="module-title">What is Gemma 4 12B?</div>
+  <div class="module-meta" id="modMeta0">0/7</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="0" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Google DeepMind's Latest Open Model</span>
+  <div class="lesson-desc">
+    <p>Gemma 4 12B shipped on <strong>June 3, 2026</strong> as the newest member of Google DeepMind's Gemma family. It packs <strong>11.95 billion parameters</strong> into a single model that handles text, images, audio, and video — making it the first mid-sized open model with native support for all four modalities.</p>
+    <p>Unlike its predecessors, Gemma 4 uses an <strong>encoder-free architecture</strong>: there's no separate vision encoder or audio encoder. Instead, visual patches and raw audio waveforms are projected directly into the LLM's embedding space via lightweight linear layers. This eliminates multimodal latency and drastically simplifies the model pipeline.</p>
+    <p>Key architecture details:</p>
+    <ul>
+      <li><strong>Hybrid attention</strong> — interleaves local sliding-window attention with full global attention (final layer always global)</li>
+      <li><strong>256,000-token context window</strong> — fits ~200 pages of text or ~50 images per prompt</li>
+      <li><strong>Vision processing</strong> — raw images split into 48×48 pixel patches, each projected to the LLM hidden dimension with a single matrix multiplication</li>
+      <li><strong>Audio processing</strong> — raw 16 kHz audio cut into 40 ms frames and projected into the LM input space</li>
+    </ul>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="0" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Apache 2.0 — Fully Open &amp; Commercial</span>
+  <div class="lesson-desc">
+    <p>Gemma 4 12B ships under the <strong>Apache 2.0 license</strong> — the most permissive open-source license available. You can:</p>
+    <ul>
+      <li>Use it commercially in production products — no royalties, no revenue caps</li>
+      <li>Fine-tune and distribute modified versions</li>
+      <li>Embed in proprietary applications</li>
+      <li>Self-host without usage reporting</li>
+    </ul>
+    <p>This is a meaningful upgrade from Gemma 2's "Gemma Terms of Use" which had some restrictions. Apache 2.0 puts it on par with Meta's Llama licensing.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="0" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">How It Compares to Competitors</span>
+  <div class="lesson-desc">
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h4 style="color:var(--accent)">Gemma 4 12B</h4>
+        <p>12B params · 4 modalities · 256K context · Apache 2.0 · 16GB RAM · Encoder-free · Native tool calling</p>
+      </div>
+      <div class="compare-card">
+        <h4 style="color:var(--orange)">Llama 4 Scout</h4>
+        <p>109B MoE (17B active) · Text+Image · 10M context · Custom license · 32GB+ RAM · Strong reasoning</p>
+      </div>
+      <div class="compare-card">
+        <h4 style="color:var(--purple)">Mistral Large 2026</h4>
+        <p>675B MoE (41B active) · Multilingual focus · 128K context · Apache 2.0 · 64GB+ RAM · MATH 90.4%</p>
+      </div>
+      <div class="compare-card">
+        <h4 style="color:var(--green)">Phi-4</h4>
+        <p>14B params · Text only · 16K context · MIT license · 16GB RAM · MATH 80.4% · Microsoft Research</p>
+      </div>
+    </div>
+    <div class="callout callout-info">
+      <div class="callout-title">💡 Key Takeaway</div>
+      <p>Gemma 4 12B is the only model in this class that handles all four modalities (text, image, audio, video) while fitting in 16GB RAM. Llama 4 Scout has a longer context window but requires 2–4× more memory. Mistral and Phi-4 don't support audio input natively.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="0" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Benchmark Performance</span>
+  <div class="lesson-desc">
+    <p>Google reports that Gemma 4 12B <strong>approaches its larger 26B MoE sibling</strong> on standard benchmarks while requiring roughly half the memory:</p>
+    <div class="bench-bar"><div class="bench-label"><span>DocVQA (Document Understanding)</span><span>94.9%</span></div><div class="bench-track"><div class="bench-fill" style="width:94.9%;background:var(--accent)"></div></div></div>
+    <div class="bench-bar"><div class="bench-label"><span>InfoVQA (Infographic QA)</span><span>88.4%</span></div><div class="bench-track"><div class="bench-fill" style="width:88.4%;background:var(--accent)"></div></div></div>
+    <div class="bench-bar"><div class="bench-label"><span>MATH-Vision</span><span>79.7%</span></div><div class="bench-track"><div class="bench-fill" style="width:79.7%;background:var(--green)"></div></div></div>
+    <div class="bench-bar"><div class="bench-label"><span>AIME 2026 (Math Competition)</span><span>77.5%</span></div><div class="bench-track"><div class="bench-fill" style="width:77.5%;background:var(--green)"></div></div></div>
+    <div class="bench-bar"><div class="bench-label"><span>MMMU Pro (Multimodal Understanding)</span><span>69.1%</span></div><div class="bench-track"><div class="bench-fill" style="width:69.1%;background:var(--purple)"></div></div></div>
+    <p style="margin-top:1em">These numbers are remarkable for a 12B-parameter model. DocVQA 94.9% means it can read scanned documents almost as well as dedicated OCR pipelines.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="0" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">What "Agentic Workflows" Means</span>
+  <div class="lesson-desc">
+    <p>Google explicitly designed Gemma 4 for <strong>agentic AI</strong> — models that don't just answer questions, but take actions. Gemma 4 was trained with <strong>6 dedicated special tokens</strong> for the function-calling lifecycle:</p>
+<pre><code>&lt;|tool_start|&gt;       — signals the model is entering tool-use mode
+&lt;|tool_call|&gt;        — begins a structured function call
+&lt;|tool_args|&gt;        — wraps the JSON arguments
+&lt;|tool_end|&gt;         — closes the tool invocation
+&lt;|tool_result|&gt;      — marks the start of tool output
+&lt;|tool_result_end|&gt;  — closes the tool output</code></pre>
+    <p>This isn't prompt engineering — these tokens are baked into the model's vocabulary during training. The model also supports <strong>Configurable Thinking Mode</strong>, where you can trigger step-by-step reasoning before it makes a tool call, enabling complex multi-step planning.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="0" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">The Gemma 4 Family</span>
+  <div class="lesson-desc">
+    <div class="table-wrap"><table>
+      <tr><th>Model</th><th>Params</th><th>Target</th><th>Min RAM</th><th>Modalities</th></tr>
+      <tr><td><strong>Gemma 4 E2B</strong></td><td>2B</td><td>Edge / Mobile</td><td>4 GB</td><td>Text, Image, Audio</td></tr>
+      <tr><td><strong>Gemma 4 E4B</strong></td><td>4B</td><td>Edge / Raspberry Pi</td><td>6 GB</td><td>Text, Image, Audio</td></tr>
+      <tr><td><strong>Gemma 4 12B</strong> ←</td><td>12B</td><td>Laptop / Desktop</td><td>16 GB</td><td>Text, Image, Audio, Video</td></tr>
+      <tr><td><strong>Gemma 4 26B MoE</strong></td><td>26B</td><td>Workstation</td><td>32 GB</td><td>Text, Image, Audio, Video</td></tr>
+    </table></div>
+    <p>This course focuses on the 12B variant — the sweet spot for running locally on your Mac with 16GB+ unified memory.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="0" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Where to Get It</span>
+  <div class="lesson-desc">
+    <p>Gemma 4 12B is available from multiple sources:</p>
+    <ul>
+      <li><strong>Hugging Face</strong> — <code>google/gemma-4-12B</code> (base) and <code>google/gemma-4-12B-it</code> (instruction-tuned)</li>
+      <li><strong>Kaggle</strong> — Google's official distribution channel with notebook examples</li>
+      <li><strong>Ollama</strong> — <code>ollama pull gemma4:12b</code> (pre-quantized, easiest)</li>
+      <li><strong>LM Studio</strong> — search "Gemma 4 12B" in the model browser</li>
+      <li><strong>Google AI Edge Gallery</strong> — now available on macOS for running Gemma models locally</li>
+    </ul>
+    <p>For this course, we'll primarily use Ollama and MLX. Module 2 walks you through installation step by step.</p>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+<!-- ═══════════════ MODULE 2 ═══════════════ -->
+<div class="module" id="module1">
+<div class="module-header" onclick="toggleModule(1)">
+  <div class="module-num">2</div>
+  <div class="module-title">Installing on Your Mac</div>
+  <div class="module-meta" id="modMeta1">0/8</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hardware Requirements</span>
+  <div class="lesson-desc">
+    <div class="callout callout-info">
+      <div class="callout-title">🖥️ Your Setup: Apple Silicon Mac</div>
+      <p>Gemma 4 12B is designed to run on your M-series Mac. Here's what you need.</p>
+    </div>
+    <div class="table-wrap"><table>
+      <tr><th>Component</th><th>Minimum</th><th>Recommended</th><th>Optimal</th></tr>
+      <tr><td>Chip</td><td>M1</td><td>M2 Pro / M3 Pro</td><td>M3 Max / M4 Pro+</td></tr>
+      <tr><td>Unified Memory</td><td>16 GB</td><td>32 GB</td><td>64 GB+</td></tr>
+      <tr><td>Storage</td><td>15 GB free</td><td>30 GB free</td><td>50 GB+ free</td></tr>
+      <tr><td>macOS</td><td>Ventura 13.0+</td><td>Sonoma 14+</td><td>Sequoia 15+</td></tr>
+    </table></div>
+    <p>With <strong>16 GB</strong>, you can run Q4_K_M quantization comfortably. With <strong>32 GB</strong>, you can run full Q8_0 or even the 26B MoE variant. Apple Silicon's unified memory architecture is key — the GPU and CPU share the same RAM, so there's no data-transfer bottleneck.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Option 1: Ollama (Easiest — 5 Minutes)</span>
+  <div class="lesson-desc">
+    <p>Ollama is by far the easiest way to get started. It handles downloading, quantization, and serving automatically.</p>
+    <h4>Step 1 — Install Ollama</h4>
+<pre><code># Download and install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Or with Homebrew:
+brew install ollama</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+    <h4>Step 2 — Pull Gemma 4 12B</h4>
+<pre><code># Pull the 12B instruction-tuned model
+ollama pull gemma4:12b
+
+# This downloads ~8 GB (Q4_K_M quantized by default)
+# On a 100 Mbps connection, expect ~10 minutes</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+    <h4>Step 3 — Run Your First Prompt</h4>
+<pre><code># Interactive chat mode
+ollama run gemma4:12b
+
+# You'll see:
+# >>> Send a message (/? for help)
+# 
+# Type your prompt:
+>>> Explain quantum computing in 3 sentences.
+
+# Expected output (in ~2-5 seconds):
+# Quantum computing uses qubits that can exist in superposition,
+# representing both 0 and 1 simultaneously. This allows quantum
+# computers to process certain calculations exponentially faster
+# than classical computers. Key applications include cryptography,
+# drug discovery, and optimization problems.</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+    <div class="callout callout-tip">
+      <div class="callout-title">✅ Important: Ollama 0.22+</div>
+      <p>Make sure you have Ollama version <strong>0.22 or newer</strong>. This version ships with the <strong>MLX runner enabled by default</strong> on Apple Silicon, which adds fused top-P/top-K sampling for noticeably faster prompt processing on M-series chips. Check with <code>ollama --version</code>.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Option 2: LM Studio (GUI)</span>
+  <div class="lesson-desc">
+    <p>If you prefer a graphical interface, LM Studio provides drag-and-drop model management.</p>
+    <h4>Steps:</h4>
+    <ol>
+      <li>Download <strong>LM Studio</strong> from <code>lmstudio.ai</code></li>
+      <li>Open it and click <strong>"Discover"</strong> in the left sidebar</li>
+      <li>Search for <code>gemma-4-12b</code></li>
+      <li>Select a quantization (Q4_K_M recommended for 16GB Macs)</li>
+      <li>Click <strong>Download</strong> — it pulls the GGUF file automatically</li>
+      <li>Once downloaded, go to <strong>"Chat"</strong> and select the model</li>
+      <li>Start chatting — with adjustable temperature, top-p, and system prompts</li>
+    </ol>
+    <p>LM Studio also has a built-in API server (OpenAI-compatible) that we'll use in Module 7.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Option 3: llama.cpp with GGUF Weights</span>
+  <div class="lesson-desc">
+    <p>For maximum control, build llama.cpp from source and run quantized GGUF files directly.</p>
+<pre><code># Clone and build llama.cpp with Metal support
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp
+make LLAMA_METAL=1 -j$(sysctl -n hw.ncpu)
+
+# Download a GGUF quantized model from Hugging Face
+# (example: Q4_K_M quantization)
+huggingface-cli download google/gemma-4-12B-it-GGUF \
+  gemma-4-12b-it-q4_k_m.gguf \
+  --local-dir ./models
+
+# Run inference
+./llama-cli -m models/gemma-4-12b-it-q4_k_m.gguf \
+  -p "Write a Python function to sort a list" \
+  -n 256 \
+  --temp 0.7 \
+  -ngl 99   # offload all layers to GPU (Metal)</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ Metal Layer Offloading</div>
+      <p>The <code>-ngl 99</code> flag offloads all transformer layers to the GPU via Metal. On 16GB Macs with Q4_K_M, all layers fit in GPU memory. If you see OOM errors, reduce this number — try <code>-ngl 30</code> and increase from there.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Option 4: MLX (Apple's ML Framework)</span>
+  <div class="lesson-desc">
+    <p>MLX is Apple's open-source machine learning framework, built specifically for Apple Silicon. It's 10–20% faster than Ollama for inference because it bypasses GGUF quantization overhead.</p>
+<pre><code># Install MLX and the LM extension
+pip3 install mlx mlx-lm
+
+# Download and run Gemma 4 12B
+mlx_lm.generate \
+  --model google/gemma-4-12B-it \
+  --prompt "Explain the attention mechanism in transformers" \
+  --max-tokens 512
+
+# Or start an interactive chat
+mlx_lm.chat --model google/gemma-4-12B-it</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+    <p>MLX uses lazy evaluation and unified memory natively, so it's exceptionally efficient on M-series chips. However, community benchmarks suggest that for Gemma 4 specifically, GGUF via llama.cpp sometimes outpaces MLX on prefill and multi-turn tasks. Test both and see which works better for your workflow.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Downloading from Hugging Face vs Kaggle</span>
+  <div class="lesson-desc">
+    <p><strong>Hugging Face</strong> is the go-to for most developers. Models are available at:</p>
+    <ul>
+      <li><code>google/gemma-4-12B</code> — base model (for fine-tuning)</li>
+      <li><code>google/gemma-4-12B-it</code> — instruction-tuned (for chat/prompts)</li>
+      <li><code>google/gemma-4-12B-it-assistant</code> — optimized for assistant workflows</li>
+    </ul>
+<pre><code># Install the Hugging Face CLI
+pip3 install huggingface-hub
+
+# Login (one-time)
+huggingface-cli login
+
+# Download the instruction-tuned model
+huggingface-cli download google/gemma-4-12B-it \
+  --local-dir ~/models/gemma4-12b-it</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+
+    <p><strong>Kaggle</strong> is Google's preferred distribution channel and often has Jupyter notebook examples. Download via the Kaggle API or the web interface at <code>kaggle.com/models/google/gemma-4</code>.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Quantization Options: Quality vs Speed</span>
+  <div class="lesson-desc">
+    <div class="table-wrap"><table>
+      <tr><th>Quantization</th><th>File Size</th><th>RAM Usage</th><th>Quality</th><th>Speed</th><th>Recommendation</th></tr>
+      <tr><td><strong>Q4_K_M</strong></td><td>~7 GB</td><td>~9 GB</td><td>Good</td><td>Fastest</td><td style="color:var(--green)">Best for 16GB Macs ✓</td></tr>
+      <tr><td><strong>Q5_K_M</strong></td><td>~8.5 GB</td><td>~11 GB</td><td>Very Good</td><td>Fast</td><td>Good balance if you have room</td></tr>
+      <tr><td><strong>Q6_K</strong></td><td>~10 GB</td><td>~13 GB</td><td>Excellent</td><td>Moderate</td><td>32GB Macs</td></tr>
+      <tr><td><strong>Q8_0</strong></td><td>~12.5 GB</td><td>~15 GB</td><td>Near-lossless</td><td>Slower</td><td>32GB+ Macs, quality critical</td></tr>
+      <tr><td><strong>FP16</strong></td><td>~24 GB</td><td>~26 GB</td><td>Lossless</td><td>Slowest</td><td>64GB+ only</td></tr>
+    </table></div>
+    <div class="callout callout-tip">
+      <div class="callout-title">✅ Recommended: Q4_K_M</div>
+      <p>Q4_K_M is the sweet spot for most users. It provides minimal quality loss compared to FP16 while being 3× smaller and significantly faster. On a 16GB Mac, it leaves enough headroom for macOS and other apps.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="1" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hands-On: First Prompt in Under 5 Minutes</span>
+  <div class="lesson-desc">
+    <div class="hands-on">
+      <div class="hands-on-label">🔬 Hands-On Exercise</div>
+      <p>Let's verify everything is working. Open Terminal and run:</p>
+<pre><code># 1. Make sure Ollama is running
+ollama serve &
+
+# 2. Pull Gemma 4 12B (skip if already done)
+ollama pull gemma4:12b
+
+# 3. Run a quick test
+ollama run gemma4:12b "What are the top 3 features of Apple Silicon for ML workloads? Be concise."
+
+# Expected output (streaming in real-time):
+# 1. **Unified Memory Architecture** — CPU and GPU share the same
+#    memory pool, eliminating data transfer bottlenecks
+# 2. **Neural Engine** — Dedicated hardware for matrix operations,
+#    accelerating transformer inference
+# 3. **Energy Efficiency** — High performance-per-watt enables
+#    sustained ML workloads without thermal throttling
+
+# 4. Check model info
+ollama show gemma4:12b</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+      <p>If you see a streaming response, congratulations — you're running a 12-billion-parameter multimodal AI model entirely on your Mac, completely offline.</p>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+<!-- ═══════════════ MODULE 3 ═══════════════ -->
+<div class="module" id="module2">
+<div class="module-header" onclick="toggleModule(2)">
+  <div class="module-num">3</div>
+  <div class="module-title">Running Locally — Performance &amp; Optimization</div>
+  <div class="module-meta" id="modMeta2">0/6</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="2" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Tokens/Second Benchmarks on Apple Silicon</span>
+  <div class="lesson-desc">
+    <p>Real-world performance varies by chip, quantization, and context length. Here are approximate benchmarks for Gemma 4 12B Q4_K_M via Ollama 0.22+ (MLX runner):</p>
+    <div class="table-wrap"><table>
+      <tr><th>Chip</th><th>Memory</th><th>Prompt Eval (tok/s)</th><th>Generation (tok/s)</th><th>Notes</th></tr>
+      <tr><td>M1</td><td>16 GB</td><td>~45</td><td>~12</td><td>Workable but slow</td></tr>
+      <tr><td>M1 Pro</td><td>16 GB</td><td>~65</td><td>~18</td><td>Good for development</td></tr>
+      <tr><td>M2</td><td>16 GB</td><td>~55</td><td>~15</td><td>Slight improvement over M1</td></tr>
+      <tr><td>M2 Pro</td><td>32 GB</td><td>~85</td><td>~25</td><td>Comfortable daily driver</td></tr>
+      <tr><td>M3</td><td>16 GB</td><td>~70</td><td>~20</td><td>Best value for 16GB</td></tr>
+      <tr><td>M3 Pro</td><td>36 GB</td><td>~110</td><td>~32</td><td>Excellent all-rounder</td></tr>
+      <tr><td>M3 Max</td><td>48 GB</td><td>~160</td><td>~45</td><td>Can run Q8_0 comfortably</td></tr>
+      <tr><td>M4</td><td>16 GB</td><td>~80</td><td>~24</td><td>Noticeable gen-over-gen lift</td></tr>
+      <tr><td>M4 Pro</td><td>48 GB</td><td>~140</td><td>~42</td><td>Production-grade local</td></tr>
+      <tr><td>M4 Max</td><td>64 GB</td><td>~200</td><td>~55</td><td>Run FP16 with headroom</td></tr>
+    </table></div>
+    <p>For reference, 20+ tok/s feels conversational — fast enough for interactive chat. 12 tok/s is usable but you'll notice the lag.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="2" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Memory Usage by Quantization Level</span>
+  <div class="lesson-desc">
+    <p>Apple Silicon's unified memory is shared between the OS, apps, and the model. Here's how much Gemma 4 12B actually uses:</p>
+    <div class="bench-bar"><div class="bench-label"><span>Q4_K_M — ~9 GB model + ~2 GB context</span><span>11 GB</span></div><div class="bench-track"><div class="bench-fill" style="width:34%;background:var(--green)"></div></div></div>
+    <div class="bench-bar"><div class="bench-label"><span>Q5_K_M — ~11 GB model + ~2 GB context</span><span>13 GB</span></div><div class="bench-track"><div class="bench-fill" style="width:41%;background:var(--accent)"></div></div></div>
+    <div class="bench-bar"><div class="bench-label"><span>Q8_0 — ~15 GB model + ~2 GB context</span><span>17 GB</span></div><div class="bench-track"><div class="bench-fill" style="width:53%;background:var(--orange)"></div></div></div>
+    <div class="bench-bar"><div class="bench-label"><span>FP16 — ~26 GB model + ~3 GB context</span><span>29 GB</span></div><div class="bench-track"><div class="bench-fill" style="width:91%;background:var(--red)"></div></div></div>
+    <p style="margin-top:.8em">(Bar shows % of 32 GB total memory)</p>
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ 16GB Mac Users</div>
+      <p>With Q4_K_M (~11 GB loaded), you have about 5 GB left for macOS and apps. Close heavy applications (Chrome, Xcode) before running inference. Monitor with <code>Activity Monitor → Memory</code> or <code>sudo powermetrics --samplers gpu_power -i 1000</code>.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="2" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Context Window Management</span>
+  <div class="lesson-desc">
+    <p>Gemma 4 12B supports a <strong>256,000-token context window</strong>, but there's a catch: longer contexts use more memory and slow down inference. Manage this carefully.</p>
+<pre><code># Ollama: Set context window size
+# Default is 4096 — way too small for Gemma 4's capability!
+# Increase it in your Modelfile or via API:
+
+# Create a custom Modelfile
+cat &lt;&lt; EOF &gt; Modelfile.gemma4
+FROM gemma4:12b
+PARAMETER num_ctx 32768
+PARAMETER temperature 0.7
+PARAMETER top_p 0.9
+SYSTEM "You are a helpful coding assistant."
+EOF
+
+# Build and run with custom context
+ollama create gemma4-custom -f Modelfile.gemma4
+ollama run gemma4-custom</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="table-wrap"><table>
+      <tr><th>Context Size</th><th>Extra RAM</th><th>Speed Impact</th><th>Use Case</th></tr>
+      <tr><td>4K tokens</td><td>~0.5 GB</td><td>Fastest</td><td>Short Q&A, simple tasks</td></tr>
+      <tr><td>8K tokens</td><td>~1 GB</td><td>Fast</td><td>Code generation, conversations</td></tr>
+      <tr><td>32K tokens</td><td>~3 GB</td><td>Moderate</td><td>Document analysis, long code</td></tr>
+      <tr><td>128K tokens</td><td>~10 GB</td><td>Slow</td><td>Book-length analysis (32GB+ Mac)</td></tr>
+      <tr><td>256K tokens</td><td>~18 GB</td><td>Very slow</td><td>Extreme cases (64GB+ Mac)</td></tr>
+    </table></div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="2" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">GPU vs CPU Inference on Apple Silicon</span>
+  <div class="lesson-desc">
+    <p>On Apple Silicon, "GPU inference" means using the <strong>Metal API</strong> to run computations on the integrated GPU cores. This is always faster than CPU-only inference:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Mode</th><th>Speed (M3 Pro, Q4_K_M)</th><th>How to Enable</th></tr>
+      <tr><td>GPU (Metal) — all layers</td><td>~32 tok/s</td><td><code>-ngl 99</code> in llama.cpp; Ollama does this automatically</td></tr>
+      <tr><td>GPU (Metal) — 20 layers</td><td>~22 tok/s</td><td><code>-ngl 20</code> in llama.cpp</td></tr>
+      <tr><td>CPU only</td><td>~8 tok/s</td><td><code>-ngl 0</code> in llama.cpp</td></tr>
+    </table></div>
+<pre><code># Verify Metal is being used in Ollama
+# Look for "metal" in the model info:
+ollama show gemma4:12b --modelfile
+
+# In llama.cpp, watch for this line during startup:
+# ggml_metal_init: allocating
+# ggml_metal_init: loaded kernel_add
+# This confirms Metal is active</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="2" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Batch Inference for Throughput</span>
+  <div class="lesson-desc">
+    <p>If you need to process many prompts (e.g., analyzing 100 files), batch inference is more efficient than sequential calls:</p>
+<pre><code># batch_inference.py — Process multiple prompts efficiently
+import requests
+import json
+import concurrent.futures
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
+
+prompts = [
+    "Summarize: Apple released M4 chips with improved Neural Engine.",
+    "Summarize: Python 3.13 introduced free-threaded mode.",
+    "Summarize: Rust 2024 edition added async closures.",
+]
+
+def run_prompt(prompt):
+    resp = requests.post(OLLAMA_URL, json={
+        "model": "gemma4:12b",
+        "prompt": prompt,
+        "stream": False,
+        "options": {"num_ctx": 2048, "temperature": 0.3}
+    })
+    return resp.json()["response"]
+
+# Process 3 prompts concurrently
+# Ollama handles request queuing internally
+with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
+    results = list(pool.map(run_prompt, prompts))
+
+for i, result in enumerate(results):
+    print(f"\n--- Prompt {i+1} ---")
+    print(result)</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="callout callout-info">
+      <div class="callout-title">💡 Parallel Requests in Ollama</div>
+      <p>Ollama 0.22+ supports <strong>concurrent requests</strong> via its built-in request queue. Set <code>OLLAMA_NUM_PARALLEL=2</code> as an environment variable to allow 2 simultaneous inferences (requires extra memory).</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="2" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Local Gemma 4 vs Cloud APIs — When to Use Which</span>
+  <div class="lesson-desc">
+    <div class="table-wrap"><table>
+      <tr><th>Factor</th><th>Local Gemma 4 12B</th><th>Cloud API (Claude / GPT)</th></tr>
+      <tr><td>Cost per query</td><td style="color:var(--green)">$0.00</td><td>$0.003–$0.06</td></tr>
+      <tr><td>Latency (first token)</td><td>~500 ms</td><td style="color:var(--green)">~200 ms</td></tr>
+      <tr><td>Throughput</td><td>~20–50 tok/s</td><td style="color:var(--green)">~80–150 tok/s</td></tr>
+      <tr><td>Privacy</td><td style="color:var(--green)">Data never leaves Mac</td><td>Sent to cloud</td></tr>
+      <tr><td>Offline access</td><td style="color:var(--green)">Works without internet</td><td>Requires internet</td></tr>
+      <tr><td>Reasoning depth</td><td>Good for most tasks</td><td style="color:var(--green)">Better for complex reasoning</td></tr>
+      <tr><td>Multimodal</td><td style="color:var(--green)">Text+Image+Audio+Video</td><td>Varies by provider</td></tr>
+      <tr><td>Context window</td><td>256K (memory-limited)</td><td style="color:var(--green)">Up to 1M+</td></tr>
+    </table></div>
+    <p><strong>Rule of thumb:</strong> Use local Gemma 4 for routine tasks (code review, summarization, data extraction, image analysis) where privacy matters and cost adds up. Use cloud APIs for tasks requiring frontier-level reasoning, very long contexts, or maximum speed.</p>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+<!-- ═══════════════ MODULE 4 ═══════════════ -->
+<div class="module" id="module3">
+<div class="module-header" onclick="toggleModule(3)">
+  <div class="module-num">4</div>
+  <div class="module-title">Multimodal — Images &amp; Audio</div>
+  <div class="module-meta" id="modMeta3">0/5</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="3" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Sending Images to Gemma 4 for Analysis</span>
+  <div class="lesson-desc">
+    <p>Gemma 4 12B processes images natively — no separate vision model needed. The image is split into 48×48 pixel patches and projected directly into the LLM's embedding space.</p>
+<pre><code># Via Ollama CLI — analyze an image
+ollama run gemma4:12b "Describe this image in detail" --images ./photo.jpg
+
+# Via Ollama API — send image as base64
+import requests, base64
+
+with open("screenshot.png", "rb") as f:
+    img_b64 = base64.b64encode(f.read()).decode()
+
+response = requests.post("http://localhost:11434/api/generate", json={
+    "model": "gemma4:12b",
+    "prompt": "What text is visible in this screenshot? Extract all text.",
+    "images": [img_b64],
+    "stream": False
+})
+print(response.json()["response"])</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="callout callout-info">
+      <div class="callout-title">💡 Image Capacity</div>
+      <p>With a 256K context window, Gemma 4 12B can process approximately <strong>50 images</strong> in a single prompt. Each image consumes roughly 1,000–5,000 tokens depending on resolution.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="3" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Vision Capabilities Deep Dive</span>
+  <div class="lesson-desc">
+    <p>Gemma 4's vision capabilities scored <strong>94.9% on DocVQA</strong>, putting it near the top for document understanding. Here's what it can do:</p>
+    <ul>
+      <li><strong>OCR</strong> — Extract text from photos, screenshots, and scanned documents (including multilingual text)</li>
+      <li><strong>Chart Reading</strong> — Interpret bar charts, line graphs, pie charts, and extract data points</li>
+      <li><strong>Image Description</strong> — Detailed scene understanding with object identification</li>
+      <li><strong>UI Understanding</strong> — Parse screenshots of apps and websites, identify buttons and layout</li>
+      <li><strong>Handwriting Recognition</strong> — Read handwritten notes and convert to text</li>
+      <li><strong>Document Parsing</strong> — Extract structured data from invoices, receipts, and forms</li>
+      <li><strong>Pointing</strong> — Identify and locate specific objects within images</li>
+    </ul>
+<pre><code># Example: Extract data from a chart image
+ollama run gemma4:12b \
+  "This is a bar chart. Extract all data points as a JSON array \
+   with keys 'label' and 'value'." \
+  --images ./chart.png
+
+# Example: OCR a receipt
+ollama run gemma4:12b \
+  "Extract all line items from this receipt. Format as a table \
+   with columns: Item, Quantity, Price." \
+  --images ./receipt.jpg</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="3" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Audio Understanding</span>
+  <div class="lesson-desc">
+    <p>Gemma 4 12B is Google's <strong>first mid-sized model with native audio input</strong>. The audio encoder was removed entirely — raw 16 kHz audio is cut into 40 ms frames and projected directly into the language model input space.</p>
+    <p>Supported audio capabilities:</p>
+    <ul>
+      <li><strong>Automatic Speech Recognition (ASR)</strong> — transcribe spoken audio to text</li>
+      <li><strong>Speech Translation</strong> — translate spoken audio directly to another language's text</li>
+      <li><strong>Audio Understanding</strong> — describe sounds, music, environmental audio</li>
+    </ul>
+<pre><code># Audio with the Python transformers library
+from transformers import AutoProcessor, AutoModelForCausalLM
+import soundfile as sf
+
+processor = AutoProcessor.from_pretrained("google/gemma-4-12B-it")
+model = AutoModelForCausalLM.from_pretrained(
+    "google/gemma-4-12B-it",
+    device_map="auto"
+)
+
+# Load audio file (16kHz WAV recommended)
+audio, sr = sf.read("meeting_recording.wav")
+
+inputs = processor(
+    text="Transcribe this audio recording:",
+    audios=audio,
+    sampling_rate=sr,
+    return_tensors="pt"
+)
+
+outputs = model.generate(**inputs, max_new_tokens=1024)
+transcript = processor.decode(outputs[0], skip_special_tokens=True)
+print(transcript)</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ Audio Support in Ollama</div>
+      <p>As of June 2026, Ollama's audio input support for Gemma 4 is still being integrated. For audio tasks, use the <strong>Hugging Face transformers</strong> library directly, or check for Ollama updates at <code>ollama.com/blog</code>.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="3" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hands-On: Build a Local Image Analyzer</span>
+  <div class="lesson-desc">
+    <div class="hands-on">
+      <div class="hands-on-label">🔬 Hands-On Exercise</div>
+      <p>Build a Python script that analyzes any image using Gemma 4 locally:</p>
+<pre><code>#!/usr/bin/env python3
+"""image_analyzer.py — Analyze images locally with Gemma 4 12B"""
+import requests, base64, sys, json
+from pathlib import Path
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
+MODEL = "gemma4:12b"
+
+def analyze_image(image_path, prompt="Describe this image in detail."):
+    """Send an image to local Gemma 4 for analysis."""
+    img_bytes = Path(image_path).read_bytes()
+    img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+
+    response = requests.post(OLLAMA_URL, json={
+        "model": MODEL,
+        "prompt": prompt,
+        "images": [img_b64],
+        "stream": False,
+        "options": {
+            "temperature": 0.3,
+            "num_ctx": 8192,
+        }
+    })
+    return response.json()["response"]
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python image_analyzer.py <image_path> [prompt]")
+        sys.exit(1)
+
+    image_path = sys.argv[1]
+    prompt = sys.argv[2] if len(sys.argv) > 2 else \
+        "Analyze this image. Describe what you see, any text visible, " \
+        "and the overall context."
+
+    print(f"Analyzing: {image_path}")
+    print(f"Prompt: {prompt}\n")
+    result = analyze_image(image_path, prompt)
+    print("--- Analysis ---")
+    print(result)
+
+# Usage:
+# python image_analyzer.py photo.jpg
+# python image_analyzer.py receipt.png "Extract all line items and total"
+# python image_analyzer.py diagram.png "Explain this architecture diagram"</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="3" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hands-On: Batch Process Screenshots</span>
+  <div class="lesson-desc">
+    <div class="hands-on">
+      <div class="hands-on-label">🔬 Hands-On Exercise</div>
+      <p>Process an entire folder of screenshots — extract text from each one:</p>
+<pre><code>#!/usr/bin/env python3
+"""batch_ocr.py — OCR a folder of screenshots with Gemma 4"""
+import requests, base64, json, time
+from pathlib import Path
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
+
+def ocr_image(image_path):
+    img_b64 = base64.b64encode(Path(image_path).read_bytes()).decode()
+    resp = requests.post(OLLAMA_URL, json={
+        "model": "gemma4:12b",
+        "prompt": "Extract ALL visible text from this screenshot. "
+                  "Preserve the layout structure. Output only the text.",
+        "images": [img_b64],
+        "stream": False,
+        "options": {"temperature": 0.1, "num_ctx": 4096}
+    })
+    return resp.json()["response"]
+
+# Process all images in a folder
+screenshots_dir = Path("~/Desktop/screenshots").expanduser()
+output_file = Path("ocr_results.md")
+
+results = []
+image_files = sorted(screenshots_dir.glob("*.png"))
+print(f"Found {len(image_files)} screenshots to process\n")
+
+for i, img_path in enumerate(image_files, 1):
+    print(f"[{i}/{len(image_files)}] Processing {img_path.name}...")
+    start = time.time()
+    text = ocr_image(img_path)
+    elapsed = time.time() - start
+    results.append(f"## {img_path.name}\n\n{text}\n")
+    print(f"  Done in {elapsed:.1f}s — extracted {len(text)} chars\n")
+
+# Save all results
+output_file.write_text("\n---\n\n".join(results))
+print(f"\nAll results saved to {output_file}")</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+<!-- ═══════════════ MODULE 5 ═══════════════ -->
+<div class="module" id="module4">
+<div class="module-header" onclick="toggleModule(4)">
+  <div class="module-num">5</div>
+  <div class="module-title">Building Agentic Workflows Locally</div>
+  <div class="module-meta" id="modMeta4">0/6</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="4" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">What Google Means by "Agentic" Gemma 4</span>
+  <div class="lesson-desc">
+    <p>When Google says Gemma 4 is "designed for agentic workflows," they mean the model can:</p>
+    <ul>
+      <li><strong>Plan multi-step actions</strong> — break a complex task into sequential steps</li>
+      <li><strong>Call external tools</strong> — invoke functions (APIs, file operations, web searches) using structured JSON</li>
+      <li><strong>React to tool outputs</strong> — read the result of a tool call and decide what to do next</li>
+      <li><strong>Self-correct</strong> — detect when a step failed and try a different approach</li>
+    </ul>
+    <p>This is powered by the <strong>6 dedicated special tokens</strong> baked into the model vocabulary during training. Unlike models that rely on prompt engineering for tool use, Gemma 4's function calling is a first-class capability.</p>
+    <p>The model also supports <strong>Configurable Thinking Mode</strong> — you can trigger explicit chain-of-thought reasoning before tool calls, making the agent's decisions transparent and debuggable.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="4" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Tool Use &amp; Function Calling</span>
+  <div class="lesson-desc">
+    <p>Gemma 4's native function calling follows a structured format. Here's how to define and invoke tools:</p>
+<pre><code># function_calling.py — Native tool use with Gemma 4
+import requests, json
+
+OLLAMA_URL = "http://localhost:11434/api/chat"
+
+# Define available tools
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get current weather for a location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "City name, e.g., 'San Francisco'"
+                    },
+                    "unit": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "description": "Temperature unit"
+                    }
+                },
+                "required": ["location"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_files",
+            "description": "Search for files on the local filesystem",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Search term"},
+                    "directory": {"type": "string", "description": "Directory to search"}
+                },
+                "required": ["query"]
+            }
+        }
+    }
+]
+
+response = requests.post(OLLAMA_URL, json={
+    "model": "gemma4:12b",
+    "messages": [
+        {"role": "user", "content": "What's the weather in Tokyo?"}
+    ],
+    "tools": tools,
+    "stream": False
+})
+
+result = response.json()
+message = result["message"]
+
+if message.get("tool_calls"):
+    for call in message["tool_calls"]:
+        print(f"Tool: {call['function']['name']}")
+        print(f"Args: {json.dumps(call['function']['arguments'], indent=2)}")
+        # In a real agent, you'd execute the function here
+        # and feed the result back to the model</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="4" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Building a Local Agent with LangChain + Gemma 4</span>
+  <div class="lesson-desc">
+    <p>LangChain integrates with Gemma 4 via Ollama's OpenAI-compatible API. Here's a complete agent setup:</p>
+<pre><code># langchain_agent.py — Local agent with LangChain + Gemma 4
+# pip3 install langchain langchain-openai langchain-community
+
+from langchain_openai import ChatOpenAI
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.tools import tool
+import subprocess, os
+
+# Connect to local Ollama (OpenAI-compatible)
+llm = ChatOpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama",  # Ollama doesn't need a real key
+    model="gemma4:12b",
+    temperature=0.2,
+)
+
+# Define tools the agent can use
+@tool
+def list_files(directory: str = ".") -> str:
+    """List files in a directory on the local filesystem."""
+    try:
+        files = os.listdir(os.path.expanduser(directory))
+        return "\n".join(sorted(files))
+    except Exception as e:
+        return f"Error: {e}"
+
+@tool
+def read_file(filepath: str) -> str:
+    """Read the contents of a file."""
+    try:
+        with open(os.path.expanduser(filepath)) as f:
+            return f.read()[:5000]  # Limit to 5000 chars
+    except Exception as e:
+        return f"Error: {e}"
+
+@tool
+def run_shell(command: str) -> str:
+    """Run a shell command and return its output."""
+    try:
+        result = subprocess.run(
+            command, shell=True, capture_output=True,
+            text=True, timeout=30
+        )
+        return result.stdout + result.stderr
+    except Exception as e:
+        return f"Error: {e}"
+
+# Create the agent
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "You are a helpful local AI assistant with access "
+               "to the filesystem and shell. Be careful with shell "
+               "commands — never delete or modify files without "
+               "explicit permission."),
+    ("human", "{input}"),
+    ("placeholder", "{agent_scratchpad}"),
+])
+
+agent = create_tool_calling_agent(llm, [list_files, read_file, run_shell], prompt)
+executor = AgentExecutor(agent=agent, tools=[list_files, read_file, run_shell], verbose=True)
+
+# Run it!
+result = executor.invoke({
+    "input": "What Python files are in my home directory? "
+             "Pick the most interesting one and summarize it."
+})
+print(result["output"])</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="4" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">The ReAct Pattern with Local Models</span>
+  <div class="lesson-desc">
+    <p>The <strong>ReAct</strong> (Reasoning + Acting) pattern is the foundation of most AI agents. The model alternates between thinking and acting:</p>
+<pre><code># react_agent.py — ReAct loop with Gemma 4
+import requests, json
+
+OLLAMA_URL = "http://localhost:11434/api/chat"
+
+# Simple tool implementations
+def calculator(expression):
+    try:
+        return str(eval(expression))  # Simple eval for demo
+    except: return "Error evaluating expression"
+
+def get_file_size(path):
+    import os
+    try:
+        size = os.path.getsize(os.path.expanduser(path))
+        return f"{size:,} bytes ({size/1024/1024:.1f} MB)"
+    except: return "File not found"
+
+TOOLS = {"calculator": calculator, "get_file_size": get_file_size}
+
+tool_defs = [
+    {"type": "function", "function": {
+        "name": "calculator",
+        "description": "Evaluate a math expression",
+        "parameters": {"type": "object",
+            "properties": {"expression": {"type": "string"}},
+            "required": ["expression"]}
+    }},
+    {"type": "function", "function": {
+        "name": "get_file_size",
+        "description": "Get the size of a file",
+        "parameters": {"type": "object",
+            "properties": {"path": {"type": "string"}},
+            "required": ["path"]}
+    }}
+]
+
+def react_loop(user_query, max_steps=5):
+    messages = [{"role": "user", "content": user_query}]
+
+    for step in range(max_steps):
+        resp = requests.post(OLLAMA_URL, json={
+            "model": "gemma4:12b",
+            "messages": messages,
+            "tools": tool_defs,
+            "stream": False
+        }).json()
+
+        msg = resp["message"]
+        messages.append(msg)
+
+        if not msg.get("tool_calls"):
+            print(f"\nFinal Answer: {msg['content']}")
+            return msg["content"]
+
+        # Execute each tool call
+        for call in msg["tool_calls"]:
+            fn_name = call["function"]["name"]
+            fn_args = call["function"]["arguments"]
+            print(f"  Step {step+1}: Calling {fn_name}({fn_args})")
+
+            result = TOOLS[fn_name](**fn_args)
+            print(f"  Result: {result}")
+
+            messages.append({
+                "role": "tool",
+                "content": result
+            })
+
+    return "Max steps reached"
+
+# Example usage
+react_loop("How large is my .zshrc file, and what's 2^20?")</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="4" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hands-On: Build a Local File Organizer Agent</span>
+  <div class="lesson-desc">
+    <div class="hands-on">
+      <div class="hands-on-label">🔬 Hands-On Exercise</div>
+<pre><code>#!/usr/bin/env python3
+"""file_organizer.py — AI agent that organizes files into folders"""
+import requests, json, os, shutil
+from pathlib import Path
+
+OLLAMA_URL = "http://localhost:11434/api/chat"
+MODEL = "gemma4:12b"
+
+def classify_files(directory):
+    """Ask Gemma 4 to classify files into categories."""
+    dir_path = Path(directory).expanduser()
+    files = [f.name for f in dir_path.iterdir() if f.is_file()]
+
+    if not files:
+        print("No files found.")
+        return
+
+    print(f"Found {len(files)} files to organize\n")
+
+    resp = requests.post(OLLAMA_URL, json={
+        "model": MODEL,
+        "messages": [{
+            "role": "user",
+            "content": f"""Classify these files into categories for organization.
+Return ONLY valid JSON with this structure:
+{{"categories": {{"CategoryName": ["file1.ext", "file2.ext"]}}}}
+
+Categories should be like: Documents, Images, Code, Data, Archives, Media, Other
+
+Files to classify:
+{json.dumps(files, indent=2)}"""
+        }],
+        "stream": False,
+        "options": {"temperature": 0.1}
+    }).json()
+
+    # Parse the classification
+    content = resp["message"]["content"]
+    # Extract JSON from response
+    start = content.find("{")
+    end = content.rfind("}") + 1
+    categories = json.loads(content[start:end])["categories"]
+
+    # Preview the plan
+    print("Proposed organization:")
+    for cat, cat_files in categories.items():
+        print(f"\n  📁 {cat}/")
+        for f in cat_files:
+            print(f"    ├── {f}")
+
+    # Ask for confirmation
+    confirm = input("\nProceed with organizing? (y/n): ")
+    if confirm.lower() != "y":
+        print("Cancelled.")
+        return
+
+    # Execute the moves
+    for cat, cat_files in categories.items():
+        cat_dir = dir_path / cat
+        cat_dir.mkdir(exist_ok=True)
+        for f in cat_files:
+            src = dir_path / f
+            if src.exists():
+                shutil.move(str(src), str(cat_dir / f))
+                print(f"  Moved {f} → {cat}/")
+
+    print("\nDone! Files organized.")
+
+# Usage
+classify_files("~/Downloads")</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="4" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hands-On: Build a Local Code Reviewer</span>
+  <div class="lesson-desc">
+    <div class="hands-on">
+      <div class="hands-on-label">🔬 Hands-On Exercise</div>
+<pre><code>#!/usr/bin/env python3
+"""code_reviewer.py — Local AI code review with Gemma 4"""
+import requests, sys
+from pathlib import Path
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
+
+def review_code(filepath):
+    code = Path(filepath).read_text()
+    ext = Path(filepath).suffix
+
+    lang_map = {
+        ".py": "Python", ".js": "JavaScript", ".ts": "TypeScript",
+        ".rs": "Rust", ".go": "Go", ".swift": "Swift",
+        ".rb": "Ruby", ".java": "Java", ".cpp": "C++",
+    }
+    language = lang_map.get(ext, "code")
+
+    prompt = f"""You are an expert {language} code reviewer. Review this code
+and provide actionable feedback. Focus on:
+
+1. **Bugs** — logical errors, edge cases, potential crashes
+2. **Security** — injection risks, data exposure, auth issues
+3. **Performance** — inefficient patterns, memory leaks, N+1 queries
+4. **Readability** — naming, structure, documentation
+5. **Best Practices** — language-specific idioms and patterns
+
+Be specific: reference line numbers and suggest concrete fixes.
+
+```{language.lower()}
+{code}
+```"""
+
+    resp = requests.post(OLLAMA_URL, json={
+        "model": "gemma4:12b",
+        "prompt": prompt,
+        "stream": False,
+        "options": {"temperature": 0.3, "num_ctx": 16384}
+    })
+    return resp.json()["response"]
+
+if __name__ == "__main__":
+    filepath = sys.argv[1] if len(sys.argv) > 1 else None
+    if not filepath:
+        print("Usage: python code_reviewer.py <file_path>")
+        sys.exit(1)
+
+    print(f"Reviewing: {filepath}\n")
+    review = review_code(filepath)
+    print(review)
+
+# Usage:
+# python code_reviewer.py app.py
+# python code_reviewer.py server.js
+# python code_reviewer.py main.rs</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+<!-- ═══════════════ MODULE 6 ═══════════════ -->
+<div class="module" id="module5">
+<div class="module-header" onclick="toggleModule(5)">
+  <div class="module-num">6</div>
+  <div class="module-title">Fine-Tuning Gemma 4</div>
+  <div class="module-meta" id="modMeta5">0/6</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="5" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">LoRA/QLoRA Fine-Tuning Explained</span>
+  <div class="lesson-desc">
+    <p>Fine-tuning adapts Gemma 4 to your specific domain or task. <strong>LoRA</strong> (Low-Rank Adaptation) makes this feasible on consumer hardware by only training a small number of adapter parameters instead of the full 12 billion.</p>
+    <ul>
+      <li><strong>LoRA</strong> — inserts small trainable matrices into existing layers. Typically adds 0.1–1% new parameters. Requires ~16 GB VRAM for Gemma 4 12B.</li>
+      <li><strong>QLoRA</strong> — combines LoRA with 4-bit quantization of the base model. Cuts memory usage by ~60%. Can fine-tune Gemma 4 12B with as little as <strong>8 GB VRAM</strong>.</li>
+    </ul>
+    <p>Key difference: the base model weights stay frozen (no gradient updates). Only the small LoRA adapter matrices are trained, which means:</p>
+    <ul>
+      <li>Training is 5–10× faster than full fine-tuning</li>
+      <li>The adapter file is tiny (~50–200 MB vs 24 GB for full weights)</li>
+      <li>You can have multiple adapters for different tasks and swap them at inference time</li>
+    </ul>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="5" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Using Unsloth for Fast Fine-Tuning</span>
+  <div class="lesson-desc">
+    <p><strong>Unsloth</strong> is the recommended tool for fine-tuning Gemma 4. It's ~1.5× faster than standard setups with ~60% less VRAM usage, with zero accuracy loss.</p>
+<pre><code># Install Unsloth
+pip3 install unsloth --break-system-packages
+
+# fine_tune_unsloth.py
+from unsloth import FastLanguageModel
+import torch
+
+# Load Gemma 4 12B with 4-bit quantization (QLoRA)
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="google/gemma-4-12B-it",
+    max_seq_length=4096,
+    dtype=None,       # Auto-detect
+    load_in_4bit=True # QLoRA — fits in 8GB VRAM
+)
+
+# Add LoRA adapters
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,               # LoRA rank (8-64, higher = more capacity)
+    target_modules=[     # Which layers to adapt
+        "q_proj", "k_proj", "v_proj", "o_proj",
+        "gate_proj", "up_proj", "down_proj",
+    ],
+    lora_alpha=16,
+    lora_dropout=0,      # Optimized to 0 for speed
+    bias="none",
+    use_gradient_checkpointing="unsloth",  # 60% less VRAM
+)
+
+print(f"Trainable params: {model.print_trainable_parameters()}")
+# Output: trainable params: 42,467,328 || all params: 11,950,000,000
+# || trainable%: 0.3554</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="callout callout-info">
+      <div class="callout-title">💡 Apple Silicon Support</div>
+      <p>Unsloth's NVIDIA GPU training is mature. For Apple Silicon (MLX-based) training, check the <strong>Unsloth Studio</strong> app — MLX training support is actively being developed as of June 2026. For now, if you only have a Mac, consider using a cloud GPU (Google Colab free tier works for small datasets).</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="5" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Creating Custom Datasets</span>
+  <div class="lesson-desc">
+    <p>Fine-tuning is only as good as your data. Here's how to create a training dataset:</p>
+<pre><code># create_dataset.py — Build a fine-tuning dataset
+import json
+
+# Format: instruction-input-output (Alpaca format)
+# Gemma 4 also supports chat format (messages array)
+
+dataset = [
+    {
+        "instruction": "Review this Python function for bugs.",
+        "input": "def divide(a, b):\n    return a / b",
+        "output": "Bug: No handling for division by zero. "
+                  "Fix: Add `if b == 0: raise ValueError('Cannot divide by zero')` "
+                  "before the return statement."
+    },
+    {
+        "instruction": "Explain this error message.",
+        "input": "TypeError: 'NoneType' object is not subscriptable",
+        "output": "This error means you're trying to index (use []) on a variable "
+                  "that is None. Common causes: a function returned None when you "
+                  "expected a list/dict, or an API call failed silently."
+    },
+    # Add 50-500+ examples for good results
+]
+
+# Save as JSONL (one JSON object per line)
+with open("training_data.jsonl", "w") as f:
+    for item in dataset:
+        f.write(json.dumps(item) + "\n")
+
+print(f"Created dataset with {len(dataset)} examples")
+
+# Alternative: Convert existing data
+# - CSV: pandas.read_csv → format each row as instruction/output
+# - Markdown: split by headers → each section becomes an example
+# - Chat logs: each Q&A pair becomes an example</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="callout callout-tip">
+      <div class="callout-title">✅ Dataset Size Guidelines</div>
+      <p><strong>50–100 examples</strong> for simple style/format changes. <strong>200–500 examples</strong> for domain adaptation (medical, legal, coding). <strong>1000+ examples</strong> for complex new behaviors. Quality matters more than quantity — 100 carefully curated examples beat 10,000 noisy ones.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="5" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Fine-Tuning for Specific Tasks</span>
+  <div class="lesson-desc">
+    <p>Common fine-tuning scenarios and how to approach them:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Task</th><th>Dataset Type</th><th>Examples Needed</th><th>Expected Improvement</th></tr>
+      <tr><td>Code review style</td><td>Code + review pairs</td><td>200–500</td><td>Matches your team's standards</td></tr>
+      <tr><td>Technical writing</td><td>Draft + polished pairs</td><td>100–300</td><td>Consistent tone and format</td></tr>
+      <tr><td>Domain knowledge</td><td>Q&A pairs from docs</td><td>500–2000</td><td>Accurate domain answers</td></tr>
+      <tr><td>Output format</td><td>Input + structured output</td><td>50–100</td><td>Reliable JSON/XML output</td></tr>
+      <tr><td>Language/dialect</td><td>Text in target language</td><td>500–1000</td><td>Natural fluency</td></tr>
+    </table></div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="5" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hands-On: Fine-Tune on a Small Dataset</span>
+  <div class="lesson-desc">
+    <div class="hands-on">
+      <div class="hands-on-label">🔬 Hands-On Exercise</div>
+<pre><code># full_finetune.py — Complete fine-tuning pipeline with Unsloth
+from unsloth import FastLanguageModel
+from trl import SFTTrainer
+from transformers import TrainingArguments
+from datasets import load_dataset
+
+# 1. Load model with QLoRA
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="google/gemma-4-12B-it",
+    max_seq_length=2048,
+    load_in_4bit=True,
+)
+
+model = FastLanguageModel.get_peft_model(
+    model, r=16,
+    target_modules=["q_proj","k_proj","v_proj","o_proj",
+                     "gate_proj","up_proj","down_proj"],
+    lora_alpha=16, lora_dropout=0, bias="none",
+    use_gradient_checkpointing="unsloth",
+)
+
+# 2. Load your dataset
+dataset = load_dataset("json", data_files="training_data.jsonl", split="train")
+
+# 3. Format for Gemma 4 chat template
+def format_prompt(example):
+    return {
+        "text": f"""<start_of_turn>user
+{example['instruction']}
+{example.get('input', '')}
+<end_of_turn>
+<start_of_turn>model
+{example['output']}
+<end_of_turn>"""
+    }
+
+dataset = dataset.map(format_prompt)
+
+# 4. Train!
+trainer = SFTTrainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset,
+    dataset_text_field="text",
+    max_seq_length=2048,
+    args=TrainingArguments(
+        per_device_train_batch_size=2,
+        gradient_accumulation_steps=4,
+        warmup_steps=5,
+        num_train_epochs=3,
+        learning_rate=2e-4,
+        fp16=not torch.cuda.is_bf16_supported(),
+        bf16=torch.cuda.is_bf16_supported(),
+        logging_steps=1,
+        output_dir="outputs",
+    ),
+)
+
+trainer.train()
+
+# 5. Save the LoRA adapter
+model.save_pretrained("gemma4-12b-custom-lora")
+tokenizer.save_pretrained("gemma4-12b-custom-lora")
+
+# 6. Merge and export to GGUF for Ollama
+model.save_pretrained_gguf(
+    "gemma4-12b-custom",
+    tokenizer,
+    quantization_method="q4_k_m"
+)
+print("Done! Import into Ollama with:")
+print("ollama create mycustom -f Modelfile")</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="5" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">When to Fine-Tune vs Prompt-Engineer</span>
+  <div class="lesson-desc">
+    <div class="table-wrap"><table>
+      <tr><th>Use Prompt Engineering When…</th><th>Use Fine-Tuning When…</th></tr>
+      <tr><td>You need flexibility across many tasks</td><td>You need consistent behavior on one task</td></tr>
+      <tr><td>You have fewer than 50 examples</td><td>You have 100+ high-quality examples</td></tr>
+      <tr><td>The task can be described in natural language</td><td>The desired behavior is hard to articulate</td></tr>
+      <tr><td>You want to iterate quickly</td><td>You want to reduce prompt length (cost/speed)</td></tr>
+      <tr><td>The base model already does it ~80% right</td><td>The base model consistently gets it wrong</td></tr>
+    </table></div>
+    <div class="callout callout-tip">
+      <div class="callout-title">✅ Start with Prompts</div>
+      <p>Always try prompt engineering first. If you can get 90%+ accuracy with a good system prompt + few-shot examples, fine-tuning may not be worth the effort. Fine-tune when you need that last 10%, need faster inference (shorter prompts), or need to encode domain knowledge the base model lacks.</p>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+<!-- ═══════════════ MODULE 7 ═══════════════ -->
+<div class="module" id="module6">
+<div class="module-header" onclick="toggleModule(6)">
+  <div class="module-num">7</div>
+  <div class="module-title">Serving Gemma 4 — Local API Server</div>
+  <div class="module-meta" id="modMeta6">0/6</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="6" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Running as an OpenAI-Compatible API</span>
+  <div class="lesson-desc">
+    <p>Both Ollama and LM Studio expose an <strong>OpenAI-compatible API</strong> automatically. This means any app that works with the OpenAI API can be pointed at your local Gemma 4 with zero code changes.</p>
+<pre><code># Ollama's API is already running at localhost:11434
+# Test it with curl:
+
+curl http://localhost:11434/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemma4:12b",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "What is the capital of France?"}
+    ],
+    "temperature": 0.7,
+    "max_tokens": 256
+  }'
+
+# Response format is identical to OpenAI's API:
+# {
+#   "choices": [{
+#     "message": {
+#       "role": "assistant",
+#       "content": "The capital of France is Paris."
+#     }
+#   }]
+# }</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="6" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Ollama's Built-In Server Mode</span>
+  <div class="lesson-desc">
+<pre><code># Ollama runs as a background service automatically
+# Start it if not running:
+ollama serve
+
+# Key API endpoints:
+# POST /api/generate     — single completion
+# POST /api/chat         — multi-turn chat
+# POST /api/embeddings   — text embeddings
+# GET  /api/tags         — list installed models
+# POST /api/pull         — download a model
+# DELETE /api/delete     — remove a model
+
+# OpenAI-compatible endpoints (Ollama 0.22+):
+# POST /v1/chat/completions
+# POST /v1/completions
+# POST /v1/embeddings
+# GET  /v1/models
+
+# Configure Ollama server settings:
+export OLLAMA_HOST="0.0.0.0:11434"    # Listen on all interfaces
+export OLLAMA_NUM_PARALLEL=2           # Concurrent requests
+export OLLAMA_MAX_LOADED_MODELS=2      # Models in memory
+export OLLAMA_KEEP_ALIVE="10m"         # Unload after 10 min idle
+
+# Start with custom settings:
+OLLAMA_HOST=0.0.0.0:11434 OLLAMA_NUM_PARALLEL=2 ollama serve</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="callout callout-warn">
+      <div class="callout-title">⚠️ Network Security</div>
+      <p>Setting <code>OLLAMA_HOST=0.0.0.0</code> exposes your model to the local network. Only do this on trusted networks. For remote access, use SSH tunneling or a reverse proxy with authentication.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="6" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">vLLM for Production Serving</span>
+  <div class="lesson-desc">
+    <p>For higher throughput or production workloads, <strong>vLLM</strong> provides continuous batching and PagedAttention:</p>
+<pre><code># Install vLLM (requires Python 3.9+)
+pip3 install vllm --break-system-packages
+
+# Start vLLM server with Gemma 4 12B
+python3 -m vllm.entrypoints.openai.api_server \
+  --model google/gemma-4-12B-it \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --max-model-len 32768 \
+  --quantization awq \
+  --dtype float16
+
+# vLLM provides:
+# - Continuous batching (much higher throughput)
+# - PagedAttention (better memory management)
+# - OpenAI-compatible API at :8000/v1/
+# - Streaming support
+# - Token usage tracking
+
+# Test it:
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "google/gemma-4-12B-it",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    <div class="callout callout-info">
+      <div class="callout-title">💡 Ollama vs vLLM</div>
+      <p><strong>Ollama</strong> is better for personal use — easy setup, auto-manages models, great CLI. <strong>vLLM</strong> is better for serving multiple users or building production apps — higher throughput, better concurrency, more configuration options. For your Mac, Ollama is usually the right choice.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="6" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Building a Local ChatGPT-Like Interface</span>
+  <div class="lesson-desc">
+<pre><code>#!/usr/bin/env python3
+"""local_chat_ui.py — Terminal-based chat interface for Gemma 4"""
+import requests, json, sys
+
+OLLAMA_URL = "http://localhost:11434/api/chat"
+MODEL = "gemma4:12b"
+
+SYSTEM_PROMPT = """You are Gemma, a helpful AI assistant running locally \
+on this Mac. You are Gemma 4 12B, an open model by Google DeepMind. \
+Be concise, accurate, and helpful."""
+
+def chat():
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    print("╔══════════════════════════════════════════╗")
+    print("║   Local Gemma 4 12B Chat                 ║")
+    print("║   Type 'quit' to exit, 'clear' to reset  ║")
+    print("╚══════════════════════════════════════════╝\n")
+
+    while True:
+        try:
+            user_input = input("\033[94mYou:\033[0m ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye!")
+            break
+
+        if not user_input:
+            continue
+        if user_input.lower() == "quit":
+            break
+        if user_input.lower() == "clear":
+            messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+            print("  (conversation cleared)\n")
+            continue
+
+        messages.append({"role": "user", "content": user_input})
+
+        # Stream the response
+        print("\033[92mGemma:\033[0m ", end="", flush=True)
+        resp = requests.post(OLLAMA_URL, json={
+            "model": MODEL,
+            "messages": messages,
+            "stream": True,
+        }, stream=True)
+
+        full_response = ""
+        for line in resp.iter_lines():
+            if line:
+                chunk = json.loads(line)
+                if "message" in chunk:
+                    text = chunk["message"]["content"]
+                    print(text, end="", flush=True)
+                    full_response += text
+
+        print("\n")
+        messages.append({"role": "assistant", "content": full_response})
+
+if __name__ == "__main__":
+    chat()</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="6" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Integrating with Existing Apps</span>
+  <div class="lesson-desc">
+    <p>Since Ollama exposes an OpenAI-compatible API, you can swap cloud APIs for local Gemma 4 in any app that uses the OpenAI SDK:</p>
+<pre><code># Python — swap OpenAI for local Gemma 4
+# Before (cloud):
+from openai import OpenAI
+client = OpenAI(api_key="sk-...")
+
+# After (local — just change base_url and model):
+from openai import OpenAI
+client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"  # Any string works
+)
+
+response = client.chat.completions.create(
+    model="gemma4:12b",  # Instead of "gpt-4o"
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain recursion simply."}
+    ],
+    temperature=0.7,
+    max_tokens=512,
+)
+print(response.choices[0].message.content)
+
+# This works with ANY OpenAI-compatible library:
+# - LangChain, LlamaIndex, Haystack
+# - Continue.dev (VS Code AI extension)
+# - Open WebUI, Chatbot UI
+# - Any custom app using the OpenAI SDK</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="6" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Hands-On: Set Up a Local API for Your Apps</span>
+  <div class="lesson-desc">
+    <div class="hands-on">
+      <div class="hands-on-label">🔬 Hands-On Exercise</div>
+      <p>Create a reusable local API wrapper that any of your projects can import:</p>
+<pre><code>#!/usr/bin/env python3
+"""gemma_client.py — Drop-in local AI client for your projects"""
+from openai import OpenAI
+
+class GemmaClient:
+    """Local Gemma 4 client with OpenAI-compatible interface."""
+
+    def __init__(self, model="gemma4:12b", base_url="http://localhost:11434/v1"):
+        self.client = OpenAI(base_url=base_url, api_key="ollama")
+        self.model = model
+
+    def chat(self, prompt, system="You are a helpful assistant.",
+             temperature=0.7, max_tokens=1024):
+        """Simple chat completion."""
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return resp.choices[0].message.content
+
+    def analyze_code(self, code, language="python"):
+        """Analyze code for bugs, style, and improvements."""
+        return self.chat(
+            f"Review this {language} code:\n```{language}\n{code}\n```",
+            system="Expert code reviewer. Be specific and actionable.",
+            temperature=0.2
+        )
+
+    def summarize(self, text, max_words=100):
+        """Summarize text."""
+        return self.chat(
+            f"Summarize in {max_words} words:\n\n{text}",
+            system="Concise summarizer.",
+            temperature=0.3
+        )
+
+    def extract_json(self, text, schema_desc=""):
+        """Extract structured JSON from text."""
+        return self.chat(
+            f"Extract as JSON {schema_desc}:\n\n{text}",
+            system="Output only valid JSON. No explanation.",
+            temperature=0.1
+        )
+
+# Usage in any project:
+# from gemma_client import GemmaClient
+# ai = GemmaClient()
+# print(ai.chat("What is machine learning?"))
+# print(ai.analyze_code("def f(x): return x+1"))
+# print(ai.summarize("Long article text here..."))</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+<!-- ═══════════════ MODULE 8 ═══════════════ -->
+<div class="module" id="module7">
+<div class="module-header" onclick="toggleModule(7)">
+  <div class="module-num">8</div>
+  <div class="module-title">Privacy, Cost &amp; Strategy</div>
+  <div class="module-meta" id="modMeta7">0/6</div>
+  <svg class="module-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>
+</div>
+<div class="module-body">
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="7" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Privacy: Data Never Leaves Your Machine</span>
+  <div class="lesson-desc">
+    <p>The single most compelling reason to run Gemma 4 locally is <strong>privacy</strong>. When you use cloud AI APIs, your data traverses the internet and is processed on third-party servers. With local Gemma 4:</p>
+    <ul>
+      <li><strong>Zero data transmission</strong> — prompts and responses never leave your Mac</li>
+      <li><strong>No logging</strong> — no usage logs, no training data collection, no telemetry</li>
+      <li><strong>Offline capability</strong> — works with Wi-Fi off, on airplanes, in air-gapped environments</li>
+      <li><strong>Compliance friendly</strong> — HIPAA, GDPR, FERPA, SOC 2 considerations simplified</li>
+    </ul>
+    <p>This matters for:</p>
+    <ul>
+      <li><strong>Medical records</strong> — analyze patient data without cloud exposure</li>
+      <li><strong>Legal documents</strong> — review contracts and privileged communications</li>
+      <li><strong>Financial data</strong> — process sensitive financial models and reports</li>
+      <li><strong>Proprietary code</strong> — code review without sending IP to third parties</li>
+      <li><strong>Personal data</strong> — journal analysis, email drafting, personal finance</li>
+    </ul>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="7" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Cost Analysis: $0/Query vs API Pricing</span>
+  <div class="lesson-desc">
+    <p>Let's do the math on running local vs cloud for typical usage patterns:</p>
+    <div class="table-wrap"><table>
+      <tr><th>Usage Pattern</th><th>Queries/Month</th><th>Cloud Cost/Month</th><th>Local Cost</th><th>Annual Savings</th></tr>
+      <tr><td>Light (personal)</td><td>500</td><td>$5–15</td><td>$0 *</td><td>$60–180</td></tr>
+      <tr><td>Moderate (developer)</td><td>3,000</td><td>$30–90</td><td>$0 *</td><td>$360–1,080</td></tr>
+      <tr><td>Heavy (production)</td><td>30,000</td><td>$300–900</td><td>$0 *</td><td>$3,600–10,800</td></tr>
+      <tr><td>Team (5 devs)</td><td>15,000</td><td>$150–450</td><td>$0 *</td><td>$1,800–5,400</td></tr>
+    </table></div>
+    <p>* Electricity cost is negligible — Apple Silicon draws ~15W under ML load, costing about $0.05/day if running continuously.</p>
+    <div class="callout callout-tip">
+      <div class="callout-title">✅ Break-Even</div>
+      <p>If you already own an M-series Mac with 16GB+ RAM, the break-even point is <strong>immediate</strong> — there's no additional hardware cost. Even if you're buying a Mac specifically for local AI, a Mac Mini M4 (16GB) at ~$600 pays for itself within 6–18 months of moderate API usage.</p>
+    </div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="7" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">When Local Beats APIs (and When It Doesn't)</span>
+  <div class="lesson-desc">
+    <div class="table-wrap"><table>
+      <tr><th style="color:var(--green)">Local Gemma 4 Wins</th><th style="color:var(--accent)">Cloud API Wins</th></tr>
+      <tr><td>Privacy-sensitive data processing</td><td>Complex reasoning requiring frontier models</td></tr>
+      <tr><td>High-volume repetitive tasks (OCR, classification)</td><td>Tasks requiring latest world knowledge</td></tr>
+      <tr><td>Offline environments (travel, air-gapped)</td><td>Very long context (100K+ tokens)</td></tr>
+      <tr><td>Cost-sensitive applications</td><td>Maximum speed / lowest latency</td></tr>
+      <tr><td>Embedded in local tools and scripts</td><td>Multi-model orchestration</td></tr>
+      <tr><td>Development and prototyping</td><td>Production apps needing 99.9% uptime</td></tr>
+      <tr><td>Image/audio analysis with sensitive content</td><td>State-of-the-art code generation</td></tr>
+    </table></div>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="7" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Building a Hybrid Architecture</span>
+  <div class="lesson-desc">
+    <p>The smartest approach isn't local-only or cloud-only — it's <strong>hybrid</strong>. Route simple tasks to local Gemma 4 and complex tasks to cloud APIs:</p>
+<pre><code>#!/usr/bin/env python3
+"""hybrid_router.py — Route to local or cloud based on task complexity"""
+from openai import OpenAI
+
+# Local Gemma 4
+local = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+
+# Cloud API (for complex tasks)
+cloud = OpenAI(api_key="your-api-key-here")
+
+# Task complexity heuristics
+SIMPLE_TASKS = [
+    "summarize", "extract", "classify", "translate", "format",
+    "review", "describe", "list", "convert", "clean"
+]
+
+def route_query(prompt, force_local=False, force_cloud=False):
+    """Intelligently route to local or cloud model."""
+
+    if force_local:
+        return _call_local(prompt)
+    if force_cloud:
+        return _call_cloud(prompt)
+
+    # Simple heuristic: check if task is "simple"
+    prompt_lower = prompt.lower()
+    is_simple = any(word in prompt_lower for word in SIMPLE_TASKS)
+    is_short = len(prompt) < 2000
+
+    if is_simple and is_short:
+        print("  → Routing to LOCAL Gemma 4 (fast, free, private)")
+        return _call_local(prompt)
+    else:
+        print("  → Routing to CLOUD API (complex reasoning)")
+        return _call_cloud(prompt)
+
+def _call_local(prompt):
+    resp = local.chat.completions.create(
+        model="gemma4:12b",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7, max_tokens=1024,
+    )
+    return resp.choices[0].message.content
+
+def _call_cloud(prompt):
+    resp = cloud.chat.completions.create(
+        model="claude-sonnet-4-6",  # Or your preferred cloud model
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7, max_tokens=2048,
+    )
+    return resp.choices[0].message.content
+
+# Usage:
+# Simple task → local (free, private)
+print(route_query("Summarize this email: ..."))
+
+# Complex task → cloud (better reasoning)
+print(route_query("Design a microservices architecture for ..."))</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="7" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">Coursera Implications: Offline Learning Experiences</span>
+  <div class="lesson-desc">
+    <p>Local AI models like Gemma 4 open up fascinating possibilities for education and learning platforms:</p>
+    <ul>
+      <li><strong>Offline AI tutoring</strong> — students can get AI help without internet, crucial for underserved regions</li>
+      <li><strong>Privacy-first learning</strong> — student interactions with AI never leave their device</li>
+      <li><strong>Custom course assistants</strong> — fine-tune Gemma 4 on course materials for specialized tutoring</li>
+      <li><strong>Assessment assistance</strong> — local grading and feedback on assignments without cloud latency</li>
+      <li><strong>Accessibility</strong> — local audio-to-text processing for hearing-impaired students</li>
+      <li><strong>Cost reduction</strong> — eliminate per-query API costs for educational institutions</li>
+    </ul>
+    <p>Imagine a Coursera course that ships with a fine-tuned Gemma 4 model as the "course TA" — available offline, specialized in the course material, and completely private. This could be especially impactful for coding courses, language learning, and medical education.</p>
+  </div>
+</div></div>
+
+<div class="lesson"><input type="checkbox" class="lesson-check" data-mod="7" onchange="updateProgress()"><div class="lesson-content">
+  <span class="lesson-title-text">The Future of Local AI on Consumer Hardware</span>
+  <div class="lesson-desc">
+    <p>Gemma 4 12B represents a inflection point in local AI. Here's where things are headed:</p>
+    <ul>
+      <li><strong>Model efficiency is improving faster than hardware</strong> — 12B parameters in 2026 outperforms 70B from 2024 on many benchmarks</li>
+      <li><strong>Apple Silicon is getting better</strong> — each M-series generation adds ~20% more ML throughput. M5 (expected 2027) will likely run 26B+ models comfortably on base configurations</li>
+      <li><strong>Quantization keeps improving</strong> — new techniques like QAT (Quantization-Aware Training) close the gap between quantized and full-precision models</li>
+      <li><strong>Multimodal is the new baseline</strong> — within a year, even edge models (2–4B) will handle text, images, and audio natively</li>
+      <li><strong>Agentic capabilities are maturing</strong> — local models that can reliably use tools, browse the web, and execute code are becoming practical</li>
+    </ul>
+    <div class="callout callout-info">
+      <div class="callout-title">💡 The Big Picture</div>
+      <p>We're moving toward a world where every developer, every knowledge worker, and eventually every consumer has a capable AI model running locally on their device. Gemma 4 12B on your Mac is one of the first practical examples of this future. The skills you've learned in this course — installing, optimizing, building agents, fine-tuning, and serving local models — will remain relevant as models get better and hardware gets faster.</p>
+    </div>
+  </div>
+</div></div>
+
+</div>
+</div>
+
+</div><!-- end container -->
+
+<!-- FOOTER -->
+<footer>
+  <p>Gemma 4 Local AI Masterclass — Built for Mustafa's Apple Silicon Mac</p>
+  <p style="margin-top:.5em;font-size:.78rem">Gemma 4 12B by Google DeepMind · Apache 2.0 License · Course last updated June 2026</p>
+  <p style="margin-top:.5em;font-size:.78rem">This course is fully offline — no external dependencies, no tracking, no network requests.</p>
+</footer>
+
+<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
+<script>
+(function(){
+  // Module data
+  const MODULE_COUNT = 8;
+  const moduleLessonCounts = [];
+
+  // Initialize lesson counts
+  for(let i=0; i<MODULE_COUNT; i++){
+    const checks = document.querySelectorAll(`input[data-mod="${i}"]`);
+    moduleLessonCounts.push(checks.length);
+  }
+
+  // Load saved progress from... well, we store in a global var
+  // (No localStorage in fully offline mode — use URL hash instead)
+  function getState(){
+    try{
+      const hash = window.location.hash.slice(1);
+      if(!hash) return {};
+      return JSON.parse(decodeURIComponent(hash));
+    }catch(e){ return {}; }
+  }
+
+  function saveState(state){
+    window.location.hash = encodeURIComponent(JSON.stringify(state));
+  }
+
+  // Restore checkboxes from URL hash
+  function restoreProgress(){
+    const state = getState();
+    if(state.checks){
+      const allChecks = document.querySelectorAll('.lesson-check');
+      state.checks.forEach(idx => {
+        if(allChecks[idx]) allChecks[idx].checked = true;
+      });
+    }
+  }
+
+  // Toggle module open/closed
+  window.toggleModule = function(idx){
+    const mod = document.getElementById('module'+idx);
+    if(mod.classList.contains('open')){
+      mod.classList.remove('open');
+    } else {
+      mod.classList.add('open');
+    }
+    // Close mobile nav
+    document.querySelector('.nav-links').classList.remove('show');
+  };
+
+  // Scroll to module
+  window.scrollToModule = function(idx){
+    const mod = document.getElementById('module'+idx);
+    mod.classList.add('open');
+    mod.scrollIntoView({behavior:'smooth', block:'start'});
+    document.querySelector('.nav-links').classList.remove('show');
+    // Update active nav
+    document.querySelectorAll('.nav-link').forEach((l,i) => {
+      l.classList.toggle('active', i===idx);
+    });
+  };
+
+  // Update progress
+  window.updateProgress = function(){
+    const allChecks = document.querySelectorAll('.lesson-check');
+    const total = allChecks.length;
+    let completed = 0;
+    const checkedIndices = [];
+
+    allChecks.forEach((cb, idx) => {
+      if(cb.checked){
+        completed++;
+        checkedIndices.push(idx);
+      }
+    });
+
+    // Save to URL hash
+    saveState({checks: checkedIndices});
+
+    // Update global progress
+    const pct = Math.round((completed/total)*100);
+    document.getElementById('progressFill').style.width = pct+'%';
+    document.getElementById('progressPercent').textContent = pct+'%';
+
+    // Update per-module counters
+    for(let i=0; i<MODULE_COUNT; i++){
+      const modChecks = document.querySelectorAll(`input[data-mod="${i}"]`);
+      let modCompleted = 0;
+      modChecks.forEach(cb => { if(cb.checked) modCompleted++; });
+      const meta = document.getElementById('modMeta'+i);
+      if(meta) meta.textContent = modCompleted+'/'+modChecks.length;
+
+      // Mark module as completed
+      const mod = document.getElementById('module'+i);
+      if(modCompleted === modChecks.length && modChecks.length > 0){
+        mod.classList.add('completed-module');
+      } else {
+        mod.classList.remove('completed-module');
+      }
+    }
+  };
+
+  // Copy code to clipboard
+  window.copyCode = function(btn){
+    const pre = btn.closest('pre');
+    const code = pre.querySelector('code').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = code;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    });
+  };
+
+  // Scroll-based nav highlighting
+  function updateActiveNav(){
+    const modules = document.querySelectorAll('.module');
+    const navLinks = document.querySelectorAll('.nav-link');
+    let activeIdx = 0;
+
+    modules.forEach((mod, idx) => {
+      const rect = mod.getBoundingClientRect();
+      if(rect.top < 200) activeIdx = idx;
+    });
+
+    navLinks.forEach((l,i) => l.classList.toggle('active', i===activeIdx));
+  }
+
+  window.addEventListener('scroll', updateActiveNav, {passive:true});
+
+  // Initialize
+  restoreProgress();
+  updateProgress();
+})();
+</script>
+
+</body>
+</html>

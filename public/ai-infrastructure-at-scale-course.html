@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Infrastructure at Scale — Production Operations Course</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0f1a; --bg2: #111827; --bg3: #1a2235; --bg4: #243049;
+  --accent: #f59e0b; --accent2: #d97706; --accent3: #fbbf24;
+  --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+  --green: #22c55e; --red: #ef4444; --blue: #3b82f6; --purple: #a855f7; --cyan: #06b6d4;
+  --border: #1e293b; --code-bg: #0d1321; --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SF Mono", "Cascadia Code", "Fira Code", Consolas, "Liberation Mono", Menlo, monospace;
+}
+html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent3); text-decoration: underline; }
+nav { position: sticky; top: 0; z-index: 100; background: rgba(10,15,26,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 20px; }
+.nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+.nav-brand { font-weight: 700; font-size: 18px; color: var(--accent); white-space: nowrap; }
+.nav-brand span { color: var(--text2); font-weight: 400; font-size: 14px; margin-left: 8px; }
+.nav-progress-wrap { flex: 1; max-width: 300px; height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.nav-progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent3)); width: 0%; transition: width 0.4s ease; border-radius: 3px; }
+.nav-pct { font-size: 13px; color: var(--accent); font-weight: 600; min-width: 36px; }
+.nav-menu-btn { display: none; background: none; border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 18px; }
+.layout { max-width: 1400px; margin: 0 auto; display: flex; min-height: calc(100vh - 60px); }
+.sidebar { width: 280px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+.sidebar h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); padding: 12px 20px 8px; }
+.sidebar a { display: flex; align-items: center; gap: 10px; padding: 8px 20px; font-size: 14px; color: var(--text2); transition: all 0.2s; border-left: 3px solid transparent; }
+.sidebar a:hover, .sidebar a.active { color: var(--accent); background: rgba(245,158,11,0.05); border-left-color: var(--accent); text-decoration: none; }
+.sidebar .mod-num { background: var(--bg4); color: var(--text3); font-size: 11px; font-weight: 700; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar a.active .mod-num, .sidebar a:hover .mod-num { background: var(--accent); color: var(--bg); }
+.main { flex: 1; min-width: 0; padding: 40px; }
+.hero { text-align: center; padding: 60px 20px 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; }
+.hero h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+.hero h1 .hl { color: var(--accent); }
+.hero p { color: var(--text2); font-size: 17px; max-width: 700px; margin: 0 auto 20px; }
+.hero-meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: var(--text3); }
+.hero-meta span { display: flex; align-items: center; gap: 6px; }
+.module { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 32px; }
+.module-header { display: flex; align-items: center; gap: 16px; padding: 20px 24px; cursor: pointer; user-select: none; transition: background 0.2s; }
+.module-header:hover { background: var(--bg3); }
+.module-num { background: linear-gradient(135deg, var(--accent2), var(--accent)); color: var(--bg); font-size: 14px; font-weight: 800; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.module-header h2 { font-size: 20px; font-weight: 700; flex: 1; }
+.module-header .arrow { color: var(--text3); font-size: 20px; transition: transform 0.3s; }
+.module.open .module-header .arrow { transform: rotate(180deg); }
+.module-body { display: none; padding: 0 24px 24px; }
+.module.open .module-body { display: block; }
+.module-body h3 { font-size: 18px; font-weight: 700; color: var(--accent); margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.module-body h4 { font-size: 15px; font-weight: 600; color: var(--text); margin: 20px 0 8px; }
+.module-body p, .module-body li { color: var(--text2); }
+.module-body ul, .module-body ol { padding-left: 20px; margin: 8px 0; }
+.module-body li { margin-bottom: 6px; }
+.check-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
+.check-item input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; border: 2px solid var(--bg4); border-radius: 4px; flex-shrink: 0; cursor: pointer; margin-top: 2px; position: relative; background: var(--bg); }
+.check-item input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+.check-item input[type="checkbox"]:checked::after { content: "\2713"; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--bg); font-size: 13px; font-weight: 700; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.6; margin: 12px 0; color: var(--text2); }
+code { font-family: var(--mono); font-size: 13px; background: var(--bg3); padding: 2px 6px; border-radius: 3px; color: var(--accent3); }
+pre code { background: none; padding: 0; color: inherit; }
+.kw { color: #a855f7; } .str { color: #22c55e; } .cm { color: #64748b; font-style: italic; } .fn { color: #3b82f6; } .num { color: #f59e0b; } .ty { color: #06b6d4; }
+.tbl-wrap { overflow-x: auto; margin: 12px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { background: var(--bg3); color: var(--accent); font-weight: 600; text-align: left; padding: 10px 14px; border: 1px solid var(--border); white-space: nowrap; }
+td { padding: 10px 14px; border: 1px solid var(--border); color: var(--text2); }
+tr:nth-child(even) td { background: rgba(17,24,39,0.5); }
+.diagram { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; overflow-x: auto; font-family: var(--mono); font-size: 12px; line-height: 1.5; color: var(--text2); white-space: pre; margin: 12px 0; }
+.diagram .hl { color: var(--accent); font-weight: 700; }
+.diagram .g { color: #22c55e; } .diagram .b { color: #3b82f6; } .diagram .r { color: #ef4444; } .diagram .p { color: #a855f7; }
+.callout { border-left: 4px solid var(--accent); background: rgba(245,158,11,0.06); padding: 16px 20px; border-radius: 0 var(--radius) var(--radius) 0; margin: 16px 0; }
+.callout.warn { border-left-color: var(--red); background: rgba(239,68,68,0.06); }
+.callout.info { border-left-color: var(--blue); background: rgba(59,130,246,0.06); }
+.callout.green { border-left-color: var(--green); background: rgba(34,197,94,0.06); }
+.callout strong { color: var(--text); }
+.callout p { color: var(--text2); margin-top: 4px; }
+.cost-box { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 16px 0; }
+.cost-box h4 { color: var(--accent); margin: 0 0 12px; font-size: 15px; }
+.cost-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.cost-row:last-child { border-bottom: none; font-weight: 700; color: var(--accent); }
+.cost-row span:first-child { color: var(--text2); }
+.cost-row span:last-child { color: var(--text); font-family: var(--mono); }
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+.compare-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+.compare-card h4 { font-size: 15px; margin-bottom: 10px; }
+.compare-card.api h4 { color: var(--blue); }
+.compare-card.self h4 { color: var(--green); }
+.compare-card ul { padding-left: 16px; }
+.compare-card li { font-size: 14px; color: var(--text2); margin-bottom: 4px; }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 3px; margin: 0 4px; }
+.tag-api { background: rgba(59,130,246,0.15); color: var(--blue); }
+.tag-self { background: rgba(34,197,94,0.15); color: var(--green); }
+.tag-both { background: rgba(168,85,247,0.15); color: var(--purple); }
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .sidebar.open { display: block; position: fixed; top: 60px; left: 0; width: 280px; z-index: 99; height: calc(100vh - 60px); }
+  .nav-menu-btn { display: block; }
+  .main { padding: 20px; }
+  .compare { grid-template-columns: 1fr; }
+  .hero { padding: 30px 10px 20px; }
+}
+@media (max-width: 600px) {
+  .module-header h2 { font-size: 16px; }
+  pre { font-size: 11px; padding: 12px; }
+  table { font-size: 12px; }
+  th, td { padding: 6px 8px; }
+}
+</style>
+</head>
+<body>
+<nav>
+<div class="nav-inner">
+  <button class="nav-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Menu">&#9776;</button>
+  <div class="nav-brand">AI Infra at Scale <span>Production Ops</span></div>
+  <div class="nav-progress-wrap"><div class="nav-progress-bar" id="progressBar"></div></div>
+  <div class="nav-pct" id="progressPct">0%</div>
+</div>
+</nav>
+<div class="layout">
+<aside class="sidebar" id="sidebar">
+  <h3>Modules</h3>
+  <a href="#mod1" onclick="openMod(1)"><span class="mod-num">1</span>AI Inference Stack</a>
+  <a href="#mod2" onclick="openMod(2)"><span class="mod-num">2</span>Quantization</a>
+  <a href="#mod3" onclick="openMod(3)"><span class="mod-num">3</span>Prompt Caching</a>
+  <a href="#mod4" onclick="openMod(4)"><span class="mod-num">4</span>GPU Provisioning</a>
+  <a href="#mod5" onclick="openMod(5)"><span class="mod-num">5</span>Scaling Patterns</a>
+  <a href="#mod6" onclick="openMod(6)"><span class="mod-num">6</span>Observability</a>
+  <a href="#mod7" onclick="openMod(7)"><span class="mod-num">7</span>Cost Optimization</a>
+  <a href="#mod8" onclick="openMod(8)"><span class="mod-num">8</span>Production Arch</a>
+</aside>
+<div class="main">
+<div class="hero">
+  <h1>AI Infrastructure <span class="hl">at Scale</span></h1>
+  <p>The ops playbook for running AI in production &mdash; from GPU metal to multi-region failover. Built for VP-level engineers managing AI workloads at Coursera-scale platforms.</p>
+  <div class="hero-meta">
+    <span>&#9201; 2&ndash;3 hours</span>
+    <span>&#128230; 8 Modules</span>
+    <span>&#127919; VP Engineering / Staff+</span>
+    <span>&#128268; Fully Offline</span>
+  </div>
+</div>
+
+<!-- ======= MODULE 1 ======= -->
+<div class="module open" id="mod1">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">1</div>
+  <h2>The AI Inference Stack</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand the model serving landscape and when to use each framework</span></div>
+
+<h3>The Serving Landscape in 2025</h3>
+<p>Model serving is the single most impactful infrastructure decision you'll make. The wrong choice costs you 3-10x in compute or adds 500ms+ latency. Here's the real landscape:</p>
+
+<div class="tbl-wrap"><table>
+<tr><th>Framework</th><th>Best For</th><th>Throughput</th><th>Latency (P50)</th><th>Production-Ready</th><th>Ecosystem</th></tr>
+<tr><td><strong>vLLM</strong></td><td>High-throughput batch + online</td><td>&#9733;&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;&#9733;</td><td>HuggingFace native</td></tr>
+<tr><td><strong>TensorRT-LLM</strong></td><td>Lowest latency on NVIDIA</td><td>&#9733;&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;</td><td>NVIDIA only</td></tr>
+<tr><td><strong>TGI</strong></td><td>HuggingFace ecosystem</td><td>&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;&#9733;</td><td>HF Inference Endpoints</td></tr>
+<tr><td><strong>Ollama</strong></td><td>Dev/local, CPU+GPU</td><td>&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;</td><td>Easy setup, limited scale</td></tr>
+<tr><td><strong>SGLang</strong></td><td>Structured generation</td><td>&#9733;&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;&#9733;</td><td>&#9733;&#9733;&#9733;</td><td>Constrained decoding</td></tr>
+</table></div>
+
+<h3>vLLM Deep Dive &mdash; The Default Choice</h3>
+<p>vLLM dominates production deployments for good reason: PagedAttention gives you 2-4x throughput over naive serving by eliminating KV cache memory waste. It's the PostgreSQL of inference &mdash; not always the fastest, but reliable and well-understood.</p>
+
+<h4>When to use vLLM</h4>
+<ul>
+<li>Serving open-weight models (Llama 3.1, Mixtral, Qwen2.5, DeepSeek) in production</li>
+<li>You need high throughput with reasonable latency (&lt;2s TTFT for 70B models)</li>
+<li>Multi-model serving from a single GPU pool</li>
+<li>You want continuous batching (critical for throughput under concurrent load)</li>
+</ul>
+
+<pre><code><span class="cm"># Production vLLM deployment &mdash; Docker Compose</span>
+<span class="cm"># This config runs Llama 3.1 70B on 4x A100 80GB</span>
+
+<span class="kw">version</span>: <span class="str">"3.8"</span>
+<span class="kw">services</span>:
+  <span class="fn">vllm</span>:
+    <span class="kw">image</span>: vllm/vllm-openai:v0.6.4
+    <span class="kw">deploy</span>:
+      <span class="kw">resources</span>:
+        <span class="kw">reservations</span>:
+          <span class="kw">devices</span>:
+            - <span class="kw">driver</span>: nvidia
+              <span class="kw">count</span>: <span class="num">4</span>
+              <span class="kw">capabilities</span>: [gpu]
+    <span class="kw">command</span>: &gt;
+      --model meta-llama/Llama-3.1-70B-Instruct
+      --tensor-parallel-size <span class="num">4</span>
+      --max-model-len <span class="num">8192</span>
+      --gpu-memory-utilization <span class="num">0.92</span>
+      --enable-prefix-caching
+      --max-num-batched-tokens <span class="num">32768</span>
+      --max-num-seqs <span class="num">256</span>
+      --port <span class="num">8000</span>
+    <span class="kw">ports</span>:
+      - <span class="str">"8000:8000"</span>
+    <span class="kw">volumes</span>:
+      - /models:/root/.cache/huggingface
+    <span class="kw">shm_size</span>: <span class="str">"16gb"</span></code></pre>
+
+<div class="callout">
+<strong>Key Config Decisions:</strong>
+<p><code>--gpu-memory-utilization 0.92</code> &mdash; Leave 8% headroom. Going to 0.95+ causes OOM under burst load. <code>--max-num-seqs 256</code> &mdash; Concurrent sequences. Higher = more throughput but higher P99 latency. Tune for your SLA. <code>--enable-prefix-caching</code> &mdash; Free 20-40% throughput boost if requests share system prompts.</p>
+</div>
+
+<h3>TensorRT-LLM &mdash; When Latency is King</h3>
+<p>If you're on NVIDIA hardware (you probably are) and need the absolute lowest latency, TensorRT-LLM compiles models into optimized CUDA kernels. The tradeoff: complex build process, NVIDIA lock-in, and less community support.</p>
+
+<h4>When to pick TensorRT-LLM over vLLM</h4>
+<ul>
+<li>Latency SLA under 200ms TTFT for interactive use cases</li>
+<li>You have dedicated SRE capacity for the build pipeline</li>
+<li>Running on NVIDIA Triton Inference Server already</li>
+<li>H100/H200 hardware (TRT-LLM extracts more from newer GPUs)</li>
+</ul>
+
+<h3>Throughput vs Latency &mdash; The Fundamental Tradeoff</h3>
+<div class="diagram">  Throughput (tokens/sec)
+  |
+  |    +--------------------------- TensorRT-LLM (tuned)
+  |    |  +------------------------- vLLM (continuous batching)
+  |    |  |
+<span class="hl">4000</span> |----*--*
+  |    |  |   +---------------------- SGLang (structured gen)
+<span class="hl">3000</span> |----|--|---*
+  |    |  |   |  +------------------- TGI
+<span class="hl">2000</span> |----|--|---|--*
+  |    |  |   |  |
+<span class="hl">1000</span> |----|--|---|--|--+----------------- Ollama
+  |    |  |   |  |  *
+  +----+--+---+--+--+----------------> Latency P50 (ms)
+       <span class="g">50</span> <span class="b">80</span> <span class="p">90</span> <span class="b">120</span> <span class="r">400</span>
+
+  <span class="cm">Benchmark: Llama 3.1 8B, 512 input / 256 output tokens, A100 80GB</span>
+  <span class="cm">Higher throughput = more $/GPU, Lower latency = better UX</span></div>
+
+<h3>API vs Self-Hosted: The First Decision</h3>
+<div class="compare">
+<div class="compare-card api">
+  <h4>API-Based (Anthropic/OpenAI) <span class="tag tag-api">API</span></h4>
+  <ul>
+    <li>Zero infrastructure &mdash; just HTTP calls</li>
+    <li>Auto-scaling handled by provider</li>
+    <li>Frontier models (Claude Sonnet/Opus, GPT-4o)</li>
+    <li>Cost: $3-15/MTok input, $15-75/MTok output</li>
+    <li>Latency: 200-800ms TTFT typical</li>
+    <li>Rate limits: 4K-10K RPM (enterprise)</li>
+    <li><strong>Best when:</strong> &lt;10M queries/month, need frontier quality, small infra team</li>
+  </ul>
+</div>
+<div class="compare-card self">
+  <h4>Self-Hosted (vLLM + Open Source) <span class="tag tag-self">SELF</span></h4>
+  <ul>
+    <li>Full control over latency, throughput, cost</li>
+    <li>No rate limits &mdash; scale with hardware</li>
+    <li>Models: Llama 3.1 70B, Mixtral, Qwen2.5</li>
+    <li>Cost: $1.50-3.00/hr per A100 (amortized)</li>
+    <li>Latency: 50-200ms TTFT (tunable)</li>
+    <li>Need: GPU ops team, monitoring, on-call</li>
+    <li><strong>Best when:</strong> &gt;50M queries/month, latency-critical, data sovereignty</li>
+  </ul>
+</div>
+</div>
+
+<div class="callout info">
+<strong>The Hybrid Approach (Recommended for Coursera-scale):</strong>
+<p>Use API (Claude Sonnet) for complex reasoning tasks (essay grading, content generation) and self-hosted (Llama 3.1 8B quantized) for high-volume simple tasks (autocomplete, classification, translation). This cuts costs 60-70% vs all-API while keeping quality where it matters.</p>
+</div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 1 complete &mdash; can articulate when to use vLLM vs TRT-LLM vs API</span></div>
+</div>
+</div>
+
+<!-- ======= MODULE 2 ======= -->
+<div class="module" id="mod2">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">2</div>
+  <h2>Quantization &mdash; Trading Precision for Speed</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand quantization formats and their quality/speed tradeoffs</span></div>
+
+<h3>Why Quantization Matters</h3>
+<p>A 70B parameter model at FP16 requires ~140GB VRAM &mdash; that's 2x A100 80GB just to load. Quantize to INT4 and it fits on a single A100 with room for a 4K context KV cache. Quantization is the single biggest lever for reducing inference cost.</p>
+
+<h3>Quantization Formats Compared</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Format</th><th>Bits</th><th>VRAM (70B)</th><th>Quality Loss</th><th>Speed vs FP16</th><th>Best Framework</th><th>Notes</th></tr>
+<tr><td><strong>FP16</strong></td><td>16</td><td>140 GB</td><td>Baseline</td><td>1.0x</td><td>Any</td><td>Reference quality</td></tr>
+<tr><td><strong>FP8</strong></td><td>8</td><td>70 GB</td><td>~0%</td><td>1.5-1.8x</td><td>TRT-LLM, vLLM</td><td>H100/H200 native support</td></tr>
+<tr><td><strong>AWQ</strong></td><td>4</td><td>35 GB</td><td>1-2%</td><td>2.0-2.5x</td><td>vLLM, TGI</td><td>Activation-aware, best INT4 quality</td></tr>
+<tr><td><strong>GPTQ</strong></td><td>4</td><td>35 GB</td><td>2-3%</td><td>2.0-2.3x</td><td>vLLM, TGI</td><td>Older but well-tested, large zoo</td></tr>
+<tr><td><strong>GGUF</strong></td><td>2-8</td><td>Varies</td><td>Varies</td><td>CPU+GPU</td><td>llama.cpp, Ollama</td><td>Best for CPU/mixed inference</td></tr>
+<tr><td><strong>INT4 (W4A16)</strong></td><td>4</td><td>35 GB</td><td>1-3%</td><td>2.0-2.5x</td><td>TRT-LLM</td><td>Weights INT4, activations FP16</td></tr>
+</table></div>
+
+<h3>Quality Benchmarks &mdash; Real Numbers</h3>
+<p>Internal benchmarks on Llama 3.1 70B across standard evals. Your mileage will vary by task &mdash; always benchmark on YOUR data.</p>
+
+<div class="tbl-wrap"><table>
+<tr><th>Format</th><th>MMLU (5-shot)</th><th>HumanEval</th><th>MT-Bench</th><th>Relative Quality</th></tr>
+<tr><td>FP16 (baseline)</td><td>82.0</td><td>80.5</td><td>8.95</td><td>100%</td></tr>
+<tr><td>FP8</td><td>81.9</td><td>80.5</td><td>8.93</td><td>~99.8%</td></tr>
+<tr><td>AWQ INT4</td><td>81.1</td><td>79.3</td><td>8.82</td><td>~98.5%</td></tr>
+<tr><td>GPTQ INT4</td><td>80.4</td><td>78.0</td><td>8.71</td><td>~97.3%</td></tr>
+<tr><td>GGUF Q4_K_M</td><td>80.7</td><td>78.8</td><td>8.76</td><td>~97.8%</td></tr>
+<tr><td>GGUF Q2_K</td><td>74.2</td><td>68.1</td><td>7.95</td><td>~89%</td></tr>
+</table></div>
+
+<div class="callout warn">
+<strong>The INT4 Cliff:</strong>
+<p>For most production tasks, AWQ INT4 is the sweet spot &mdash; you get 2x throughput with &lt;2% quality loss. Below INT4 (e.g., GGUF Q2_K), quality degrades significantly. FP8 on H100/H200 is "free" quality &mdash; use it if your hardware supports it.</p>
+</div>
+
+<h3>When Quantization Is Worth It</h3>
+<div class="diagram">  Decision Tree: Should You Quantize?
+
+  Are you using an API (Anthropic/OpenAI)?
+  +-- <span class="g">YES</span> -> Quantization is handled by the provider. Focus on
+  |         prompt optimization and model selection instead.
+  |
+  +-- <span class="r">NO</span> (self-hosted) -> What's your GPU?
+      +-- <span class="b">H100/H200</span> -> Use <span class="hl">FP8</span>. Free 1.5-1.8x speedup, ~0% quality loss.
+      |                  Native tensor core support. No reason not to.
+      |
+      +-- <span class="b">A100/A10G</span> -> Model fits in VRAM at FP16?
+          +-- <span class="g">YES</span> -> Is throughput sufficient?
+          |   +-- <span class="g">YES</span> -> Stay at FP16. Don't optimize prematurely.
+          |   +-- <span class="r">NO</span>  -> Use <span class="hl">AWQ INT4</span>. 2x throughput, ~1.5% quality loss.
+          |
+          +-- <span class="r">NO</span> -> Use <span class="hl">AWQ INT4</span> to fit in VRAM.
+                   70B model: 140GB -> 35GB. Fits on single A100 80GB.</div>
+
+<h3>Practical: Quantizing with AutoAWQ</h3>
+<pre><code><span class="cm"># Quantize Llama 3.1 70B to AWQ INT4</span>
+<span class="cm"># Requires ~160GB RAM + 80GB GPU for calibration</span>
+
+<span class="kw">from</span> awq <span class="kw">import</span> AutoAWQForCausalLM
+<span class="kw">from</span> transformers <span class="kw">import</span> AutoTokenizer
+
+model_path = <span class="str">"meta-llama/Llama-3.1-70B-Instruct"</span>
+quant_path = <span class="str">"llama-3.1-70b-instruct-awq"</span>
+
+<span class="cm"># Calibration config</span>
+quant_config = {
+    <span class="str">"zero_point"</span>: <span class="kw">True</span>,
+    <span class="str">"q_group_size"</span>: <span class="num">128</span>,
+    <span class="str">"w_bit"</span>: <span class="num">4</span>,
+    <span class="str">"version"</span>: <span class="str">"GEMM"</span>     <span class="cm"># Use GEMM for vLLM compat</span>
+}
+
+model = AutoAWQForCausalLM.<span class="fn">from_pretrained</span>(model_path)
+tokenizer = AutoTokenizer.<span class="fn">from_pretrained</span>(model_path)
+
+<span class="cm"># 128-512 samples of real production prompts</span>
+calib_data = <span class="fn">load_calibration_data</span>()
+
+model.<span class="fn">quantize</span>(tokenizer, quant_config=quant_config, calib_data=calib_data)
+model.<span class="fn">save_quantized</span>(quant_path)
+tokenizer.<span class="fn">save_pretrained</span>(quant_path)</code></pre>
+
+<div class="callout green">
+<strong>Cost Impact of Quantization:</strong>
+<p>Running Llama 3.1 70B on AWS &mdash; FP16 on 2x A100 80GB: $6.52/hr. AWQ INT4 on 1x A100 80GB: $3.26/hr. That's a 50% cost reduction with &lt;2% quality loss. At 10M queries/month, that's ~$2,400/month saved per model instance.</p>
+</div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 2 complete &mdash; can choose the right quantization format for a given scenario</span></div>
+</div>
+</div>
+
+<!-- ======= MODULE 3 ======= -->
+<div class="module" id="mod3">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">3</div>
+  <h2>Prompt Caching &amp; Optimization</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand caching strategies across API and self-hosted deployments</span></div>
+
+<h3>The Caching Landscape</h3>
+<p>Caching is the highest-ROI optimization in AI infrastructure. Unlike traditional web caching, LLM caching operates at multiple layers &mdash; from exact response dedup to KV cache reuse for shared prefixes.</p>
+
+<div class="tbl-wrap"><table>
+<tr><th>Cache Type</th><th>Where</th><th>Savings</th><th>Complexity</th><th>Applies To</th></tr>
+<tr><td><strong>Anthropic Prompt Caching</strong></td><td>API-side</td><td>90% on cached input tokens</td><td>Low</td><td><span class="tag tag-api">API</span></td></tr>
+<tr><td><strong>KV Cache (PagedAttention)</strong></td><td>GPU VRAM</td><td>2-4x throughput</td><td>Built-in</td><td><span class="tag tag-self">SELF</span></td></tr>
+<tr><td><strong>Prefix Caching</strong></td><td>GPU/CPU</td><td>20-60% latency reduction</td><td>Medium</td><td><span class="tag tag-self">SELF</span></td></tr>
+<tr><td><strong>Semantic Cache</strong></td><td>Redis/app layer</td><td>100% (exact hit)</td><td>Medium</td><td><span class="tag tag-both">BOTH</span></td></tr>
+<tr><td><strong>Batch API</strong></td><td>API-side</td><td>50% cost</td><td>Low</td><td><span class="tag tag-api">API</span></td></tr>
+</table></div>
+
+<h3>Anthropic Prompt Caching &mdash; The Biggest Win for API Users</h3>
+<p>If you're using Claude, prompt caching is the single most impactful cost optimization. Cached input tokens cost 90% less. For applications with long system prompts or repeated context (course materials, rubrics, knowledge bases), this is transformative.</p>
+
+<pre><code><span class="cm"># Python - Anthropic SDK with prompt caching</span>
+<span class="kw">import</span> anthropic
+
+client = anthropic.<span class="fn">Anthropic</span>()
+
+response = client.messages.<span class="fn">create</span>(
+    model=<span class="str">"claude-sonnet-4-20250514"</span>,
+    max_tokens=<span class="num">1024</span>,
+    system=[
+        {
+            <span class="str">"type"</span>: <span class="str">"text"</span>,
+            <span class="str">"text"</span>: LONG_RUBRIC_TEXT,   <span class="cm"># 4000+ tokens of grading rubric</span>
+            <span class="str">"cache_control"</span>: {<span class="str">"type"</span>: <span class="str">"ephemeral"</span>}
+        }
+    ],
+    messages=[
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: student_essay}
+    ]
+)
+
+<span class="cm"># Check cache performance</span>
+usage = response.usage
+<span class="fn">print</span>(<span class="str">f"Cache read: {usage.cache_read_input_tokens} tokens"</span>)
+<span class="fn">print</span>(<span class="str">f"Cache miss: {usage.cache_creation_input_tokens} tokens"</span>)</code></pre>
+
+<h4>Cost Math: Prompt Caching at Coursera Scale</h4>
+<div class="cost-box">
+  <h4>Essay Grading &mdash; 500K Essays/Month</h4>
+  <div class="cost-row"><span>System prompt (rubric)</span><span>4,000 tokens</span></div>
+  <div class="cost-row"><span>Student essay (avg)</span><span>1,500 tokens</span></div>
+  <div class="cost-row"><span>Output (feedback)</span><span>800 tokens</span></div>
+  <div class="cost-row"><span>Monthly volume</span><span>500,000 essays</span></div>
+  <div class="cost-row"><span></span><span></span></div>
+  <div class="cost-row"><span>Without caching (Claude Sonnet)</span><span>$16,200/mo</span></div>
+  <div class="cost-row"><span>With prompt caching (90% saved on rubric)</span><span>$10,500/mo</span></div>
+  <div class="cost-row"><span>Monthly savings</span><span>$5,700/mo (~35%)</span></div>
+</div>
+
+<h3>Prefix Caching &mdash; Self-Hosted</h3>
+<p>vLLM's <code>--enable-prefix-caching</code> reuses KV cache entries when requests share the same prefix (system prompt). This is the self-hosted equivalent of Anthropic's prompt caching.</p>
+
+<div class="diagram">  Request Flow with Prefix Caching
+
+  Request 1: [<span class="hl">System Prompt</span>] + [User Message A]
+              | compute KV      | compute KV
+              <span class="g">CACHE (stored)</span>     decode
+
+  Request 2: [<span class="hl">System Prompt</span>] + [User Message B]
+              | <span class="g">CACHE HIT!</span>       | compute KV
+              skip compute      decode
+
+  Result: Request 2 skips ~40% of the compute
+          TTFT drops from 800ms -> 450ms for a 70B model</div>
+
+<h3>The Batch API &mdash; 50% Off for Non-Urgent Work</h3>
+<p>Anthropic's Batch API processes requests asynchronously at 50% cost. For offline tasks &mdash; grading backlogs, content generation pipelines, bulk classification &mdash; this is pure savings.</p>
+
+<pre><code><span class="cm"># Batch API usage - process 10K essays overnight</span>
+<span class="kw">import</span> anthropic
+
+client = anthropic.<span class="fn">Anthropic</span>()
+
+batch = client.messages.batches.<span class="fn">create</span>(
+    requests=[
+        {
+            <span class="str">"custom_id"</span>: <span class="str">f"essay-{i}"</span>,
+            <span class="str">"params"</span>: {
+                <span class="str">"model"</span>: <span class="str">"claude-sonnet-4-20250514"</span>,
+                <span class="str">"max_tokens"</span>: <span class="num">1024</span>,
+                <span class="str">"messages"</span>: [{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: essay}]
+            }
+        }
+        <span class="kw">for</span> i, essay <span class="kw">in</span> <span class="fn">enumerate</span>(essays[:<span class="num">10000</span>])
+    ]
+)
+<span class="cm"># Cost: 50% of standard pricing. Completes in 15min-24hr.</span></code></pre>
+
+<h3>Semantic Caching &mdash; Application Layer</h3>
+<p>For high-volume applications with repetitive queries (FAQ bots, tutoring on popular topics), semantic caching at the application layer can eliminate LLM calls entirely for ~20-40% of queries.</p>
+
+<pre><code><span class="cm"># Simple semantic cache with Redis</span>
+<span class="kw">import</span> hashlib, json, redis
+
+r = redis.<span class="fn">Redis</span>()
+
+<span class="kw">def</span> <span class="fn">cached_completion</span>(prompt, model):
+    cache_key = hashlib.<span class="fn">sha256</span>(
+        json.<span class="fn">dumps</span>({<span class="str">"prompt"</span>: prompt, <span class="str">"model"</span>: model}).<span class="fn">encode</span>()
+    ).<span class="fn">hexdigest</span>()
+
+    cached = r.<span class="fn">get</span>(<span class="str">f"llm:{cache_key}"</span>)
+    <span class="kw">if</span> cached:
+        <span class="kw">return</span> json.<span class="fn">loads</span>(cached)  <span class="cm"># Hit! Zero cost.</span>
+
+    result = <span class="fn">call_llm</span>(prompt, model)
+    r.<span class="fn">setex</span>(<span class="str">f"llm:{cache_key}"</span>, <span class="num">3600</span>, json.<span class="fn">dumps</span>(result))
+    <span class="kw">return</span> result</code></pre>
+
+<div class="callout">
+<strong>Caching Strategy Summary for Coursera-Scale:</strong>
+<p>Layer 1: Anthropic prompt caching (always on, 30-40% savings). Layer 2: Semantic cache in Redis for FAQ/tutoring (eliminates 20-40% of calls). Layer 3: Batch API for offline grading (50% on batch work). Combined: 50-65% cost reduction vs naive API usage.</p>
+</div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 3 complete &mdash; can implement multi-layer caching strategy</span></div>
+</div>
+</div>
+
+<!-- ======= MODULE 4 ======= -->
+<div class="module" id="mod4">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">4</div>
+  <h2>GPU Provisioning</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand GPU hardware options and cloud provider tradeoffs</span></div>
+
+<h3>GPU Hardware Landscape (2025)</h3>
+<div class="tbl-wrap"><table>
+<tr><th>GPU</th><th>VRAM</th><th>FP16 TFLOPS</th><th>FP8 TFLOPS</th><th>Mem BW</th><th>Interconnect</th><th>Cloud $/hr</th><th>Best For</th></tr>
+<tr><td><strong>A100 80GB</strong></td><td>80 GB</td><td>312</td><td>&mdash;</td><td>2.0 TB/s</td><td>NVLink 600GB/s</td><td>$1.50-3.26</td><td>General inference, fine-tuning</td></tr>
+<tr><td><strong>H100 80GB</strong></td><td>80 GB</td><td>990</td><td>1,979</td><td>3.35 TB/s</td><td>NVLink 900GB/s</td><td>$2.50-4.76</td><td>Large model inference, FP8</td></tr>
+<tr><td><strong>H200 141GB</strong></td><td>141 GB</td><td>990</td><td>1,979</td><td>4.8 TB/s</td><td>NVLink 900GB/s</td><td>$3.50-5.50</td><td>70B+ without quantization</td></tr>
+<tr><td><strong>B200</strong></td><td>192 GB</td><td>2,250</td><td>4,500</td><td>8.0 TB/s</td><td>NVLink 1.8TB/s</td><td>$5.00-8.00</td><td>Next-gen, largest models</td></tr>
+<tr><td><strong>A10G</strong></td><td>24 GB</td><td>125</td><td>&mdash;</td><td>600 GB/s</td><td>PCIe</td><td>$0.75-1.20</td><td>Small models (&lt;13B quantized)</td></tr>
+<tr><td><strong>L4</strong></td><td>24 GB</td><td>121</td><td>242</td><td>300 GB/s</td><td>PCIe</td><td>$0.40-0.80</td><td>Budget inference, FP8</td></tr>
+</table></div>
+
+<h3>Cloud Provider Comparison</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Provider</th><th>A100 80GB</th><th>H100 80GB</th><th>Spot Savings</th><th>Min Commit</th><th>Strengths</th></tr>
+<tr><td><strong>AWS</strong> (p4d/p5)</td><td>$3.26/hr</td><td>$4.76/hr</td><td>50-70%</td><td>None / 1yr RI</td><td>Ecosystem, SageMaker</td></tr>
+<tr><td><strong>GCP</strong> (a2/a3)</td><td>$2.95/hr</td><td>$4.08/hr</td><td>60-70%</td><td>None / 1yr CUD</td><td>TPU option, GKE ML</td></tr>
+<tr><td><strong>Azure</strong> (NC/ND)</td><td>$3.10/hr</td><td>$4.52/hr</td><td>40-60%</td><td>None / 1yr</td><td>Enterprise, OpenAI integration</td></tr>
+<tr><td><strong>Lambda Labs</strong></td><td>$1.50/hr</td><td>$2.49/hr</td><td>&mdash;</td><td>None</td><td>Cheapest on-demand, simple</td></tr>
+<tr><td><strong>RunPod</strong></td><td>$1.64/hr</td><td>$2.69/hr</td><td>30-50%</td><td>None</td><td>Serverless GPU, pay-per-sec</td></tr>
+</table></div>
+
+<h3>Spot vs Reserved &mdash; The Cost Decision</h3>
+<div class="diagram">  Cost Comparison: 8x A100 80GB Cluster, 24/7 for 1 Year
+
+  <span class="r">On-Demand (AWS p4d.24xlarge)</span>
+  +-- $3.26/hr x 8 GPU x 8,760 hrs = <span class="r">$228,518/year</span>
+
+  <span class="b">1-Year Reserved Instance (All Upfront)</span>
+  +-- ~40% discount = <span class="b">$137,111/year</span>
+
+  <span class="g">Spot Instances (avg 65% savings, but interruptions)</span>
+  +-- ~$1.14/hr x 8 GPU x 8,760 hrs = <span class="g">$79,891/year</span>
+  +-- Requires: checkpointing, graceful shutdown, on-demand fallback
+
+  <span class="p">Lambda Labs (on-demand)</span>
+  +-- $1.50/hr x 8 GPU x 8,760 hrs = <span class="p">$105,120/year</span>
+
+  <span class="hl">Recommendation for production inference:</span>
+  Reserved for baseline load + Spot for burst + Lambda for dev/staging</div>
+
+<h3>Multi-GPU Inference &mdash; Parallelism Strategies</h3>
+<div class="tbl-wrap"><table>
+<tr><th>Strategy</th><th>When to Use</th><th>Example</th><th>Overhead</th></tr>
+<tr><td><strong>Tensor Parallel</strong></td><td>Model doesn't fit on 1 GPU</td><td>70B FP16 -> 2x A100</td><td>Low (NVLink)</td></tr>
+<tr><td><strong>Pipeline Parallel</strong></td><td>Cross-node serving</td><td>405B -> 8x H100 across 2 nodes</td><td>Medium (network)</td></tr>
+<tr><td><strong>Data Parallel</strong></td><td>Scale throughput, model fits 1 GPU</td><td>8B INT4 -> 4x replicas on 4x A100</td><td>None (independent)</td></tr>
+</table></div>
+
+<pre><code><span class="cm"># Terraform - Provision GPU cluster on AWS</span>
+
+<span class="kw">resource</span> <span class="str">"aws_instance"</span> <span class="str">"inference_gpu"</span> {
+  <span class="kw">count</span>         = <span class="num">4</span>
+  <span class="kw">ami</span>           = <span class="str">"ami-0abcdef1234567890"</span>  <span class="cm"># NVIDIA Deep Learning AMI</span>
+  <span class="kw">instance_type</span> = <span class="str">"p4d.24xlarge"</span>           <span class="cm"># 8x A100 80GB</span>
+
+  <span class="kw">root_block_device</span> {
+    <span class="kw">volume_size</span> = <span class="num">500</span>
+    <span class="kw">volume_type</span> = <span class="str">"gp3"</span>
+  }
+
+  <span class="kw">tags</span> = {
+    Name        = <span class="str">"inference-node-${count.index}"</span>
+    Environment = <span class="str">"production"</span>
+    Team        = <span class="str">"ai-platform"</span>
+  }
+
+  <span class="cm"># Placement group for low-latency NVLink/EFA</span>
+  <span class="kw">placement_group</span> = aws_placement_group.inference.id
+}
+
+<span class="kw">resource</span> <span class="str">"aws_placement_group"</span> <span class="str">"inference"</span> {
+  <span class="kw">name</span>     = <span class="str">"inference-cluster"</span>
+  <span class="kw">strategy</span> = <span class="str">"cluster"</span>
+}
+
+<span class="cm"># Auto Scaling Group for spot-based burst capacity</span>
+<span class="kw">resource</span> <span class="str">"aws_autoscaling_group"</span> <span class="str">"inference_spot"</span> {
+  <span class="kw">desired_capacity</span> = <span class="num">0</span>
+  <span class="kw">max_size</span>         = <span class="num">8</span>
+  <span class="kw">min_size</span>         = <span class="num">0</span>
+
+  <span class="kw">mixed_instances_policy</span> {
+    <span class="kw">instances_distribution</span> {
+      <span class="kw">on_demand_percentage_above_base_capacity</span> = <span class="num">0</span>
+      <span class="kw">spot_allocation_strategy</span> = <span class="str">"capacity-optimized"</span>
+    }
+    <span class="kw">launch_template</span> {
+      <span class="kw">launch_template_specification</span> {
+        <span class="kw">launch_template_id</span> = aws_launch_template.gpu_spot.id
+      }
+      <span class="kw">override</span> { <span class="kw">instance_type</span> = <span class="str">"p4d.24xlarge"</span> }
+      <span class="kw">override</span> { <span class="kw">instance_type</span> = <span class="str">"p4de.24xlarge"</span> }
+    }
+  }
+}</code></pre>
+
+<div class="callout info">
+<strong>GPU Sizing for Coursera:</strong>
+<p>Baseline: 4x A100 80GB (reserved) running Llama 3.1 70B AWQ for high-volume tasks. Burst: Auto-scaling spot group 0-8x A100 for peak hours. API: Claude Sonnet for complex grading (no GPUs needed). Total steady-state cost: ~$15K-20K/month for self-hosted + $10-15K/month for API.</p>
+</div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 4 complete &mdash; can spec a GPU cluster and justify the hardware choice</span></div>
+</div>
+</div>
+
+<!-- ======= MODULE 5 ======= -->
+<div class="module" id="mod5">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">5</div>
+  <h2>Scaling Patterns</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand production scaling strategies for AI workloads</span></div>
+
+<h3>Reference Architecture &mdash; Load Balancing AI Inference</h3>
+<div class="diagram">                          <span class="hl">Clients</span>
+                            |
+                     +------+------+
+                     |  <span class="b">API Gateway</span> |  Rate limiting, auth, routing
+                     |  (Kong/Envoy)|
+                     +------+------+
+                            |
+                   +--------+--------+
+                   |  <span class="g">Model Router</span>   |  Complexity-based routing
+                   |  (custom logic) |  Simple -> Haiku/8B, Complex -> Sonnet/70B
+                   +---+--------+---+
+                       |        |
+            +----------+        +----------+
+            v                              v
+  +-----------------+          +-----------------+
+  | <span class="p">Simple Tasks</span>     |          | <span class="p">Complex Tasks</span>    |
+  | Claude Haiku /  |          | Claude Sonnet /  |
+  | Llama 8B (self) |          | Llama 70B (self) |
+  | 4x replicas     |          | 2x replicas      |
+  +-----------------+          +-----------------+
+            |                              |
+            +----------+-------------------+
+                       v
+             +------------------+
+             |  <span class="b">Response Queue</span>  |  Async responses, streaming
+             |  (Redis/Kafka)   |
+             +------------------+</div>
+
+<h3>Multi-Model Routing &mdash; The Smart Scaling Pattern</h3>
+<p>Not every request needs your most powerful (and expensive) model. A routing layer that classifies request complexity can cut costs 40-60% by sending simple tasks to cheap models.</p>
+
+<pre><code><span class="cm"># Model router - classify and route requests</span>
+
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+
+<span class="kw">class</span> <span class="ty">ModelTier</span>(Enum):
+    FAST   = <span class="str">"fast"</span>     <span class="cm"># Haiku / Llama 8B  - $0.25/MTok</span>
+    SMART  = <span class="str">"smart"</span>    <span class="cm"># Sonnet / Llama 70B - $3/MTok</span>
+    BEST   = <span class="str">"best"</span>     <span class="cm"># Opus - $15/MTok</span>
+
+<span class="kw">def</span> <span class="fn">route_request</span>(request) -> ModelTier:
+    task = request.task_type
+
+    <span class="cm"># Classification, translation, autocomplete -> cheap model</span>
+    <span class="kw">if</span> task <span class="kw">in</span> [<span class="str">"classify"</span>, <span class="str">"translate"</span>, <span class="str">"autocomplete"</span>, <span class="str">"summarize_short"</span>]:
+        <span class="kw">return</span> ModelTier.FAST
+
+    <span class="cm"># Essay grading, content generation -> capable model</span>
+    <span class="kw">if</span> task <span class="kw">in</span> [<span class="str">"grade_essay"</span>, <span class="str">"generate_content"</span>, <span class="str">"explain_concept"</span>]:
+        <span class="kw">return</span> ModelTier.SMART
+
+    <span class="cm"># Curriculum design, complex reasoning -> best model</span>
+    <span class="kw">if</span> task <span class="kw">in</span> [<span class="str">"curriculum_design"</span>, <span class="str">"research_synthesis"</span>]:
+        <span class="kw">return</span> ModelTier.BEST
+
+    <span class="kw">return</span> ModelTier.SMART  <span class="cm"># default</span></code></pre>
+
+<h3>Auto-Scaling Configuration</h3>
+<pre><code><span class="cm"># Kubernetes HPA for vLLM inference pods</span>
+
+<span class="kw">apiVersion</span>: autoscaling/v2
+<span class="kw">kind</span>: HorizontalPodAutoscaler
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: vllm-inference-hpa
+<span class="kw">spec</span>:
+  <span class="kw">scaleTargetRef</span>:
+    <span class="kw">apiVersion</span>: apps/v1
+    <span class="kw">kind</span>: Deployment
+    <span class="kw">name</span>: vllm-llama-70b
+  <span class="kw">minReplicas</span>: <span class="num">2</span>          <span class="cm"># Always-on baseline</span>
+  <span class="kw">maxReplicas</span>: <span class="num">8</span>          <span class="cm"># Peak capacity</span>
+  <span class="kw">metrics</span>:
+    - <span class="kw">type</span>: Pods
+      <span class="kw">pods</span>:
+        <span class="kw">metric</span>:
+          <span class="kw">name</span>: vllm_pending_requests   <span class="cm"># Custom metric from vLLM</span>
+        <span class="kw">target</span>:
+          <span class="kw">type</span>: AverageValue
+          <span class="kw">averageValue</span>: <span class="num">50</span>             <span class="cm"># Scale up when queue > 50</span>
+    - <span class="kw">type</span>: Pods
+      <span class="kw">pods</span>:
+        <span class="kw">metric</span>:
+          <span class="kw">name</span>: gpu_utilization
+        <span class="kw">target</span>:
+          <span class="kw">type</span>: AverageValue
+          <span class="kw">averageValue</span>: <span class="num">80</span>             <span class="cm"># Scale at 80% GPU util</span>
+  <span class="kw">behavior</span>:
+    <span class="kw">scaleUp</span>:
+      <span class="kw">stabilizationWindowSeconds</span>: <span class="num">60</span>
+      <span class="kw">policies</span>:
+        - <span class="kw">type</span>: Pods
+          <span class="kw">value</span>: <span class="num">2</span>
+          <span class="kw">periodSeconds</span>: <span class="num">120</span>
+    <span class="kw">scaleDown</span>:
+      <span class="kw">stabilizationWindowSeconds</span>: <span class="num">300</span>
+      <span class="kw">policies</span>:
+        - <span class="kw">type</span>: Pods
+          <span class="kw">value</span>: <span class="num">1</span>
+          <span class="kw">periodSeconds</span>: <span class="num">300</span></code></pre>
+
+<h3>Request Queuing &amp; Rate Limiting</h3>
+<div class="diagram">  Rate Limiting Strategy (Layered)
+
+  Layer 1: <span class="b">API Gateway</span> (Kong/Envoy)
+  +-- Global rate limit: 10,000 RPM
+  +-- Per-user rate limit: 100 RPM
+  +-- Burst allowance: 2x for 10 seconds
+
+  Layer 2: <span class="g">Request Queue</span> (Redis + Bull/Celery)
+  +-- Priority queue: premium users -> high priority
+  +-- Queue depth limit: 5,000 (reject with 429 beyond)
+  +-- Request timeout: 30 seconds (drop stale requests)
+
+  Layer 3: <span class="p">Inference Server</span> (vLLM)
+  +-- Max concurrent sequences: 256
+  +-- Max batch tokens: 32,768
+  +-- Backpressure: return 503 when overloaded
+
+  <span class="cm">Key insight: GPU-backed services MUST have backpressure.</span>
+  <span class="cm">Unlike CPU services, you can't just add more threads.</span>
+  <span class="cm">An overloaded GPU gives worse latency to everyone.</span></div>
+
+<div class="callout warn">
+<strong>The GPU Scaling Trap:</strong>
+<p>GPUs don't scale like CPU services. Adding requests to an overloaded GPU doesn't linearly increase latency &mdash; it causes catastrophic P99 blowup. A vLLM server handling 200 concurrent requests at 100ms P50 might have 5s P99 at 300 concurrent. Always use backpressure (queue limits + 503 rejection) rather than unbounded request acceptance.</p>
+</div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 5 complete &mdash; can design a multi-model scaling architecture</span></div>
+</div>
+</div>
+
+<!-- ======= MODULE 6 ======= -->
+<div class="module" id="mod6">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">6</div>
+  <h2>Observability</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand LLM-specific observability requirements</span></div>
+
+<h3>What to Measure</h3>
+<p>LLM observability is different from traditional service monitoring. Latency percentiles matter more than averages, cost is a first-class metric, and "quality" is something you need to track but can't directly measure from metrics alone.</p>
+
+<div class="tbl-wrap"><table>
+<tr><th>Metric</th><th>What</th><th>Target (Coursera-scale)</th><th>Alert Threshold</th></tr>
+<tr><td><strong>TTFT</strong></td><td>Time to first token</td><td>P50 &lt; 500ms, P99 &lt; 2s</td><td>P99 &gt; 3s for 5 min</td></tr>
+<tr><td><strong>TPS</strong></td><td>Tokens per second (output)</td><td>&gt; 40 tok/s per request</td><td>&lt; 20 tok/s for 5 min</td></tr>
+<tr><td><strong>E2E Latency</strong></td><td>Total request time</td><td>P50 &lt; 3s, P99 &lt; 10s</td><td>P99 &gt; 15s for 5 min</td></tr>
+<tr><td><strong>Error Rate</strong></td><td>5xx + timeouts</td><td>&lt; 0.1%</td><td>&gt; 1% for 5 min</td></tr>
+<tr><td><strong>Cost/Query</strong></td><td>Dollar cost per request</td><td>&lt; $0.005 avg</td><td>&gt; $0.02 avg (spike)</td></tr>
+<tr><td><strong>GPU Util</strong></td><td>Compute utilization</td><td>60-85%</td><td>&lt; 30% or &gt; 95%</td></tr>
+<tr><td><strong>Queue Depth</strong></td><td>Pending requests</td><td>&lt; 100</td><td>&gt; 500 for 2 min</td></tr>
+<tr><td><strong>Cache Hit</strong></td><td>Prompt + semantic cache</td><td>&gt; 40%</td><td>&lt; 20% (misconfigured)</td></tr>
+</table></div>
+
+<h3>Tracing LLM Calls</h3>
+<pre><code><span class="cm"># Structured logging for LLM calls</span>
+<span class="kw">import</span> json, logging
+
+logger = logging.<span class="fn">getLogger</span>(<span class="str">"llm_trace"</span>)
+
+<span class="kw">class</span> <span class="ty">LLMTracer</span>:
+    <span class="kw">def</span> <span class="fn">trace_call</span>(self, request, response, timing):
+        trace = {
+            <span class="str">"trace_id"</span>:       request.trace_id,
+            <span class="str">"model"</span>:          response.model,
+            <span class="str">"task_type"</span>:      request.task_type,
+            <span class="cm"># Token counts</span>
+            <span class="str">"input_tokens"</span>:   response.usage.input_tokens,
+            <span class="str">"output_tokens"</span>:  response.usage.output_tokens,
+            <span class="str">"cached_tokens"</span>:  response.usage.cache_read_input_tokens,
+            <span class="cm"># Timing</span>
+            <span class="str">"queue_time_ms"</span>:  timing.queue_ms,
+            <span class="str">"ttft_ms"</span>:        timing.ttft_ms,
+            <span class="str">"generation_ms"</span>:  timing.generation_ms,
+            <span class="str">"total_ms"</span>:       timing.total_ms,
+            <span class="cm"># Cost</span>
+            <span class="str">"cost_usd"</span>:       self.<span class="fn">calc_cost</span>(response),
+            <span class="str">"cache_hit"</span>:      response.usage.cache_read_input_tokens > <span class="num">0</span>,
+        }
+        logger.<span class="fn">info</span>(json.<span class="fn">dumps</span>(trace))
+
+    <span class="kw">def</span> <span class="fn">calc_cost</span>(self, response):
+        <span class="cm"># Claude Sonnet pricing</span>
+        P = {<span class="str">"input"</span>: <span class="num">3.0</span>/<span class="num">1e6</span>, <span class="str">"output"</span>: <span class="num">15.0</span>/<span class="num">1e6</span>, <span class="str">"cache"</span>: <span class="num">0.3</span>/<span class="num">1e6</span>}
+        u = response.usage
+        <span class="kw">return</span> (
+            (u.input_tokens - u.cache_read_input_tokens) * P[<span class="str">"input"</span>] +
+            u.cache_read_input_tokens * P[<span class="str">"cache"</span>] +
+            u.output_tokens * P[<span class="str">"output"</span>]
+        )</code></pre>
+
+<h3>Observability Stack</h3>
+<div class="diagram">  Production Observability Pipeline
+
+  <span class="hl">LLM Service</span> --> Structured Logs --> <span class="b">Vector/Fluentd</span> --> <span class="g">Datadog/Grafana</span>
+       |                                                      |
+       +--> Metrics (Prometheus) --> <span class="g">Grafana Dashboards</span>      |
+       |    * ttft_seconds (histogram)                        |
+       |    * tokens_per_second (gauge)                       |
+       |    * cost_per_request_usd (histogram)                |
+       |    * gpu_utilization (gauge)                         |
+       |                                                      |
+       +--> Traces (OpenTelemetry) --> <span class="p">Langsmith/Braintrust</span>  |
+       |    * Full request/response pairs                     |
+       |    * Latency waterfall                               |
+       |    * Human feedback signals                          |
+       |                                                      |
+       +--> Alerts --> <span class="r">PagerDuty/OpsGenie</span>                    |
+            * Error rate > 1%                                 |
+            * P99 latency > 15s                               |
+            * Cost anomaly > 2x daily average                 |
+            * GPU util < 30% (cost waste alert)               |</div>
+
+<h3>Error Budgets for LLM Services</h3>
+<div class="tbl-wrap"><table>
+<tr><th>SLI</th><th>SLO</th><th>Error Budget (30d)</th><th>Burn Rate Alert</th></tr>
+<tr><td>Availability</td><td>99.9%</td><td>43.2 min downtime</td><td>14.4x in 1hr</td></tr>
+<tr><td>Latency (TTFT P99)</td><td>&lt; 3s</td><td>0.1% requests over 3s</td><td>3x in 6hr</td></tr>
+<tr><td>Quality (human eval)</td><td>&gt; 90% "good"</td><td>10% poor responses</td><td>Weekly review</td></tr>
+<tr><td>Cost per query</td><td>&lt; $0.01 avg</td><td>10% budget overrun</td><td>2x daily average</td></tr>
+</table></div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 6 complete &mdash; can set up LLM-specific observability and SLOs</span></div>
+</div>
+</div>
+
+<!-- ======= MODULE 7 ======= -->
+<div class="module" id="mod7">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">7</div>
+  <h2>Cost Optimization</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand the full cost picture and optimization levers</span></div>
+
+<h3>The Real Math: Cost Per Query</h3>
+<p>The most important number in AI infrastructure is cost per query. Everything else (GPU utilization, throughput, model selection) is a lever to move this number. Let's build the cost model ground-up.</p>
+
+<h4>API-Based Cost Model (Claude Sonnet)</h4>
+<div class="cost-box">
+  <h4>Scenario: AI Tutor &mdash; 10M Queries/Month</h4>
+  <div class="cost-row"><span>Avg input tokens per query</span><span>2,000</span></div>
+  <div class="cost-row"><span>Avg output tokens per query</span><span>500</span></div>
+  <div class="cost-row"><span>Claude Sonnet input price</span><span>$3.00 / MTok</span></div>
+  <div class="cost-row"><span>Claude Sonnet output price</span><span>$15.00 / MTok</span></div>
+  <div class="cost-row"><span></span><span></span></div>
+  <div class="cost-row"><span>Monthly input cost (10M x 2K x $3/MTok)</span><span>$60,000</span></div>
+  <div class="cost-row"><span>Monthly output cost (10M x 500 x $15/MTok)</span><span>$75,000</span></div>
+  <div class="cost-row"><span>Gross monthly cost</span><span>$135,000</span></div>
+  <div class="cost-row"><span>With prompt caching (-35% input)</span><span>$114,000</span></div>
+  <div class="cost-row"><span>With semantic cache (-25% of queries)</span><span>$85,500</span></div>
+  <div class="cost-row"><span>Optimized cost per query</span><span>$0.00855</span></div>
+</div>
+
+<h4>Self-Hosted Cost Model (vLLM + Llama 70B AWQ)</h4>
+<div class="cost-box">
+  <h4>Same AI Tutor &mdash; 10M Queries/Month, Self-Hosted</h4>
+  <div class="cost-row"><span>Model: Llama 3.1 70B AWQ (INT4)</span><span>1x A100 80GB / replica</span></div>
+  <div class="cost-row"><span>Throughput per replica (cont. batching)</span><span>~15 req/sec sustained</span></div>
+  <div class="cost-row"><span>Requests/month per replica</span><span>~39M</span></div>
+  <div class="cost-row"><span>Replicas needed for 10M/month</span><span>2 (with headroom)</span></div>
+  <div class="cost-row"><span>A100 80GB cost (Lambda Labs)</span><span>$1.50/hr</span></div>
+  <div class="cost-row"><span></span><span></span></div>
+  <div class="cost-row"><span>GPU cost (2 x $1.50 x 730 hrs)</span><span>$2,190</span></div>
+  <div class="cost-row"><span>Networking, storage, monitoring</span><span>$500</span></div>
+  <div class="cost-row"><span>Engineering overhead (0.5 FTE SRE)</span><span>$8,000</span></div>
+  <div class="cost-row"><span>Total monthly cost</span><span>$10,690</span></div>
+  <div class="cost-row"><span>Cost per query (self-hosted)</span><span>$0.00107</span></div>
+</div>
+
+<h3>API vs Self-Hosted Breakeven Analysis</h3>
+<div class="diagram">  Monthly Cost ($) vs Query Volume
+
+  $150K |                                           <span class="b">/ API (Claude Sonnet)</span>
+        |                                        <span class="b">/</span>
+  $120K |                                     <span class="b">/</span>
+        |                                  <span class="b">/</span>
+   $90K |                               <span class="b">/</span>
+        |                            <span class="b">/</span>
+   $60K |                         <span class="b">/</span>
+        |                      <span class="b">/</span>       +------ <span class="hl">Breakeven: ~2M queries/mo</span>
+   $30K |                   <span class="b">/</span>  --------+       (including eng overhead)
+        |                <span class="b">/</span>             +------
+   $15K |-------------<span class="b">/</span>------------------- <span class="g">Self-hosted (fixed + marginal)</span>
+   $10K |----------<span class="g">-----------------------------------------</span>
+        |       <span class="b">/</span>
+        +-------+---+---+---+---+---+---+---+---+---
+             1M  2M  3M  5M  7M  10M 15M 20M 30M
+                        Queries / Month
+
+  <span class="cm">Assumptions: Self-hosted = Llama 70B AWQ on A100, including 0.5 FTE SRE</span>
+  <span class="cm">API cost with caching + semantic cache optimizations applied</span>
+  <span class="cm">Self-hosted quality ~5-10% lower on complex reasoning tasks</span></div>
+
+<div class="callout">
+<strong>The Quality Factor:</strong>
+<p>The breakeven chart above only shows cost. Claude Sonnet typically outperforms Llama 70B on complex tasks (essay grading, nuanced feedback) by 10-20% on quality benchmarks. The right answer is usually hybrid: self-hosted for volume/simple tasks, API for quality-critical tasks. At Coursera scale, a 70/30 split (70% self-hosted, 30% API) often minimizes cost while maintaining quality where it matters.</p>
+</div>
+
+<h3>Cost Optimization Levers &mdash; Ranked by Impact</h3>
+<div class="tbl-wrap"><table>
+<tr><th>#</th><th>Lever</th><th>Savings</th><th>Effort</th><th>Risk</th></tr>
+<tr><td>1</td><td><strong>Model routing</strong> (Haiku for simple)</td><td>40-60%</td><td>Medium</td><td>Low</td></tr>
+<tr><td>2</td><td><strong>Prompt caching</strong> (API) / Prefix (self)</td><td>30-40%</td><td>Low</td><td>None</td></tr>
+<tr><td>3</td><td><strong>Batch API</strong> for offline workloads</td><td>50% on batch</td><td>Low</td><td>None</td></tr>
+<tr><td>4</td><td><strong>Quantization</strong> (AWQ INT4 / FP8)</td><td>50% compute</td><td>Medium</td><td>Low</td></tr>
+<tr><td>5</td><td><strong>Semantic caching</strong></td><td>20-40% of calls</td><td>Medium</td><td>Stale responses</td></tr>
+<tr><td>6</td><td><strong>Prompt optimization</strong> (shorter)</td><td>10-30%</td><td>Medium</td><td>Quality impact</td></tr>
+<tr><td>7</td><td><strong>Spot instances</strong></td><td>50-70% compute</td><td>High</td><td>Interruptions</td></tr>
+<tr><td>8</td><td><strong>Self-hosting</strong> (at scale)</td><td>60-90%</td><td>Very High</td><td>Ops burden</td></tr>
+</table></div>
+
+<h4>Cost Per Student &mdash; The Business Metric</h4>
+<div class="cost-box">
+  <h4>Coursera-Scale: 100M Registered, 10M MAU</h4>
+  <div class="cost-row"><span>AI queries per active student/month</span><span>~50</span></div>
+  <div class="cost-row"><span>Total queries/month</span><span>500M</span></div>
+  <div class="cost-row"><span></span><span></span></div>
+  <div class="cost-row"><span>All-API (optimized Claude Sonnet)</span><span>$4.28M/mo = $0.43/student</span></div>
+  <div class="cost-row"><span>Hybrid (70% self-hosted, 30% API)</span><span>$1.34M/mo = $0.13/student</span></div>
+  <div class="cost-row"><span>All self-hosted (Llama 70B AWQ)</span><span>$0.54M/mo = $0.05/student</span></div>
+  <div class="cost-row"><span>Recommended hybrid with routing</span><span>$0.85M/mo = $0.085/student</span></div>
+</div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 7 complete &mdash; can model cost per query and choose optimization strategy</span></div>
+</div>
+</div>
+
+<!-- ======= MODULE 8 ======= -->
+<div class="module" id="mod8">
+<div class="module-header" onclick="toggleMod(this)">
+  <div class="module-num">8</div>
+  <h2>Production Architecture</h2>
+  <span class="arrow">&#9660;</span>
+</div>
+<div class="module-body">
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Understand how to architect a production AI platform at Coursera-scale</span></div>
+
+<h3>Reference Architecture: AI-Powered EdTech Platform</h3>
+<div class="diagram"><span class="hl">  ===============================================================</span>
+<span class="hl">      Coursera-Scale AI Platform Architecture</span>
+<span class="hl">  ===============================================================</span>
+
+  <span class="b">+--- CDN (CloudFront) -----------------------------------------------+</span>
+  <span class="b">|</span>  Static content: course pages, videos, images                      <span class="b">|</span>
+  <span class="b">|</span>  Pre-rendered AI content: generated quizzes, summaries             <span class="b">|</span>
+  <span class="b">|</span>  Edge caching: 90%+ cache hit rate for static assets               <span class="b">|</span>
+  <span class="b">+--------------------------+----------------------------------------+</span>
+                             |
+  <span class="g">+--- Application Layer ----+----------------------------------------+</span>
+  <span class="g">|</span>                                                                    <span class="g">|</span>
+  <span class="g">|</span>  <span class="b">Web App (Next.js)</span> --> <span class="p">API Gateway (Kong)</span> --> Auth / Rate Limit     <span class="g">|</span>
+  <span class="g">|</span>                            |                                      <span class="g">|</span>
+  <span class="g">|</span>                     +------+------+                                <span class="g">|</span>
+  <span class="g">|</span>                     | <span class="hl">AI Router</span>   |  Task classification           <span class="g">|</span>
+  <span class="g">|</span>                     | (service)   |  Model selection                <span class="g">|</span>
+  <span class="g">|</span>                     +--+---+---+--+  Cost-aware routing            <span class="g">|</span>
+  <span class="g">|</span>                        |   |   |                                   <span class="g">|</span>
+  <span class="g">+------------------------+---+---+-----------------------------------+</span>
+                           |   |   |
+          +----------------+   |   +----------------+
+          v                    v                     v
+  +---------------+  +----------------+   +------------------+
+  | <span class="g">Self-Hosted</span>    |  | <span class="b">API: Claude</span>    |   | <span class="p">Batch Pipeline</span>   |
+  | vLLM Cluster  |  | Sonnet / Haiku |   | (Async workers)  |
+  |               |  |                |   |                  |
+  | Llama 70B AWQ |  | Essay grading  |   | Bulk grading     |
+  | 4x A100 (TP=1)|  | Complex Q&amp;A    |   | Content gen      |
+  |               |  | Content review |   | Analytics        |
+  | Autocomplete  |  |                |   |                  |
+  | Classification|  | Prompt caching |   | Batch API (50%)  |
+  | Translation   |  | enabled        |   |                  |
+  +-------+-------+  +-------+--------+   +--------+---------+
+          |                  |                      |
+          +----------+-------+----------------------+
+                     |
+  <span class="r">+--- Data Layer ----+--------------------------------------------+</span>
+  <span class="r">|</span>                                                                <span class="r">|</span>
+  <span class="r">|</span>  <span class="g">Redis</span>              <span class="b">PostgreSQL</span>          <span class="p">S3</span>                   <span class="r">|</span>
+  <span class="r">|</span>  +- Semantic cache   +- User data          +- Model artifacts   <span class="r">|</span>
+  <span class="r">|</span>  +- Session state    +- Course content     +- Generated content <span class="r">|</span>
+  <span class="r">|</span>  +- Rate limit state +- AI interaction log +- Training data     <span class="r">|</span>
+  <span class="r">|</span>  +- Request queue    +- Cost tracking      +- Backup/archive    <span class="r">|</span>
+  <span class="r">|</span>                                                                <span class="r">|</span>
+  <span class="r">+----------------------------------------------------------------+</span></div>
+
+<h3>Streaming Responses &mdash; Critical for UX</h3>
+<p>For interactive AI features (tutoring, Q&amp;A), streaming is mandatory. Users perceive 200ms TTFT with streaming as "instant" but 3s wait-then-dump as "slow" &mdash; even if total time is identical.</p>
+
+<pre><code><span class="cm"># Server-Sent Events (SSE) streaming endpoint</span>
+
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, Request
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">import</span> anthropic, json
+
+app = FastAPI()
+
+<span class="kw">async def</span> <span class="fn">stream_response</span>(prompt: str):
+    client = anthropic.<span class="fn">Anthropic</span>()
+    <span class="kw">with</span> client.messages.<span class="fn">stream</span>(
+        model=<span class="str">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="num">1024</span>,
+        messages=[{<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: prompt}]
+    ) <span class="kw">as</span> stream:
+        <span class="kw">for</span> text <span class="kw">in</span> stream.<span class="fn">text_stream</span>:
+            <span class="kw">yield</span> <span class="str">f"data: {json.dumps({'text': text})}\n\n"</span>
+    <span class="kw">yield</span> <span class="str">"data: [DONE]\n\n"</span>
+
+@app.<span class="fn">post</span>(<span class="str">"/api/ai/stream"</span>)
+<span class="kw">async def</span> <span class="fn">ai_stream</span>(request: Request):
+    body = <span class="kw">await</span> request.<span class="fn">json</span>()
+    <span class="kw">return</span> <span class="fn">StreamingResponse</span>(
+        <span class="fn">stream_response</span>(body[<span class="str">"prompt"</span>]),
+        media_type=<span class="str">"text/event-stream"</span>,
+        headers={
+            <span class="str">"Cache-Control"</span>: <span class="str">"no-cache"</span>,
+            <span class="str">"X-Accel-Buffering"</span>: <span class="str">"no"</span>,  <span class="cm"># Disable nginx buffering</span>
+        }
+    )</code></pre>
+
+<h3>Failover Strategy</h3>
+<div class="diagram">  Failover Chain (automatic, per-request)
+
+  Request --> <span class="g">Primary: Claude Sonnet</span>
+              |
+              +- Success -> Return response
+              |
+              +- <span class="r">Rate limited (429)</span> --> <span class="b">Fallback 1: Self-hosted Llama 70B</span>
+              |                          |
+              |                          +- Success -> Return (slightly lower quality)
+              |                          |
+              |                          +- <span class="r">Overloaded (503)</span> --> <span class="p">Fallback 2: Claude Haiku</span>
+              |                                                    |
+              |                                                    +- Return (faster, simpler)
+              |
+              +- <span class="r">Timeout (30s)</span> --> <span class="p">Fallback 2: Claude Haiku</span>
+                                   |
+                                   +- <span class="r">All failed</span> --> Graceful degradation
+                                                      (cached response or error message)
+
+  <span class="cm">Key: Each failover logs the event for SRE review.</span>
+  <span class="cm">Failover rate > 5% triggers an alert.</span></div>
+
+<pre><code><span class="cm"># Failover implementation with retries</span>
+
+<span class="kw">class</span> <span class="ty">AIService</span>:
+    FAILOVER_CHAIN = [
+        {<span class="str">"provider"</span>: <span class="str">"anthropic"</span>, <span class="str">"model"</span>: <span class="str">"claude-sonnet-4-20250514"</span>},
+        {<span class="str">"provider"</span>: <span class="str">"self_hosted"</span>, <span class="str">"model"</span>: <span class="str">"llama-70b-awq"</span>},
+        {<span class="str">"provider"</span>: <span class="str">"anthropic"</span>, <span class="str">"model"</span>: <span class="str">"claude-haiku-4-5-20251001"</span>},
+    ]
+
+    <span class="kw">async def</span> <span class="fn">complete</span>(self, request):
+        <span class="kw">for</span> i, target <span class="kw">in</span> <span class="fn">enumerate</span>(self.FAILOVER_CHAIN):
+            <span class="kw">try</span>:
+                response = <span class="kw">await</span> self.<span class="fn">_call_model</span>(target, request)
+                <span class="kw">if</span> i > <span class="num">0</span>:  <span class="cm"># Log failover event</span>
+                    self.metrics.<span class="fn">increment</span>(<span class="str">"failover_count"</span>,
+                        tags={<span class="str">"from"</span>: self.FAILOVER_CHAIN[<span class="num">0</span>][<span class="str">"model"</span>],
+                              <span class="str">"to"</span>: target[<span class="str">"model"</span>]})
+                <span class="kw">return</span> response
+            <span class="kw">except</span> (RateLimitError, TimeoutError, ServiceUnavailable):
+                <span class="kw">continue</span>
+
+        <span class="cm"># All providers failed</span>
+        <span class="kw">return</span> <span class="kw">await</span> self.<span class="fn">graceful_degradation</span>(request)</code></pre>
+
+<h3>Multi-Region Deployment</h3>
+<div class="diagram">  Multi-Region Architecture
+
+  <span class="b">US-EAST-1 (Primary)</span>                    <span class="g">EU-WEST-1 (Secondary)</span>
+  +----------------------+              +----------------------+
+  | API Gateway          |              | API Gateway          |
+  | AI Router            |              | AI Router            |
+  | vLLM (4x A100)      |&lt;--- sync ---&gt;| vLLM (2x A100)      |
+  | Redis (semantic $)   |              | Redis (semantic $)   |
+  | PostgreSQL (primary) |--- repl ---&gt; | PostgreSQL (replica) |
+  +----------+-----------+              +----------+-----------+
+             |                                     |
+             +----------+---------------------------+
+                        |
+                 <span class="p">Route 53 / Global LB</span>
+                 Latency-based routing
+                 Health checks: /health/ai
+                 Failover: 30s detection
+
+  <span class="cm">API calls (Anthropic/OpenAI) are region-agnostic.</span>
+  <span class="cm">Self-hosted models need per-region GPU capacity.</span></div>
+
+<h3>Docker Compose &mdash; Full Local Dev Stack</h3>
+<pre><code><span class="cm"># docker-compose.yml - Development AI platform stack</span>
+
+<span class="kw">version</span>: <span class="str">"3.8"</span>
+<span class="kw">services</span>:
+  <span class="fn">ai-router</span>:
+    <span class="kw">build</span>: ./services/ai-router
+    <span class="kw">ports</span>: [<span class="str">"8080:8080"</span>]
+    <span class="kw">environment</span>:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - VLLM_ENDPOINT=http://vllm:8000
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://ai:ai@postgres:5432/ai_platform
+    <span class="kw">depends_on</span>: [redis, postgres]
+
+  <span class="fn">vllm</span>:
+    <span class="kw">image</span>: vllm/vllm-openai:v0.6.4
+    <span class="kw">deploy</span>:
+      <span class="kw">resources</span>:
+        <span class="kw">reservations</span>:
+          <span class="kw">devices</span>:
+            - <span class="kw">driver</span>: nvidia
+              <span class="kw">count</span>: <span class="num">1</span>
+              <span class="kw">capabilities</span>: [gpu]
+    <span class="kw">command</span>: &gt;
+      --model meta-llama/Llama-3.1-8B-Instruct
+      --max-model-len <span class="num">4096</span>
+      --gpu-memory-utilization <span class="num">0.90</span>
+      --enable-prefix-caching
+    <span class="kw">ports</span>: [<span class="str">"8000:8000"</span>]
+
+  <span class="fn">redis</span>:
+    <span class="kw">image</span>: redis:7-alpine
+    <span class="kw">ports</span>: [<span class="str">"6379:6379"</span>]
+    <span class="kw">volumes</span>: [redis-data:/data]
+
+  <span class="fn">postgres</span>:
+    <span class="kw">image</span>: postgres:16-alpine
+    <span class="kw">environment</span>:
+      POSTGRES_DB: ai_platform
+      POSTGRES_USER: ai
+      POSTGRES_PASSWORD: ai
+    <span class="kw">ports</span>: [<span class="str">"5432:5432"</span>]
+    <span class="kw">volumes</span>: [pg-data:/var/lib/postgresql/data]
+
+  <span class="fn">prometheus</span>:
+    <span class="kw">image</span>: prom/prometheus:latest
+    <span class="kw">ports</span>: [<span class="str">"9090:9090"</span>]
+    <span class="kw">volumes</span>:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  <span class="fn">grafana</span>:
+    <span class="kw">image</span>: grafana/grafana:latest
+    <span class="kw">ports</span>: [<span class="str">"3000:3000"</span>]
+    <span class="kw">volumes</span>:
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+
+<span class="kw">volumes</span>:
+  redis-data:
+  pg-data:</code></pre>
+
+<h3>Production Checklist</h3>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Model serving: vLLM or TRT-LLM deployed with appropriate GPU hardware</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Quantization: FP8 (H100+) or AWQ INT4 (A100) applied to self-hosted models</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Caching: Prompt caching (API), prefix caching (self-hosted), semantic cache (app)</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Model routing: Complexity-based routing to appropriate model tier</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Auto-scaling: HPA configured with GPU utilization + queue depth metrics</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Rate limiting: Per-user + global limits at API gateway</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Backpressure: Request queues with depth limits, 503 rejection under overload</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Streaming: SSE for all interactive AI responses</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Failover: Multi-provider chain with automatic fallback</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Observability: TTFT, TPS, cost/query, GPU util dashboards with alerts</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>SLOs: Error budgets defined for availability, latency, quality, cost</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Multi-region: Primary + secondary with latency-based routing</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Cost tracking: Real-time cost per query, per student, per feature</span></div>
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Batch pipeline: Async workers for offline processing at 50% cost</span></div>
+
+<div class="callout green">
+<strong>Course Complete.</strong>
+<p>You now have a comprehensive understanding of AI infrastructure at production scale &mdash; from GPU metal to multi-region failover. The key takeaway: AI infrastructure is a continuous optimization problem across cost, quality, and latency. Start with API-based serving, add self-hosted when volume justifies it, and always measure cost per query as your north star metric.</p>
+</div>
+
+<div class="check-item"><input type="checkbox" onchange="updateProgress()"><span>Module 8 complete &mdash; can architect a production AI platform</span></div>
+</div>
+</div>
+
+</div><!-- .main -->
+</div><!-- .layout -->
+
+<script>
+function toggleMod(h){h.parentElement.classList.toggle('open')}
+function openMod(n){var m=document.getElementById('mod'+n);if(m&&!m.classList.contains('open'))m.classList.toggle('open');document.querySelector('.sidebar').classList.remove('open')}
+function updateProgress(){var b=document.querySelectorAll('input[type="checkbox"]'),c=0;b.forEach(function(x){if(x.checked)c++});var p=Math.round(c/b.length*100);document.getElementById('progressBar').style.width=p+'%';document.getElementById('progressPct').textContent=p+'%';try{localStorage.setItem('ai-infra-progress',JSON.stringify(Array.from(b).map(function(x){return x.checked})))}catch(e){}}
+try{var s=JSON.parse(localStorage.getItem('ai-infra-progress'));if(s){var b=document.querySelectorAll('input[type="checkbox"]');s.forEach(function(v,i){if(b[i])b[i].checked=v});updateProgress()}}catch(e){}
+var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){document.querySelectorAll('.sidebar a').forEach(function(a){a.classList.remove('active')});var l=document.querySelector('.sidebar a[href="#'+e.target.id+'"]');if(l)l.classList.add('active')}})},{rootMargin:'-80px 0px -60% 0px'});
+document.querySelectorAll('.module').forEach(function(m){obs.observe(m)});
+</script>
+</body>
+</html>

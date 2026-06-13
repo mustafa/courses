@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wealth Planning & Tax Efficiency — A Course for Tech Executives</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0e17;--bg2:#111827;--bg3:#1a2235;--bg4:#243049;--text:#e2e8f0;--text2:#94a3b8;--accent:#f59e0b;--accent2:#d97706;--blue:#3b82f6;--green:#10b981;--red:#ef4444;--purple:#8b5cf6;--border:#1e293b;--radius:8px;--shadow:0 4px 20px rgba(0,0,0,.4);--font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--mono:'SF Mono',Monaco,Consolas,'Courier New',monospace}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.top-bar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;z-index:1000;gap:16px}
+.top-bar .logo{font-weight:700;font-size:1.1rem;color:var(--accent);white-space:nowrap}
+.top-bar .logo span{color:var(--text2);font-weight:400;font-size:.85rem;margin-left:8px}
+.search-box{flex:1;max-width:400px;position:relative}
+.search-box input{width:100%;padding:8px 12px 8px 36px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:.9rem;outline:none}
+.search-box input:focus{border-color:var(--accent)}
+.search-box::before{content:'⌕';position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:1.1rem}
+.progress-wrap{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--text2);white-space:nowrap}
+.progress-bar{width:120px;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .5s;width:0%}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:1.5rem;cursor:pointer}
+.sidebar{position:fixed;top:56px;left:0;bottom:0;width:280px;background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding:20px 0;z-index:900;transition:transform .3s}
+.sidebar-inner{padding:0 16px}
+.sidebar h3{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text2);margin:16px 0 8px;padding:0 8px}
+.sidebar .nav-item{display:flex;align-items:flex-start;gap:8px;padding:8px;border-radius:var(--radius);cursor:pointer;font-size:.85rem;color:var(--text2);transition:all .2s;line-height:1.4}
+.sidebar .nav-item:hover{background:var(--bg3);color:var(--text)}
+.sidebar .nav-item.active{background:var(--bg3);color:var(--accent)}
+.sidebar .nav-item .num{min-width:22px;height:22px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;border:1px solid var(--border);flex-shrink:0}
+.sidebar .nav-item.completed .num{background:var(--green);color:#fff;border-color:var(--green)}
+.main{margin-left:280px;margin-top:56px;padding:40px;max-width:960px}
+.module{margin-bottom:40px;background:var(--bg2);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.module-header{padding:24px 28px;cursor:pointer;display:flex;align-items:center;gap:16px;user-select:none;transition:background .2s}
+.module-header:hover{background:var(--bg3)}
+.module-header .mod-num{min-width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;color:#000;flex-shrink:0}
+.module-header .mod-title{flex:1}
+.module-header .mod-title h2{font-size:1.25rem;font-weight:700;margin-bottom:2px}
+.module-header .mod-title p{font-size:.8rem;color:var(--text2)}
+.module-header .chevron{font-size:1.2rem;color:var(--text2);transition:transform .3s}
+.module-header .chevron.open{transform:rotate(180deg)}
+.module-body{padding:0 28px 28px;display:none}
+.module-body.open{display:block}
+.module-body h3{font-size:1.1rem;font-weight:700;color:var(--accent);margin:28px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.module-body h4{font-size:.95rem;font-weight:600;color:var(--blue);margin:20px 0 8px}
+.module-body p{margin-bottom:12px;color:var(--text)}
+.module-body ul,.module-body ol{margin:0 0 12px 20px;color:var(--text)}
+.module-body li{margin-bottom:6px}
+.module-body .highlight{background:var(--bg3);border-left:3px solid var(--accent);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:16px 0;font-size:.9rem}
+.module-body .warning{background:rgba(239,68,68,.1);border-left:3px solid var(--red);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:16px 0;font-size:.9rem}
+.module-body .tip{background:rgba(59,130,246,.1);border-left:3px solid var(--blue);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:16px 0;font-size:.9rem}
+.module-body .example{background:rgba(16,185,129,.08);border-left:3px solid var(--green);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:16px 0;font-size:.9rem}
+.module-body .example strong{color:var(--green)}
+.module-body .irs-ref{font-family:var(--mono);font-size:.8rem;background:var(--bg);padding:2px 6px;border-radius:4px;color:var(--purple)}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.85rem}
+th{background:var(--bg3);padding:10px 14px;text-align:left;font-weight:600;color:var(--accent);border-bottom:2px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:hover td{background:rgba(245,158,11,.03)}
+.calc-box{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:24px;margin:20px 0}
+.calc-box h4{color:var(--accent);margin:0 0 16px;font-size:1rem}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.calc-field{display:flex;flex-direction:column;gap:4px}
+.calc-field label{font-size:.8rem;color:var(--text2)}
+.calc-field input,.calc-field select{padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:.9rem;outline:none}
+.calc-field input:focus,.calc-field select:focus{border-color:var(--accent)}
+.calc-btn{padding:10px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:var(--radius);font-weight:600;cursor:pointer;font-size:.9rem;margin-top:12px;transition:opacity .2s}
+.calc-btn:hover{opacity:.9}
+.calc-result{background:var(--bg2);border-radius:var(--radius);padding:16px;margin-top:16px;border:1px solid var(--green)}
+.calc-result .label{font-size:.8rem;color:var(--text2);margin-bottom:4px}
+.calc-result .value{font-size:1.3rem;font-weight:700;color:var(--green)}
+.checklist{list-style:none;margin:16px 0;padding:0}
+.checklist li{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:var(--radius);margin-bottom:4px;cursor:pointer;transition:background .2s}
+.checklist li:hover{background:var(--bg3)}
+.checklist li .ck{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:2px}
+.checklist li.checked .ck{background:var(--green);border-color:var(--green);color:#fff}
+.checklist li.checked .ck::after{content:'✓';font-size:.7rem}
+.mark-complete{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);cursor:pointer;font-size:.8rem;margin-top:16px;transition:all .2s}
+.mark-complete:hover{border-color:var(--green);color:var(--green)}
+.mark-complete.done{background:rgba(16,185,129,.1);border-color:var(--green);color:var(--green)}
+.disclaimer{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin:20px 0 40px;font-size:.8rem;color:var(--text2);line-height:1.6}
+.search-results{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:0 0 var(--radius) var(--radius);max-height:300px;overflow-y:auto;display:none;z-index:1001}
+.search-results .sr-item{padding:10px 14px;cursor:pointer;font-size:.85rem;border-bottom:1px solid var(--border)}
+.search-results .sr-item:hover{background:var(--bg3)}
+.search-results .sr-item .sr-mod{font-size:.7rem;color:var(--accent);margin-bottom:2px}
+.search-highlight{background:rgba(245,158,11,.3);padding:1px 2px;border-radius:2px}
+@media(max-width:768px){
+.hamburger{display:block}
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.main{margin-left:0;padding:20px}
+.calc-grid{grid-template-columns:1fr}
+.top-bar .logo span{display:none}
+}
+.fade-in{animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div class="logo">Wealth Planning Course<span>Tax-Efficient Strategies for Tech Executives</span></div>
+<div class="search-box">
+<input type="text" id="searchInput" placeholder="Search topics, strategies, IRS sections..." oninput="handleSearch(this.value)">
+<div class="search-results" id="searchResults"></div>
+</div>
+<div class="progress-wrap">
+<span id="progressText">0/10</span>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+</div>
+
+<nav class="sidebar" id="sidebar">
+<div class="sidebar-inner">
+<h3>Course Modules</h3>
+<div class="nav-item" data-mod="1" onclick="scrollToModule(1)"><span class="num">1</span>Foundations of Wealth Planning</div>
+<div class="nav-item" data-mod="2" onclick="scrollToModule(2)"><span class="num">2</span>Tax-Efficient Investing</div>
+<div class="nav-item" data-mod="3" onclick="scrollToModule(3)"><span class="num">3</span>Retirement Account Strategies</div>
+<div class="nav-item" data-mod="4" onclick="scrollToModule(4)"><span class="num">4</span>Charitable Giving & CRUTs</div>
+<div class="nav-item" data-mod="5" onclick="scrollToModule(5)"><span class="num">5</span>Estate Planning & Trusts</div>
+<div class="nav-item" data-mod="6" onclick="scrollToModule(6)"><span class="num">6</span>Equity Compensation</div>
+<div class="nav-item" data-mod="7" onclick="scrollToModule(7)"><span class="num">7</span>Real Estate Tax Strategies</div>
+<div class="nav-item" data-mod="8" onclick="scrollToModule(8)"><span class="num">8</span>Advanced Tax Strategies</div>
+<div class="nav-item" data-mod="9" onclick="scrollToModule(9)"><span class="num">9</span>Insurance & Risk Management</div>
+<div class="nav-item" data-mod="10" onclick="scrollToModule(10)"><span class="num">10</span>The Wealth Planning Playbook</div>
+<h3>Tools</h3>
+<div class="nav-item" onclick="scrollToModule('calc')"><span class="num" style="font-size:.6rem">⚙</span>Interactive Calculators</div>
+</div>
+</nav>
+
+<main class="main">
+
+<div class="disclaimer">
+<strong>Important Disclaimer:</strong> This course is for educational purposes only and does not constitute financial, legal, or tax advice. Tax laws change frequently; the numbers cited reflect 2024–2025 law with notes on the 2026 sunset provisions. Consult a qualified CPA, tax attorney, and/or financial advisor before implementing any strategy. The author is not a licensed financial professional.
+</div>
+
+
+<!-- ════════════════════════════════════════════ MODULE 1 ════════════════════════════════════════════ -->
+<div class="module" id="module-1">
+<div class="module-header" onclick="toggleModule(1)">
+<div class="mod-num">1</div>
+<div class="mod-title"><h2>Foundations of Wealth Planning</h2><p>Net worth optimization, income vs. wealth, and the account hierarchy</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>The Net Worth Optimization Framework</h3>
+<p>Wealth planning is fundamentally different from financial planning. Financial planning asks "can I retire?" Wealth planning asks "how do I maximize the after-tax, after-inflation, after-fee value of every dollar I earn across my lifetime and beyond?" For a tech executive earning $500K–$2M+ annually, the difference between a naive approach and an optimized one can easily exceed $5–10 million over a career.</p>
+
+<p>Your net worth is not your income. A VP making $800K/year in Sunnyvale with a $2.5M mortgage, heavy lifestyle spending, and all assets in a taxable brokerage could have a lower net worth than a senior engineer making $350K who max-funds every tax-advantaged account and lives modestly. The framework starts with a simple equation:</p>
+
+<div class="highlight"><strong>Lifetime Wealth = Σ (Income − Taxes − Spending) × Investment Returns × Tax Efficiency</strong><br><br>You control four levers: income (career optimization), taxes (this entire course), spending (not our focus), and investment efficiency (asset location, fee minimization, and tax-loss harvesting).</div>
+
+<h3>Income vs. Wealth: The Critical Distinction</h3>
+<p>High income is a necessary but insufficient condition for wealth. California taxes income at up to 13.3% at the state level (for income above $1M, the mental health surcharge under Proposition 63 adds 1% for a top effective rate of 13.3%). Combined with the 37% federal bracket (2024), top Medicare surtaxes (0.9% additional Medicare tax on earned income over $200K/$250K, plus the 3.8% Net Investment Income Tax under <span class="irs-ref">§1411</span>), a California tech executive can face a marginal rate exceeding 50% on the next dollar earned.</p>
+
+<p>This means for every $100 of additional RSU vesting or bonus, you may keep less than $50. Wealth planning focuses on converting high income into durable wealth through three primary mechanisms:</p>
+<ul>
+<li><strong>Tax deferral:</strong> Moving income recognition to future years when you may be in a lower bracket (traditional 401k, deferred compensation, installment sales)</li>
+<li><strong>Tax conversion:</strong> Paying tax now at known rates to enjoy tax-free growth forever (Roth conversions, Roth 401k)</li>
+<li><strong>Tax elimination:</strong> Strategies where certain gains are never taxed (QSBS <span class="irs-ref">§1202</span>, stepped-up basis at death, charitable giving)</li>
+</ul>
+
+<h3>The Tax-Advantaged Account Hierarchy</h3>
+<p>Before diving into advanced strategies, you need to understand the "order of operations" — where each dollar should go, roughly in priority order. This is your wealth-building foundation:</p>
+
+<table>
+<tr><th>Priority</th><th>Account/Strategy</th><th>2024 Limit</th><th>Tax Treatment</th></tr>
+<tr><td>1</td><td>401(k) employee deferrals</td><td>$23,000 ($30,500 if 50+)</td><td>Pre-tax or Roth</td></tr>
+<tr><td>2</td><td>HSA (if HDHP eligible)</td><td>$4,150 / $8,300 family</td><td>Triple tax-free</td></tr>
+<tr><td>3</td><td>Employer 401(k) match</td><td>Varies (free money)</td><td>Pre-tax</td></tr>
+<tr><td>4</td><td>Backdoor Roth IRA</td><td>$7,000 ($8,000 if 50+)</td><td>Roth (tax-free growth)</td></tr>
+<tr><td>5</td><td>Mega Backdoor Roth (after-tax 401k)</td><td>Up to $46,000 additional</td><td>Roth conversion</td></tr>
+<tr><td>6</td><td>ESPP (if offered)</td><td>$25,000/year purchase</td><td>Discount + potential LTCG</td></tr>
+<tr><td>7</td><td>529 Plans (if children)</td><td>Varies by state; $18K/yr gift tax free</td><td>Tax-free for education</td></tr>
+<tr><td>8</td><td>Taxable brokerage (tax-efficient)</td><td>Unlimited</td><td>LTCG rates, tax-loss harvest</td></tr>
+<tr><td>9</td><td>Donor-Advised Fund (if charitable)</td><td>Up to 60% AGI (cash), 30% (stock)</td><td>Deduction + avoid cap gains</td></tr>
+<tr><td>10</td><td>I Bonds / Series EE</td><td>$10,000/year each</td><td>Tax-deferred, state-exempt</td></tr>
+</table>
+
+<div class="tip"><strong>California Note:</strong> California does not conform to federal Roth treatment in 529 plans. California also does not offer a state tax deduction for 529 contributions to out-of-state plans. The ScholarShare 529 offers a modest state deduction. However, for high earners, the 529 is still worthwhile for the federal tax-free growth on education expenses.</div>
+
+<h3>The "Order of Operations" for Where to Put Money</h3>
+<p>Think of this as a waterfall. Fill each bucket before moving to the next:</p>
+<ol>
+<li><strong>Emergency fund</strong> (3–6 months expenses in high-yield savings) — this is not an investment, it is insurance</li>
+<li><strong>Capture the full employer match</strong> — guaranteed 50–100% return</li>
+<li><strong>Max HSA</strong> — the only triple-tax-advantaged account (deduction going in, tax-free growth, tax-free withdrawals for medical expenses). Pro move: pay medical expenses out-of-pocket now, let the HSA grow, and reimburse yourself decades later</li>
+<li><strong>Max 401(k) employee deferrals</strong> — $23,000 pre-tax or Roth. For most California executives, pre-tax is better unless you expect to retire in a no-income-tax state</li>
+<li><strong>Backdoor Roth IRA</strong> — $7,000 through the back door if your income exceeds direct Roth IRA limits ($161K single, $240K married filing jointly in 2024)</li>
+<li><strong>Mega Backdoor Roth</strong> — if your plan allows after-tax contributions and in-plan Roth conversions (check your plan documents). This can add $46,000+ more in Roth space</li>
+<li><strong>Taxable brokerage</strong> — tax-efficient index funds, direct indexing, municipal bonds. This is where tax-loss harvesting matters</li>
+<li><strong>Advanced strategies</strong> — DAFs, CRUTs, real estate, QSBS, and everything else in this course</li>
+</ol>
+
+<div class="example"><strong>Case Study — The ~$5M Dual-Income Tech Household:</strong> A married couple, both software engineers, with combined W-2 income of ~$4.14M (heavy RSU vesting from two major tech companies). Add $631K in capital gains, $329K in dividends, $32K in interest, and $9K in Schedule C consulting, and total income approaches $5.15M. Their current tax bill: approximately <strong>$2.31M</strong> (~45% effective rate, ~50.3% marginal).<br><br>
+<strong>The baseline problem:</strong> Much of this is structurally inefficient. They have $106K in ordinary (non-qualified) dividends from a managed brokerage portfolio — all taxed at ~50%. Their charitable giving is only $2,550, missing an opportunity to deduct up to 30% of AGI ($1.5M+) by donating appreciated stock. They pay $597K in state/property taxes but deduct only $10K (SALT cap). And they pay $15K–$20K/year in underpayment penalties.<br><br>
+<strong>The optimized approach:</strong> Both spouses fill 401(k) pre-tax ($23K × 2 = $46K), fund mega backdoor Roth if plans allow ($70K–$80K combined), do backdoor Roth IRA ($7K × 2 = $14K), contribute $500K of appreciated RSU stock to a DAF, restructure the managed portfolio for tax efficiency, and implement direct indexing in taxable accounts. Conservative first-year tax savings: <strong>$650,000–$850,000</strong>. Ongoing annual savings: <strong>$120,000–$150,000/year</strong>. That is $2.4M–$3M+ over a 20-year career, plus compounding.</div>
+
+<h3>The Three Pillars of Tax Efficiency</h3>
+<p>Every strategy in this course falls into one of three pillars:</p>
+<p><strong>Pillar 1 — Tax Location:</strong> Putting the right assets in the right accounts. Bonds and REITs (taxed as ordinary income) go in tax-deferred accounts. Growth stocks (qualified dividends, long-term capital gains taxed at 0/15/20%) go in taxable accounts. Tax-exempt munis can go in taxable accounts for high earners. This alone can add 0.5–1.0% annually to after-tax returns.</p>
+<p><strong>Pillar 2 — Tax Timing:</strong> Controlling when you recognize income. Deferring income to lower-bracket years, accelerating deductions into high-bracket years, and using Roth conversions strategically during income dips (sabbatical, job transition, early retirement).</p>
+<p><strong>Pillar 3 — Tax Elimination:</strong> Some income is simply never taxed. Stepped-up cost basis at death eliminates unrealized capital gains. Roth accounts grow and distribute tax-free forever. QSBS <span class="irs-ref">§1202</span> can exclude $10M or 10x basis of startup gains. Charitable strategies can convert taxable gains into deductions.</p>
+
+<button class="mark-complete" onclick="markComplete(1)"><span class="ck"></span> Mark Module 1 Complete</button>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════ MODULE 2 ════════════════════════════════════════════ -->
+<div class="module" id="module-2">
+<div class="module-header" onclick="toggleModule(2)">
+<div class="mod-num">2</div>
+<div class="mod-title"><h2>Tax-Efficient Investing</h2><p>Tax-loss harvesting, asset location, and holding period strategies</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>Tax-Loss Harvesting: Mechanics and Strategy</h3>
+<p>Tax-loss harvesting (TLH) is the practice of selling securities at a loss to offset realized capital gains, and potentially up to $3,000/year of ordinary income (<span class="irs-ref">§1211(b)</span>). Unused losses carry forward indefinitely. For a high-income California executive, TLH can save 30–50+ cents per dollar of harvested losses.</p>
+
+<h4>How TLH Works Mechanically</h4>
+<ol>
+<li>You hold an ETF (say, VTI — Vanguard Total Stock Market) purchased at $200/share, now trading at $170/share</li>
+<li>You sell VTI, realizing a $30/share loss</li>
+<li>You immediately buy a similar but not "substantially identical" fund (say, ITOT — iShares Core S&P Total US Stock Market) to maintain market exposure</li>
+<li>The $30/share loss offsets gains elsewhere or offsets $3,000 of ordinary income</li>
+<li>Your cost basis in ITOT is $170, so the tax benefit is a deferral — you will pay gains on the lower basis eventually, but the time value of money and potential for stepped-up basis at death make this valuable</li>
+</ol>
+
+<h4>The Wash Sale Rule (<span class="irs-ref">§1091</span>)</h4>
+<p>The IRS disallows a loss if you purchase a "substantially identical" security within 30 days before or after the sale (the 61-day window). Key points:</p>
+<ul>
+<li><strong>"Substantially identical"</strong> is not precisely defined by the IRS for mutual funds and ETFs. Generally, VTI and VTSAX (same index, same manager) are substantially identical; VTI and ITOT (different providers, slightly different indices) are generally considered different enough, though this is a gray area</li>
+<li>The wash sale rule applies across all your accounts — including your spouse's accounts, your IRA, and your 401(k). If you sell VTI at a loss in your brokerage and buy VTI in your IRA within 30 days, the loss is disallowed</li>
+<li>Wash sales in IRAs are particularly dangerous: the disallowed loss cannot be added to the IRA's cost basis, so it's permanently lost</li>
+<li>The rule applies per lot, not per security — you can harvest specific lots while holding others</li>
+</ul>
+
+<div class="warning"><strong>Warning — Dividend Reinvestment:</strong> If you have automatic dividend reinvestment turned on for a security, even a small reinvested dividend within the 30-day window will trigger a wash sale. Turn off DRIP on any security you might harvest.</div>
+
+<h4>Direct Indexing: TLH on Steroids</h4>
+<p>Direct indexing means holding individual stocks that replicate an index (like the S&P 500) rather than holding an ETF. This creates hundreds of individual positions, each with its own cost basis, giving you far more opportunities to harvest losses. Platforms like Aperio (BlackRock), Parametric, Wealthfront, and Fidelity offer this. Typical annual tax alpha from direct indexing: 1–2% for the first few years, declining as the portfolio ages (fewer fresh losses to harvest). At a $2M portfolio and 50% marginal rate, that is $20K–$40K/year in tax savings in early years.</p>
+
+<h3>Asset Location Strategy</h3>
+<p>Asset location — placing specific asset classes in the most tax-efficient account type — is distinct from asset allocation (how much of each asset class you hold). This is one of the highest-value, lowest-effort optimizations available.</p>
+
+<table>
+<tr><th>Asset Class</th><th>Best Account Type</th><th>Reasoning</th></tr>
+<tr><td>Taxable bonds / bond funds</td><td>Tax-deferred (Traditional 401k/IRA)</td><td>Interest taxed as ordinary income (up to 50%+ in CA). Shelter it.</td></tr>
+<tr><td>REITs</td><td>Tax-deferred (Traditional 401k/IRA)</td><td>Dividends taxed as ordinary income (no qualified dividend treatment)</td></tr>
+<tr><td>TIPS (Treasury Inflation-Protected)</td><td>Tax-deferred</td><td>Phantom income from inflation adjustments is taxed annually</td></tr>
+<tr><td>US growth stocks / total market</td><td>Taxable brokerage</td><td>Qualified dividends (0/15/20% rate), LTCG treatment, TLH eligible, step-up at death</td></tr>
+<tr><td>International stocks (developed)</td><td>Taxable brokerage</td><td>Foreign tax credit (<span class="irs-ref">§901</span>) only available in taxable accounts</td></tr>
+<tr><td>Tax-exempt municipal bonds</td><td>Taxable brokerage</td><td>Already tax-exempt; putting them in tax-deferred wastes the exemption</td></tr>
+<tr><td>High-growth / small-cap stocks</td><td>Roth IRA/401k</td><td>Highest expected growth → most tax-free compounding benefit</td></tr>
+<tr><td>Alternatives (PE, hedge funds)</td><td>Roth if possible, else tax-deferred</td><td>Complex income types; shelter from annual taxation</td></tr>
+</table>
+
+<h3>Municipal Bonds and Tax-Exempt Income</h3>
+<p>For a California resident in the top brackets, the taxable-equivalent yield of a California municipal bond is compelling. If a CA muni yields 3.5% and your combined marginal rate is ~50% (37% federal + 13.3% state), the taxable-equivalent yield is 3.5% / (1 - 0.50) = 7.0%. Compare that to a taxable corporate bond at 5.5% that nets only ~2.75% after tax.</p>
+
+<div class="tip"><strong>Key distinction:</strong> California municipal bonds are exempt from both federal and California state income tax. Out-of-state munis are exempt from federal tax but subject to CA state tax. For CA residents, in-state munis (or CA-specific muni funds like Vanguard CA Tax-Exempt VCADX) offer the best after-tax yields.</div>
+
+<h3>Qualified vs. Ordinary Dividends</h3>
+<p>Qualified dividends from US and certain foreign corporations are taxed at the long-term capital gains rate (0%, 15%, or 20% + 3.8% NIIT), while ordinary dividends are taxed at your marginal income tax rate (up to 37% federal + 13.3% CA = 50.3%). To qualify, you must hold the stock for at least 61 days during the 121-day period centered on the ex-dividend date. REIT dividends, money market dividends, and most foreign stock dividends are ordinary income. This distinction matters enormously for asset location decisions.</p>
+
+<div class="example"><strong>Case Study — The Tax-Inefficient Managed Portfolio:</strong><br><br>
+A dual-income tech household reports $329,000 in total ordinary dividends, of which only $82,000 are qualified — meaning $247,000 in dividends are taxed at the full ordinary income rate of ~50.3%. A single managed brokerage account alone generates $106,000 in non-qualified ordinary dividends and $21,000 in taxable interest, with <strong>zero</strong> qualified dividends. This portfolio is sitting in a taxable account — the worst possible location for ordinary-income-generating assets.<br><br>
+<strong>The annual tax waste from this single portfolio:</strong><br>
+Non-qualified dividends in taxable account: $106,000 × 50.3% = $53,300 in tax<br>
+If replaced with index ETFs generating qualified dividends: $106,000 × 23.8% = $25,200<br>
+Taxable interest: $21,000 × 50.3% = $10,600 (could be replaced with CA munis at 0% tax)<br>
+<strong>Potential annual savings from restructuring: $38,000–$55,000</strong><br><br>
+<strong>Action plan:</strong> Move bond funds and actively managed funds to tax-deferred accounts (401k, IRA). Replace taxable holdings with Vanguard Total Stock Market (VTI), Total International (VXUS), and Vanguard CA Tax-Exempt (VCADX). Consider moving to a direct indexing platform like Aperio or Parametric for the equity allocation to capture additional tax-loss harvesting alpha.</div>
+
+<h3>Long-Term vs. Short-Term Capital Gains</h3>
+<p>Holding an asset for more than one year converts short-term capital gains (taxed as ordinary income, up to 50%+ in CA) to long-term capital gains (taxed at 0/15/20% federal + 3.8% NIIT). Note: California does not distinguish between short-term and long-term capital gains — both are taxed as ordinary income at up to 13.3%. This makes holding period optimization primarily a federal strategy for CA residents, but at 37% vs 20% (or 40.8% vs 23.8% including NIIT), it is still enormously valuable.</p>
+
+<table>
+<tr><th>Filing Status</th><th>0% LTCG Rate</th><th>15% LTCG Rate</th><th>20% LTCG Rate</th></tr>
+<tr><td>Single</td><td>Up to $47,025</td><td>$47,026–$518,900</td><td>Over $518,900</td></tr>
+<tr><td>Married Filing Jointly</td><td>Up to $94,050</td><td>$94,051–$583,750</td><td>Over $583,750</td></tr>
+</table>
+
+<p>The 3.8% Net Investment Income Tax (<span class="irs-ref">§1411</span>) applies on top when MAGI exceeds $200K single / $250K married. For most tech executives, the effective federal LTCG rate is 23.8% (20% + 3.8% NIIT).</p>
+
+<h3>Holding Period Strategies</h3>
+<p>Beyond the basic one-year threshold, consider these timing optimizations:</p>
+<ul>
+<li><strong>Defer gains to January:</strong> If selling in December, wait until January to push the tax liability 15 months forward (tax due the following April)</li>
+<li><strong>Harvest losses in December:</strong> Losses realized before year-end can offset gains realized earlier in the same year</li>
+<li><strong>Bunch gains in low-income years:</strong> If taking a sabbatical, transitioning jobs, or in between roles, realize gains during the lower-income year</li>
+<li><strong>Offset with RSU income:</strong> Coordinate RSU sales with loss harvesting to reduce the tax bite on equity compensation</li>
+</ul>
+
+<button class="mark-complete" onclick="markComplete(2)"><span class="ck"></span> Mark Module 2 Complete</button>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════ MODULE 3 ════════════════════════════════════════════ -->
+<div class="module" id="module-3">
+<div class="module-header" onclick="toggleModule(3)">
+<div class="mod-num">3</div>
+<div class="mod-title"><h2>Retirement Account Strategies</h2><p>Backdoor Roth, mega backdoor, conversion ladders, and RMD planning</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>Mega Backdoor Roth: The Most Powerful Retirement Strategy for High Earners</h3>
+<p>The total <span class="irs-ref">§415(c)</span> limit on 401(k) contributions in 2024 is $69,000 ($76,500 if 50+). This includes employee deferrals ($23,000), employer match, and — critically — after-tax contributions. If your employer plan permits after-tax contributions AND in-service Roth conversions (or in-plan Roth rollovers), you can contribute up to the gap between your total contributions and the $69,000 limit as after-tax dollars, then immediately convert them to Roth.</p>
+
+<div class="example"><strong>Example — Mega Backdoor Roth Math:</strong><br>
+Employee deferral (pre-tax): $23,000<br>
+Employer match (50% of first 6% of $350K salary): $10,500<br>
+After-tax contribution: $69,000 − $23,000 − $10,500 = <strong>$35,500</strong><br>
+Immediately convert the $35,500 to Roth → tax-free growth forever on $35,500/year<br><br>
+Over 15 years at 8% growth, the mega backdoor Roth alone accumulates approximately <strong>$965,000</strong> in tax-free money.</div>
+
+<h4>Implementation Steps</h4>
+<ol>
+<li>Verify your plan allows after-tax (non-Roth) contributions — check with HR or your plan administrator</li>
+<li>Verify the plan allows either in-plan Roth conversions or in-service withdrawals of after-tax money</li>
+<li>Set your after-tax contribution to the maximum allowed</li>
+<li>Convert after-tax contributions to Roth as frequently as possible (immediately is best — minimizes taxable earnings in the after-tax sub-account)</li>
+<li>Any earnings on the after-tax contributions before conversion are taxable as ordinary income — convert quickly to minimize this</li>
+</ol>
+
+<h3>Backdoor Roth IRA</h3>
+<p>If your income exceeds the Roth IRA MAGI limits ($161K single, $240K married filing jointly in 2024), you cannot contribute directly. The backdoor Roth works around this:</p>
+<ol>
+<li>Contribute $7,000 ($8,000 if 50+) to a Traditional IRA as a non-deductible contribution (no income limit on non-deductible contributions)</li>
+<li>Convert the Traditional IRA to a Roth IRA (no income limit on conversions)</li>
+<li>Pay tax only on any earnings between contribution and conversion (minimize by converting immediately)</li>
+</ol>
+
+<div class="warning"><strong>The Pro-Rata Rule (<span class="irs-ref">§408(d)(2)</span>):</strong> If you have any pre-tax money in any Traditional, SEP, or SIMPLE IRA, the conversion is prorated across all IRA balances. Example: if you have $93,000 pre-tax in a rollover IRA and contribute $7,000 non-deductible, only 7% ($7K/$100K) of any conversion is tax-free. The remaining 93% is taxable. <strong>Solution:</strong> Roll all pre-tax IRA money into your 401(k) before doing the backdoor Roth. Most employer plans accept incoming rollovers. This zeros out your IRA balance and makes the backdoor Roth clean.</div>
+
+<h3>Roth Conversion Ladders and Timing</h3>
+<p>A Roth conversion ladder involves systematically converting Traditional IRA/401(k) money to Roth over multiple years. The goal is to fill up lower tax brackets during low-income years. Key opportunities for tech executives:</p>
+<ul>
+<li><strong>Gap years between jobs:</strong> If you leave a role and take 3–6 months off, your income may be significantly lower that year. Convert enough to fill the 24% bracket instead of the 35%/37% bracket</li>
+<li><strong>Early retirement / FIRE:</strong> After leaving tech at 45–55, convert aggressively before Social Security and RMDs begin, potentially at 10–22% rates</li>
+<li><strong>Market downturns:</strong> Convert when your portfolio is depressed — you convert more shares for fewer tax dollars, and the recovery happens inside the Roth</li>
+<li><strong>Post-exercise ISO year:</strong> If you've already triggered AMT from ISO exercises, additional conversions may be "free" under AMT</li>
+</ul>
+
+<h3>Traditional vs. Roth Decision Framework</h3>
+<p>The core question: is your marginal tax rate higher now or in retirement? For most California tech executives currently earning $500K+, the answer is nuanced:</p>
+
+<table>
+<tr><th>Factor</th><th>Favors Traditional (Pre-Tax)</th><th>Favors Roth (After-Tax)</th></tr>
+<tr><td>Current marginal rate</td><td>Very high (37% + 13.3% CA)</td><td>Lower or moderate</td></tr>
+<tr><td>Retirement state</td><td>Staying in CA</td><td>Moving to TX, FL, NV, WA (0% state)</td></tr>
+<tr><td>Retirement spending</td><td>Modest relative to income</td><td>High spending planned</td></tr>
+<tr><td>Estate planning</td><td>Plan to spend it all</td><td>Want to pass tax-free to heirs</td></tr>
+<tr><td>Time horizon</td><td>Near retirement (less time to compound)</td><td>Young (decades of tax-free growth)</td></tr>
+<tr><td>Future tax rates</td><td>Expect rates to fall or hold</td><td>Expect rates to rise (deficit concerns)</td></tr>
+</table>
+
+<div class="highlight"><strong>Practical guidance for a CA VP/CTO:</strong> At $800K+ income, your marginal rate is approximately 50%. Traditional 401(k) likely wins for the employee deferral ($23K). But if you plan to retire to a no-income-tax state, the mega backdoor Roth (after-tax → Roth conversion) is clearly superior — the money grows and comes out completely free of both federal and state tax.</div>
+
+<h3>SEP IRA and Solo 401(k) for Side Income</h3>
+<p>If you have any 1099 income (consulting, board seats, advisory work, speaking fees), you can establish a Solo 401(k) or SEP IRA to shelter that income:</p>
+<ul>
+<li><strong>Solo 401(k):</strong> $23,000 employee deferral (reduced by any W-2 employer 401k deferrals) + 25% of net self-employment income as employer contribution. Total up to $69,000. Allows Roth deferrals and after-tax mega backdoor if the plan permits</li>
+<li><strong>SEP IRA:</strong> Up to 25% of net self-employment income (max $69,000 in 2024). Simpler to set up but no Roth option and the pro-rata rule applies to backdoor Roth</li>
+</ul>
+
+<h3>Required Minimum Distributions (RMD) Planning</h3>
+<p>Under SECURE 2.0, RMDs begin at age 73 (for those born 1951–1959) or 75 (born 1960+). RMDs force you to withdraw from Traditional IRAs and 401(k)s, creating taxable income when you may not need it. Roth IRAs have no RMDs during the owner's lifetime (inherited Roths do under the 10-year rule).</p>
+
+<p>Planning strategies to minimize RMD impact:</p>
+<ul>
+<li><strong>Roth conversions before RMD age:</strong> Reduce Traditional IRA balances before RMDs begin, ideally during lower-income years (ages 55–72)</li>
+<li><strong>Qualified Charitable Distributions (QCD):</strong> At age 70½+, donate up to $105,000/year directly from IRA to charity. Satisfies RMD, not included in taxable income, and the charity receives 100% (better than taking the RMD, paying tax, and donating after-tax dollars)</li>
+<li><strong>Coordinate with Social Security timing:</strong> Delaying Social Security to 70 maximizes the benefit but adds income on top of RMDs. Model both scenarios</li>
+</ul>
+
+<button class="mark-complete" onclick="markComplete(3)"><span class="ck"></span> Mark Module 3 Complete</button>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════════════════ MODULE 4 ════════════════════════════════════════════ -->
+<div class="module" id="module-4">
+<div class="module-header" onclick="toggleModule(4)">
+<div class="mod-num">4</div>
+<div class="mod-title"><h2>Charitable Giving & CRUTs</h2><p>Deep dive: CRUTs, CRATs, DAFs, QCDs, CLTs, and private foundations</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>Charitable Remainder Unitrust (CRUT) — Deep Dive</h3>
+<p>The Charitable Remainder Unitrust is one of the most powerful and underutilized tools in wealth planning, particularly for tech executives with concentrated stock positions or highly appreciated assets. A CRUT allows you to (1) avoid immediate capital gains tax on appreciated assets, (2) receive an income stream for life or a term of years, (3) take an upfront charitable income tax deduction, and (4) benefit a charity with the remainder.</p>
+
+<h4>How a CRUT Works Mechanically</h4>
+<ol>
+<li><strong>You create the trust:</strong> The CRUT is an irrevocable trust under <span class="irs-ref">§664</span>. You (the grantor) transfer appreciated assets — stock, real estate, business interests — to the trust. You name yourself (and/or spouse) as the income beneficiary and a qualified charity (or DAF) as the remainder beneficiary</li>
+<li><strong>The trust sells the assets:</strong> Because the CRUT is tax-exempt (<span class="irs-ref">§664(c)</span>), it sells the contributed assets with <strong>no immediate capital gains tax</strong>. The full pre-tax proceeds are available for reinvestment</li>
+<li><strong>Annual distributions:</strong> The trust pays you a fixed percentage of the trust's fair market value each year (revalued annually). The minimum payout is 5%, the maximum is 50%. Common range: 5–8%</li>
+<li><strong>At termination:</strong> When the trust terminates (at your death, or after a specified term of up to 20 years), the remaining trust assets pass to the designated charity</li>
+</ol>
+
+<h4>The Income Tax Deduction Calculation</h4>
+<p>When you contribute to a CRUT, you receive an immediate income tax deduction equal to the present value of the "remainder interest" — the portion projected to go to charity. This is calculated using IRS actuarial tables, the <span class="irs-ref">§7520 rate</span> (120% of the mid-term AFR), your age, and the payout rate. The remainder must be at least 10% of the initial contribution value, or the CRUT fails. Key factors:</p>
+<ul>
+<li><strong>Higher §7520 rate → larger deduction</strong> (charity is projected to earn more on the remainder)</li>
+<li><strong>Older donor → larger deduction</strong> (shorter life expectancy → more goes to charity sooner)</li>
+<li><strong>Lower payout rate → larger deduction</strong> (less distributed to you → more remains for charity)</li>
+</ul>
+
+<div class="example"><strong>Example — CRUT with Concentrated Stock:</strong><br><br>
+<strong>Scenario:</strong> You hold $2,000,000 of company stock with a cost basis of $200,000. You are 50 years old and want income. The §7520 rate is 5.4%.<br><br>
+<strong>Without a CRUT (Direct Sale):</strong><br>
+Gain: $2,000,000 − $200,000 = $1,800,000<br>
+Federal LTCG tax (23.8%): $428,400<br>
+California tax (13.3%): $239,400<br>
+Total tax: <strong>$667,800</strong><br>
+Net investable proceeds: $1,332,200<br>
+Annual income at 5% withdrawal: $66,610<br><br>
+
+<strong>With a CRUT (5% payout):</strong><br>
+Contribute $2,000,000 to CRUT → <strong>$0 capital gains tax</strong><br>
+Trust sells stock → $2,000,000 fully investable<br>
+Year 1 distribution (5% of $2M): $100,000<br>
+Upfront income tax deduction: approximately $410,000–$480,000 (varies with exact §7520 rate)<br>
+Tax savings from deduction (at ~50% rate): approximately <strong>$205,000–$240,000</strong><br><br>
+
+<strong>Net benefit of the CRUT:</strong><br>
+Avoided capital gains tax: $667,800<br>
+Tax deduction benefit: ~$220,000<br>
+Higher annual income: $100,000 vs. $66,610 ($33,390/year more)<br>
+Total quantifiable benefit over first 10 years: approximately <strong>$1.2M+</strong><br>
+Tradeoff: The remainder goes to charity at your death (you lose the principal as a bequest to heirs)</div>
+
+<h4>Four-Tier Taxation of CRUT Distributions (<span class="irs-ref">§664(b)</span>)</h4>
+<p>CRUT distributions are not all taxed the same. They follow a mandatory ordering system — the "worst-in, first-out" principle:</p>
+<table>
+<tr><th>Tier</th><th>Category</th><th>Tax Rate</th></tr>
+<tr><td>1</td><td>Ordinary income (interest, short-term gains inside the trust)</td><td>Up to 37% + 13.3% CA</td></tr>
+<tr><td>2</td><td>Capital gains (long-term gains realized by the trust)</td><td>20% + 3.8% NIIT + 13.3% CA</td></tr>
+<tr><td>3</td><td>Tax-exempt income (muni bond interest earned by the trust)</td><td>0%</td></tr>
+<tr><td>4</td><td>Return of principal (trust corpus)</td><td>0%</td></tr>
+</table>
+
+<p>The trust maintains cumulative accounts for each tier. Distributions are deemed to come from the highest-taxed tier first. This means that if the trust invests in bonds generating ordinary interest, your distributions will initially be taxed at ordinary rates until that bucket is exhausted. Strategy: have the CRUT invest in growth assets (low dividends, capital appreciation) to shift distributions toward the lower-taxed Tier 2 or even Tier 4.</p>
+
+<h4>CRUT Payout Rates and Rules</h4>
+<ul>
+<li><strong>Minimum payout:</strong> 5% of trust FMV annually</li>
+<li><strong>Maximum payout:</strong> 50% of trust FMV annually (rarely used — would likely fail the 10% remainder test)</li>
+<li><strong>Revaluation:</strong> Trust assets are revalued annually; the payout amount fluctuates with trust value (unlike a CRAT)</li>
+<li><strong>NIMCRUT (Net Income with Makeup CRUT):</strong> A variant where the trust only pays out the lesser of (a) the stated percentage or (b) the trust's actual net income. Shortfalls accumulate as "makeup" amounts that can be paid out in future years when income exceeds the percentage. This is useful for assets that generate little current income (like raw land or growth stocks)</li>
+<li><strong>Flip CRUT:</strong> Starts as a NIMCRUT (useful when holding illiquid assets like real estate) and "flips" to a standard CRUT upon a triggering event (like the sale of the contributed asset). The flip is irrevocable and occurs on January 1 following the trigger</li>
+</ul>
+
+<h4>CRUT vs. CRAT Comparison</h4>
+<table>
+<tr><th>Feature</th><th>CRUT (Unitrust)</th><th>CRAT (Annuity Trust)</th></tr>
+<tr><td>Annual payout</td><td>Fixed % of trust FMV (revalued annually)</td><td>Fixed dollar amount (set at creation)</td></tr>
+<tr><td>Inflation protection</td><td>Yes — payout grows with trust value</td><td>No — fixed nominal amount</td></tr>
+<tr><td>Additional contributions</td><td>Allowed</td><td>Not allowed</td></tr>
+<tr><td>Investment risk</td><td>If trust value drops, payout drops</td><td>Fixed payout regardless of performance</td></tr>
+<tr><td>Best for</td><td>Long time horizons, growth-oriented</td><td>Short terms, predictable income needs</td></tr>
+<tr><td>10% remainder test</td><td>Must pass at each contribution</td><td>Must pass at creation only</td></tr>
+<tr><td>Popularity</td><td>Far more common</td><td>Less common</td></tr>
+</table>
+
+<h4>When Does a CRUT Make Sense?</h4>
+<ul>
+<li><strong>Concentrated stock position:</strong> You hold $1M+ in a single stock with a very low cost basis. Direct sale triggers enormous capital gains. A CRUT lets you diversify tax-free inside the trust</li>
+<li><strong>Real estate with low basis:</strong> A rental property purchased decades ago with substantial appreciation. The Flip CRUT is ideal here — contribute the property, let the trust sell it (no capital gains), flip to standard CRUT, and receive diversified income</li>
+<li><strong>Business sale:</strong> Selling a business with significant goodwill. Contribute appreciated business interests to a CRUT before the sale</li>
+<li><strong>Charitable intent:</strong> You must genuinely intend to benefit charity. The IRS scrutinizes CRUTs created solely for tax avoidance with minimal charitable benefit</li>
+<li><strong>You are 45+ years old:</strong> Younger donors struggle to pass the 10% remainder test at reasonable payout rates</li>
+</ul>
+
+<div class="warning"><strong>CRUT Limitations and Risks:</strong> The transfer is irrevocable — you cannot reclaim the assets. The remainder will go to charity, reducing your estate for heirs. Trust administration costs $1,500–$5,000/year. The trust must file IRS Form 5227 annually. If the trust earns primarily ordinary income, your distributions are taxed at high rates. The 10% remainder test can limit payout rates for younger donors. The trust is subject to the excise tax under <span class="irs-ref">§4940</span> on net investment income.</div>
+
+<h3>Donor-Advised Funds (DAF) — The Biggest Immediate Lever for Most High Earners</h3>
+<p>A DAF is the simplest and most flexible charitable giving vehicle for high-income earners. You contribute cash or appreciated assets to the fund, receive an immediate tax deduction, and then recommend grants to charities over time. The major custodians (Fidelity Charitable, Schwab Charitable, Vanguard Charitable) have no minimum grant amounts and very low fees.</p>
+
+<div class="warning"><strong>Massive missed opportunity:</strong> A dual-income tech household with ~$5.15M AGI that gives only $2,550/year to charity is leaving potentially <strong>hundreds of thousands of dollars</strong> in tax savings on the table. At 30% of AGI, they could deduct up to $1,545,000 of appreciated stock donations. Even a $500,000 contribution of appreciated RSU stock (with, say, a $100K basis) would generate: (a) a $500,000 deduction saving ~$250,000 in taxes, PLUS (b) avoided capital gains of ~$148,000 on the $400K of appreciation. Total first-year tax benefit: approximately <strong>$398,000</strong> — and you still control when and where the money goes via the DAF. If you are charitably inclined at all, this is by far the largest and easiest tax lever available.</div>
+
+<h4>The Bunching Strategy</h4>
+<p>With the 2017 TCJA raising the standard deduction to $29,200 (married, 2024), many high earners no longer itemize annually. The bunching strategy concentrates multiple years of charitable giving into one year to exceed the standard deduction threshold, then takes the standard deduction in off years.</p>
+
+<div class="example"><strong>Example — Bunching:</strong> You normally give $20,000/year to charity. Over 3 years, that is $60,000 in charitable deductions. But if your other itemized deductions (SALT capped at $10,000, mortgage interest) total only $22,000, you are below the $29,200 standard deduction each year and get zero charitable tax benefit.<br><br>
+Instead, contribute $60,000 to a DAF in Year 1. Your itemized deductions: $22,000 + $60,000 = $82,000 (well above the $29,200 standard deduction, giving you $52,800 in marginal deductions). In Years 2 and 3, take the standard deduction ($29,200). You still grant $20,000/year from the DAF to your favorite charities.<br><br>
+Additional tax savings from bunching: approximately <strong>$12,000–$15,000</strong> over the 3-year cycle at a 50% marginal rate.</div>
+
+<h4>Donating Appreciated Stock to a DAF</h4>
+<p>Contributing long-term appreciated stock (held >1 year) directly to a DAF is strictly superior to selling the stock, paying capital gains tax, and donating cash. You receive a deduction for the full fair market value of the stock while avoiding all capital gains tax. The deduction limit is 30% of AGI for appreciated property (vs. 60% for cash), with a 5-year carryforward for excess deductions. This is one of the highest-value moves for tech executives with vested RSUs at significant gains.</p>
+
+<h3>Qualified Charitable Distributions (QCD)</h3>
+<p>Available at age 70½ and older, a QCD allows you to transfer up to $105,000 per year (2024, indexed for inflation) directly from your IRA to a qualified charity. The distribution counts toward your RMD, is excluded from taxable income (unlike a regular distribution followed by a deduction), and is better than itemizing because it reduces AGI. Reducing AGI has cascading benefits: lower Medicare Part B/D premiums (IRMAA), lower NIIT exposure, and more favorable phase-outs for other deductions.</p>
+
+<h3>Private Foundations vs. DAFs</h3>
+<table>
+<tr><th>Feature</th><th>Donor-Advised Fund</th><th>Private Foundation</th></tr>
+<tr><td>Setup cost</td><td>$0 (open an account)</td><td>$5,000–$25,000+ (legal fees)</td></tr>
+<tr><td>Annual cost</td><td>~0.6% of assets</td><td>$5,000–$50,000 (admin, audit, filings)</td></tr>
+<tr><td>Deduction limit (cash)</td><td>60% of AGI</td><td>30% of AGI</td></tr>
+<tr><td>Deduction limit (stock)</td><td>30% of AGI (FMV)</td><td>20% of AGI (FMV for public stock only)</td></tr>
+<tr><td>Annual distribution requirement</td><td>None (technically at sponsor discretion)</td><td>5% of assets annually</td></tr>
+<tr><td>Grant control</td><td>Advisory (sponsor can override, but rarely does)</td><td>Full control</td></tr>
+<tr><td>Public disclosure</td><td>Donations can be anonymous</td><td>990-PF is public record</td></tr>
+<tr><td>Can hire family</td><td>No</td><td>Yes (reasonable compensation)</td></tr>
+<tr><td>Best for</td><td>Most donors, simplicity</td><td>$5M+ philanthropists wanting legacy/control</td></tr>
+</table>
+
+<h3>Charitable Lead Trusts (CLT)</h3>
+<p>A CLT is the inverse of a CRT: the charity receives income for a term of years, and then the remainder passes to your heirs (often children or a dynasty trust). CLTs are primarily estate and gift tax planning tools. If the trust assets grow faster than the <span class="irs-ref">§7520 rate</span>, the excess growth passes to heirs free of gift/estate tax. A Grantor CLT also provides an upfront income tax deduction to the grantor. CLTs are most attractive in low interest rate environments (low §7520 rate → higher gift tax discount), though they remain useful for very large estates.</p>
+
+<button class="mark-complete" onclick="markComplete(4)"><span class="ck"></span> Mark Module 4 Complete</button>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════ MODULE 5 ════════════════════════════════════════════ -->
+<div class="module" id="module-5">
+<div class="module-header" onclick="toggleModule(5)">
+<div class="mod-num">5</div>
+<div class="mod-title"><h2>Estate Planning & Trusts</h2><p>Irrevocable trusts, gift tax, dynasty trusts, and the 2026 sunset</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>The 2026 Estate Tax Exemption Sunset — Critical Planning Window</h3>
+<p>The Tax Cuts and Jobs Act of 2017 roughly doubled the federal estate and gift tax exemption to $13.61 million per individual ($27.22 million per married couple) in 2024. <strong>This provision sunsets on January 1, 2026,</strong> reverting the exemption to approximately $7 million per person (adjusted for inflation from the pre-TCJA $5.49M base). The IRS has issued a "no-clawback" rule (Treasury Regulation §20.2010-1(c)), confirming that gifts made under the higher exemption will not be clawed back if the exemption drops.</p>
+
+<div class="warning"><strong>This is a time-limited opportunity.</strong> If your estate exceeds $7M per person (or $14M per couple), you should seriously consider using the excess exemption before 2026. The estate tax rate on amounts above the exemption is 40%. For a couple with a $30M estate, failing to use the excess exemption before 2026 could result in approximately <strong>$5.2 million</strong> in additional estate tax: (($30M − $14M) × 40%) − (($30M − $27.22M) × 40%) = $6.4M − $1.1M = $5.3M incremental tax.</div>
+
+<h3>Revocable Living Trusts</h3>
+<p>A revocable living trust is the foundation of most estate plans. It avoids probate (critical in California, where probate fees are statutory and expensive — roughly $46,000 on a $2M estate), allows for incapacity management, and provides privacy (wills are public record; trusts are not). A revocable trust does not provide any tax benefits — the grantor is treated as the owner for income and estate tax purposes. All assets should be titled in the trust or have the trust named as beneficiary.</p>
+
+<h3>Irrevocable Trusts for Tax Planning</h3>
+<p>Irrevocable trusts remove assets from your taxable estate. Once funded, you cannot take the assets back (with some exceptions for grantor trust powers). Common types:</p>
+
+<h4>Spousal Lifetime Access Trust (SLAT)</h4>
+<p>A SLAT is an irrevocable trust where one spouse creates the trust for the benefit of the other spouse (and potentially children). The grantor spouse removes the assets from their estate, but the beneficiary spouse can still access the funds. SLATs are extremely popular for using the excess exemption before the 2026 sunset because they allow indirect access to the gifted assets.</p>
+<ul>
+<li>Each spouse can create a SLAT for the other, effectively using both exemptions ($27.22M)</li>
+<li>The trusts must be sufficiently different to avoid the "reciprocal trust doctrine" (different trustees, different distribution standards, different assets, created at different times)</li>
+<li><strong>Divorce risk:</strong> If the couple divorces, the grantor spouse loses all access (the trust benefits the ex-spouse)</li>
+</ul>
+
+<h4>Irrevocable Life Insurance Trust (ILIT)</h4>
+<p>An ILIT owns a life insurance policy outside your estate. Without an ILIT, life insurance proceeds are included in your taxable estate (even though they are income-tax-free to beneficiaries under <span class="irs-ref">§101</span>). For a $5M policy in a $20M estate, this could save $2M in estate taxes. The ILIT must be the owner and beneficiary of the policy. You contribute premiums to the trust using annual gift exclusions ($18,000 per beneficiary in 2024) with "Crummey" withdrawal notices.</p>
+
+<h4>Qualified Personal Residence Trust (QPRT)</h4>
+<p>A QPRT transfers your home to an irrevocable trust while you retain the right to live in it for a specified term (say, 10–15 years). The gift value is discounted by the retained interest — a $3M home might have a gift value of only $1.2M for a 15-year QPRT. If you survive the term, the home passes to heirs at the discounted gift value, free of estate tax. If you die during the term, the home reverts to your estate (no benefit, but no harm done beyond legal costs).</p>
+
+<h3>Grantor vs. Non-Grantor Trusts</h3>
+<p>This is a critical distinction for income tax purposes:</p>
+<table>
+<tr><th>Feature</th><th>Grantor Trust</th><th>Non-Grantor Trust</th></tr>
+<tr><td>Income tax</td><td>Grantor pays tax on trust income (on their personal return)</td><td>Trust pays tax on undistributed income; beneficiaries pay on distributions</td></tr>
+<tr><td>Tax brackets</td><td>Uses grantor's brackets</td><td>Trust reaches top bracket (37%) at only $14,450 of income (2024)</td></tr>
+<tr><td>Estate tax benefit</td><td>Grantor paying the tax is an additional tax-free gift (trust grows faster)</td><td>No additional gifting effect</td></tr>
+<tr><td>Common types</td><td>SLATs, GRATs, IDGTs, most QPRTs</td><td>Some ILITs, dynasty trusts (can be either)</td></tr>
+</table>
+
+<div class="tip"><strong>Why grantor trust status is valuable:</strong> When you pay the income tax on trust earnings, you are essentially making an additional tax-free gift to the trust beneficiaries. The trust assets grow undiminished by taxes, and the tax payments reduce your estate without using any gift tax exemption. This "tax burn" can transfer significant additional wealth.</div>
+
+<h3>Generation-Skipping Transfer Tax (GSTT)</h3>
+<p>The GSTT is a flat 40% tax imposed on transfers (gift or estate) to individuals two or more generations below you (grandchildren, unrelated persons 37.5+ years younger). It is designed to prevent families from avoiding one level of estate tax by skipping a generation. You have a separate GST exemption equal to the estate tax exemption ($13.61M in 2024, also sunsetting in 2026). Allocating GST exemption to a dynasty trust can shelter growth forever.</p>
+
+<h3>Dynasty Trusts</h3>
+<p>A dynasty trust is designed to last for many generations (or perpetually, in states that have abolished the Rule Against Perpetuities, such as Nevada, South Dakota, and Delaware). Funded with $13.61M of GST-exempt gifts in 2024, a dynasty trust growing at 7% real return could be worth $50M+ in 20 years and $200M+ in 40 years — all free of estate and generation-skipping tax at each generation. Combine this with a grantor trust structure (you pay the income tax, further growing the trust), and the wealth transfer is remarkable.</p>
+
+<h3>Family LLCs and Family Limited Partnerships (FLPs)</h3>
+<p>A Family LLC or FLP holds family assets (investments, real estate, a business). You gift minority limited partnership/membership interests to children or trusts. Because these interests are non-controlling and non-marketable, they can be appraised at a discount (typically 25–40% combined discount for lack of control and lack of marketability). A $10M FLP interest might be valued at $6.5M for gift tax purposes after a 35% discount, allowing you to transfer more wealth within your exemption.</p>
+
+<div class="warning"><strong>IRS Scrutiny:</strong> The IRS aggressively challenges FLP discounts, particularly "deathbed" FLPs (formed shortly before death), FLPs holding only marketable securities (no business purpose), and FLPs where the grantor retained too much control or access. The Tax Court has disallowed discounts in cases like <em>Estate of Powell v. Commissioner</em> (2021) where formalities were not respected. Proper structuring, independent appraisals, and legitimate business purposes are essential.</div>
+
+<button class="mark-complete" onclick="markComplete(5)"><span class="ck"></span> Mark Module 5 Complete</button>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════════════════ MODULE 6 ════════════════════════════════════════════ -->
+<div class="module" id="module-6">
+<div class="module-header" onclick="toggleModule(6)">
+<div class="mod-num">6</div>
+<div class="mod-title"><h2>Equity Compensation Tax Optimization</h2><p>ISOs, NSOs, RSUs, ESPPs, 83(b) elections, and concentrated stock strategies</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>RSU Tax Planning — The Core Equity Comp for Big Tech</h3>
+<p>Restricted Stock Units (RSUs) are the dominant equity compensation at large tech companies. Tax treatment is straightforward but the optimization opportunities are significant:</p>
+<ul>
+<li>RSUs are taxed as ordinary income (W-2 wages) at vesting, based on the fair market value on the vest date</li>
+<li>Your employer withholds taxes — typically at the supplemental wage rate (22% federal flat rate, or 37% for supplemental wages over $1M in a calendar year) plus applicable state and FICA</li>
+<li>For a dual-income tech household earning $4M+ in W-2 wages, the 37% supplemental withholding kicks in very early in the year, and you will likely still owe at tax time due to California's 13.3% rate and the Additional Medicare Tax (0.9%)</li>
+</ul>
+
+<h4>The Zero-Basis Problem: Immediate Money on the Table</h4>
+<p>One of the most common and costly errors in equity compensation is failing to properly report cost basis on RSU sales. When RSUs vest, the fair market value is included in your W-2 as ordinary income. This same amount becomes your cost basis in the shares. However, brokerages frequently report RSU sales on Form 1099-B with a cost basis of $0 (or a basis that does not include the income portion already taxed at vesting). If you do not adjust the basis on Schedule D / Form 8949, you are effectively paying tax twice on the same income.</p>
+
+<div class="example"><strong>Case Study — The $467K Zero-Basis Overstatement:</strong><br><br>
+A dual-income tech household reports $467,000 in long-term capital gains from RSU sales. The brokerage 1099-B shows zero cost basis. However, the actual cost basis — the fair market value at vesting, already taxed as W-2 income — might be $350,000. The true capital gain is only $117,000, not $467,000.<br><br>
+<strong>The tax overpayment:</strong><br>
+Overstated gain: $350,000<br>
+Federal LTCG rate: 23.8% (20% + 3.8% NIIT) = $83,300<br>
+California rate: 13.3% = $46,550<br>
+<strong>Total overpayment: approximately $129,850</strong><br><br>
+<strong>Fix:</strong> Go back to your brokerage's equity compensation portal (E*TRADE, Morgan Stanley, Fidelity, Schwab — wherever the RSUs were administered). Download the "Supplemental Information" or "Gain/Loss Report" that shows the adjusted cost basis including the income recognized at vesting. Report this adjusted basis on Form 8949 using code "B" (basis reported to IRS is incorrect). If you have overpaid in prior years, file Form 1040-X (amended return) for the past three tax years to claim refunds. At $37,000+ per $100,000 of missing basis, this is potentially a six-figure recovery.</div>
+
+<div class="warning"><strong>Action Item:</strong> For every RSU sale, verify that the cost basis on your 1099-B includes the fair market value at vesting. If it does not, adjust it on Form 8949. This is the single highest-value, lowest-effort tax fix for most tech employees.</div>
+
+<h3>ISOs vs. NSOs: Tax Treatment Deep Dive</h3>
+<table>
+<tr><th>Feature</th><th>ISO (Incentive Stock Option)</th><th>NSO (Non-Qualified Stock Option)</th></tr>
+<tr><td>At exercise</td><td>No regular income tax (but AMT preference item on the spread)</td><td>Spread taxed as ordinary W-2 income immediately</td></tr>
+<tr><td>At sale (qualifying disposition)</td><td>Entire gain taxed as LTCG (must hold 2 years from grant, 1 year from exercise)</td><td>Gain above exercise-date FMV taxed as LTCG</td></tr>
+<tr><td>At sale (disqualifying disposition)</td><td>Spread at exercise taxed as ordinary income; remainder as capital gain</td><td>N/A</td></tr>
+<tr><td>AMT impact</td><td>Spread at exercise is an AMT preference item (<span class="irs-ref">§56(b)(3)</span>)</td><td>None (already taxed at exercise)</td></tr>
+<tr><td>$100K annual limit</td><td>Yes — only $100K of ISOs (by grant-date FMV) can vest per year; excess treated as NSOs</td><td>No limit</td></tr>
+<tr><td>Employer deduction</td><td>None (for qualifying dispositions)</td><td>Yes — employer deducts the spread at exercise</td></tr>
+</table>
+
+<h4>The 83(b) Election</h4>
+<p>Under <span class="irs-ref">§83(b)</span>, when you receive restricted property (not RSUs — actual restricted shares), you can elect within 30 days to include the current fair market value in income immediately, rather than waiting until the restrictions lapse. This is typically used for early-stage startup stock purchased at a very low price.</p>
+
+<div class="example"><strong>Example:</strong> You join a startup and purchase 100,000 shares of restricted stock at $0.10/share (FMV $0.10, confirmed by a 409A valuation). You file an 83(b) election and pay ordinary income tax on $10,000. Four years later, the company IPOs and your shares are worth $50/share ($5,000,000). Without the 83(b) election, $4,990,000 would be taxed as ordinary income at vesting (~50% rate = $2,495,000 tax). With the 83(b), you paid tax on $10,000 upfront (~$5,000 tax), and the $4,990,000 gain is taxed as long-term capital gains at ~23.8% federal + 13.3% CA = $1,853,000. <strong>Savings: approximately $640,000.</strong> And if the stock qualifies for QSBS under <span class="irs-ref">§1202</span>, you could exclude $10M of the gain entirely.</div>
+
+<div class="warning"><strong>The risk:</strong> If you file an 83(b) and the stock later becomes worthless (common in startups), you have paid tax on income you never actually received, and you cannot revoke the election. You can claim a capital loss, but that is limited to $3,000/year against ordinary income.</div>
+
+<h3>ESPP Strategies</h3>
+<p>Employee Stock Purchase Plans under <span class="irs-ref">§423</span> allow employees to purchase company stock at a discount (typically 15%) using after-tax payroll deductions. The maximum annual purchase is $25,000 (based on FMV at the offering date). Most plans have a "lookback" provision that uses the lower of the price at the beginning or end of the offering period.</p>
+
+<h4>Qualifying vs. Disqualifying Dispositions</h4>
+<ul>
+<li><strong>Qualifying disposition:</strong> Hold the stock for at least 2 years from the offering date AND 1 year from the purchase date. The discount (up to 15%) is taxed as ordinary income; any additional gain is long-term capital gain</li>
+<li><strong>Disqualifying disposition:</strong> Sell before meeting the holding periods. The spread between the purchase price and the FMV at purchase is ordinary income (potentially more than 15% if the lookback applies); additional gain/loss is capital</li>
+<li><strong>Practical advice:</strong> For most high-income earners, the difference between qualifying and disqualifying dispositions is modest relative to the concentration risk of holding. Many advisors recommend selling immediately upon purchase and investing the proceeds in a diversified portfolio. The guaranteed 15% return over a 6-month offering period is exceptional — take the profit and diversify</li>
+</ul>
+
+<h3>Concentrated Stock Position Strategies</h3>
+<p>When you hold a large position in a single stock — common for tech executives with years of RSU vests — you face both investment risk (single-stock concentration) and tax risk (large embedded gains). Strategies to manage this:</p>
+
+<h4>Exchange Funds (<span class="irs-ref">§721</span>)</h4>
+<p>An exchange fund is a private partnership where multiple investors contribute their concentrated single-stock positions into a pooled portfolio. You receive a diversified interest in the fund without triggering a taxable event. After 7 years, you can withdraw a diversified basket of stocks with your original cost basis spread across multiple positions. These are typically available only to accredited investors with $1M+ positions and are managed by firms like Goldman Sachs and Morgan Stanley. Downside: 7-year lock-up, management fees (1–1.5%), and 20% of the fund must be in illiquid assets (often real estate).</p>
+
+<h4>Protective Puts and Collars</h4>
+<p>A protective put (buying a put option) or a collar (buying a put and selling a call) can hedge downside risk without triggering a sale. However, if the collar is too tight (the put and call strike prices are too close together), the IRS may treat it as a constructive sale under <span class="irs-ref">§1259</span>, triggering immediate gain recognition. Generally, maintain at least a 20% spread between put and call strikes to avoid constructive sale treatment.</p>
+
+<h4>10b5-1 Plans</h4>
+<p>A Rule 10b5-1 plan is a pre-arranged trading plan that allows insiders to sell shares according to a predetermined schedule, even during blackout periods. While not a tax strategy per se, it enables systematic diversification over time. Recent SEC amendments (effective 2023) impose a cooling-off period before the first trade and limit single-trade plans. Combined with tax-loss harvesting in other positions, a 10b5-1 plan can manage the tax impact of ongoing RSU diversification.</p>
+
+<h4>CRUTs for Concentrated Positions</h4>
+<p>As discussed in Module 4, a CRUT can accept appreciated stock, sell it inside the trust without capital gains tax, and provide diversified income. For a tech executive with a $2M+ position at a $200K basis, the CRUT avoids approximately $670,000 in capital gains taxes while providing lifetime income and a charitable deduction. This is particularly attractive for positions where you have genuine charitable intent and do not need to pass the full value to heirs.</p>
+
+<h3>QSBS — Section 1202 Exclusion</h3>
+<p>If you hold Qualified Small Business Stock — stock in a C-corporation with gross assets under $50M at the time of issuance, acquired at original issuance (not in the secondary market), and held for at least 5 years — you can exclude the greater of $10 million or 10x your cost basis from federal capital gains tax. This is potentially the most valuable single provision in the tax code for startup founders and early employees.</p>
+
+<div class="highlight"><strong>Key requirements for QSBS under <span class="irs-ref">§1202</span>:</strong><br>
+1. Stock must be in a domestic C-corporation (not S-corp, LLC, or partnership)<br>
+2. Corporation must have ≤$50M in gross assets at the time of stock issuance (and immediately after)<br>
+3. At least 80% of corporate assets must be used in an active business (not holding company)<br>
+4. Stock must be acquired at original issuance (direct purchase, stock options, or RSAs — NOT purchased on open market)<br>
+5. Must hold for at least 5 years<br>
+6. Certain industries are excluded: professional services (law, accounting, consulting, health), banking, insurance, hospitality, farming, mining<br>
+7. Software and technology companies generally qualify</div>
+
+<p>California partially conforms to QSBS: the exclusion is reduced to 50% of the gain (vs. 100% federally for stock acquired after September 27, 2010). Some taxpayers change state residency before selling QSBS to avoid California tax entirely.</p>
+
+<button class="mark-complete" onclick="markComplete(6)"><span class="ck"></span> Mark Module 6 Complete</button>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════ MODULE 7 ════════════════════════════════════════════ -->
+<div class="module" id="module-7">
+<div class="module-header" onclick="toggleModule(7)">
+<div class="mod-num">7</div>
+<div class="mod-title"><h2>Real Estate Tax Strategies</h2><p>1031 exchanges, cost segregation, REPS, STR loophole, Opportunity Zones, DSTs</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>1031 Like-Kind Exchanges (<span class="irs-ref">§1031</span>)</h3>
+<p>A 1031 exchange allows you to defer capital gains tax indefinitely by exchanging one investment property for another "like-kind" property. Since 2018, 1031 exchanges apply only to real property (not personal property, artwork, or equipment). Key rules:</p>
+<ul>
+<li><strong>45-day identification period:</strong> You must identify up to three replacement properties within 45 days of selling the relinquished property</li>
+<li><strong>180-day closing period:</strong> You must close on the replacement property within 180 days</li>
+<li><strong>Qualified intermediary (QI):</strong> You cannot touch the proceeds. A QI holds the funds between sale and purchase</li>
+<li><strong>Boot:</strong> Any cash or non-like-kind property received in the exchange is taxable ("boot"). To fully defer, the replacement property must be of equal or greater value with equal or greater debt</li>
+<li><strong>Basis carries over:</strong> Your basis in the new property equals your basis in the old property, adjusted for any boot paid or received</li>
+</ul>
+
+<div class="tip"><strong>The ultimate endgame:</strong> Swap until you drop. Use 1031 exchanges to defer gains throughout your lifetime. At death, your heirs receive a stepped-up basis under <span class="irs-ref">§1014</span>, permanently eliminating all deferred gains. A property with $2M of deferred gains passes to heirs at current FMV with zero capital gains tax ever paid.</div>
+
+<h3>Cost Segregation Studies</h3>
+<p>Cost segregation is an engineering-based study that reclassifies building components into shorter depreciable lives (5, 7, or 15 years instead of 27.5 or 39 years). This front-loads depreciation deductions, creating larger tax shields in early years. Common reclassifications: carpeting (5-year), decorative lighting (5-year), site improvements like parking lots (15-year), specialized electrical (7-year).</p>
+
+<p>A cost segregation study on a $1.5M rental property might reclassify $400,000 of the building to shorter lives, generating $300,000+ in accelerated deductions in Year 1 (using bonus depreciation where applicable). At a 50% marginal rate, that is $150,000 in tax savings accelerated into the first year.</p>
+
+<h3>Real Estate Professional Status (REPS)</h3>
+<p>Normally, rental real estate losses are "passive" under <span class="irs-ref">§469</span> and can only offset passive income (not W-2 wages or investment income). However, if you qualify as a Real Estate Professional, rental activities can be treated as non-passive, allowing losses (primarily depreciation) to offset ordinary income. Requirements:</p>
+<ul>
+<li>More than 750 hours per year in real property trades or businesses</li>
+<li>More than 50% of all personal services performed must be in real property trades or businesses</li>
+<li>Must materially participate in each rental activity (or elect to aggregate all rentals as a single activity)</li>
+</ul>
+
+<p>For a dual-income household where both spouses work full-time in tech, REPS is generally not feasible for either spouse. However, if one spouse were to leave full-time employment (or work part-time), REPS becomes achievable. This is a strategy sometimes employed by high-income couples approaching early retirement.</p>
+
+<h3>The Short-Term Rental (STR) Loophole</h3>
+<p>A rental property with an average tenant stay of 7 days or less is not classified as a "rental activity" under <span class="irs-ref">§469</span> — it is treated as an active business. If you materially participate (managing the property yourself, making decisions, handling guests — typically 100+ hours and more than any other individual), the losses are non-passive and can offset W-2 income. Combined with cost segregation and bonus depreciation, this can create large paper losses that offset ordinary income without requiring REPS.</p>
+
+<div class="example"><strong>Example — STR Tax Shelter:</strong><br>
+Purchase a vacation rental for $800,000. Land: $200,000, building: $600,000.<br>
+Cost segregation study reclassifies $180,000 to 5-year property.<br>
+Year 1 depreciation (using bonus depreciation): $180,000 + ~$15,000 (straight-line on remaining) = $195,000<br>
+Net rental income after expenses: $40,000<br>
+Net tax loss: $195,000 − $40,000 = <strong>$155,000 paper loss</strong><br>
+Tax savings at 50% marginal rate: <strong>$77,500</strong> in Year 1<br><br>
+The property is generating positive cash flow ($40K) while creating a $155K tax deduction. Note: bonus depreciation is being phased out (80% in 2023, 60% in 2024, 40% in 2025, 20% in 2026, 0% in 2027 unless Congress acts).</div>
+
+<h3>Suspended Passive Losses</h3>
+<p>When rental losses exceed passive income, the excess is "suspended" and carried forward to offset future passive income or to be released when the property is sold in a fully taxable disposition. For a tech household with $29,000 in suspended passive losses from a farming LLC (K-1 reporting), these losses will remain suspended until either (a) there is sufficient passive income to absorb them, (b) you qualify as a Real Estate Professional or materially participate in the farming activity, or (c) you dispose of your entire interest in the activity in a taxable transaction, at which point all suspended losses are released against ordinary income.</p>
+
+<h3>Opportunity Zone Investments (<span class="irs-ref">§1400Z-2</span>)</h3>
+<p>Opportunity Zones allow you to invest capital gains into Qualified Opportunity Zone Funds (QOFs) within 180 days of recognizing the gain. The original gain is deferred until the earlier of (a) the date you sell the OZ investment or (b) December 31, 2026. If you hold the OZ investment for 10+ years, any appreciation in the OZ investment itself is permanently tax-free. The original deferral benefit has been reduced (the 10%/15% basis step-ups for holding 5/7 years expired in 2021), but the permanent exclusion of OZ appreciation remains valuable for long-term holders.</p>
+
+<h3>Delaware Statutory Trusts (DSTs) for Passive 1031</h3>
+<p>A DST is a legal entity that holds title to real estate and allows multiple investors to own fractional interests. DSTs qualify as like-kind replacement property for 1031 exchanges, making them an attractive option for investors who want to exit active property management while deferring gains. Typical DST investments are institutional-quality properties (apartment complexes, medical offices, net-lease retail) with professional management. Minimum investments are usually $100K–$250K. DSTs have fixed terms (typically 5–10 years) and limited investor control.</p>
+
+<h3>Real Estate in Self-Directed IRAs</h3>
+<p>You can hold real estate inside a self-directed IRA (SDIRA) — either Traditional or Roth. Rental income and appreciation grow tax-deferred (Traditional) or tax-free (Roth). However, the rules are strict: you cannot use the property personally, cannot perform maintenance yourself (sweat equity), must pay all expenses from the IRA, and cannot use recourse financing (only non-recourse loans, which trigger UBTI under <span class="irs-ref">§514</span> on the leveraged portion). This is an advanced strategy best suited for investors who want Roth-sheltered real estate appreciation and are willing to navigate the complexity.</p>
+
+<button class="mark-complete" onclick="markComplete(7)"><span class="ck"></span> Mark Module 7 Complete</button>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════════════════ MODULE 8 ════════════════════════════════════════════ -->
+<div class="module" id="module-8">
+<div class="module-header" onclick="toggleModule(8)">
+<div class="mod-num">8</div>
+<div class="mod-title"><h2>Advanced Tax Strategies</h2><p>Installment sales, NUA, defined benefit plans, state tax, and income smoothing</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>State Tax Considerations: California vs. No-Income-Tax States</h3>
+<p>California imposes the highest marginal income tax rate in the country at 13.3% (12.3% + 1% mental health surcharge on income over $1M). For a dual-income tech household with $5M+ in total income, the California state tax alone can exceed $600,000 per year. Combined with the federal $10,000 SALT deduction cap (imposed by the 2017 TCJA), the effective cost is staggering.</p>
+
+<div class="example"><strong>Case Study — The SALT Cap Pain:</strong><br><br>
+A dual-income household in Sunnyvale pays approximately $597,000 in combined state income tax and property tax. The federal SALT deduction is capped at $10,000. This means $587,000 in state and local taxes receives <strong>zero federal tax benefit</strong>.<br><br>
+<strong>What this really costs:</strong> Before the TCJA (pre-2018), this $587,000 would have been deductible, saving approximately $217,000 in federal tax (37% × $587K). Under current law, that $217,000 is simply additional tax paid. The SALT cap is scheduled to expire after 2025 (as part of the TCJA sunset), but Congress may extend or modify it.<br><br>
+<strong>Mitigation strategies:</strong><br>
+1. <strong>PTET (Pass-Through Entity Tax):</strong> California's PTET allows owners of pass-through entities (S-corps, partnerships, LLCs) to pay state tax at the entity level, which is deductible at the federal level without the SALT cap. For Schedule C income or an LLC, electing PTET can recapture the federal deduction. On $9,000 of Schedule C/LLC income, the savings are modest (~$3,000), but for households that can restructure more income through entities, this adds up<br>
+2. <strong>Charitable giving in lieu of state tax:</strong> Some states offer tax credits for charitable contributions, effectively converting non-deductible state taxes into deductible charitable contributions. California does not offer this broadly<br>
+3. <strong>Timing of deductions:</strong> Maximize other above-the-line deductions (retirement contributions, HSA, business expenses) to reduce California AGI directly</div>
+
+<h4>The Relocation Question</h4>
+<p>Moving to a no-income-tax state (Texas, Florida, Nevada, Washington, Wyoming, Tennessee, South Dakota, Alaska, New Hampshire) can save over $600,000/year for a $5M-income household. However, California aggressively audits departures through the Franchise Tax Board (FTB). To establish a clean break:</p>
+<ul>
+<li>Change your domicile (driver's license, voter registration, will, trusts, estate plan)</li>
+<li>Sell or rent out the California home (maintaining it raises "closer connection" risk)</li>
+<li>Minimize days physically present in California (stay under the "safe harbor" — typically less than 45 days per year)</li>
+<li>Change professional licenses, club memberships, and doctor/dentist to the new state</li>
+<li>Move bank accounts, brokerage accounts, and advisory relationships</li>
+<li>Be prepared for a California audit up to 4 years after departure. FTB examiners look at credit card statements, cell phone records, and social media posts to prove continued California presence</li>
+</ul>
+
+<div class="tip"><strong>California "source income" rule:</strong> Even if you move to Texas, any stock options or RSUs that vested while you were a California resident — or that relate to services performed in California — are subject to California tax based on the percentage of the vesting period spent in California. California will also tax any income from California-source activities (California rental income, California-based consulting). Moving before a large liquidity event is far more effective than moving after.</div>
+
+<h3>Installment Sales (<span class="irs-ref">§453</span>)</h3>
+<p>An installment sale allows you to spread the recognition of gain over multiple years as payments are received. This is useful for selling a business, real estate, or other high-value assets. Each payment is split into three components: return of basis (tax-free), gain (capital gains rate), and interest (ordinary income). The benefit is tax bracket management — spreading a $5M gain over 5 years at a lower marginal rate rather than recognizing it all in one year.</p>
+
+<p>Limitations: installment sale treatment is not available for inventory, publicly traded securities, or depreciation recapture (which is recognized in full in Year 1). The related-party rules under <span class="irs-ref">§453(e)</span> can trigger acceleration if the buyer resells within 2 years.</p>
+
+<h3>Net Unrealized Appreciation (NUA)</h3>
+<p>If you hold employer stock in your 401(k), the NUA strategy allows you to distribute the employer shares "in kind" (not as a rollover to an IRA) and pay ordinary income tax only on the original cost basis of the shares. The appreciation (NUA) is taxed at long-term capital gains rates when you eventually sell, regardless of your holding period. For employer stock with significant appreciation inside a 401(k), this can save the difference between the 37% ordinary rate and the 20% LTCG rate on the NUA portion.</p>
+
+<p>Requirements: you must take a lump-sum distribution of your entire 401(k) balance (not just the employer stock) in the same tax year, triggered by one of these events: separation from service, reaching age 59½, disability, or death. The non-employer-stock portion can be rolled to an IRA.</p>
+
+<h3>Defined Benefit Plans for High Earners</h3>
+<p>If you have significant Schedule C or 1099 income, a defined benefit (DB) plan allows contributions far exceeding 401(k) limits — potentially $200,000–$300,000+ per year depending on your age and desired benefit. The contributions are fully tax-deductible. For a tech executive with even modest consulting income ($50K–$200K), a DB plan can shelter a large portion at the highest marginal rate. The plan must be maintained for at least 3 years and requires actuarial administration ($2,000–$5,000/year).</p>
+
+<div class="example"><strong>Example — DB Plan for Consulting Income:</strong><br>
+Age 50, $100,000 in 1099 consulting income. A DB plan allows an approximately $80,000 annual contribution (varies with actuarial calculation). Tax savings at 50% marginal rate: $40,000/year. Over 15 years with investment growth, this shelter accumulates $1.5M+ in tax-deferred retirement savings beyond your employer 401(k).</div>
+
+<h3>Tax-Inefficient Portfolio Restructuring</h3>
+<p>A managed brokerage portfolio generating heavy ordinary dividends and interest income — rather than qualified dividends or tax-managed growth — is one of the most common and fixable wealth drags for high earners.</p>
+
+<div class="example"><strong>Case Study — The Tax-Inefficient Portfolio:</strong><br><br>
+A dual-income household holds a managed portfolio at a major brokerage generating $106,000 in ordinary dividends (none qualifying for the lower qualified dividend rate) plus $21,000 in taxable interest income. At a ~50% combined marginal rate, this portfolio generates approximately <strong>$63,500/year in unnecessary tax drag</strong>.<br><br>
+<strong>The problem:</strong> The portfolio likely holds actively managed funds or non-qualified dividend-paying investments (REITs, certain foreign funds, preferred stocks, or bond funds) in a taxable account — the worst possible asset location.<br><br>
+<strong>The fix — a 3-step restructuring:</strong><br>
+1. <strong>Move tax-inefficient assets to tax-deferred accounts:</strong> Transfer bond funds, REIT funds, and actively managed funds generating ordinary income to your Traditional 401(k) and IRA. These accounts shelter ordinary income from current taxation<br>
+2. <strong>Replace taxable account holdings with tax-efficient assets:</strong> In the taxable brokerage, hold total-market index ETFs (VTI, VXUS) that generate mostly qualified dividends and minimal capital gain distributions, and California municipal bond funds (VCADX) for the fixed-income allocation<br>
+3. <strong>Consider direct indexing:</strong> For the equity allocation in taxable accounts, move to a direct indexing strategy for ongoing tax-loss harvesting<br><br>
+<strong>Estimated annual tax savings from restructuring:</strong><br>
+$106K ordinary dividends → eliminated from taxable account (moved to tax-deferred) = $53K tax saved<br>
+$21K taxable interest → replaced with CA muni bonds (tax-exempt) = $10.5K tax saved<br>
+New taxable account generates ~$30K in qualified dividends (taxed at 23.8% instead of 50%) = ~$8K additional tax<br>
+<strong>Net annual savings: approximately $55,000–$60,000/year</strong></div>
+
+<div class="warning"><strong>Transition tax cost:</strong> Selling the existing portfolio to restructure will trigger capital gains on embedded appreciation. This is a one-time cost that must be weighed against the annual ongoing savings. If the portfolio has limited gains (or losses available for harvesting), the restructuring can be done with minimal tax impact. If there are significant gains, transition over 2–3 years, harvesting losses from other positions to offset.</div>
+
+<h3>Tax Bracket Management and Income Smoothing</h3>
+<p>Income smoothing is the practice of managing the timing of income and deductions to minimize lifetime taxes. Key techniques:</p>
+<ul>
+<li><strong>Accelerate deductions into high-income years:</strong> Bunch charitable contributions, prepay state tax estimates (careful of AMT), and make retirement contributions in years with peak RSU vesting</li>
+<li><strong>Defer income to lower-bracket years:</strong> Delay RSU vest sales (where possible via 10b5-1 plans structured over time), use installment sales for asset dispositions, time Roth conversions to gap years</li>
+<li><strong>Monitor the ACA cliff, IRMAA brackets, and NIIT threshold:</strong> These phase-outs and surtaxes create effective marginal rates that can exceed the stated bracket. For most $5M earners, you are well above all these thresholds, but they matter during early retirement or transition years</li>
+</ul>
+
+<h3>Captive Insurance</h3>
+<p>A captive insurance company is a wholly-owned subsidiary that insures risks of the parent company (or its owner's business). Premiums paid to the captive are deductible business expenses, and a small captive (<span class="irs-ref">§831(b)</span>) can elect to be taxed only on investment income (not premium income) up to $2.8M in premiums. This can be a legitimate risk management and tax planning tool for business owners with real insurable risks. However, the IRS has placed micro-captives on its "Dirty Dozen" list of abusive tax schemes and has won several court cases against captives lacking legitimate insurance purpose. Only pursue this with a reputable captive manager and genuine risk transfer.</p>
+
+<h3>Oil & Gas Investments</h3>
+<p>Oil and gas working interests offer unique tax benefits: intangible drilling costs (IDCs) — typically 60–80% of the investment — are fully deductible in the year incurred against ordinary income. A $200,000 investment might generate $140,000 in Year 1 deductions, saving $70,000 at a 50% rate. Additionally, working interests (not limited partnership interests) are not subject to passive activity limitations. The economics of the underlying oil/gas play must justify the investment independent of tax benefits — many promoters sell tax shelter economics that do not produce actual returns.</p>
+
+<button class="mark-complete" onclick="markComplete(8)"><span class="ck"></span> Mark Module 8 Complete</button>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════ MODULE 9 ════════════════════════════════════════════ -->
+<div class="module" id="module-9">
+<div class="module-header" onclick="toggleModule(9)">
+<div class="mod-num">9</div>
+<div class="mod-title"><h2>Insurance & Risk Management</h2><p>Life insurance, ILITs, umbrella policies, LTC, and disability</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>Life Insurance as a Wealth Transfer Tool</h3>
+<p>Life insurance proceeds are income-tax-free to beneficiaries under <span class="irs-ref">§101</span>, making life insurance one of the most efficient wealth transfer mechanisms. However, life insurance owned by the insured is included in the taxable estate. For a dual-income household with $5M+ annual income and a growing estate approaching the exemption threshold, an Irrevocable Life Insurance Trust (ILIT) is essential.</p>
+
+<h4>Term vs. Permanent Insurance</h4>
+<p>For most high-income earners, a combination works best:</p>
+<ul>
+<li><strong>Term insurance:</strong> Covers the "human capital" risk — the capitalized value of your future earnings. A 45-year-old VP earning $2M+/year should carry $5–10M in 20-year level term coverage. Cost: approximately $3,000–$8,000/year for a healthy individual. This is pure protection, not an investment</li>
+<li><strong>Permanent insurance (whole life or survivorship life):</strong> Used specifically as an estate planning tool inside an ILIT. A survivorship (second-to-die) policy is cheaper because it pays out on the second spouse's death (when the estate tax is actually due). A $5M survivorship policy for a healthy couple in their 40s might cost $20,000–$40,000/year in premiums</li>
+</ul>
+
+<div class="warning"><strong>Avoid:</strong> Variable universal life (VUL), indexed universal life (IUL), and other permanent insurance products sold as "investment vehicles" or "tax-free retirement income" strategies. The fees are typically 2–3% annually, and the investment returns are mediocre compared to simply investing in index funds. These products enrich the insurance agent (who earns 50–100% of the first-year premium as commission) far more than the policyholder. Exception: inside an ILIT for estate tax purposes, permanent insurance has a legitimate role.</div>
+
+<h3>Irrevocable Life Insurance Trusts (ILITs) — Mechanics</h3>
+<p>The ILIT owns the insurance policy, keeping the death benefit outside your taxable estate. Key operational requirements:</p>
+<ol>
+<li><strong>The trust must be irrevocable</strong> — you cannot be the trustee or retain any incidents of ownership in the policy</li>
+<li><strong>Fund premiums via annual gifts:</strong> You contribute the premium amount to the trust. Using the annual gift exclusion ($18,000 per beneficiary in 2024), a trust with 4 beneficiaries (spouse + 3 children) can receive $72,000/year without using any lifetime exemption</li>
+<li><strong>Crummey notices:</strong> The trustee must send written notices to beneficiaries giving them the right to withdraw contributions for a limited period (typically 30–60 days). This converts the gift into a "present interest" qualifying for the annual exclusion. Beneficiaries must have actual notice and actual ability to withdraw — the letters are not a formality</li>
+<li><strong>The 3-year rule (<span class="irs-ref">§2035</span>):</strong> If you transfer an existing policy to an ILIT and die within 3 years, the proceeds are pulled back into your estate. Solution: have the ILIT purchase a new policy rather than transferring an existing one</li>
+</ol>
+
+<h3>Umbrella Liability Insurance</h3>
+<p>For high-net-worth households, umbrella insurance is essential and inexpensive. A $5M umbrella policy typically costs $500–$1,500/year and extends coverage beyond the limits of your homeowner's and auto policies. It covers personal liability claims, libel, slander, and certain lawsuits. At $5M+ annual income with growing wealth, carry at least $5–10M in umbrella coverage. Some carriers offer up to $25M–$50M for ultra-high-net-worth clients.</p>
+
+<h3>Long-Term Care Insurance</h3>
+<p>Long-term care (LTC) is a major wealth risk: the average cost of a private nursing home room exceeds $100,000/year, and a multi-year stay can deplete even substantial estates. Options include:</p>
+<ul>
+<li><strong>Traditional LTC insurance:</strong> Covers nursing home, assisted living, and home care. Premiums increase with age; buying in your 50s locks in lower rates. Deductible as a medical expense if premiums exceed 7.5% of AGI (unlikely for high earners), but the benefits received are generally tax-free up to per diem limits</li>
+<li><strong>Hybrid life/LTC policies:</strong> Combine a life insurance policy with LTC benefits. If you need long-term care, the death benefit is accelerated to pay for it. If you don't, your heirs receive the death benefit. These eliminate the "use it or lose it" concern of traditional LTC. Premium: $100,000–$300,000 lump sum or paid over 5–10 years</li>
+<li><strong>Self-insure:</strong> With $10M+ in investable assets, some wealthy families choose to self-insure LTC costs. The risk is that LTC costs can be catastrophic ($300K+/year for specialized memory care). A hybrid policy provides a middle ground</li>
+</ul>
+
+<h3>Disability Insurance for High Earners</h3>
+<p>Disability insurance replaces income if you cannot work due to illness or injury. Group disability through your employer typically covers 60% of base salary, capped at $15,000–$20,000/month — far below the total compensation for a VP/CTO. Supplemental individual disability insurance can add coverage up to $30,000–$40,000/month.</p>
+
+<p>Key features to insure:</p>
+<ul>
+<li><strong>"Own occupation" definition:</strong> Pays if you cannot perform your specific occupation (VP of Engineering), not just any occupation</li>
+<li><strong>Non-cancellable and guaranteed renewable:</strong> The insurer cannot raise premiums or cancel the policy as long as you pay</li>
+<li><strong>Future increase option:</strong> Allows you to increase coverage as your income grows without medical underwriting</li>
+<li><strong>Residual/partial disability benefit:</strong> Pays proportionally if you can work but at reduced capacity/income</li>
+</ul>
+
+<button class="mark-complete" onclick="markComplete(9)"><span class="ck"></span> Mark Module 9 Complete</button>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════════════════ MODULE 10 ════════════════════════════════════════════ -->
+<div class="module" id="module-10">
+<div class="module-header" onclick="toggleModule(10)">
+<div class="mod-num">10</div>
+<div class="mod-title"><h2>The Wealth Planning Playbook</h2><p>Decision trees, sample scenarios, advisor selection, annual calendar, and checklists</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<h3>Decision Tree: Which Strategies Apply to a ~$5M Dual-Income Tech Household?</h3>
+<p>Not every strategy in this course applies to every household. Here is a decision framework calibrated for a dual-income tech household in California with approximately $5M in total income, heavy RSU compensation, and growing wealth:</p>
+
+<table>
+<tr><th>Strategy</th><th>Applies?</th><th>Priority</th><th>Estimated Annual Tax Impact</th></tr>
+<tr><td>Fix zero-basis RSU reporting</td><td>Yes — immediate</td><td style="color:var(--red)">CRITICAL</td><td>$37,000–$130,000+ (one-time recovery via amended returns)</td></tr>
+<tr><td>Restructure tax-inefficient portfolio</td><td>Yes — immediate</td><td style="color:var(--red)">CRITICAL</td><td>$55,000–$60,000/year ongoing</td></tr>
+<tr><td>DAF with appreciated stock (bunching)</td><td>Yes — biggest charitable lever</td><td style="color:var(--red)">CRITICAL</td><td>$100,000–$250,000/year (deduction value)</td></tr>
+<tr><td>Safe harbor estimated tax payments</td><td>Yes — immediate</td><td style="color:var(--accent)">HIGH</td><td>$15,000–$20,000/year (penalty avoidance)</td></tr>
+<tr><td>Max 401(k) pre-tax deferrals</td><td>Presumably already doing</td><td style="color:var(--accent)">HIGH</td><td>$11,500 (at 50% rate on $23K)</td></tr>
+<tr><td>Mega backdoor Roth</td><td>If plans allow</td><td style="color:var(--accent)">HIGH</td><td>$15,000–$20,000/year in future tax savings</td></tr>
+<tr><td>Backdoor Roth IRA (both spouses)</td><td>Yes</td><td style="color:var(--accent)">HIGH</td><td>Modest now, large over decades</td></tr>
+<tr><td>Tax-loss harvesting / direct indexing</td><td>Yes — taxable portfolio</td><td style="color:var(--accent)">HIGH</td><td>$20,000–$40,000/year (early years)</td></tr>
+<tr><td>Asset location optimization</td><td>Yes — across all accounts</td><td style="color:var(--accent)">HIGH</td><td>$10,000–$25,000/year</td></tr>
+<tr><td>CRUT for concentrated RSU positions</td><td>If charitable intent exists</td><td style="color:var(--blue)">MEDIUM</td><td>$200,000–$500,000+ (one-time event)</td></tr>
+<tr><td>SLAT before 2026 sunset</td><td>Yes — if estate > $7M/person</td><td style="color:var(--blue)">MEDIUM</td><td>Potentially $2M–$5M estate tax saved</td></tr>
+<tr><td>ESPP optimization</td><td>If available</td><td style="color:var(--blue)">MEDIUM</td><td>$3,000–$8,000/year</td></tr>
+<tr><td>PTET election for LLC/Schedule C income</td><td>Marginal at current income level</td><td>LOW</td><td>~$1,000–$3,000</td></tr>
+<tr><td>Defined benefit plan for consulting income</td><td>Only if consulting grows</td><td>LOW</td><td>Depends on contributions</td></tr>
+<tr><td>Opportunity Zone investment</td><td>Optional for capital gains deferral</td><td>LOW</td><td>Deferral, not elimination</td></tr>
+</table>
+
+<h3>Sample Scenario: Annual Tax Optimization for a $5M Dual-Income Tech Household</h3>
+
+<div class="example"><strong>Current Situation (Before Optimization):</strong><br>
+Total income: ~$5,150,000<br>
+W-2 wages (both spouses, RSU-heavy): ~$4,140,000<br>
+Net capital gains (LTCG): ~$605,000 (includes $467K with zero basis reported)<br>
+Ordinary dividends: ~$329,000 (only $82K qualified, $247K non-qualified)<br>
+Taxable interest: ~$32,000<br>
+Schedule C/LLC: ~$9,000 net<br>
+K-1 passive: $2,000 income, $29,000 suspended losses<br>
+Charitable giving: $2,550<br>
+State/property tax paid: ~$597,000 (only $10K deductible federally)<br>
+Estimated tax penalties: ~$15,000–$20,000/year<br>
+<strong>Total tax bill: ~$2,310,000 (~45% effective rate)</strong><br><br>
+
+<strong>After Optimization (Year 1):</strong><br><br>
+
+<strong>1. Fix zero-basis reporting (one-time):</strong> Amend 3 prior years of returns correcting $467K of zero-basis RSU sales. If actual basis is $300K, recover approximately <strong>$111,000</strong> in refunds (3 years × $37K).<br><br>
+
+<strong>2. DAF with $500K of appreciated RSUs:</strong><br>
+Charitable deduction: $500,000 (within 30% of AGI limit)<br>
+Capital gains avoided: ~$185,000 (on $500K of stock with ~$100K basis)<br>
+Income tax savings from deduction: ~$250,000 (at 50% marginal rate)<br>
+Total first-year benefit: <strong>~$435,000</strong><br>
+You still grant only $20K–$50K/year from the DAF to charities — the rest grows tax-free for future giving<br><br>
+
+<strong>3. Restructure Morgan Stanley portfolio:</strong><br>
+Move bond funds and non-qualified-dividend assets to tax-deferred accounts<br>
+Replace taxable holdings with index ETFs and CA munis<br>
+Annual savings: <strong>~$55,000/year</strong><br><br>
+
+<strong>4. Set up safe harbor estimated payments:</strong><br>
+Pay 110% of prior year tax liability in quarterly estimates<br>
+Penalty savings: <strong>~$17,000/year</strong><br><br>
+
+<strong>5. Mega backdoor Roth (both spouses, if plans allow):</strong><br>
+Additional Roth contributions: ~$70,000–$80,000 combined<br>
+Future tax savings (over 20 years at 7% growth): <strong>~$300,000–$500,000</strong><br><br>
+
+<strong>6. Tax-loss harvesting in taxable accounts:</strong><br>
+Move to direct indexing platform (Aperio/Parametric/Wealthfront)<br>
+Estimated Year 1 harvest: $100,000–$200,000 in losses<br>
+Tax savings: <strong>~$50,000–$100,000</strong><br><br>
+
+<strong>Combined Year 1 savings: approximately $650,000–$850,000</strong><br>
+<strong>Ongoing annual savings: approximately $120,000–$150,000/year</strong><br>
+<strong>Optimized effective rate: ~38–40% (down from ~45%)</strong></div>
+
+<h3>Fixing Underpayment Penalties: Safe Harbor Rules</h3>
+<p>The IRS imposes penalties for underpayment of estimated taxes when you owe more than $1,000 at filing and haven't paid at least the lesser of (a) 90% of current year tax or (b) 110% of prior year tax (the "safe harbor" — 110% applies when AGI exceeds $150,000). For a $5M-income household with a $2.3M tax bill, missing the safe harbor by even a small margin triggers penalties in the $15,000–$20,000 range.</p>
+
+<div class="highlight"><strong>The fix is straightforward:</strong><br>
+1. Calculate 110% of your prior year's total tax liability (e.g., $2,310,000 × 110% = $2,541,000)<br>
+2. Divide by 4 ($635,250 per quarter)<br>
+3. Ensure total withholding (W-2 + estimated payments) meets this amount by each quarterly deadline (4/15, 6/15, 9/15, 1/15)<br>
+4. W-2 withholding counts as paid evenly throughout the year (even if concentrated in certain months). If your W-2 withholding will be close, have HR increase supplemental withholding or make estimated payments for the shortfall<br>
+5. For volatile income (large RSU vests in specific quarters), consider the "annualized income installment method" (Form 2210 Schedule AI) to avoid penalties in quarters with irregular income</div>
+
+<h3>Working with Financial Advisors: What to Look For</h3>
+<h4>Fee Structures — Know What You Are Paying</h4>
+<table>
+<tr><th>Fee Model</th><th>Typical Cost</th><th>Alignment</th><th>Watch Out For</th></tr>
+<tr><td>AUM (Assets Under Management)</td><td>0.5%–1.0% of portfolio</td><td>Advisor benefits from growing your portfolio</td><td>At $5M+ portfolio, 1% = $50,000+/year. Negotiate to 0.5% or lower. Total fees (advisor + funds) should be under 0.75%</td></tr>
+<tr><td>Flat fee / retainer</td><td>$5,000–$25,000/year</td><td>Best alignment — advisor paid for advice, not asset gathering</td><td>Less common; seek out fee-only RIAs</td></tr>
+<tr><td>Hourly</td><td>$200–$500/hour</td><td>Good for specific questions</td><td>Can get expensive for ongoing planning</td></tr>
+<tr><td>Commission-based</td><td>Hidden in product loads/fees</td><td>Worst alignment — advisor incentivized to sell products</td><td>Avoid entirely. Broker-dealers and insurance agents often work on commission</td></tr>
+</table>
+
+<h4>Credentials to Look For</h4>
+<ul>
+<li><strong>CFP (Certified Financial Planner):</strong> Comprehensive planning credential. Good baseline</li>
+<li><strong>CPA/PFS (CPA with Personal Financial Specialist):</strong> Strong on tax integration. Ideal for tax-focused wealth planning</li>
+<li><strong>CFA (Chartered Financial Analyst):</strong> Deep investment expertise. Good for portfolio management</li>
+<li><strong>CPWA (Certified Private Wealth Advisor):</strong> Specialized in high-net-worth planning. Excellent for estate and advanced strategies</li>
+<li><strong>Fiduciary obligation:</strong> RIA (Registered Investment Advisor) firms have a fiduciary duty to act in your best interest. Broker-dealers (like many major wirehouse advisors) operate under a lower "suitability" standard. Always confirm your advisor is a fiduciary</li>
+</ul>
+
+<h3>Annual Tax Planning Calendar</h3>
+<table>
+<tr><th>Month</th><th>Action Items</th></tr>
+<tr><td>January</td><td>Review prior year estimated tax payments. Set up current year estimated payment schedule. Begin gathering tax documents. Review RSU vesting schedule for the year. Make Q4 estimated payment (due Jan 15)</td></tr>
+<tr><td>February–March</td><td>Receive W-2s, 1099s, K-1s. Schedule meeting with CPA. Review brokerage 1099-B for RSU cost basis accuracy</td></tr>
+<tr><td>April</td><td>File or extend federal and CA returns. Make Q1 estimated payment. Fund backdoor Roth IRA for current year (or prior year if before April 15). Fund HSA for prior year if not maxed</td></tr>
+<tr><td>May–June</td><td>Make Q2 estimated payment (June 15). Review asset location across all accounts. Consider mid-year tax-loss harvesting. Confirm mega backdoor Roth contributions are flowing</td></tr>
+<tr><td>July–August</td><td>Mid-year tax projection with CPA. Review charitable giving plan — consider DAF contribution of appreciated stock. Review estate plan documents, especially if approaching 2026 sunset</td></tr>
+<tr><td>September</td><td>Make Q3 estimated payment (Sept 15). File extended returns if not already filed. Review year-to-date capital gains/losses — harvest losses if available</td></tr>
+<tr><td>October–November</td><td>Year-end tax planning meeting with CPA. Execute tax-loss harvesting. Make DAF contributions for current year deduction. Review RSU lot selection for any planned sales. Consider Roth conversions if income is lower than expected</td></tr>
+<tr><td>December</td><td>Final charitable contributions. Ensure safe harbor estimated payments are met. Review and rebalance portfolios (tax-efficiently). Confirm all retirement account contributions are maximized. Review any capital gains distributions from mutual funds (should be minimal with index ETFs)</td></tr>
+</table>
+
+<h3>International Considerations: FBAR and Form 8938</h3>
+<p>If you hold financial accounts outside the United States (bank accounts, brokerage accounts, mutual funds, insurance policies with cash value, pension accounts) with an aggregate value exceeding $10,000 at any point during the year, you must file FinCEN Form 114 (FBAR) by April 15. Additionally, if your specified foreign financial assets exceed $50,000 on the last day of the year or $75,000 at any point (higher thresholds for married filing jointly: $100,000/$150,000), you must report them on Form 8938 with your tax return.</p>
+
+<div class="warning"><strong>Penalties for non-compliance are severe:</strong> FBAR penalties can reach $10,000 per account per year for non-willful violations, and the greater of $100,000 or 50% of account balance for willful violations. If you hold accounts at foreign banks (including accounts in India with institutions like ICICI Bank, SBI, HDFC, etc.), ensure you are filing both FBAR and Form 8938. Also review whether foreign account interest income is being reported on Schedule B, and whether you are claiming the foreign tax credit for any taxes paid to foreign governments.</div>
+
+<h3>Strategy Evaluation Checklist</h3>
+<ul class="checklist">
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Review all 1099-B forms for correct RSU cost basis — fix zero-basis reporting and file 1040-X for prior years</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Audit current brokerage portfolio for tax efficiency — identify ordinary dividend sources and restructure</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Open Donor-Advised Fund and contribute $250K–$500K+ of appreciated RSU stock before year-end</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Calculate safe harbor estimated tax payment and set up quarterly payments for 110% of prior year tax</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Verify both spouses' 401(k) plans allow after-tax contributions + in-plan Roth conversions (mega backdoor)</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Execute backdoor Roth IRA for both spouses ($7,000 each, or $8,000 if 50+)</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Review HSA eligibility and max-fund if eligible ($8,300 family in 2024)</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Evaluate direct indexing vs. ETF approach for taxable brokerage (minimum $500K for cost-effectiveness)</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Review asset location — move bonds, REITs, and ordinary-income generators to tax-deferred accounts</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Meet with estate attorney to discuss SLAT and/or dynasty trust before 2026 exemption sunset</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Review life insurance needs — consider ILIT for estate tax-free death benefit</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Evaluate umbrella insurance coverage (should be $5M–$10M minimum)</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Confirm FBAR and Form 8938 filings are current for all foreign accounts</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Schedule annual tax planning meeting with CPA for October/November</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Review ESPP participation — maximize if offered, consider immediate-sale strategy</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Evaluate CRUT suitability for any concentrated stock position over $1M with low basis</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Review 529 plan contributions for children's education</span></li>
+<li onclick="toggleCheck(this)"><span class="ck"></span><span>Check suspended passive losses — evaluate strategies to release (disposition or material participation)</span></li>
+</ul>
+
+<button class="mark-complete" onclick="markComplete(10)"><span class="ck"></span> Mark Module 10 Complete</button>
+</div>
+</div>
+
+
+<!-- ════════════════════════════════════════════ CALCULATORS ════════════════════════════════════════════ -->
+<div class="module" id="module-calc">
+<div class="module-header" onclick="toggleModule('calc')">
+<div class="mod-num" style="background:linear-gradient(135deg,var(--blue),var(--purple))">⚙</div>
+<div class="mod-title"><h2>Interactive Calculators</h2><p>CRUT savings, Roth conversion, DAF benefit, and tax-loss harvesting estimators</p></div>
+<span class="chevron">▼</span>
+</div>
+<div class="module-body">
+
+<div class="calc-box">
+<h4>CRUT Tax Savings Calculator</h4>
+<p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Estimate the tax benefit of contributing appreciated assets to a Charitable Remainder Unitrust vs. selling directly.</p>
+<div class="calc-grid">
+<div class="calc-field"><label>Asset Fair Market Value ($)</label><input type="number" id="crut-fmv" value="2000000"></div>
+<div class="calc-field"><label>Cost Basis ($)</label><input type="number" id="crut-basis" value="200000"></div>
+<div class="calc-field"><label>Your Age</label><input type="number" id="crut-age" value="45"></div>
+<div class="calc-field"><label>CRUT Payout Rate (%)</label><input type="number" id="crut-rate" value="5" min="5" max="50"></div>
+<div class="calc-field"><label>Federal LTCG + NIIT Rate (%)</label><input type="number" id="crut-fed" value="23.8"></div>
+<div class="calc-field"><label>State Tax Rate (%)</label><input type="number" id="crut-state" value="13.3"></div>
+</div>
+<button class="calc-btn" onclick="calcCRUT()">Calculate CRUT Benefit</button>
+<div id="crut-result" style="display:none"></div>
+</div>
+
+<div class="calc-box">
+<h4>DAF Appreciated Stock Donation Calculator</h4>
+<p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Compare donating appreciated stock to a DAF vs. selling the stock and donating cash.</p>
+<div class="calc-grid">
+<div class="calc-field"><label>Stock Fair Market Value ($)</label><input type="number" id="daf-fmv" value="500000"></div>
+<div class="calc-field"><label>Cost Basis ($)</label><input type="number" id="daf-basis" value="100000"></div>
+<div class="calc-field"><label>Your AGI ($)</label><input type="number" id="daf-agi" value="5150000"></div>
+<div class="calc-field"><label>Combined Marginal Tax Rate (%)</label><input type="number" id="daf-rate" value="50.3"></div>
+</div>
+<button class="calc-btn" onclick="calcDAF()">Calculate DAF Benefit</button>
+<div id="daf-result" style="display:none"></div>
+</div>
+
+<div class="calc-box">
+<h4>Tax-Loss Harvesting Value Calculator</h4>
+<p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Estimate the present value of tax-loss harvesting in a direct-indexed portfolio.</p>
+<div class="calc-grid">
+<div class="calc-field"><label>Portfolio Value ($)</label><input type="number" id="tlh-port" value="3000000"></div>
+<div class="calc-field"><label>Expected Annual Harvest (% of portfolio)</label><input type="number" id="tlh-harvest" value="2" step="0.5"></div>
+<div class="calc-field"><label>Combined Tax Rate on Gains (%)</label><input type="number" id="tlh-rate" value="37.1"></div>
+<div class="calc-field"><label>Years of Harvesting</label><input type="number" id="tlh-years" value="10"></div>
+</div>
+<button class="calc-btn" onclick="calcTLH()">Calculate TLH Value</button>
+<div id="tlh-result" style="display:none"></div>
+</div>
+
+<div class="calc-box">
+<h4>Roth Conversion Break-Even Calculator</h4>
+<p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Estimate when a Roth conversion breaks even vs. leaving money in a Traditional IRA.</p>
+<div class="calc-grid">
+<div class="calc-field"><label>Conversion Amount ($)</label><input type="number" id="roth-amt" value="100000"></div>
+<div class="calc-field"><label>Current Marginal Tax Rate (%)</label><input type="number" id="roth-now" value="50.3"></div>
+<div class="calc-field"><label>Expected Retirement Tax Rate (%)</label><input type="number" id="roth-later" value="35"></div>
+<div class="calc-field"><label>Expected Annual Return (%)</label><input type="number" id="roth-return" value="7"></div>
+</div>
+<button class="calc-btn" onclick="calcRoth()">Calculate Break-Even</button>
+<div id="roth-result" style="display:none"></div>
+</div>
+
+<div class="calc-box">
+<h4>Zero-Basis RSU Overpayment Calculator</h4>
+<p style="font-size:.85rem;color:var(--text2);margin-bottom:16px">Estimate how much you may have overpaid in taxes due to incorrect RSU cost basis reporting.</p>
+<div class="calc-grid">
+<div class="calc-field"><label>Reported Capital Gain (from 1099-B) ($)</label><input type="number" id="basis-reported" value="467000"></div>
+<div class="calc-field"><label>Estimated Correct Basis ($)</label><input type="number" id="basis-correct" value="300000"></div>
+<div class="calc-field"><label>Federal LTCG + NIIT Rate (%)</label><input type="number" id="basis-fed" value="23.8"></div>
+<div class="calc-field"><label>State Tax Rate (%)</label><input type="number" id="basis-state" value="13.3"></div>
+<div class="calc-field"><label>Number of Years to Amend</label><input type="number" id="basis-years" value="3"></div>
+</div>
+<button class="calc-btn" onclick="calcBasis()">Calculate Overpayment</button>
+<div id="basis-result" style="display:none"></div>
+</div>
+
+</div>
+</div>
+
+<!-- ════════════════════════════════════════════ FOOTER ════════════════════════════════════════════ -->
+<div class="disclaimer" style="margin-top:60px">
+<strong>Final Disclaimer:</strong> This course is educational material only. It does not constitute financial, legal, or tax advice. Tax laws are complex, change frequently, and their application depends on individual circumstances. The strategies discussed involve significant financial decisions with potential legal and tax consequences. Before implementing any strategy, consult with a qualified CPA, tax attorney, estate planning attorney, and/or Certified Financial Planner who is familiar with your complete financial situation. Numbers cited are based on 2024–2025 tax law and may change. California-specific rules apply to California residents and may differ in other states.
+</div>
+
+</main>
+
+<script>
+// State management
+var completedModules = {};
+var allModules = [1,2,3,4,5,6,7,8,9,10];
+
+// Module toggle
+function toggleModule(id) {
+  var body = document.querySelector('#module-' + id + ' .module-body');
+  var chevron = document.querySelector('#module-' + id + ' .chevron');
+  if (!body) return;
+  var isOpen = body.classList.contains('open');
+  body.classList.toggle('open');
+  if (chevron) chevron.classList.toggle('open');
+  if (!isOpen) body.classList.add('fade-in');
+}
+
+// Sidebar navigation
+function scrollToModule(id) {
+  var el = document.getElementById('module-' + id);
+  if (!el) return;
+  var body = el.querySelector('.module-body');
+  var chevron = el.querySelector('.chevron');
+  if (body && !body.classList.contains('open')) {
+    body.classList.add('open', 'fade-in');
+    if (chevron) chevron.classList.add('open');
+  }
+  el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  // Update active nav
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  var navItem = document.querySelector('.nav-item[data-mod="' + id + '"]');
+  if (navItem) navItem.classList.add('active');
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+  }
+}
+
+// Mark module complete
+function markComplete(id) {
+  completedModules[id] = !completedModules[id];
+  var btn = document.querySelector('#module-' + id + ' .mark-complete');
+  if (btn) {
+    btn.classList.toggle('done', completedModules[id]);
+    var ck = btn.querySelector('.ck');
+    if (ck) ck.innerHTML = completedModules[id] ? '&#10003;' : '';
+  }
+  // Update nav
+  var navItem = document.querySelector('.nav-item[data-mod="' + id + '"]');
+  if (navItem) navItem.classList.toggle('completed', completedModules[id]);
+  updateProgress();
+}
+
+function updateProgress() {
+  var count = 0;
+  allModules.forEach(function(m) { if (completedModules[m]) count++; });
+  var pct = Math.round((count / allModules.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = count + '/' + allModules.length;
+}
+
+// Sidebar toggle (mobile)
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Checklist
+function toggleCheck(li) {
+  li.classList.toggle('checked');
+}
+
+// Search
+function handleSearch(query) {
+  var results = document.getElementById('searchResults');
+  if (!query || query.length < 3) { results.style.display = 'none'; return; }
+  var modules = document.querySelectorAll('.module');
+  var matches = [];
+  query = query.toLowerCase();
+  modules.forEach(function(mod) {
+    var id = mod.id.replace('module-', '');
+    var title = mod.querySelector('.mod-title h2');
+    var body = mod.querySelector('.module-body');
+    if (!body || !title) return;
+    var text = body.textContent || body.innerText;
+    var titleText = title.textContent;
+    var idx = text.toLowerCase().indexOf(query);
+    if (idx > -1 || titleText.toLowerCase().indexOf(query) > -1) {
+      var snippet = '';
+      if (idx > -1) {
+        var start = Math.max(0, idx - 40);
+        var end = Math.min(text.length, idx + query.length + 60);
+        snippet = (start > 0 ? '...' : '') + text.substring(start, end).replace(new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<span class="search-highlight">$1</span>') + (end < text.length ? '...' : '');
+      }
+      matches.push({id: id, title: titleText, snippet: snippet});
+    }
+  });
+  if (matches.length === 0) {
+    results.innerHTML = '<div class="sr-item" style="color:var(--text2)">No results found</div>';
+  } else {
+    results.innerHTML = matches.map(function(m) {
+      return '<div class="sr-item" onclick="scrollToModule(\'' + m.id + '\');document.getElementById(\'searchResults\').style.display=\'none\';document.getElementById(\'searchInput\').value=\'\';"><div class="sr-mod">Module ' + m.id + ': ' + m.title + '</div>' + (m.snippet ? '<div style="font-size:.8rem;color:var(--text2)">' + m.snippet + '</div>' : '') + '</div>';
+    }).join('');
+  }
+  results.style.display = 'block';
+}
+
+// Close search results on outside click
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.search-box')) {
+    document.getElementById('searchResults').style.display = 'none';
+  }
+});
+
+// CRUT Calculator
+function calcCRUT() {
+  var fmv = parseFloat(document.getElementById('crut-fmv').value) || 0;
+  var basis = parseFloat(document.getElementById('crut-basis').value) || 0;
+  var age = parseInt(document.getElementById('crut-age').value) || 45;
+  var rate = parseFloat(document.getElementById('crut-rate').value) || 5;
+  var fed = parseFloat(document.getElementById('crut-fed').value) || 23.8;
+  var state = parseFloat(document.getElementById('crut-state').value) || 13.3;
+  var totalRate = (fed + state) / 100;
+  var gain = fmv - basis;
+  var taxAvoided = gain * totalRate;
+  // Simplified deduction estimate (IRS tables approximation)
+  var lifeExp = Math.max(5, 90 - age);
+  var pvFactor = 0;
+  var discountRate = 0.054; // approximate 7520 rate
+  for (var i = 1; i <= lifeExp; i++) {
+    pvFactor += (rate / 100) / Math.pow(1 + discountRate, i);
+  }
+  var remainderFraction = Math.max(0.1, 1 - pvFactor);
+  var deduction = fmv * remainderFraction;
+  var deductionBenefit = deduction * Math.min(0.503, totalRate);
+  var year1payout = fmv * (rate / 100);
+  var directNet = (fmv - gain * totalRate);
+  var directPayout = directNet * (rate / 100);
+
+  var html = '<div class="calc-result">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  html += '<div><div class="label">Capital Gains Tax Avoided</div><div class="value">$' + numberWithCommas(Math.round(taxAvoided)) + '</div></div>';
+  html += '<div><div class="label">Est. Charitable Deduction</div><div class="value">$' + numberWithCommas(Math.round(deduction)) + '</div></div>';
+  html += '<div><div class="label">Deduction Tax Savings</div><div class="value">$' + numberWithCommas(Math.round(deductionBenefit)) + '</div></div>';
+  html += '<div><div class="label">Year 1 CRUT Payout</div><div class="value">$' + numberWithCommas(Math.round(year1payout)) + '</div></div>';
+  html += '<div><div class="label">Direct Sale Year 1 Income (at same %)</div><div class="value" style="color:var(--text2)">$' + numberWithCommas(Math.round(directPayout)) + '</div></div>';
+  html += '<div><div class="label">Total Quantifiable Tax Benefit</div><div class="value" style="color:var(--accent)">$' + numberWithCommas(Math.round(taxAvoided + deductionBenefit)) + '</div></div>';
+  html += '</div>';
+  html += '<p style="font-size:.8rem;color:var(--text2);margin-top:12px">Note: Deduction estimate uses simplified actuarial assumptions. Actual deduction depends on the current IRC 7520 rate, IRS mortality tables, and payout frequency. Consult an actuary or CPA for precise calculations. The remainder must be at least 10% of FMV.</p>';
+  html += '</div>';
+  document.getElementById('crut-result').innerHTML = html;
+  document.getElementById('crut-result').style.display = 'block';
+}
+
+// DAF Calculator
+function calcDAF() {
+  var fmv = parseFloat(document.getElementById('daf-fmv').value) || 0;
+  var basis = parseFloat(document.getElementById('daf-basis').value) || 0;
+  var agi = parseFloat(document.getElementById('daf-agi').value) || 0;
+  var rate = parseFloat(document.getElementById('daf-rate').value) || 50.3;
+  var gain = fmv - basis;
+  var maxDeduction = agi * 0.30; // 30% AGI limit for appreciated property
+  var actualDeduction = Math.min(fmv, maxDeduction);
+  var carryover = Math.max(0, fmv - maxDeduction);
+  var deductionBenefit = actualDeduction * (rate / 100);
+  var gainsAvoided = gain * ((23.8 + 13.3) / 100); // LTCG + NIIT + CA
+  // Compare to selling and donating cash
+  var netFromSale = fmv - gain * ((23.8 + 13.3) / 100);
+  var cashDeductionBenefit = Math.min(netFromSale, agi * 0.60) * (rate / 100);
+  var advantage = deductionBenefit + gainsAvoided - cashDeductionBenefit;
+
+  var html = '<div class="calc-result">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  html += '<div><div class="label">Capital Gains Tax Avoided</div><div class="value">$' + numberWithCommas(Math.round(gainsAvoided)) + '</div></div>';
+  html += '<div><div class="label">Charitable Deduction (Year 1)</div><div class="value">$' + numberWithCommas(Math.round(actualDeduction)) + '</div></div>';
+  html += '<div><div class="label">Tax Savings from Deduction</div><div class="value">$' + numberWithCommas(Math.round(deductionBenefit)) + '</div></div>';
+  html += '<div><div class="label">5-Year Deduction Carryover</div><div class="value" style="color:' + (carryover > 0 ? 'var(--accent)' : 'var(--text2)') + '">$' + numberWithCommas(Math.round(carryover)) + '</div></div>';
+  html += '<div><div class="label">Advantage Over Selling + Donating Cash</div><div class="value" style="color:var(--accent)">$' + numberWithCommas(Math.round(advantage)) + '</div></div>';
+  html += '<div><div class="label">Total Tax Benefit (Stock Donation)</div><div class="value" style="color:var(--accent)">$' + numberWithCommas(Math.round(deductionBenefit + gainsAvoided)) + '</div></div>';
+  html += '</div>';
+  html += '<p style="font-size:.8rem;color:var(--text2);margin-top:12px">Stock must be held >1 year for FMV deduction. 30% AGI limit for appreciated property; excess carries forward 5 years. The DAF itself has no required distribution timeline — you recommend grants at your discretion.</p>';
+  html += '</div>';
+  document.getElementById('daf-result').innerHTML = html;
+  document.getElementById('daf-result').style.display = 'block';
+}
+
+// TLH Calculator
+function calcTLH() {
+  var port = parseFloat(document.getElementById('tlh-port').value) || 0;
+  var harvest = parseFloat(document.getElementById('tlh-harvest').value) || 2;
+  var rate = parseFloat(document.getElementById('tlh-rate').value) || 37.1;
+  var years = parseInt(document.getElementById('tlh-years').value) || 10;
+  var totalHarvest = 0;
+  var totalSavings = 0;
+  var currentPort = port;
+  for (var i = 0; i < years; i++) {
+    var yearHarvest = currentPort * (harvest / 100) * Math.max(0.3, 1 - i * 0.07);
+    var yearSavings = yearHarvest * (rate / 100);
+    totalHarvest += yearHarvest;
+    totalSavings += yearSavings;
+    currentPort *= 1.07;
+  }
+
+  var html = '<div class="calc-result">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  html += '<div><div class="label">Total Losses Harvested (' + years + ' yrs)</div><div class="value">$' + numberWithCommas(Math.round(totalHarvest)) + '</div></div>';
+  html += '<div><div class="label">Cumulative Tax Savings</div><div class="value">$' + numberWithCommas(Math.round(totalSavings)) + '</div></div>';
+  html += '<div><div class="label">Average Annual Tax Savings</div><div class="value" style="color:var(--accent)">$' + numberWithCommas(Math.round(totalSavings / years)) + '</div></div>';
+  html += '<div><div class="label">Tax Alpha (bps/yr avg)</div><div class="value" style="color:var(--accent)">' + Math.round((totalSavings / years) / port * 10000) + ' bps</div></div>';
+  html += '</div>';
+  html += '<p style="font-size:.8rem;color:var(--text2);margin-top:12px">Harvest opportunities decline over time as cost basis resets higher (modeled with decay factor). Actual results depend on market volatility, portfolio composition, and wash sale management. Tax savings are a deferral, not elimination (basis is lower), unless assets receive step-up at death.</p>';
+  html += '</div>';
+  document.getElementById('tlh-result').innerHTML = html;
+  document.getElementById('tlh-result').style.display = 'block';
+}
+
+// Roth Calculator
+function calcRoth() {
+  var amt = parseFloat(document.getElementById('roth-amt').value) || 0;
+  var rateNow = parseFloat(document.getElementById('roth-now').value) || 50.3;
+  var rateLater = parseFloat(document.getElementById('roth-later').value) || 35;
+  var ret = parseFloat(document.getElementById('roth-return').value) || 7;
+  var taxNow = amt * (rateNow / 100);
+  var rothAfterTax = amt - taxNow;
+  // Find break-even year
+  var year = 0;
+  var traditional = amt;
+  var roth = rothAfterTax;
+  var breakEven = -1;
+  for (var i = 1; i <= 50; i++) {
+    traditional *= (1 + ret / 100);
+    roth *= (1 + ret / 100);
+    var tradAfterTax = traditional * (1 - rateLater / 100);
+    if (roth >= tradAfterTax && breakEven === -1) {
+      breakEven = i;
+    }
+  }
+  var verdict = '';
+  if (rateNow <= rateLater) {
+    verdict = 'Converting now is advantageous because your current rate (' + rateNow + '%) is lower than or equal to your expected retirement rate (' + rateLater + '%). Every year of tax-free growth adds value.';
+  } else if (breakEven > 0 && breakEven <= 30) {
+    verdict = 'Converting breaks even in approximately ' + breakEven + ' years. If your time horizon exceeds this, the Roth conversion wins.';
+  } else if (breakEven > 30) {
+    verdict = 'At these rate differentials, the break-even is ' + breakEven + '+ years. Traditional (pre-tax) is likely better unless you expect to never need the money (Roth has no RMDs and passes tax-free to heirs).';
+  } else {
+    verdict = 'With your current rate significantly higher than your expected retirement rate, traditional is likely better for retirement spending. However, Roth conversions still make sense for estate planning (no RMDs, tax-free inheritance).';
+  }
+
+  var html = '<div class="calc-result">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  html += '<div><div class="label">Tax Cost of Conversion (Today)</div><div class="value" style="color:var(--red)">$' + numberWithCommas(Math.round(taxNow)) + '</div></div>';
+  html += '<div><div class="label">Net Roth Amount (After Tax)</div><div class="value">$' + numberWithCommas(Math.round(rothAfterTax)) + '</div></div>';
+  html += '<div><div class="label">Break-Even Year</div><div class="value" style="color:var(--accent)">' + (breakEven > 0 ? 'Year ' + breakEven : 'N/A — Traditional wins') + '</div></div>';
+  html += '<div><div class="label">Roth Value in 20 Years</div><div class="value">$' + numberWithCommas(Math.round(rothAfterTax * Math.pow(1 + ret/100, 20))) + '</div></div>';
+  html += '</div>';
+  html += '<p style="font-size:.85rem;margin-top:12px;line-height:1.6">' + verdict + '</p>';
+  html += '</div>';
+  document.getElementById('roth-result').innerHTML = html;
+  document.getElementById('roth-result').style.display = 'block';
+}
+
+// Zero-Basis Calculator
+function calcBasis() {
+  var reported = parseFloat(document.getElementById('basis-reported').value) || 0;
+  var correct = parseFloat(document.getElementById('basis-correct').value) || 0;
+  var fed = parseFloat(document.getElementById('basis-fed').value) || 23.8;
+  var state = parseFloat(document.getElementById('basis-state').value) || 13.3;
+  var years = parseInt(document.getElementById('basis-years').value) || 3;
+  var overstatement = correct; // basis that should have reduced gain
+  var taxRate = (fed + state) / 100;
+  var perYear = overstatement * taxRate;
+  var total = perYear * years;
+
+  var html = '<div class="calc-result">';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  html += '<div><div class="label">Overstated Gain (Missing Basis)</div><div class="value">$' + numberWithCommas(Math.round(overstatement)) + '</div></div>';
+  html += '<div><div class="label">Tax Overpaid Per Year</div><div class="value" style="color:var(--red)">$' + numberWithCommas(Math.round(perYear)) + '</div></div>';
+  html += '<div><div class="label">Total Recoverable (' + years + ' years)</div><div class="value" style="color:var(--accent)">$' + numberWithCommas(Math.round(total)) + '</div></div>';
+  html += '<div><div class="label">Combined Tax Rate Applied</div><div class="value">' + (taxRate * 100).toFixed(1) + '%</div></div>';
+  html += '</div>';
+  html += '<p style="font-size:.85rem;margin-top:12px;line-height:1.6"><strong>Next steps:</strong> (1) Download supplemental gain/loss reports from each brokerage equity plan portal. (2) Compare to 1099-B reported basis. (3) For each year with overstated gains, file Form 1040-X with corrected Form 8949 and Schedule D. (4) You generally have 3 years from the original filing date to claim a refund. Interest accrues on overpayments from the original due date.</p>';
+  html += '</div>';
+  document.getElementById('basis-result').innerHTML = html;
+  document.getElementById('basis-result').style.display = 'block';
+}
+
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// Intersection observer for nav highlighting
+var observer = new IntersectionObserver(function(entries) {
+  entries.forEach(function(entry) {
+    if (entry.isIntersecting) {
+      var id = entry.target.id.replace('module-', '');
+      document.querySelectorAll('.nav-item').forEach(function(n) {
+        n.classList.toggle('active', n.getAttribute('data-mod') === id);
+      });
+    }
+  });
+}, {rootMargin: '-100px 0px -60% 0px'});
+
+document.querySelectorAll('.module').forEach(function(mod) {
+  observer.observe(mod);
+});
+
+// Open Module 1 by default
+toggleModule(1);
+</script>
+
+</body>
+</html>

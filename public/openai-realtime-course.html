@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OpenAI Realtime API — Interactive Course</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0f1a;--surface:#111827;--surface2:#1e293b;--border:#1e3a5f;
+    --text:#e2e8f0;--text-muted:#94a3b8;--accent:#22c55e;--accent-dim:#16a34a;
+    --accent-glow:rgba(34,197,94,.15);--code-bg:#0d1117;--danger:#ef4444;
+    --warning:#f59e0b;--info:#3b82f6;
+  }
+  html{scroll-behavior:smooth;scroll-padding-top:80px}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:16px}
+  a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+  .nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:1.5rem;height:60px;overflow-x:auto}
+  .nav-logo{font-weight:700;font-size:1.1rem;white-space:nowrap;color:var(--accent);flex-shrink:0}
+  .nav-links{display:flex;gap:.25rem;flex-shrink:0}
+  .nav-links a{padding:.35rem .7rem;border-radius:6px;font-size:.82rem;color:var(--text-muted);white-space:nowrap;transition:all .2s}
+  .nav-links a:hover,.nav-links a.active{background:var(--accent-glow);color:var(--accent);text-decoration:none}
+  .progress-bar{margin-left:auto;display:flex;align-items:center;gap:.5rem;flex-shrink:0;font-size:.8rem;color:var(--text-muted)}
+  .progress-bar .bar{width:120px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+  .progress-bar .bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .4s ease}
+
+  /* HERO */
+  .hero{text-align:center;padding:5rem 1.5rem 3rem;background:radial-gradient(ellipse at 50% 0%,rgba(34,197,94,.08) 0%,transparent 60%)}
+  .hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;margin-bottom:.75rem}
+  .hero h1 span{color:var(--accent)}
+  .hero p{color:var(--text-muted);font-size:1.1rem;max-width:640px;margin:0 auto 2rem}
+  .badge{display:inline-block;background:var(--accent-glow);color:var(--accent);border:1px solid var(--accent-dim);padding:.3rem .9rem;border-radius:20px;font-size:.8rem;font-weight:600;margin-bottom:1.5rem}
+
+  /* MAIN */
+  main{max-width:900px;margin:0 auto;padding:0 1.5rem 6rem}
+
+  /* MODULE */
+  .module{margin-top:4rem;border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--surface)}
+  .module-header{padding:2rem 2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:1rem}
+  .module-num{background:var(--accent);color:#000;font-weight:800;font-size:.85rem;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .module-header h2{font-size:1.4rem;font-weight:700}
+  .module-header p{color:var(--text-muted);font-size:.92rem;margin-top:.25rem}
+  .module-body{padding:2rem}
+
+  /* SECTIONS */
+  h3{font-size:1.15rem;font-weight:700;margin:2rem 0 .75rem;padding-top:.5rem;border-top:1px solid var(--border)}
+  h3:first-child{border-top:none;margin-top:0}
+  p{margin-bottom:1rem}
+  ul,ol{margin:0 0 1rem 1.5rem}li{margin-bottom:.4rem}
+  strong{color:#fff}
+
+  /* CODE */
+  .code-block{position:relative;margin:1rem 0 1.5rem;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+  .code-header{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);padding:.5rem 1rem;font-size:.78rem;color:var(--text-muted)}
+  .code-header .lang{font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .copy-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:.25rem .6rem;border-radius:5px;cursor:pointer;font-size:.75rem;transition:all .2s}
+  .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .copy-btn.copied{border-color:var(--accent);color:var(--accent)}
+  pre[class*="language-"]{margin:0!important;border-radius:0!important;padding:1.2rem!important;font-size:.85rem!important;background:var(--code-bg)!important;overflow-x:auto}
+  code[class*="language-"]{font-family:'SF Mono',Menlo,Monaco,Consolas,monospace!important;font-size:.85rem!important}
+
+  /* CALLOUTS */
+  .callout{padding:1rem 1.25rem;border-radius:10px;margin:1rem 0 1.5rem;border-left:4px solid;font-size:.92rem}
+  .callout.tip{background:rgba(34,197,94,.08);border-color:var(--accent);color:var(--accent)}
+  .callout.warn{background:rgba(245,158,11,.08);border-color:var(--warning);color:var(--warning)}
+  .callout.info{background:rgba(59,130,246,.08);border-color:var(--info);color:var(--info)}
+  .callout strong{display:block;margin-bottom:.25rem}
+
+  /* EXERCISE */
+  .exercise{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin:1.5rem 0}
+  .exercise-tag{display:inline-block;background:var(--accent);color:#000;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.8px;padding:.2rem .6rem;border-radius:5px;margin-bottom:.75rem}
+  .exercise h4{font-size:1.05rem;margin-bottom:.5rem}
+  .exercise p{color:var(--text-muted);font-size:.9rem}
+
+  /* CHECKBOX */
+  .task-check{display:flex;align-items:flex-start;gap:.75rem;margin:1rem 0;padding:1rem;background:var(--surface2);border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:border-color .2s}
+  .task-check:hover{border-color:var(--accent)}
+  .task-check input{display:none}
+  .checkmark{width:22px;height:22px;border:2px solid var(--border);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px}
+  .task-check input:checked~.checkmark{background:var(--accent);border-color:var(--accent)}
+  .task-check input:checked~.checkmark::after{content:'✓';color:#000;font-weight:700;font-size:.75rem}
+  .task-check .task-label{font-size:.92rem}
+  .task-check input:checked~.task-label{color:var(--text-muted);text-decoration:line-through}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse;margin:1rem 0 1.5rem;font-size:.9rem}
+  th,td{text-align:left;padding:.6rem .8rem;border:1px solid var(--border)}
+  th{background:var(--surface2);font-weight:600;font-size:.82rem;text-transform:uppercase;letter-spacing:.3px;color:var(--text-muted)}
+  td{background:var(--surface)}
+
+  /* FOOTER */
+  footer{text-align:center;padding:3rem 1.5rem;color:var(--text-muted);font-size:.85rem;border-top:1px solid var(--border)}
+
+  /* RESPONSIVE */
+  @media(max-width:768px){
+    .nav-links{display:none}
+    .module-body{padding:1.25rem}
+    .module-header{padding:1.25rem}
+    pre[class*="language-"]{font-size:.78rem!important;padding:.9rem!important}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">⚡ Realtime API Course</div>
+    <div class="nav-links">
+      <a href="#module-1">1. Setup</a>
+      <a href="#module-2">2. Voice Chat</a>
+      <a href="#module-3">3. Tool Use</a>
+      <a href="#module-4">4. Translation</a>
+      <a href="#module-5">5. Transcription</a>
+      <a href="#module-6">6. Capstone</a>
+    </div>
+    <div class="progress-bar">
+      <span id="progress-text">0 / 18</span>
+      <div class="bar"><div class="bar-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">Released May 7, 2026 — Now Generally Available</div>
+  <h1>Build with the <span>OpenAI Realtime API</span></h1>
+  <p>A hands-on course: go from zero to a production voice agent across 6 modules. Real code, real exercises, real API calls.</p>
+</section>
+
+<main>
+
+<!-- ═══════════════════════ MODULE 1 ═══════════════════════ -->
+<section class="module" id="module-1">
+  <div class="module-header">
+    <div class="module-num">1</div>
+    <div>
+      <h2>Setup &amp; First WebSocket Connection</h2>
+      <p>Get your environment ready and establish a live connection to the Realtime API.</p>
+    </div>
+  </div>
+  <div class="module-body">
+
+    <h3>Prerequisites</h3>
+    <p>You'll need an OpenAI API key with access to the Realtime models, Node.js 18+ or Python 3.10+, and a microphone for later modules. Set your key as an environment variable:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-bash">export OPENAI_API_KEY="sk-..."</code></pre>
+    </div>
+
+    <h3>Install Dependencies</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-bash"># Python
+pip install websockets numpy
+
+# Node.js
+npm install ws</code></pre>
+    </div>
+
+    <h3>Your First WebSocket Connection</h3>
+    <p>The Realtime API uses a persistent WebSocket at <code>wss://api.openai.com/v1/realtime</code>. When the connection opens, the server sends a <code>session.created</code> event confirming you're live.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">import asyncio
+import json
+import websockets
+import os
+
+API_KEY = os.environ["OPENAI_API_KEY"]
+URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime"
+
+async def connect():
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "OpenAI-Beta": "realtime=v1"
+    }
+    async with websockets.connect(URL, additional_headers=headers) as ws:
+        # The first event is always session.created
+        event = json.loads(await ws.recv())
+        print(f"✅ Connected! Session: {event['session']['id']}")
+
+        # Configure the session
+        await ws.send(json.dumps({
+            "type": "session.update",
+            "session": {
+                "instructions": "You are a friendly assistant.",
+                "voice": "alloy",
+                "input_audio_format": "pcm16",
+                "output_audio_format": "pcm16",
+                "turn_detection": {
+                    "type": "server_vad",
+                    "threshold": 0.5,
+                    "silence_duration_ms": 600
+                }
+            }
+        }))
+
+        updated = json.loads(await ws.recv())
+        print(f"✅ Session configured: {updated['type']}")
+
+asyncio.run(connect())</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span class="lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-javascript">import WebSocket from "ws";
+
+const ws = new WebSocket(
+  "wss://api.openai.com/v1/realtime?model=gpt-realtime",
+  {
+    headers: {
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      "OpenAI-Beta": "realtime=v1",
+    },
+  }
+);
+
+ws.on("open", () => {
+  ws.send(JSON.stringify({
+    type: "session.update",
+    session: {
+      instructions: "You are a friendly assistant.",
+      voice: "alloy",
+      input_audio_format: "pcm16",
+      output_audio_format: "pcm16",
+      turn_detection: { type: "server_vad" },
+    },
+  }));
+});
+
+ws.on("message", (raw) => {
+  const event = JSON.parse(raw.toString());
+  console.log(`📨 ${event.type}`);
+});
+
+ws.on("error", (err) => console.error("Error:", err));</code></pre>
+    </div>
+
+    <div class="callout tip"><strong>💡 Tip</strong>Run either script — you should see <code>session.created</code> followed by <code>session.updated</code>. If you get a 401, double-check your API key.</div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 1.1</div>
+      <h4>Connect and Inspect</h4>
+      <p>Run the connection script above. After receiving <code>session.updated</code>, print the full session config object to see all available settings (voice list, supported formats, default turn detection). Modify the <code>voice</code> field to <code>"coral"</code> and re-run.</p>
+    </div>
+
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Successfully connected to the Realtime API via WebSocket</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Sent a session.update and confirmed the configuration</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Experimented with different voice and turn detection settings</span></label>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════ MODULE 2 ═══════════════════════ -->
+<section class="module" id="module-2">
+  <div class="module-header">
+    <div class="module-num">2</div>
+    <div>
+      <h2>Voice Chat — Build a Basic Voice Assistant</h2>
+      <p>Stream microphone audio to GPT-Realtime-2, receive spoken responses, and handle multi-turn conversation.</p>
+    </div>
+  </div>
+  <div class="module-body">
+
+    <h3>Audio Pipeline Overview</h3>
+    <p>A voice chat has three moving parts: <strong>capture</strong> audio from the microphone, <strong>stream</strong> it to the API as base64-encoded PCM16 chunks, and <strong>play back</strong> the model's audio response. The server's VAD detects when you stop speaking and triggers a response automatically.</p>
+
+    <h3>Python — Full Microphone Chat</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">import asyncio, json, base64, os
+import websockets
+import numpy as np
+
+# pip install sounddevice
+import sounddevice as sd
+
+API_KEY = os.environ["OPENAI_API_KEY"]
+URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime"
+SAMPLE_RATE = 24000
+CHUNK_DURATION_MS = 100
+CHUNK_SAMPLES = int(SAMPLE_RATE * CHUNK_DURATION_MS / 1000)
+
+async def voice_chat():
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "OpenAI-Beta": "realtime=v1"
+    }
+
+    async with websockets.connect(URL, additional_headers=headers) as ws:
+        await ws.recv()  # session.created
+
+        await ws.send(json.dumps({
+            "type": "session.update",
+            "session": {
+                "instructions": "You are a concise, friendly voice assistant.",
+                "voice": "alloy",
+                "input_audio_format": "pcm16",
+                "output_audio_format": "pcm16",
+                "turn_detection": {
+                    "type": "server_vad",
+                    "threshold": 0.5,
+                    "silence_duration_ms": 700
+                }
+            }
+        }))
+        await ws.recv()  # session.updated
+        print("🎤 Listening... (Ctrl+C to stop)\n")
+
+        # --- Mic capture task ---
+        audio_queue = asyncio.Queue()
+
+        def mic_callback(indata, frames, time_info, status):
+            audio_queue.put_nowait(indata.copy())
+
+        stream = sd.InputStream(
+            samplerate=SAMPLE_RATE,
+            channels=1,
+            dtype="int16",
+            blocksize=CHUNK_SAMPLES,
+            callback=mic_callback,
+        )
+        stream.start()
+
+        async def send_audio():
+            while True:
+                chunk = await audio_queue.get()
+                encoded = base64.b64encode(chunk.tobytes()).decode()
+                await ws.send(json.dumps({
+                    "type": "input_audio_buffer.append",
+                    "audio": encoded
+                }))
+
+        # --- Receive task ---
+        async def receive_events():
+            playback_buffer = bytearray()
+            async for msg in ws:
+                event = json.loads(msg)
+                t = event["type"]
+
+                if t == "response.audio.delta":
+                    audio = base64.b64decode(event["delta"])
+                    playback_buffer.extend(audio)
+
+                elif t == "response.audio_transcript.delta":
+                    print(event["delta"], end="", flush=True)
+
+                elif t == "response.done":
+                    print()  # newline
+                    if playback_buffer:
+                        samples = np.frombuffer(
+                            playback_buffer, dtype=np.int16
+                        )
+                        sd.play(samples, SAMPLE_RATE)
+                        sd.wait()
+                        playback_buffer.clear()
+
+                elif t == "error":
+                    print(f"\n❌ Error: {event['error']}")
+
+        await asyncio.gather(send_audio(), receive_events())
+
+asyncio.run(voice_chat())</code></pre>
+    </div>
+
+    <div class="callout info"><strong>ℹ️ Note</strong>Install <code>sounddevice</code> and <code>numpy</code> first: <code>pip install sounddevice numpy</code>. On macOS you may also need <code>brew install portaudio</code>.</div>
+
+    <h3>Browser — WebRTC Voice Chat</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-javascript">// browser-voice-chat.js
+// Requires a server endpoint POST /api/token that returns
+// { client_secret: { value: "ek_..." } }
+
+async function startVoiceChat() {
+  // 1. Get ephemeral key
+  const res = await fetch("/api/token", { method: "POST" });
+  const { client_secret } = await res.json();
+
+  // 2. Set up WebRTC
+  const pc = new RTCPeerConnection();
+
+  // Audio playback
+  const audio = document.createElement("audio");
+  audio.autoplay = true;
+  pc.ontrack = (e) => (audio.srcObject = e.streams[0]);
+
+  // Mic capture
+  const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+  pc.addTrack(mic.getAudioTracks()[0], mic);
+
+  // Data channel for events
+  const dc = pc.createDataChannel("oai-events");
+  dc.onopen = () => {
+    dc.send(JSON.stringify({
+      type: "session.update",
+      session: {
+        instructions: "You are a helpful assistant.",
+        voice: "alloy",
+        turn_detection: { type: "server_vad" },
+      },
+    }));
+    document.getElementById("status").textContent = "🎤 Listening...";
+  };
+
+  dc.onmessage = (e) => {
+    const evt = JSON.parse(e.data);
+    if (evt.type === "response.audio_transcript.delta") {
+      document.getElementById("transcript").textContent += evt.delta;
+    } else if (evt.type === "response.done") {
+      document.getElementById("transcript").textContent += "\n";
+    }
+  };
+
+  // 3. SDP exchange
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+
+  const sdpRes = await fetch(
+    "https://api.openai.com/v1/realtime?model=gpt-realtime",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${client_secret.value}`,
+        "Content-Type": "application/sdp",
+      },
+      body: offer.sdp,
+    }
+  );
+  await pc.setRemoteDescription({
+    type: "answer",
+    sdp: await sdpRes.text(),
+  });
+}
+
+startVoiceChat();</code></pre>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 2.1</div>
+      <h4>Multi-Turn Voice Conversation</h4>
+      <p>Using either the Python or browser example, have a 3-turn conversation with the model. Ask it to remember your name, then ask a follow-up question, and verify it retains context. Observe the <code>speech_started</code> and <code>speech_stopped</code> events in the console.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 2.2</div>
+      <h4>Interruption Handling</h4>
+      <p>Start speaking while the model is responding. Watch for the <code>response.done</code> event with <code>"status": "cancelled"</code>. Try adjusting <code>silence_duration_ms</code> (300 vs 1000) and observe how it affects the conversation feel.</p>
+    </div>
+
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Built a working voice chat (Python or browser)</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Held a multi-turn conversation with context retention</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Tested interruption and different VAD settings</span></label>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════ MODULE 3 ═══════════════════════ -->
+<section class="module" id="module-3">
+  <div class="module-header">
+    <div class="module-num">3</div>
+    <div>
+      <h2>Tool Use — Give Your Voice Agent Abilities</h2>
+      <p>Connect your agent to external APIs with real-time function calling: weather, search, databases, and more.</p>
+    </div>
+  </div>
+  <div class="module-body">
+
+    <h3>How Function Calling Works in Realtime</h3>
+    <p>Tool use in a voice conversation follows the same pattern as the Chat API, but happens asynchronously over the WebSocket. You define tools in <code>session.update</code>, the model decides when to call them, and you return results via <code>conversation.item.create</code>.</p>
+    <p>GPT-Realtime-2 can call <strong>multiple tools in parallel</strong> and speaks natural filler phrases ("let me check that for you…") while waiting for results.</p>
+
+    <h3>Define Tools</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">tools = [
+    {
+        "type": "function",
+        "name": "get_weather",
+        "description": "Get the current weather for a location.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "City name, e.g. 'Tokyo'"
+                }
+            },
+            "required": ["city"]
+        }
+    },
+    {
+        "type": "function",
+        "name": "search_web",
+        "description": "Search the web for current information.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "type": "string",
+                    "description": "The search query"
+                }
+            },
+            "required": ["query"]
+        }
+    }
+]
+
+await ws.send(json.dumps({
+    "type": "session.update",
+    "session": {
+        "instructions": "You are a helpful assistant with access to weather and search tools.",
+        "tools": tools,
+        "tool_choice": "auto"
+    }
+}))</code></pre>
+    </div>
+
+    <h3>Handle Tool Calls</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">import httpx  # pip install httpx
+
+async def execute_tool(name: str, args: dict) -> str:
+    if name == "get_weather":
+        # Replace with a real weather API
+        return json.dumps({
+            "city": args["city"],
+            "temp": "22°C",
+            "condition": "Partly cloudy"
+        })
+    elif name == "search_web":
+        return json.dumps({
+            "query": args["query"],
+            "results": ["Result 1", "Result 2"]
+        })
+    return json.dumps({"error": "Unknown tool"})
+
+async def receive_with_tools(ws):
+    async for msg in ws:
+        event = json.loads(msg)
+        t = event["type"]
+
+        if t == "response.function_call_arguments.done":
+            name = event["name"]
+            call_id = event["call_id"]
+            args = json.loads(event["arguments"])
+
+            print(f"🔧 Calling {name}({args})")
+            result = await execute_tool(name, args)
+
+            # Return the result
+            await ws.send(json.dumps({
+                "type": "conversation.item.create",
+                "item": {
+                    "type": "function_call_output",
+                    "call_id": call_id,
+                    "output": result
+                }
+            }))
+
+            # Tell the model to continue
+            await ws.send(json.dumps({
+                "type": "response.create"
+            }))
+
+        elif t == "response.audio_transcript.delta":
+            print(event["delta"], end="", flush=True)
+
+        elif t == "response.done":
+            print()</code></pre>
+    </div>
+
+    <div class="callout tip"><strong>💡 Parallel Tool Calls</strong>GPT-Realtime-2 may fire multiple <code>function_call_arguments.done</code> events before a <code>response.done</code>. Collect all results and send them back before calling <code>response.create</code>.</div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 3.1</div>
+      <h4>Weather Voice Agent</h4>
+      <p>Combine the voice chat from Module 2 with the tool-calling code above. Ask the model "What's the weather in Tokyo?" and verify it calls <code>get_weather</code>, then speaks the result. Replace the stub with a real weather API (e.g., OpenWeatherMap free tier).</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 3.2</div>
+      <h4>Multi-Tool Agent</h4>
+      <p>Add a third tool — <code>set_reminder</code> — that logs a reminder to a file. Ask the model: "What's the weather in Paris, and remind me to bring an umbrella if it's rainy." Observe parallel tool calls and the spoken preamble.</p>
+    </div>
+
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Defined tools and received function calls over WebSocket</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Returned tool results and received spoken responses</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Connected at least one real external API</span></label>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════ MODULE 4 ═══════════════════════ -->
+<section class="module" id="module-4">
+  <div class="module-header">
+    <div class="module-num">4</div>
+    <div>
+      <h2>Live Translation with GPT-Realtime-Translate</h2>
+      <p>Build a real-time speech translator that handles 70+ input languages and 13 output languages.</p>
+    </div>
+  </div>
+  <div class="module-body">
+
+    <h3>How Realtime-Translate Works</h3>
+    <p>GPT-Realtime-Translate is a purpose-built model for live speech translation. You stream audio in one language, and it outputs translated audio in another. The model auto-detects the input language (or you can specify it), and you set the target language in the instructions.</p>
+
+    <table>
+      <thead><tr><th>Output Languages (13)</th></tr></thead>
+      <tbody>
+        <tr><td>English, Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese (Mandarin), Hindi, Arabic, Russian, Dutch</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Translation Session</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">import asyncio, json, base64, os
+import websockets
+
+API_KEY = os.environ["OPENAI_API_KEY"]
+TRANSLATE_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-translate"
+
+async def live_translate(target_language="Spanish"):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "OpenAI-Beta": "realtime=v1"
+    }
+
+    async with websockets.connect(
+        TRANSLATE_URL, additional_headers=headers
+    ) as ws:
+        await ws.recv()  # session.created
+
+        await ws.send(json.dumps({
+            "type": "session.update",
+            "session": {
+                "instructions": f"Translate all speech to {target_language}.",
+                "input_audio_format": "pcm16",
+                "output_audio_format": "pcm16",
+                "turn_detection": {
+                    "type": "server_vad",
+                    "silence_duration_ms": 300
+                }
+            }
+        }))
+        await ws.recv()  # session.updated
+        print(f"🌍 Translating to {target_language}...")
+
+        # In production: stream mic audio in, play translated audio out
+        # Same send/receive pattern as Module 2
+
+        async for msg in ws:
+            event = json.loads(msg)
+            if event["type"] == "response.audio_transcript.delta":
+                print(event["delta"], end="", flush=True)
+            elif event["type"] == "response.done":
+                print()
+
+asyncio.run(live_translate("Japanese"))</code></pre>
+    </div>
+
+    <div class="callout warn"><strong>⚠️ Latency Note</strong>Translation latency is typically 1–2 seconds depending on phrase length. For live events, consider a slight display delay to ensure smooth output.</div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 4.1</div>
+      <h4>Build a Bidirectional Translator</h4>
+      <p>Create a two-session setup: one translating English → Spanish, and another translating Spanish → English. Simulate a bilingual conversation by alternating which session receives audio. Display both the original transcript and the translation side by side.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 4.2</div>
+      <h4>Language Auto-Detection</h4>
+      <p>Remove the language hint from the session config and speak in three different languages (e.g., English, French, German). Observe whether the model correctly detects each language and translates to your target.</p>
+    </div>
+
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Set up a live translation session with Realtime-Translate</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Translated speech between at least two language pairs</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Tested auto language detection</span></label>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════ MODULE 5 ═══════════════════════ -->
+<section class="module" id="module-5">
+  <div class="module-header">
+    <div class="module-num">5</div>
+    <div>
+      <h2>Streaming Transcription with Realtime-Whisper</h2>
+      <p>Build a live speech-to-text system with word-level timestamps and language detection.</p>
+    </div>
+  </div>
+  <div class="module-body">
+
+    <h3>Realtime-Whisper vs Batch Whisper</h3>
+    <table>
+      <thead><tr><th>Feature</th><th>Batch Whisper</th><th>Realtime-Whisper</th></tr></thead>
+      <tbody>
+        <tr><td>Input</td><td>Complete file (≤25 MB)</td><td>Streaming audio chunks</td></tr>
+        <tr><td>Output</td><td>Full transcript after processing</td><td>Incremental text as you speak</td></tr>
+        <tr><td>Latency</td><td>Seconds–minutes</td><td>Sub-second</td></tr>
+        <tr><td>Price</td><td>$0.006 / min</td><td>$0.017 / min</td></tr>
+        <tr><td>Best for</td><td>Recorded audio, podcasts</td><td>Live captioning, real-time apps</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Streaming Transcription</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">import asyncio, json, base64, os, time
+import websockets
+
+API_KEY = os.environ["OPENAI_API_KEY"]
+WHISPER_URL = "wss://api.openai.com/v1/realtime?model=gpt-realtime-whisper"
+
+async def live_transcribe():
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "OpenAI-Beta": "realtime=v1"
+    }
+
+    async with websockets.connect(
+        WHISPER_URL, additional_headers=headers
+    ) as ws:
+        await ws.recv()  # session.created
+
+        await ws.send(json.dumps({
+            "type": "session.update",
+            "session": {
+                "input_audio_format": "pcm16",
+                "turn_detection": {
+                    "type": "server_vad",
+                    "silence_duration_ms": 500
+                }
+            }
+        }))
+        await ws.recv()  # session.updated
+        print("📝 Transcribing... speak now.\n")
+
+        # Mic capture (same pattern as Module 2)
+        # ... send audio chunks ...
+
+        transcript_lines = []
+        current_line = ""
+        start_time = time.time()
+
+        async for msg in ws:
+            event = json.loads(msg)
+            t = event["type"]
+
+            if t == "response.audio_transcript.delta":
+                current_line += event["delta"]
+                elapsed = time.time() - start_time
+                # Overwrite the current line
+                print(f"\r[{elapsed:6.1f}s] {current_line}", end="", flush=True)
+
+            elif t == "response.done":
+                if current_line.strip():
+                    transcript_lines.append(current_line.strip())
+                    print()  # finalize line
+                current_line = ""
+
+        # Save transcript
+        with open("transcript.txt", "w") as f:
+            f.write("\n".join(transcript_lines))
+
+asyncio.run(live_transcribe())</code></pre>
+    </div>
+
+    <h3>JavaScript — Browser Captioning</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">javascript</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-javascript">// Uses WebRTC for low-latency browser transcription
+async function startCaptioning() {
+  const res = await fetch("/api/whisper-token", { method: "POST" });
+  const { client_secret } = await res.json();
+
+  const pc = new RTCPeerConnection();
+  const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+  pc.addTrack(mic.getAudioTracks()[0], mic);
+
+  const dc = pc.createDataChannel("oai-events");
+  const captionEl = document.getElementById("captions");
+
+  dc.onopen = () => {
+    dc.send(JSON.stringify({
+      type: "session.update",
+      session: {
+        input_audio_format: "pcm16",
+        turn_detection: { type: "server_vad" },
+      },
+    }));
+  };
+
+  let currentLine = "";
+  dc.onmessage = (e) => {
+    const evt = JSON.parse(e.data);
+    if (evt.type === "response.audio_transcript.delta") {
+      currentLine += evt.delta;
+      captionEl.textContent = currentLine;
+    } else if (evt.type === "response.done") {
+      const p = document.createElement("p");
+      p.textContent = currentLine;
+      captionEl.parentElement.insertBefore(p, captionEl);
+      currentLine = "";
+      captionEl.textContent = "";
+    }
+  };
+
+  // SDP exchange (same as Module 2 WebRTC pattern)
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  const sdp = await fetch(
+    "https://api.openai.com/v1/realtime?model=gpt-realtime-whisper",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${client_secret.value}`,
+        "Content-Type": "application/sdp",
+      },
+      body: offer.sdp,
+    }
+  );
+  await pc.setRemoteDescription({ type: "answer", sdp: await sdp.text() });
+}</code></pre>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 5.1</div>
+      <h4>Live Captioning App</h4>
+      <p>Build a simple HTML page with a large caption area. Use the browser code above to display real-time captions as you speak. Add timestamps to each finalized line. Test with multiple languages to see auto-detection in action.</p>
+    </div>
+
+    <div class="exercise">
+      <div class="exercise-tag">Exercise 5.2</div>
+      <h4>Meeting Transcriber</h4>
+      <p>Extend the Python transcription script to save a timestamped transcript to a text file. Add speaker detection (hint: use silence gaps > 2 seconds as speaker boundaries). Run it during a conversation and review the output.</p>
+    </div>
+
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Streaming transcription working with Realtime-Whisper</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Built a live captioning UI (browser or terminal)</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Saved timestamped transcripts to a file</span></label>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════ MODULE 6 ═══════════════════════ -->
+<section class="module" id="module-6">
+  <div class="module-header">
+    <div class="module-num">6</div>
+    <div>
+      <h2>Capstone — Build a Complete Voice-Powered App</h2>
+      <p>Combine everything into a production-grade voice agent with the OpenAI Agents SDK, tool use, translation, and error handling.</p>
+    </div>
+  </div>
+  <div class="module-body">
+
+    <h3>Project: Multilingual Customer Support Agent</h3>
+    <p>Build an agent that greets the user in their language, answers questions using tools, and can hand off to specialized sub-agents. We'll use the OpenAI Agents SDK for clean orchestration.</p>
+
+    <h3>Install the Agents SDK</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-bash">pip install 'openai-agents[voice]'</code></pre>
+    </div>
+
+    <h3>Define the Agent Graph</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">from agents import Agent, function_tool
+from agents.realtime import RealtimeAgent, RealtimeSession
+
+# --- Tools ---
+@function_tool
+def check_order_status(order_id: str) -> str:
+    """Look up the current status of a customer order."""
+    # Replace with real database lookup
+    statuses = {
+        "ORD-001": "Shipped — arriving May 10",
+        "ORD-002": "Processing — expected ship date May 12",
+    }
+    return statuses.get(order_id, f"Order {order_id} not found.")
+
+@function_tool
+def search_faq(question: str) -> str:
+    """Search the FAQ knowledge base."""
+    faqs = {
+        "return": "Returns accepted within 30 days with receipt.",
+        "shipping": "Free shipping on orders over $50.",
+        "hours": "Support available Mon-Fri, 9 AM - 6 PM EST.",
+    }
+    for key, answer in faqs.items():
+        if key in question.lower():
+            return answer
+    return "I couldn't find an answer. Let me connect you with a specialist."
+
+@function_tool
+def escalate_to_human(reason: str) -> str:
+    """Escalate the conversation to a human agent."""
+    return f"Escalation created: {reason}. A human agent will join shortly."
+
+# --- Specialized Agents ---
+order_agent = RealtimeAgent(
+    name="Order Specialist",
+    instructions=(
+        "You handle order-related queries. Use check_order_status "
+        "to look up orders. Be precise and helpful."
+    ),
+    tools=[check_order_status],
+    model="gpt-realtime",
+    voice="coral",
+)
+
+faq_agent = RealtimeAgent(
+    name="FAQ Specialist",
+    instructions=(
+        "You answer general questions using the FAQ knowledge base. "
+        "If you can't find an answer, escalate to a human."
+    ),
+    tools=[search_faq, escalate_to_human],
+    model="gpt-realtime",
+    voice="coral",
+)
+
+# --- Triage Agent (entry point) ---
+triage_agent = RealtimeAgent(
+    name="Support Triage",
+    instructions=(
+        "You are the front-line customer support agent. Greet the "
+        "customer warmly. Determine if they need help with an order "
+        "(hand off to Order Specialist) or have a general question "
+        "(hand off to FAQ Specialist). If unsure, ask clarifying questions."
+    ),
+    handoffs=[order_agent, faq_agent],
+    model="gpt-realtime",
+    voice="alloy",
+)</code></pre>
+    </div>
+
+    <h3>Run the Agent</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">import asyncio
+
+async def main():
+    async with RealtimeSession(triage_agent) as session:
+        print("🎧 Customer support agent is live!")
+        print("   Speak to start a conversation.\n")
+        await session.run()
+
+asyncio.run(main())</code></pre>
+    </div>
+
+    <h3>Adding Guardrails</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">from agents import InputGuardrail, GuardrailFunctionOutput
+
+BLOCKED_TOPICS = ["competitor", "lawsuit", "internal"]
+
+async def content_filter(ctx, agent, user_input):
+    """Block off-topic or sensitive requests."""
+    is_blocked = any(
+        word in user_input.lower() for word in BLOCKED_TOPICS
+    )
+    return GuardrailFunctionOutput(
+        output_info={"filtered": is_blocked},
+        tripwire_triggered=is_blocked,
+    )
+
+# Add to any agent
+safe_triage = RealtimeAgent(
+    name="Safe Triage",
+    instructions="You are a helpful support agent.",
+    handoffs=[order_agent, faq_agent],
+    input_guardrails=[
+        InputGuardrail(guardrail_function=content_filter)
+    ],
+    model="gpt-realtime",
+    voice="alloy",
+)</code></pre>
+    </div>
+
+    <h3>Error Handling &amp; Reconnection</h3>
+    <div class="code-block">
+      <div class="code-header"><span class="lang">python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-python">import asyncio
+from websockets.exceptions import ConnectionClosed
+
+MAX_RETRIES = 5
+
+async def resilient_agent():
+    retries = 0
+    while retries < MAX_RETRIES:
+        try:
+            async with RealtimeSession(triage_agent) as session:
+                retries = 0
+                await session.run()
+        except ConnectionClosed as e:
+            retries += 1
+            wait = 2 ** retries
+            print(f"⚠️  Disconnected ({e.code}). Retry {retries}/{MAX_RETRIES} in {wait}s...")
+            await asyncio.sleep(wait)
+        except KeyboardInterrupt:
+            print("\n👋 Shutting down.")
+            break
+    else:
+        print("❌ Max retries reached.")
+
+asyncio.run(resilient_agent())</code></pre>
+    </div>
+
+    <h3>Pricing Reference</h3>
+    <table>
+      <thead><tr><th>Model</th><th>Audio In</th><th>Audio Out</th><th>Text In</th><th>Text Out</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-Realtime-2</td><td>$32 / 1M tokens</td><td>$64 / 1M tokens</td><td>$2.50 / 1M</td><td>$10 / 1M</td></tr>
+        <tr><td>Realtime-Translate</td><td colspan="4">$0.034 / minute</td></tr>
+        <tr><td>Realtime-Whisper</td><td colspan="4">$0.017 / minute</td></tr>
+      </tbody>
+    </table>
+
+    <div class="exercise">
+      <div class="exercise-tag">Capstone Exercise</div>
+      <h4>Full Voice Support Agent</h4>
+      <p>Bring it all together. Build and run the complete support agent above with these enhancements:</p>
+      <ul>
+        <li>Replace the stub tools with real API calls (or more realistic mock data)</li>
+        <li>Add a translation layer so the agent can serve customers in multiple languages</li>
+        <li>Implement the reconnection logic</li>
+        <li>Log all conversations (transcript + tool calls) to a JSON file for review</li>
+        <li>Add at least one custom guardrail</li>
+      </ul>
+    </div>
+
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Built the multi-agent support system with the Agents SDK</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Implemented handoffs between specialized agents</span></label>
+    <label class="task-check"><input type="checkbox" onchange="updateProgress()"><span class="checkmark"></span><span class="task-label">Added guardrails and error handling</span></label>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>OpenAI Realtime API Course &mdash; Built for the May 2026 GA release</p>
+  <p style="margin-top:.5rem"><a href="https://developers.openai.com/api/docs/guides/realtime" target="_blank">Official Documentation</a> · <a href="https://openai.github.io/openai-agents-python/" target="_blank">Agents SDK</a> · <a href="https://developers.openai.com/api/docs/pricing" target="_blank">Pricing</a></p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script>
+// Copy button
+function copyCode(btn) {
+  const code = btn.closest('.code-block').querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// Progress tracking
+function updateProgress() {
+  const boxes = document.querySelectorAll('.task-check input');
+  const checked = [...boxes].filter(b => b.checked).length;
+  const total = boxes.length;
+  document.getElementById('progress-text').textContent = `${checked} / ${total}`;
+  document.getElementById('progress-fill').style.width = `${(checked / total) * 100}%`;
+
+  // Highlight active nav
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const modules = document.querySelectorAll('.module');
+  let activeIdx = 0;
+  modules.forEach((m, i) => {
+    const checks = m.querySelectorAll('.task-check input');
+    const done = [...checks].every(c => c.checked);
+    if (done && i < modules.length - 1) activeIdx = i + 1;
+  });
+  const navLinks = document.querySelectorAll('.nav-links a');
+  if (navLinks[activeIdx]) navLinks[activeIdx].classList.add('active');
+}
+
+// Smooth scroll for nav
+document.querySelectorAll('.nav-links a').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+// Init
+updateProgress();
+</script>
+</body>
+</html>

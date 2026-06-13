@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Tracing &amp; Observability - Comprehensive Course</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0f1a;
+  --bg-secondary: #0d1117;
+  --bg-tertiary: #131a2b;
+  --bg-code: #1a1a2e;
+  --text: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #f97316;
+  --accent-dim: #c2410c;
+  --accent-glow: rgba(249, 115, 22, 0.15);
+  --border: #1e293b;
+  --border-light: #334155;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #eab308;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.75;
+  font-size: 17px;
+  min-height: 100vh;
+}
+
+/* Progress Bar */
+#progress-bar-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--bg-secondary);
+  z-index: 1001;
+}
+
+#progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #fb923c);
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+/* Sticky Nav */
+.top-nav {
+  position: fixed;
+  top: 4px;
+  left: 0;
+  right: 0;
+  background: rgba(10, 15, 26, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 1000;
+  padding: 0;
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  height: 52px;
+}
+
+.nav-brand {
+  font-weight: 700;
+  color: var(--accent);
+  margin-right: 1.5rem;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.nav-modules {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-module-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.nav-module-link:hover {
+  background: var(--bg-tertiary);
+  color: var(--text);
+  border-color: var(--border-light);
+}
+
+.nav-module-link.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.nav-module-link.completed::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  background: var(--success);
+  border-radius: 50%;
+  border: 2px solid var(--bg);
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.nav-completion {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 1rem;
+  white-space: nowrap;
+}
+
+/* Hero */
+.hero {
+  padding: 8rem 1.5rem 4rem;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.hero-meta-item {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.hero-meta-item strong {
+  color: var(--text-secondary);
+}
+
+.hero-description {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+/* Main content */
+.content-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* Module Sections */
+.module {
+  margin-bottom: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-secondary);
+  transition: background 0.2s;
+  gap: 0.75rem;
+}
+
+.module-header:hover {
+  background: var(--bg-tertiary);
+}
+
+.module-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.module-checkbox:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.module-checkbox:checked::after {
+  content: '\2713';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.module-number {
+  background: var(--accent);
+  color: #fff;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.module-title-text {
+  flex: 1;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.module-chevron {
+  font-size: 1rem;
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.module.expanded .module-chevron {
+  transform: rotate(180deg);
+}
+
+.module-body {
+  display: none;
+  padding: 0.5rem 1.5rem 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.module.expanded .module-body {
+  display: block;
+}
+
+/* Typography inside modules */
+.module-body h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+  color: var(--text);
+}
+
+.module-body h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--accent);
+}
+
+.module-body p {
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.module-body ul, .module-body ol {
+  margin: 0.5rem 0 1rem 1.5rem;
+  color: var(--text-secondary);
+}
+
+.module-body li {
+  margin-bottom: 0.4rem;
+}
+
+.module-body strong {
+  color: var(--text);
+}
+
+.module-body em {
+  color: var(--accent);
+  font-style: italic;
+}
+
+/* Code blocks */
+.code-block-wrapper {
+  position: relative;
+  margin: 1.25rem 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+}
+
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.75rem;
+  background: #12122a;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.copy-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.code-block {
+  background: var(--bg-code);
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #c9d1d9;
+}
+
+.code-block code {
+  font-family: inherit;
+}
+
+/* Syntax highlighting classes */
+.kw { color: #ff79c6; }
+.fn { color: #50fa7b; }
+.st { color: #f1fa8c; }
+.cm { color: #6272a4; font-style: italic; }
+.nb { color: #8be9fd; }
+.op { color: #ff79c6; }
+.dc { color: #bd93f9; }
+.nr { color: #bd93f9; }
+.im { color: #ff79c6; }
+.se { color: #8be9fd; }
+.at { color: #50fa7b; }
+
+/* Inline code */
+.module-body code {
+  background: var(--bg-code);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  color: #fb923c;
+}
+
+/* Tables */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 1.25rem 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.table-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 600px;
+}
+
+.table-wrapper th {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.7rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.table-wrapper td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.table-wrapper tr:nth-child(even) td {
+  background: var(--bg-secondary);
+}
+
+.table-wrapper tr:nth-child(odd) td {
+  background: var(--bg-tertiary);
+}
+
+/* Callout boxes */
+.callout {
+  padding: 1.25rem 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-glow);
+}
+
+.callout-title {
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.callout p {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.callout p:last-child {
+  margin-bottom: 0;
+}
+
+.callout-warning {
+  border-left-color: var(--warning);
+  background: rgba(234, 179, 8, 0.08);
+}
+
+.callout-warning .callout-title {
+  color: var(--warning);
+}
+
+.callout-error {
+  border-left-color: var(--error);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.callout-error .callout-title {
+  color: var(--error);
+}
+
+.callout-success {
+  border-left-color: var(--success);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.callout-success .callout-title {
+  color: var(--success);
+}
+
+/* ASCII art / diagrams */
+.ascii-diagram {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--accent);
+  margin: 1.25rem 0;
+  white-space: pre;
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.footer-stats {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.footer-celebration {
+  display: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.footer-celebration.visible {
+  display: block;
+}
+
+.footer-sub {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .nav-modules { display: none; }
+  .nav-modules.open { display: flex; flex-wrap: wrap; position: absolute; top: 52px; left: 0; right: 0; background: var(--bg-secondary); padding: 1rem; border-bottom: 1px solid var(--border); gap: 0.5rem; justify-content: center; }
+  .hamburger { display: block; margin-left: auto; }
+  .nav-completion { display: none; }
+  .nav-brand { font-size: 0.85rem; }
+  .hero { padding: 6rem 1rem 2.5rem; }
+  .hero h1 { font-size: 1.8rem; }
+  .hero-meta { gap: 1rem; }
+  .content-wrapper { padding: 1rem; }
+  .module-body { padding: 0.5rem 1rem 1.5rem; }
+  .module-title-text { font-size: 0.95rem; }
+  body { font-size: 16px; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Selection */
+::selection { background: var(--accent); color: #fff; }
+
+/* Checklist inside callouts */
+.checklist {
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+}
+
+.checklist li {
+  padding: 0.3rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.checklist li::before {
+  content: '\25A1';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-size: 1rem;
+}
+</style>
+</head>
+<body>
+
+<!-- Progress Bar -->
+<div id="progress-bar-container">
+  <div id="progress-bar"></div>
+</div>
+
+<!-- Top Nav -->
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-brand">Agent Tracing</span>
+    <div class="nav-modules" id="nav-modules">
+      <a href="#module-1" class="nav-module-link" data-module="1">1</a>
+      <a href="#module-2" class="nav-module-link" data-module="2">2</a>
+      <a href="#module-3" class="nav-module-link" data-module="3">3</a>
+      <a href="#module-4" class="nav-module-link" data-module="4">4</a>
+      <a href="#module-5" class="nav-module-link" data-module="5">5</a>
+      <a href="#module-6" class="nav-module-link" data-module="6">6</a>
+      <a href="#module-7" class="nav-module-link" data-module="7">7</a>
+      <a href="#module-8" class="nav-module-link" data-module="8">8</a>
+    </div>
+    <span class="nav-completion" id="nav-completion">0/8</span>
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation">&#9776;</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-eyebrow">Comprehensive Technical Course</div>
+  <h1>Agent Tracing &amp; Observability</h1>
+  <p class="hero-subtitle">From Black Box to Glass Box: Making Your AI Agents Observable</p>
+  <div class="hero-meta">
+    <span class="hero-meta-item"><strong>Author:</strong> Mustafa Furniturewala</span>
+    <span class="hero-meta-item"><strong>Reading Time:</strong> ~2.5 hours</span>
+    <span class="hero-meta-item"><strong>Level:</strong> VP / Staff+ Engineering</span>
+    <span class="hero-meta-item"><strong>Updated:</strong> June 2026</span>
+  </div>
+  <p class="hero-description">
+    You're running agents in production. Maybe it's a Cowork-style setup with 30+ scheduled tasks, a command dispatcher, and multi-model routing. Maybe it's a customer-facing assistant that makes tool calls you can't see. Either way, your agents are black boxes, and that's terrifying. This course takes you from zero observability to a production-grade tracing stack, with real Python code you can deploy today. No hand-waving. No vendor marketing. Just engineering.
+  </p>
+</section>
+
+<!-- Content -->
+<main class="content-wrapper">
+
+<!-- ============================================================ -->
+<!-- MODULE 1 -->
+<!-- ============================================================ -->
+<section class="module expanded" id="module-1" data-module="1">
+  <div class="module-header" onclick="toggleModule(1)">
+    <input type="checkbox" class="module-checkbox" data-module="1" onclick="event.stopPropagation(); toggleCheckbox(1)">
+    <span class="module-number">1</span>
+    <span class="module-title-text">Why Agent Tracing Matters</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>The Black Box Problem</h3>
+    <p>You built an agent. It uses Claude, maybe GPT-4o for some tasks, Haiku for fast classification. It has twelve tools: file search, calendar management, email composition, web scraping, code execution, database queries. It works great in your demo. Then it goes to production.</p>
+    <p>Three days later, a user reports that the agent "did something weird." They can't be more specific than that. You check the logs. There are logs, of course, because you're not a monster. But the logs look like this:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>output.log</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code>2026-06-04 14:23:01 INFO  Agent started for user_id=u_8821
+2026-06-04 14:23:01 INFO  Sending message to Claude...
+2026-06-04 14:23:03 INFO  Received response. Tokens: 1847
+2026-06-04 14:23:03 INFO  Tool call: search_files
+2026-06-04 14:23:04 INFO  Tool result received
+2026-06-04 14:23:04 INFO  Sending message to Claude...
+2026-06-04 14:23:06 INFO  Received response. Tokens: 923
+<span class="cm">... (41 more entries like this) ...</span>
+2026-06-04 14:24:12 ERROR Agent failed: KeyError: 'content'
+</code></div>
+    </div>
+
+    <p>What happened? The agent made 47 tool calls. It failed on number 38. Your logs tell you <em>that</em> it happened but not <em>why</em>. You can see it called <code>search_files</code> and <code>send_email</code> and <code>calendar_create</code>, but you can't see what it passed to those tools, what it got back, what its reasoning was between steps, or why it decided to call tool #38 at all.</p>
+    <p>This is the black box problem, and <code>print()</code> debugging doesn't solve it. Not at scale. Not when your agent runs 500 times a day across 30+ scheduled tasks.</p>
+
+    <h3>A Horror Story: Debugging Without Traces</h3>
+    <p>Consider a real scenario. You have a Cowork-style system: a command dispatcher that routes incoming requests to specialized agents, 30+ scheduled tasks running on cron, a learning system (call it Learn Imagine v3) that adapts based on user feedback. One morning, you notice your API bill spiked 4x. Something is burning tokens.</p>
+    <p>Without tracing, here's your debugging process:</p>
+    <ol>
+      <li>Check the billing dashboard. You see $47 spent yesterday instead of the usual $12. The breakdown shows Claude Opus consumed 2.1M input tokens. But from <em>which</em> queries?</li>
+      <li>Grep through application logs. You find 1,200 agent invocations. Some ran for 2 seconds, some for 45 seconds. You can't tell which ones were expensive because your logs don't capture token counts per turn.</li>
+      <li>Add <code>print(f"tokens: {response.usage}")</code> everywhere. Redeploy. Wait for it to happen again.</li>
+      <li>Next day: you find the culprit. Your scheduled task "daily_report_generator" got stuck in a retry loop. It called the search tool, got an empty result, asked Claude to try again, got an empty result, asked Claude to try again... 34 times. Each retry included the full conversation history, which grew with every loop. The final turn sent 89,000 input tokens.</li>
+      <li>Total debugging time: <strong>two days and $47 in wasted API spend</strong>.</li>
+    </ol>
+    <p>With proper tracing, this would have taken five minutes. You'd open your trace dashboard, sort by cost, see the outlier, click into it, and see the expanding conversation history and the retry loop in a visual waterfall. You'd fix it before lunch.</p>
+
+    <h3>Logging vs. Tracing: They're Not the Same Thing</h3>
+    <p>Engineers often conflate logging and tracing. They're fundamentally different paradigms:</p>
+    <p><strong>Logging</strong> is event-oriented. Each log line is an independent record: "this thing happened at this time." Logs are great for auditing, error reporting, and simple debugging. But logs are flat. They don't capture <em>relationships</em> between events.</p>
+    <p><strong>Tracing</strong> is relationship-oriented. A trace captures an entire operation as a tree of <em>spans</em>, each with a parent, a duration, metadata, and input/output data. Tracing tells you not just <em>what</em> happened, but <em>why</em> it happened in that order, how long each step took, and how data flowed from one step to the next.</p>
+    <p>For an LLM agent, the difference is stark. A log line says "called search_files." A trace span says "called search_files with query='Q2 revenue report', received 3 results in 340ms, parent span was 'Claude tool_use turn #4', which was part of trace 'daily_report_generator run #891', total trace cost so far: $0.08."</p>
+
+    <h3>Why Traditional APM Tools Fall Short</h3>
+    <p>You might think: "We already have Datadog / New Relic / Honeycomb. Can't we just use those?" Partially, but they miss critical dimensions of LLM agent behavior:</p>
+    <ul>
+      <li><strong>Token economics:</strong> Traditional APM tracks request latency and error rates. It doesn't understand that a 2-second LLM call that used 50K tokens is fundamentally different from a 2-second call that used 500 tokens, even though they look identical from an HTTP perspective.</li>
+      <li><strong>Prompt/completion capture:</strong> APM tools don't know to capture the full prompt and completion text. Without this, you can't debug <em>why</em> an agent made a bad decision.</li>
+      <li><strong>Multi-turn reasoning:</strong> An agent conversation is a <em>sequence</em> of LLM calls with tool calls in between. Each turn depends on the previous one. Traditional APM sees each HTTP call as independent. You lose the chain of reasoning.</li>
+      <li><strong>Tool call semantics:</strong> When your agent calls a tool, you need to see what arguments it generated, whether those arguments were valid, what the tool returned, and how the agent interpreted the result. This is a domain-specific concern that generic APM doesn't model.</li>
+      <li><strong>Cost attribution:</strong> You need to attribute cost to features, users, and conversations, not just to endpoints. "The /api/chat endpoint costs $2,400/month" is less useful than "the research_mode feature costs $1,800/month because it averages 12 tool calls per query."</li>
+    </ul>
+    <p>Traditional APM is necessary but not sufficient. You need it for infrastructure health. You need agent-specific tracing for agent health.</p>
+
+    <h3>The Cost of Unobserved Agents</h3>
+    <p>Let me be concrete about what you're losing without tracing:</p>
+    <ul>
+      <li><strong>Wasted tokens:</strong> Agents that retry unnecessarily, include redundant context, or get stuck in loops. In systems with 30+ scheduled tasks, even one misbehaving task can 10x your daily spend.</li>
+      <li><strong>Silent failures:</strong> The agent returns a plausible-sounding but wrong answer. Without tracing the reasoning chain, you'll never know. Your users will just quietly lose trust.</li>
+      <li><strong>Hallucinated tool calls:</strong> The agent invents tool parameters that happen to match the schema but are semantically wrong. It searches for "Q2 report" when the user asked about "Q3." The tool returns results, the agent uses them, and nobody notices the slip.</li>
+      <li><strong>Latency mysteries:</strong> A query takes 30 seconds. Is it the LLM? The tool? The network? Without a trace waterfall, you're guessing.</li>
+      <li><strong>Impossible optimization:</strong> You can't optimize what you can't measure. Want to know if Haiku could handle 60% of your traffic? Without per-query traces showing complexity, you're flying blind.</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">Key Takeaway</div>
+      <p>Agent tracing is not a nice-to-have observability feature. It's the difference between running a production system and running a prayer. If your agents make tool calls, handle user data, or cost real money, you need traces. Period.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODULE 2 -->
+<!-- ============================================================ -->
+<section class="module" id="module-2" data-module="2">
+  <div class="module-header" onclick="toggleModule(2)">
+    <input type="checkbox" class="module-checkbox" data-module="2" onclick="event.stopPropagation(); toggleCheckbox(2)">
+    <span class="module-number">2</span>
+    <span class="module-title-text">The Trace Data Model</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>Spans, Traces, and Events</h3>
+    <p>Before you instrument anything, you need to understand the data model. Tracing has precise terminology, and using it correctly will save you hours of confusion when you're reading documentation for any tracing tool.</p>
+    <p>A <strong>trace</strong> represents a single end-to-end operation. In agent terms, one trace equals one user query from the moment it arrives to the moment the final response is returned. A trace has a unique <code>trace_id</code> and contains one or more spans.</p>
+    <p>A <strong>span</strong> represents a single unit of work within a trace. Spans have a start time, an end time, a name, and optional metadata. Critically, spans have <em>parent-child relationships</em>. The root span is the top-level operation. Child spans represent sub-operations. This gives you a tree structure.</p>
+    <p>An <strong>event</strong> (sometimes called a "log" in OpenTelemetry terminology) is a timestamped annotation attached to a span. Events don't have duration; they mark a point in time. "Tool call started," "Cache hit," "Retry initiated" are events.</p>
+    <p>Here's how an agent query decomposes into spans:</p>
+
+    <div class="ascii-diagram">
+Trace: trace_7f3a2b (user query: "Summarize my Q2 revenue report")
+|
++-- [ROOT SPAN] agent_run (duration: 8.2s, cost: $0.034)
+    |
+    +-- [SPAN] llm_call_1 (Claude Sonnet, 1.8s)
+    |   |  input_tokens: 2,100  output_tokens: 340
+    |   |  tool_use: search_documents
+    |   +-- [EVENT] tool_selected: search_documents
+    |
+    +-- [SPAN] tool_exec: search_documents (0.9s)
+    |   |  args: {query: "Q2 revenue report", limit: 5}
+    |   |  result: 3 documents found
+    |   +-- [EVENT] db_query (0.7s)
+    |   +-- [EVENT] result_filtered (0.1s)
+    |
+    +-- [SPAN] llm_call_2 (Claude Sonnet, 3.1s)
+    |   |  input_tokens: 8,400  output_tokens: 1,200
+    |   |  tool_use: read_document
+    |   +-- [EVENT] tool_selected: read_document
+    |
+    +-- [SPAN] tool_exec: read_document (0.4s)
+    |   |  args: {doc_id: "rev_q2_2026", pages: "1-5"}
+    |   |  result: 4,200 chars extracted
+    |
+    +-- [SPAN] llm_call_3 (Claude Sonnet, 2.0s)
+        |  input_tokens: 12,800  output_tokens: 890
+        |  finish_reason: end_turn
+        +-- [EVENT] final_response_generated
+    </div>
+
+    <p>Notice the structure. The root span encompasses the entire operation. Each LLM call and tool execution is a child span. Events are annotations within spans. You can see the data flow: the first LLM call decided to search, the tool returned results, the second LLM call decided to read a specific document, the tool returned content, and the third LLM call generated the summary.</p>
+
+    <h3>The Span Data Model in Python</h3>
+    <p>Let's formalize this. Here's a Python dataclass that models a span suitable for LLM agent tracing:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>models.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> Optional, Any
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+<span class="kw">import</span> uuid
+
+<span class="kw">class</span> <span class="nb">SpanKind</span>(Enum):
+    AGENT_RUN = <span class="st">"agent_run"</span>
+    LLM_CALL = <span class="st">"llm_call"</span>
+    TOOL_EXEC = <span class="st">"tool_execution"</span>
+    RETRIEVAL = <span class="st">"retrieval"</span>
+    GUARDRAIL = <span class="st">"guardrail_check"</span>
+
+<span class="dc">@dataclass</span>
+<span class="kw">class</span> <span class="nb">SpanEvent</span>:
+    name: <span class="nb">str</span>
+    timestamp: datetime = field(default_factory=datetime.utcnow)
+    attributes: <span class="nb">dict</span>[<span class="nb">str</span>, Any] = field(default_factory=<span class="nb">dict</span>)
+
+<span class="dc">@dataclass</span>
+<span class="kw">class</span> <span class="nb">Span</span>:
+    <span class="cm"># Identity</span>
+    span_id: <span class="nb">str</span> = field(default_factory=<span class="kw">lambda</span>: uuid.uuid4().hex[:<span class="nr">16</span>])
+    trace_id: <span class="nb">str</span> = <span class="st">""</span>
+    parent_span_id: Optional[<span class="nb">str</span>] = <span class="kw">None</span>
+    name: <span class="nb">str</span> = <span class="st">""</span>
+    kind: SpanKind = SpanKind.AGENT_RUN
+
+    <span class="cm"># Timing</span>
+    start_time: datetime = field(default_factory=datetime.utcnow)
+    end_time: Optional[datetime] = <span class="kw">None</span>
+
+    <span class="cm"># LLM-specific metadata</span>
+    model: Optional[<span class="nb">str</span>] = <span class="kw">None</span>
+    input_tokens: <span class="nb">int</span> = <span class="nr">0</span>
+    output_tokens: <span class="nb">int</span> = <span class="nr">0</span>
+    cost_usd: <span class="nb">float</span> = <span class="nr">0.0</span>
+    temperature: Optional[<span class="nb">float</span>] = <span class="kw">None</span>
+
+    <span class="cm"># Input/Output capture</span>
+    input_data: Optional[Any] = <span class="kw">None</span>   <span class="cm"># prompt or tool args</span>
+    output_data: Optional[Any] = <span class="kw">None</span>  <span class="cm"># completion or tool result</span>
+
+    <span class="cm"># Tool-specific</span>
+    tool_name: Optional[<span class="nb">str</span>] = <span class="kw">None</span>
+    tool_args: Optional[<span class="nb">dict</span>] = <span class="kw">None</span>
+    tool_result: Optional[Any] = <span class="kw">None</span>
+
+    <span class="cm"># Status</span>
+    status: <span class="nb">str</span> = <span class="st">"ok"</span>  <span class="cm"># ok, error, timeout</span>
+    error_message: Optional[<span class="nb">str</span>] = <span class="kw">None</span>
+
+    <span class="cm"># Events and children</span>
+    events: <span class="nb">list</span>[SpanEvent] = field(default_factory=<span class="nb">list</span>)
+    children: <span class="nb">list</span>[<span class="st">"Span"</span>] = field(default_factory=<span class="nb">list</span>)
+
+    <span class="kw">def</span> <span class="fn">duration_ms</span>(self) -> Optional[<span class="nb">float</span>]:
+        <span class="kw">if</span> self.end_time <span class="kw">and</span> self.start_time:
+            <span class="kw">return</span> (self.end_time - self.start_time).total_seconds() * <span class="nr">1000</span>
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">total_cost</span>(self) -> <span class="nb">float</span>:
+        <span class="kw">return</span> self.cost_usd + <span class="nb">sum</span>(c.total_cost() <span class="kw">for</span> c <span class="kw">in</span> self.children)
+</code></div>
+    </div>
+
+    <h3>Standard Metadata Fields</h3>
+    <p>Every tracing tool uses slightly different field names, but the following metadata should be captured on every LLM span. This table serves as your instrumentation checklist:</p>
+
+    <div class="table-wrapper">
+      <table>
+        <tr><th>Field</th><th>Type</th><th>Description</th><th>Why It Matters</th></tr>
+        <tr><td><code>trace_id</code></td><td>string</td><td>Unique ID for the entire operation</td><td>Links all spans in one query together</td></tr>
+        <tr><td><code>span_id</code></td><td>string</td><td>Unique ID for this span</td><td>Identifies this specific unit of work</td></tr>
+        <tr><td><code>parent_span_id</code></td><td>string?</td><td>ID of the parent span</td><td>Builds the trace tree</td></tr>
+        <tr><td><code>model</code></td><td>string</td><td>Model used (claude-sonnet-4-20250514, gpt-4o, etc.)</td><td>Cost calculation, performance comparison</td></tr>
+        <tr><td><code>input_tokens</code></td><td>int</td><td>Tokens in the prompt</td><td>Cost tracking, context window monitoring</td></tr>
+        <tr><td><code>output_tokens</code></td><td>int</td><td>Tokens in the completion</td><td>Cost tracking, verbosity analysis</td></tr>
+        <tr><td><code>latency_ms</code></td><td>float</td><td>Wall-clock time for this span</td><td>Performance optimization, SLO monitoring</td></tr>
+        <tr><td><code>temperature</code></td><td>float?</td><td>Sampling temperature used</td><td>Debugging non-deterministic behavior</td></tr>
+        <tr><td><code>tool_name</code></td><td>string?</td><td>Name of tool called</td><td>Tool usage analytics, error attribution</td></tr>
+        <tr><td><code>tool_args</code></td><td>dict?</td><td>Arguments passed to the tool</td><td>Debugging hallucinated parameters</td></tr>
+        <tr><td><code>tool_result</code></td><td>any?</td><td>Result returned by the tool</td><td>Debugging incorrect tool behavior</td></tr>
+        <tr><td><code>finish_reason</code></td><td>string</td><td>Why the LLM stopped (end_turn, tool_use, max_tokens)</td><td>Detecting truncated responses</td></tr>
+        <tr><td><code>cache_hit</code></td><td>bool?</td><td>Whether prompt caching was used</td><td>Cost optimization verification</td></tr>
+        <tr><td><code>error</code></td><td>string?</td><td>Error message if span failed</td><td>Failure debugging</td></tr>
+        <tr><td><code>user_id</code></td><td>string?</td><td>User who initiated the trace</td><td>Per-user cost and error attribution</td></tr>
+        <tr><td><code>session_id</code></td><td>string?</td><td>Conversation session ID</td><td>Multi-turn conversation tracking</td></tr>
+      </table>
+    </div>
+
+    <h3>Trace ID Propagation in Multi-Agent Systems</h3>
+    <p>In simple setups, one agent handles one query. In production systems, you often have orchestrator agents that delegate to specialist agents. A command dispatcher might route a request to a "research agent," which calls a "summarization agent," which calls a "citation verification agent." Each agent might run in a different process or even a different service.</p>
+    <p>Trace ID propagation ensures that all spans from all agents in a single user query share the same <code>trace_id</code>. Without this, you see five disconnected traces instead of one coherent tree.</p>
+    <p>The standard approach, borrowed from OpenTelemetry, is to pass trace context via headers or function arguments:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>trace_context.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">import</span> contextvars
+
+<span class="cm"># Thread-local trace context using contextvars</span>
+_current_trace_id: contextvars.ContextVar[<span class="nb">str</span>] = contextvars.ContextVar(<span class="st">"trace_id"</span>)
+_current_span_id: contextvars.ContextVar[<span class="nb">str</span>] = contextvars.ContextVar(<span class="st">"span_id"</span>)
+
+<span class="kw">def</span> <span class="fn">get_trace_context</span>() -> <span class="nb">dict</span>:
+    <span class="st">"""Get current trace context for propagation."""</span>
+    <span class="kw">return</span> {
+        <span class="st">"trace_id"</span>: _current_trace_id.get(<span class="kw">None</span>),
+        <span class="st">"parent_span_id"</span>: _current_span_id.get(<span class="kw">None</span>),
+    }
+
+<span class="kw">def</span> <span class="fn">set_trace_context</span>(trace_id: <span class="nb">str</span>, span_id: <span class="nb">str</span>):
+    <span class="st">"""Inject trace context (e.g., when receiving from another service)."""</span>
+    _current_trace_id.set(trace_id)
+    _current_span_id.set(span_id)
+</code></div>
+    </div>
+
+    <h3>How OpenTelemetry Maps to LLM Agent Concepts</h3>
+    <p>OpenTelemetry (OTel) is the industry standard for distributed tracing. Its data model maps cleanly to LLM agents, but requires some semantic conventions that aren't yet standardized (there is an active working group for "GenAI semantic conventions"):</p>
+    <ul>
+      <li><strong>OTel Trace</strong> = Agent conversation or task execution</li>
+      <li><strong>OTel Span</strong> = LLM call, tool execution, or agent reasoning step</li>
+      <li><strong>OTel SpanKind.CLIENT</strong> = Outgoing LLM API call</li>
+      <li><strong>OTel SpanKind.INTERNAL</strong> = Agent's decision-making logic</li>
+      <li><strong>OTel Attributes</strong> = Model name, token counts, cost, tool metadata</li>
+      <li><strong>OTel Events</strong> = Tool selection, cache hits, guardrail checks</li>
+      <li><strong>OTel Links</strong> = References between related traces (e.g., a follow-up query linked to the original)</li>
+    </ul>
+    <p>The emerging convention uses attribute names like <code>gen_ai.system</code> (e.g., "anthropic"), <code>gen_ai.request.model</code>, <code>gen_ai.usage.input_tokens</code>, and <code>gen_ai.usage.output_tokens</code>. If you adopt these now, your traces will be compatible with any OTel-based backend.</p>
+
+    <div class="callout">
+      <div class="callout-title">Design Decision: Capture Everything, Filter Later</div>
+      <p>When in doubt, capture more metadata rather than less. Storage is cheap; missing data during an incident is expensive. Capture the full prompt and completion text (with PII redaction if needed), all tool arguments, all tool results. You can always add filtering and retention policies later. You can't retroactively add data you didn't collect.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODULE 3 -->
+<!-- ============================================================ -->
+<section class="module" id="module-3" data-module="3">
+  <div class="module-header" onclick="toggleModule(3)">
+    <input type="checkbox" class="module-checkbox" data-module="3" onclick="event.stopPropagation(); toggleCheckbox(3)">
+    <span class="module-number">3</span>
+    <span class="module-title-text">Tools Landscape (Comparison)</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>The Observability Tools Ecosystem in 2026</h3>
+    <p>The LLM observability space has matured rapidly. In 2023, you had LangSmith and not much else. In 2026, there are credible options across the spectrum from open-source self-hosted to fully managed SaaS. Choosing the right tool depends on your team size, budget, compliance requirements, and existing infrastructure.</p>
+    <p>I'm going to give you my honest, opinionated assessment of each major tool. I've used most of these in production or evaluated them seriously. Where I haven't, I'll say so.</p>
+
+    <h4>LangSmith (by LangChain)</h4>
+    <p>LangSmith is the most widely adopted LLM tracing tool, largely because of LangChain's market dominance in agent frameworks. If you're already using LangChain or LangGraph, LangSmith integrates with zero additional code. You literally import it and traces appear.</p>
+    <p><strong>Strengths:</strong> Excellent UI for trace visualization, built-in evaluation framework, dataset management for testing, hub for sharing prompts. The trace tree view is best-in-class. Playground for iterating on prompts with trace data.</p>
+    <p><strong>Weaknesses:</strong> Tightly coupled to the LangChain ecosystem. If you're using the Anthropic or OpenAI SDKs directly, integration requires more work. Pricing can surprise you at scale. The platform has had reliability issues under heavy load. Not open source (LangSmith is SaaS, though LangChain the framework is open source).</p>
+    <p><strong>My take:</strong> If you're a LangChain shop, just use it. If you're not, look elsewhere.</p>
+
+    <h4>Braintrust</h4>
+    <p>Braintrust started as an evaluation platform and grew into tracing. This heritage shows in the best ways: their eval framework is exceptional, and traces integrate directly with eval scores. You can trace a production query, add it to a dataset, run evals against it, and compare model versions, all in one platform.</p>
+    <p><strong>Strengths:</strong> Best-in-class evaluation integration. Clean SDK that works with any LLM provider. Excellent logging API that's framework-agnostic. Good proxy mode for zero-code tracing. Strong cost analytics.</p>
+    <p><strong>Weaknesses:</strong> Smaller community than LangSmith. Some advanced features require the paid tier. The UI, while functional, isn't as polished as LangSmith's trace viewer.</p>
+    <p><strong>My take:</strong> If evaluation is your primary concern alongside tracing, Braintrust is the best choice. The combined eval+trace workflow is unmatched.</p>
+
+    <h4>Arize Phoenix</h4>
+    <p>Phoenix is the open-source option from Arize AI. It's a standalone tool you run locally or self-host. It uses OpenTelemetry under the hood, which means your instrumentation is portable: if you outgrow Phoenix, your traces work with any OTel-compatible backend.</p>
+    <p><strong>Strengths:</strong> Fully open source (Apache 2.0). Self-hosted, so your data never leaves your infrastructure. OTel-native, so you're not locked in. Good for compliance-sensitive environments. Free. Active community.</p>
+    <p><strong>Weaknesses:</strong> You own the infrastructure. No managed service (though Arize's commercial platform offers one). The UI is functional but spartan compared to commercial tools. Less polished eval integration.</p>
+    <p><strong>My take:</strong> If you need self-hosted and open source, Phoenix is the clear winner. It's also a great starting point if you're not sure what you need yet, since it's free and OTel-based.</p>
+
+    <h4>Helicone</h4>
+    <p>Helicone takes a unique approach: it's a proxy. You change your API base URL from <code>api.anthropic.com</code> to <code>anthropic.helicone.ai</code>, and every request is logged automatically. Zero code changes to your application.</p>
+    <p><strong>Strengths:</strong> Literally zero-code setup for basic tracing. Works with any SDK or framework. Excellent cost dashboard. Good for getting started quickly. Rate limiting and caching features built in.</p>
+    <p><strong>Weaknesses:</strong> Being a proxy adds latency (typically 10-50ms). You're routing all your LLM traffic through a third party. Limited ability to trace non-LLM operations (tool calls, custom logic). The proxy model makes it hard to capture tool execution details.</p>
+    <p><strong>My take:</strong> Helicone is perfect for teams that want immediate visibility with zero engineering effort. It's not sufficient for deep agent debugging, but it's a great complement to a more comprehensive solution.</p>
+
+    <h4>Weights & Biases Weave</h4>
+    <p>W&B Weave brings the maturity of W&B's ML experiment tracking to LLM observability. If your team already uses W&B for model training, Weave provides a unified platform for both traditional ML and LLM ops.</p>
+    <p><strong>Strengths:</strong> Integration with W&B's broader ML platform. Good versioning for prompts and models. Strong visualization. Enterprise features (SSO, audit logs, etc.).</p>
+    <p><strong>Weaknesses:</strong> The LLM-specific features feel bolted onto a platform designed for traditional ML. Pricing can be opaque. The learning curve is steeper if you're not already a W&B user.</p>
+    <p><strong>My take:</strong> Use it if you're already in the W&B ecosystem. Don't adopt W&B just for LLM tracing.</p>
+
+    <h4>OpenTelemetry (Direct)</h4>
+    <p>You can skip all vendor tools and instrument your agents with raw OpenTelemetry. Send traces to any OTel-compatible backend: Jaeger, Grafana Tempo, Honeycomb, Datadog, or your own collector. This gives you maximum flexibility and zero vendor lock-in.</p>
+    <p><strong>Strengths:</strong> Industry standard. No vendor lock-in. Works with your existing observability stack. You control everything.</p>
+    <p><strong>Weaknesses:</strong> You build everything yourself. No pre-built LLM trace viewer. No eval integration. No cost analytics dashboard. Significant engineering investment.</p>
+    <p><strong>My take:</strong> This is the right choice for platform teams at scale (50+ engineers) who want to integrate LLM tracing into their existing observability stack. It's overkill for small teams.</p>
+
+    <h4>Anthropic's Usage API</h4>
+    <p>Anthropic provides usage tracking through the API response's <code>usage</code> field and the admin API. It's not tracing in the traditional sense, but it gives you token counts, costs, and rate limit information per request.</p>
+    <p><strong>Strengths:</strong> Built in. No additional setup. Accurate token counts straight from the source.</p>
+    <p><strong>Weaknesses:</strong> Not a tracing tool. No trace visualization, no span trees, no eval integration. Just per-request metrics.</p>
+    <p><strong>My take:</strong> Always capture the usage data from API responses. Layer a real tracing tool on top.</p>
+
+    <h3>Comprehensive Comparison</h3>
+    <div class="table-wrapper">
+      <table>
+        <tr>
+          <th>Tool</th>
+          <th>Pricing</th>
+          <th>Setup</th>
+          <th>Key Features</th>
+          <th>OSS</th>
+          <th>Self-Host</th>
+          <th>Best For</th>
+        </tr>
+        <tr>
+          <td><strong>LangSmith</strong></td>
+          <td>Free tier, then $39+/seat/mo</td>
+          <td>Low (LangChain), Medium (other)</td>
+          <td>Trace UI, evals, datasets, playground</td>
+          <td>No</td>
+          <td>Enterprise only</td>
+          <td>LangChain teams</td>
+        </tr>
+        <tr>
+          <td><strong>Braintrust</strong></td>
+          <td>Free tier, usage-based after</td>
+          <td>Low</td>
+          <td>Evals + tracing, proxy mode, scoring</td>
+          <td>No</td>
+          <td>No</td>
+          <td>Eval-focused teams</td>
+        </tr>
+        <tr>
+          <td><strong>Arize Phoenix</strong></td>
+          <td>Free (OSS)</td>
+          <td>Medium</td>
+          <td>OTel-native, self-hosted, trace viewer</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Privacy-sensitive, budget-conscious</td>
+        </tr>
+        <tr>
+          <td><strong>Helicone</strong></td>
+          <td>Free tier, then usage-based</td>
+          <td>Very Low</td>
+          <td>Proxy-based, cost dashboard, caching</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Quick wins, cost monitoring</td>
+        </tr>
+        <tr>
+          <td><strong>W&B Weave</strong></td>
+          <td>Free tier, then $50+/seat/mo</td>
+          <td>Medium</td>
+          <td>ML platform integration, versioning</td>
+          <td>No</td>
+          <td>Enterprise only</td>
+          <td>Existing W&B users</td>
+        </tr>
+        <tr>
+          <td><strong>OpenTelemetry</strong></td>
+          <td>Free (your infra costs)</td>
+          <td>High</td>
+          <td>Universal standard, any backend</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td>Platform teams at scale</td>
+        </tr>
+        <tr>
+          <td><strong>Anthropic Usage</strong></td>
+          <td>Free (included)</td>
+          <td>Zero</td>
+          <td>Token counts, cost per request</td>
+          <td>N/A</td>
+          <td>N/A</td>
+          <td>Baseline metrics</td>
+        </tr>
+      </table>
+    </div>
+
+    <h3>Build vs. Buy: The Decision Framework</h3>
+    <p>The build vs. buy decision for LLM tracing depends on three factors:</p>
+    <ol>
+      <li><strong>Team size:</strong> Under 10 engineers? Buy. The engineering cost of building and maintaining a tracing system exceeds the subscription cost of any SaaS tool. 50+ engineers with a platform team? Build on OTel, potentially with an open-source frontend like Phoenix.</li>
+      <li><strong>Data sensitivity:</strong> If your prompts contain PII, PHI, or proprietary data, self-hosted is often a compliance requirement. This narrows your options to Phoenix, Helicone (self-hosted), or raw OTel.</li>
+      <li><strong>Existing infrastructure:</strong> If you already have Datadog or Grafana, adding OTel-based LLM tracing to your existing dashboards is often simpler than adopting a new SaaS tool. Your ops team already knows how to manage alerts, dashboards, and retention in the existing system.</li>
+    </ol>
+
+    <h3>Opinionated Recommendations by Team Size</h3>
+    <p><strong>Solo developer or small startup (1-5 people):</strong> Start with Helicone for instant cost visibility. Add Braintrust when you need evals. Total cost: $0-50/month.</p>
+    <p><strong>Growth-stage team (5-20 people):</strong> Use Braintrust or LangSmith as your primary platform. Capture everything. The investment in trace infrastructure will pay back 10x when you're debugging production issues at 2 AM. Total cost: $200-500/month.</p>
+    <p><strong>Enterprise / platform team (20+ people):</strong> Build on OpenTelemetry. Use Phoenix or a commercial OTel backend (Honeycomb, Grafana Cloud). Integrate with your existing observability stack. Build custom dashboards. This is a 2-4 week engineering project but gives you maximum control and zero vendor lock-in.</p>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">Warning: Vendor Lock-in Is Real</div>
+      <p>Whatever tool you choose, instrument your code with a thin abstraction layer. Don't scatter <code>langsmith.trace()</code> calls throughout your codebase. Write a <code>Tracer</code> interface, implement it for your chosen backend, and swap implementations later without touching application code. You <em>will</em> switch tools at least once. Make it easy.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODULE 4 -->
+<!-- ============================================================ -->
+<section class="module" id="module-4" data-module="4">
+  <div class="module-header" onclick="toggleModule(4)">
+    <input type="checkbox" class="module-checkbox" data-module="4" onclick="event.stopPropagation(); toggleCheckbox(4)">
+    <span class="module-number">4</span>
+    <span class="module-title-text">Instrumenting Your Agents</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>From Theory to Code</h3>
+    <p>This is the hands-on module. We're going to build real instrumentation for real agent patterns. Every code example is designed to be copied into a production codebase with minimal modification. I'll cover five patterns, from simple to complex.</p>
+
+    <h4>Pattern 1: A Basic Trace Decorator</h4>
+    <p>The simplest useful instrumentation is a decorator that wraps any LLM call, captures timing, token usage, and cost, and stores the span. This works with any LLM provider.</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>trace_decorator.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">import</span> time
+<span class="kw">import</span> uuid
+<span class="kw">import</span> functools
+<span class="kw">import</span> json
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime
+<span class="kw">from</span> typing <span class="kw">import</span> Callable, Any
+
+<span class="cm"># In-memory span storage (replace with your backend)</span>
+_spans: <span class="nb">list</span>[<span class="nb">dict</span>] = []
+
+<span class="cm"># Cost per 1K tokens (update with current pricing)</span>
+MODEL_COSTS = {
+    <span class="st">"claude-sonnet-4-20250514"</span>:    {<span class="st">"input"</span>: <span class="nr">0.003</span>, <span class="st">"output"</span>: <span class="nr">0.015</span>},
+    <span class="st">"claude-haiku-4-20250414"</span>:     {<span class="st">"input"</span>: <span class="nr">0.0008</span>, <span class="st">"output"</span>: <span class="nr">0.004</span>},
+    <span class="st">"claude-opus-4-20250514"</span>:      {<span class="st">"input"</span>: <span class="nr">0.015</span>, <span class="st">"output"</span>: <span class="nr">0.075</span>},
+    <span class="st">"gpt-4o"</span>:                      {<span class="st">"input"</span>: <span class="nr">0.0025</span>, <span class="st">"output"</span>: <span class="nr">0.01</span>},
+}
+
+<span class="kw">def</span> <span class="fn">calc_cost</span>(model: <span class="nb">str</span>, input_tok: <span class="nb">int</span>, output_tok: <span class="nb">int</span>) -> <span class="nb">float</span>:
+    costs = MODEL_COSTS.get(model, {<span class="st">"input"</span>: <span class="nr">0</span>, <span class="st">"output"</span>: <span class="nr">0</span>})
+    <span class="kw">return</span> (input_tok / <span class="nr">1000</span>) * costs[<span class="st">"input"</span>] + (output_tok / <span class="nr">1000</span>) * costs[<span class="st">"output"</span>]
+
+<span class="kw">def</span> <span class="fn">trace_llm</span>(model: <span class="nb">str</span>, name: <span class="nb">str</span> = <span class="st">"llm_call"</span>):
+    <span class="st">"""Decorator to trace any function that returns an LLM response."""</span>
+    <span class="kw">def</span> <span class="fn">decorator</span>(func: Callable) -> Callable:
+        <span class="dc">@functools.wraps</span>(func)
+        <span class="kw">def</span> <span class="fn">wrapper</span>(*args, **kwargs) -> Any:
+            span = {
+                <span class="st">"span_id"</span>: uuid.uuid4().hex[:<span class="nr">16</span>],
+                <span class="st">"name"</span>: name,
+                <span class="st">"model"</span>: model,
+                <span class="st">"start_time"</span>: datetime.utcnow().isoformat(),
+                <span class="st">"input_preview"</span>: <span class="nb">str</span>(args)[:<span class="nr">500</span>],
+            }
+            start = time.perf_counter()
+            <span class="kw">try</span>:
+                result = func(*args, **kwargs)
+                elapsed = (time.perf_counter() - start) * <span class="nr">1000</span>
+                <span class="cm"># Extract usage from Anthropic/OpenAI response</span>
+                usage = <span class="nb">getattr</span>(result, <span class="st">"usage"</span>, <span class="kw">None</span>)
+                <span class="kw">if</span> usage:
+                    span[<span class="st">"input_tokens"</span>] = usage.input_tokens
+                    span[<span class="st">"output_tokens"</span>] = usage.output_tokens
+                    span[<span class="st">"cost_usd"</span>] = calc_cost(
+                        model, usage.input_tokens, usage.output_tokens
+                    )
+                span[<span class="st">"latency_ms"</span>] = <span class="nb">round</span>(elapsed, <span class="nr">2</span>)
+                span[<span class="st">"status"</span>] = <span class="st">"ok"</span>
+                _spans.append(span)
+                <span class="kw">return</span> result
+            <span class="kw">except</span> Exception <span class="kw">as</span> e:
+                span[<span class="st">"status"</span>] = <span class="st">"error"</span>
+                span[<span class="st">"error"</span>] = <span class="nb">str</span>(e)
+                span[<span class="st">"latency_ms"</span>] = <span class="nb">round</span>(
+                    (time.perf_counter() - start) * <span class="nr">1000</span>, <span class="nr">2</span>
+                )
+                _spans.append(span)
+                <span class="kw">raise</span>
+        <span class="kw">return</span> wrapper
+    <span class="kw">return</span> decorator
+</code></div>
+    </div>
+
+    <h4>Pattern 2: Tracing Claude Messages API with Tool Use</h4>
+    <p>This is the pattern you'll use most often: tracing a Claude conversation that includes tool use. The key insight is that you need to trace both the LLM calls and the tool executions, and connect them with parent-child relationships.</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>claude_tool_tracing.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">import</span> anthropic
+<span class="kw">import</span> time
+<span class="kw">import</span> uuid
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field, asdict
+<span class="kw">from</span> typing <span class="kw">import</span> Any
+
+<span class="dc">@dataclass</span>
+<span class="kw">class</span> <span class="nb">TracedSpan</span>:
+    span_id: <span class="nb">str</span> = field(default_factory=<span class="kw">lambda</span>: uuid.uuid4().hex[:<span class="nr">16</span>])
+    parent_id: <span class="nb">str</span> | <span class="kw">None</span> = <span class="kw">None</span>
+    name: <span class="nb">str</span> = <span class="st">""</span>
+    kind: <span class="nb">str</span> = <span class="st">"generic"</span>
+    start: <span class="nb">float</span> = field(default_factory=time.perf_counter)
+    metadata: <span class="nb">dict</span> = field(default_factory=<span class="nb">dict</span>)
+
+<span class="kw">class</span> <span class="nb">TracedAgent</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, tools: <span class="nb">list</span>[<span class="nb">dict</span>], tool_handlers: <span class="nb">dict</span>):
+        self.client = anthropic.Anthropic()
+        self.tools = tools
+        self.tool_handlers = tool_handlers
+        self.spans: <span class="nb">list</span>[<span class="nb">dict</span>] = []
+
+    <span class="kw">def</span> <span class="fn">run</span>(self, user_msg: <span class="nb">str</span>, model: <span class="nb">str</span> = <span class="st">"claude-sonnet-4-20250514"</span>) -> <span class="nb">str</span>:
+        trace_id = uuid.uuid4().hex[:<span class="nr">16</span>]
+        root_span = TracedSpan(name=<span class="st">"agent_run"</span>, kind=<span class="st">"root"</span>)
+        messages = [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: user_msg}]
+        turn = <span class="nr">0</span>
+
+        <span class="kw">while</span> <span class="kw">True</span>:
+            turn += <span class="nr">1</span>
+            <span class="cm"># --- Trace the LLM call ---</span>
+            llm_span = TracedSpan(
+                name=<span class="st">f"llm_call_</span>{turn}<span class="st">"</span>,
+                kind=<span class="st">"llm"</span>,
+                parent_id=root_span.span_id,
+            )
+            t0 = time.perf_counter()
+            response = self.client.messages.create(
+                model=model,
+                max_tokens=<span class="nr">4096</span>,
+                tools=self.tools,
+                messages=messages,
+            )
+            llm_span.metadata = {
+                <span class="st">"model"</span>: model,
+                <span class="st">"input_tokens"</span>: response.usage.input_tokens,
+                <span class="st">"output_tokens"</span>: response.usage.output_tokens,
+                <span class="st">"stop_reason"</span>: response.stop_reason,
+                <span class="st">"latency_ms"</span>: <span class="nb">round</span>((time.perf_counter() - t0) * <span class="nr">1000</span>),
+                <span class="st">"trace_id"</span>: trace_id,
+            }
+            self.spans.append(asdict(llm_span))
+
+            <span class="cm"># --- Handle tool use ---</span>
+            <span class="kw">if</span> response.stop_reason == <span class="st">"tool_use"</span>:
+                tool_blocks = [b <span class="kw">for</span> b <span class="kw">in</span> response.content
+                               <span class="kw">if</span> b.type == <span class="st">"tool_use"</span>]
+                tool_results = []
+                <span class="kw">for</span> block <span class="kw">in</span> tool_blocks:
+                    tool_span = TracedSpan(
+                        name=<span class="st">f"tool:</span>{block.name}<span class="st">"</span>,
+                        kind=<span class="st">"tool"</span>,
+                        parent_id=llm_span.span_id,
+                    )
+                    t1 = time.perf_counter()
+                    <span class="kw">try</span>:
+                        result = self.tool_handlers[block.name](**block.input)
+                        tool_span.metadata = {
+                            <span class="st">"tool"</span>: block.name,
+                            <span class="st">"args"</span>: block.input,
+                            <span class="st">"result_preview"</span>: <span class="nb">str</span>(result)[:<span class="nr">500</span>],
+                            <span class="st">"status"</span>: <span class="st">"ok"</span>,
+                            <span class="st">"latency_ms"</span>: <span class="nb">round</span>(
+                                (time.perf_counter() - t1) * <span class="nr">1000</span>
+                            ),
+                        }
+                    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+                        result = <span class="st">f"Error: </span>{e}<span class="st">"</span>
+                        tool_span.metadata = {
+                            <span class="st">"tool"</span>: block.name,
+                            <span class="st">"args"</span>: block.input,
+                            <span class="st">"error"</span>: <span class="nb">str</span>(e),
+                            <span class="st">"status"</span>: <span class="st">"error"</span>,
+                        }
+                    self.spans.append(asdict(tool_span))
+                    tool_results.append({
+                        <span class="st">"type"</span>: <span class="st">"tool_result"</span>,
+                        <span class="st">"tool_use_id"</span>: block.id,
+                        <span class="st">"content"</span>: <span class="nb">str</span>(result),
+                    })
+                messages.append({<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: response.content})
+                messages.append({<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: tool_results})
+            <span class="kw">else</span>:
+                <span class="cm"># Final text response</span>
+                root_span.metadata = {
+                    <span class="st">"trace_id"</span>: trace_id,
+                    <span class="st">"total_turns"</span>: turn,
+                    <span class="st">"total_spans"</span>: <span class="nb">len</span>(self.spans),
+                    <span class="st">"latency_ms"</span>: <span class="nb">round</span>(
+                        (time.perf_counter() - root_span.start) * <span class="nr">1000</span>
+                    ),
+                }
+                self.spans.insert(<span class="nr">0</span>, asdict(root_span))
+                text = <span class="st">""</span>.join(
+                    b.text <span class="kw">for</span> b <span class="kw">in</span> response.content <span class="kw">if</span> b.type == <span class="st">"text"</span>
+                )
+                <span class="kw">return</span> text
+</code></div>
+    </div>
+
+    <h4>Pattern 3: Multi-Turn Conversation Tracing with Parent/Child Spans</h4>
+    <p>In a real conversation, a user might send multiple messages. Each message triggers a new agent run, but they're all part of the same session. You need a session-level trace that contains multiple conversation-level traces.</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>session_tracer.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">import</span> uuid
+<span class="kw">import</span> time
+<span class="kw">import</span> json
+<span class="kw">from</span> contextlib <span class="kw">import</span> contextmanager
+<span class="kw">from</span> typing <span class="kw">import</span> Generator, Any
+
+<span class="kw">class</span> <span class="nb">SessionTracer</span>:
+    <span class="st">"""Manages hierarchical trace context for multi-turn conversations."""</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, session_id: <span class="nb">str</span> | <span class="kw">None</span> = <span class="kw">None</span>):
+        self.session_id = session_id <span class="kw">or</span> uuid.uuid4().hex[:<span class="nr">12</span>]
+        self.spans: <span class="nb">list</span>[<span class="nb">dict</span>] = []
+        self._span_stack: <span class="nb">list</span>[<span class="nb">str</span>] = []  <span class="cm"># stack of active span IDs</span>
+
+    <span class="dc">@contextmanager</span>
+    <span class="kw">def</span> <span class="fn">span</span>(self, name: <span class="nb">str</span>, kind: <span class="nb">str</span> = <span class="st">"generic"</span>,
+             **attrs) -> Generator[<span class="nb">dict</span>, <span class="kw">None</span>, <span class="kw">None</span>]:
+        <span class="st">"""Context manager that creates and auto-closes a span."""</span>
+        span_id = uuid.uuid4().hex[:<span class="nr">16</span>]
+        parent_id = self._span_stack[-<span class="nr">1</span>] <span class="kw">if</span> self._span_stack <span class="kw">else</span> <span class="kw">None</span>
+        span_data = {
+            <span class="st">"span_id"</span>: span_id,
+            <span class="st">"parent_id"</span>: parent_id,
+            <span class="st">"session_id"</span>: self.session_id,
+            <span class="st">"name"</span>: name,
+            <span class="st">"kind"</span>: kind,
+            <span class="st">"status"</span>: <span class="st">"ok"</span>,
+            **attrs,
+        }
+        self._span_stack.append(span_id)
+        t0 = time.perf_counter()
+        <span class="kw">try</span>:
+            <span class="kw">yield</span> span_data
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            span_data[<span class="st">"status"</span>] = <span class="st">"error"</span>
+            span_data[<span class="st">"error"</span>] = <span class="nb">str</span>(e)
+            <span class="kw">raise</span>
+        <span class="kw">finally</span>:
+            span_data[<span class="st">"latency_ms"</span>] = <span class="nb">round</span>(
+                (time.perf_counter() - t0) * <span class="nr">1000</span>, <span class="nr">2</span>
+            )
+            self.spans.append(span_data)
+            self._span_stack.pop()
+
+    <span class="kw">def</span> <span class="fn">export_json</span>(self) -> <span class="nb">str</span>:
+        <span class="kw">return</span> json.dumps(self.spans, indent=<span class="nr">2</span>, default=<span class="nb">str</span>)
+
+<span class="cm"># Usage example:</span>
+<span class="cm"># tracer = SessionTracer()</span>
+<span class="cm"># with tracer.span("conversation_turn", kind="agent") as root:</span>
+<span class="cm">#     with tracer.span("llm_call", kind="llm", model="sonnet") as llm:</span>
+<span class="cm">#         response = client.messages.create(...)</span>
+<span class="cm">#         llm["input_tokens"] = response.usage.input_tokens</span>
+<span class="cm">#     with tracer.span("tool:search", kind="tool") as tool:</span>
+<span class="cm">#         result = search_documents(query="...")</span>
+<span class="cm">#         tool["result_count"] = len(result)</span>
+</code></div>
+    </div>
+
+    <h4>Pattern 4: OpenTelemetry Instrumentation for Production</h4>
+    <p>For production systems, you want your traces to flow into your standard observability stack. Here's how to instrument an agent with OpenTelemetry, using the emerging GenAI semantic conventions:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>otel_agent.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">from</span> opentelemetry <span class="kw">import</span> trace
+<span class="kw">from</span> opentelemetry.sdk.trace <span class="kw">import</span> TracerProvider
+<span class="kw">from</span> opentelemetry.sdk.trace.export <span class="kw">import</span> BatchSpanProcessor
+<span class="kw">from</span> opentelemetry.exporter.otlp.proto.grpc.trace_exporter <span class="kw">import</span> (
+    OTLPSpanExporter,
+)
+<span class="kw">from</span> opentelemetry.sdk.resources <span class="kw">import</span> Resource
+<span class="kw">import</span> anthropic
+
+<span class="cm"># Setup: run once at application startup</span>
+resource = Resource.create({
+    <span class="st">"service.name"</span>: <span class="st">"my-agent-service"</span>,
+    <span class="st">"service.version"</span>: <span class="st">"1.0.0"</span>,
+    <span class="st">"deployment.environment"</span>: <span class="st">"production"</span>,
+})
+provider = TracerProvider(resource=resource)
+exporter = OTLPSpanExporter(endpoint=<span class="st">"http://localhost:4317"</span>)
+provider.add_span_processor(BatchSpanProcessor(exporter))
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer(<span class="st">"agent-tracer"</span>)
+
+<span class="kw">def</span> <span class="fn">traced_agent_call</span>(user_message: <span class="nb">str</span>, model: <span class="nb">str</span> = <span class="st">"claude-sonnet-4-20250514"</span>):
+    client = anthropic.Anthropic()
+
+    <span class="kw">with</span> tracer.start_as_current_span(<span class="st">"agent_run"</span>) <span class="kw">as</span> root:
+        root.set_attribute(<span class="st">"gen_ai.system"</span>, <span class="st">"anthropic"</span>)
+        root.set_attribute(<span class="st">"user.message_preview"</span>, user_message[:<span class="nr">200</span>])
+
+        <span class="kw">with</span> tracer.start_as_current_span(<span class="st">"llm_call"</span>) <span class="kw">as</span> llm_span:
+            llm_span.set_attribute(<span class="st">"gen_ai.request.model"</span>, model)
+            llm_span.set_attribute(<span class="st">"gen_ai.request.max_tokens"</span>, <span class="nr">4096</span>)
+
+            response = client.messages.create(
+                model=model,
+                max_tokens=<span class="nr">4096</span>,
+                messages=[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: user_message}],
+            )
+
+            llm_span.set_attribute(
+                <span class="st">"gen_ai.usage.input_tokens"</span>,
+                response.usage.input_tokens,
+            )
+            llm_span.set_attribute(
+                <span class="st">"gen_ai.usage.output_tokens"</span>,
+                response.usage.output_tokens,
+            )
+            llm_span.set_attribute(
+                <span class="st">"gen_ai.response.finish_reason"</span>,
+                response.stop_reason,
+            )
+
+        root.set_attribute(<span class="st">"agent.total_tokens"</span>,
+            response.usage.input_tokens + response.usage.output_tokens)
+
+    <span class="kw">return</span> response.content[<span class="nr">0</span>].text
+</code></div>
+    </div>
+
+    <h4>Pattern 5: Braintrust Integration</h4>
+    <p>Braintrust offers one of the cleanest APIs for combined tracing and evaluation. Their <code>@traced</code> decorator and logging API make it straightforward to capture traces and then score them:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>braintrust_trace.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">import</span> braintrust
+<span class="kw">import</span> anthropic
+
+<span class="cm"># Initialize the logger — traces go to your Braintrust project</span>
+logger = braintrust.init_logger(project=<span class="st">"my-agent"</span>)
+client = anthropic.Anthropic()
+
+<span class="dc">@braintrust.traced</span>
+<span class="kw">def</span> <span class="fn">search_documents</span>(query: <span class="nb">str</span>) -> <span class="nb">list</span>[<span class="nb">dict</span>]:
+    <span class="st">"""Tool function — automatically traced by Braintrust."""</span>
+    <span class="cm"># Your search implementation here</span>
+    <span class="kw">return</span> [{<span class="st">"title"</span>: <span class="st">"Q2 Report"</span>, <span class="st">"snippet"</span>: <span class="st">"Revenue grew 15%..."</span>}]
+
+<span class="dc">@braintrust.traced</span>
+<span class="kw">def</span> <span class="fn">run_agent</span>(user_message: <span class="nb">str</span>) -> <span class="nb">str</span>:
+    <span class="st">"""Main agent loop — the @traced decorator captures the full span tree."""</span>
+    messages = [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: user_message}]
+    tools = [{
+        <span class="st">"name"</span>: <span class="st">"search_documents"</span>,
+        <span class="st">"description"</span>: <span class="st">"Search the document store"</span>,
+        <span class="st">"input_schema"</span>: {
+            <span class="st">"type"</span>: <span class="st">"object"</span>,
+            <span class="st">"properties"</span>: {<span class="st">"query"</span>: {<span class="st">"type"</span>: <span class="st">"string"</span>}},
+            <span class="st">"required"</span>: [<span class="st">"query"</span>],
+        },
+    }]
+
+    response = client.messages.create(
+        model=<span class="st">"claude-sonnet-4-20250514"</span>,
+        max_tokens=<span class="nr">4096</span>,
+        tools=tools,
+        messages=messages,
+    )
+
+    <span class="cm"># Log usage metrics directly to Braintrust</span>
+    braintrust.current_span().log(
+        metrics={
+            <span class="st">"input_tokens"</span>: response.usage.input_tokens,
+            <span class="st">"output_tokens"</span>: response.usage.output_tokens,
+            <span class="st">"model"</span>: <span class="st">"claude-sonnet-4-20250514"</span>,
+        }
+    )
+
+    <span class="cm"># Handle tool use (simplified for example)</span>
+    <span class="kw">if</span> response.stop_reason == <span class="st">"tool_use"</span>:
+        <span class="kw">for</span> block <span class="kw">in</span> response.content:
+            <span class="kw">if</span> block.type == <span class="st">"tool_use"</span>:
+                result = search_documents(**block.input)
+                <span class="cm"># The @traced decorator on search_documents</span>
+                <span class="cm"># automatically creates a child span</span>
+
+    text_blocks = [b <span class="kw">for</span> b <span class="kw">in</span> response.content <span class="kw">if</span> b.type == <span class="st">"text"</span>]
+    <span class="kw">return</span> text_blocks[<span class="nr">0</span>].text <span class="kw">if</span> text_blocks <span class="kw">else</span> <span class="st">""</span>
+
+<span class="cm"># After running, you can score the trace for evaluations</span>
+<span class="cm"># logger.log(output=result, scores={"quality": 0.9})</span>
+</code></div>
+    </div>
+
+    <h3>Key Instrumentation Principles</h3>
+    <ul>
+      <li><strong>Instrument at the boundary:</strong> Trace every external call (LLM API, tool execution, database query). Internal logic between calls is usually not worth tracing individually.</li>
+      <li><strong>Capture inputs and outputs:</strong> Without the actual prompt text and completion text, your traces are just timing data. Capture the full content, truncating only if necessary for storage.</li>
+      <li><strong>Use context managers or decorators:</strong> Manual span start/stop is error-prone. Context managers guarantee spans are closed even when exceptions occur.</li>
+      <li><strong>Don't forget error traces:</strong> Failed calls are the most valuable traces. Always capture the exception message and stack trace in the span metadata.</li>
+      <li><strong>Make it opt-out, not opt-in:</strong> Tracing should be on by default. Use an environment variable like <code>TRACING_ENABLED=false</code> to disable, not <code>TRACING_ENABLED=true</code> to enable.</li>
+    </ul>
+
+    <div class="callout callout-success">
+      <div class="callout-title">Implementation Tip</div>
+      <p>Start with Pattern 1 (the basic decorator) today. It takes five minutes to add and immediately gives you visibility into cost and latency. Evolve to Patterns 2-5 as your needs grow. Don't let perfect be the enemy of good: basic tracing now beats comprehensive tracing next quarter.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODULE 5 -->
+<!-- ============================================================ -->
+<section class="module" id="module-5" data-module="5">
+  <div class="module-header" onclick="toggleModule(5)">
+    <input type="checkbox" class="module-checkbox" data-module="5" onclick="event.stopPropagation(); toggleCheckbox(5)">
+    <span class="module-number">5</span>
+    <span class="module-title-text">Debugging Agent Failures</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>When Your Agent Goes Wrong</h3>
+    <p>Agents fail in ways that traditional software doesn't. They don't just throw exceptions; they make subtly wrong decisions, hallucinate tool parameters, get stuck in loops, and produce plausible-sounding but incorrect output. Traces are your X-ray machine. Here's how to use them.</p>
+
+    <h4>Failure Mode 1: Wrong Tool Selection</h4>
+    <p>The agent receives "What's the weather in Tokyo?" and calls <code>search_documents</code> instead of <code>get_weather</code>. In your trace, this shows up as a tool span with an unexpected <code>tool_name</code>. The fix might be in your tool descriptions, your system prompt, or your tool schema. Without the trace showing exactly which tools were available and which was chosen, you're guessing.</p>
+
+    <h4>Failure Mode 2: Hallucinated Parameters</h4>
+    <p>The agent calls the right tool but invents a parameter value. For example, <code>search_files(directory="/home/user/documents/Q3")</code> when no such directory exists. The tool returns an error or empty result, the agent retries with another fabricated path, and the loop begins. In your trace, you'd see the <code>tool_args</code> metadata revealing the hallucinated path.</p>
+
+    <h4>Failure Mode 3: Infinite Loops</h4>
+    <p>The most expensive failure mode. The agent calls a tool, gets an unsatisfying result, decides to try again with slightly different parameters, gets another unsatisfying result, and repeats. Your trace will show a growing chain of nearly identical spans. In a task dispatcher system with 30+ scheduled tasks, one looping task can consume your entire daily budget.</p>
+
+    <h4>The Latency Waterfall</h4>
+    <p>A visual waterfall shows each span as a horizontal bar, positioned by start time and sized by duration. This immediately reveals where time is spent:</p>
+
+    <div class="ascii-diagram">
+Time (ms): 0      500    1000   1500   2000   2500   3000   3500   4000
+
+agent_run  |=================================================================|
+           |                                                                 |
+llm_call_1 |===========|                                                     |
+           0ms     820ms                                                     |
+                        |                                                    |
+tool:search             |====|                                               |
+                     820ms 1140ms                                            |
+                              |                                              |
+llm_call_2                    |===================|                          |
+                          1140ms              2480ms                         |
+                                                   |                        |
+tool:read_doc                                      |==|                     |
+                                               2480ms 2710ms               |
+                                                       |                    |
+llm_call_3                                             |====================|
+                                                   2710ms              4050ms
+
+BOTTLENECK: llm_call_2 (1340ms) - 33% of total time
+            Contains 8,400 input tokens (context growing)
+    </div>
+
+    <p>From this waterfall, you can immediately see that <code>llm_call_2</code> is the bottleneck. It's slow because it's processing 8,400 input tokens (the original prompt plus the search results from the first tool call). This tells you: maybe you should truncate search results before passing them to the next LLM call.</p>
+
+    <h4>Trace Replay: Re-running Failed Traces</h4>
+    <p>One of the most powerful debugging techniques is trace replay: take a failed trace, extract the exact inputs at each step, and re-run them deterministically with <code>temperature=0</code>. This lets you reproduce the failure reliably.</p>
+
+    <h3>The Debugging Checklist</h3>
+    <div class="callout">
+      <div class="callout-title">Agent Failure Debugging Checklist</div>
+      <ul class="checklist">
+        <li>Check the trace waterfall for timeout or excessive duration on any span</li>
+        <li>Verify <code>stop_reason</code> on every LLM span: is it <code>end_turn</code>, <code>tool_use</code>, or <code>max_tokens</code>? A <code>max_tokens</code> stop often means truncated reasoning</li>
+        <li>Check for repeated tool calls with similar arguments (loop detection)</li>
+        <li>Verify tool arguments against the schema: are any values hallucinated?</li>
+        <li>Check tool results: did the tool return an error that the agent misinterpreted as data?</li>
+        <li>Compare input token counts across turns: are they growing? (context accumulation)</li>
+        <li>Check if prompt caching was expected but missed (unexpected cost spike)</li>
+        <li>Verify the model used matches the expected model (routing errors)</li>
+        <li>Check for error spans that were silently swallowed (tool errors the agent ignored)</li>
+        <li>Compare against a known-good trace for the same query type</li>
+      </ul>
+    </div>
+
+    <h3>Building a Trace Analyzer</h3>
+    <p>Instead of manually inspecting every trace, build an analyzer that flags anomalies automatically. Here's a practical implementation:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>trace_analyzer.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass
+<span class="kw">from</span> typing <span class="kw">import</span> Any
+
+<span class="dc">@dataclass</span>
+<span class="kw">class</span> <span class="nb">Anomaly</span>:
+    severity: <span class="nb">str</span>   <span class="cm"># "critical", "warning", "info"</span>
+    category: <span class="nb">str</span>   <span class="cm"># "cost", "loop", "error", "latency"</span>
+    message: <span class="nb">str</span>
+    span_id: <span class="nb">str</span> | <span class="kw">None</span> = <span class="kw">None</span>
+
+<span class="kw">class</span> <span class="nb">TraceAnalyzer</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, config: <span class="nb">dict</span> | <span class="kw">None</span> = <span class="kw">None</span>):
+        self.config = config <span class="kw">or</span> {
+            <span class="st">"max_turns"</span>: <span class="nr">20</span>,
+            <span class="st">"max_cost_usd"</span>: <span class="nr">1.0</span>,
+            <span class="st">"max_latency_ms"</span>: <span class="nr">30000</span>,
+            <span class="st">"loop_threshold"</span>: <span class="nr">3</span>,  <span class="cm"># same tool called N+ times</span>
+            <span class="st">"token_growth_ratio"</span>: <span class="nr">2.0</span>,
+        }
+
+    <span class="kw">def</span> <span class="fn">analyze</span>(self, spans: <span class="nb">list</span>[<span class="nb">dict</span>]) -> <span class="nb">list</span>[Anomaly]:
+        anomalies: <span class="nb">list</span>[Anomaly] = []
+
+        <span class="cm"># 1. Check for tool call loops</span>
+        tool_calls = [s <span class="kw">for</span> s <span class="kw">in</span> spans <span class="kw">if</span> s.get(<span class="st">"kind"</span>) == <span class="st">"tool"</span>]
+        tool_counts: <span class="nb">dict</span>[<span class="nb">str</span>, <span class="nb">int</span>] = {}
+        <span class="kw">for</span> tc <span class="kw">in</span> tool_calls:
+            name = tc.get(<span class="st">"name"</span>, <span class="st">"unknown"</span>)
+            tool_counts[name] = tool_counts.get(name, <span class="nr">0</span>) + <span class="nr">1</span>
+        <span class="kw">for</span> name, count <span class="kw">in</span> tool_counts.items():
+            <span class="kw">if</span> count >= self.config[<span class="st">"loop_threshold"</span>]:
+                anomalies.append(Anomaly(
+                    severity=<span class="st">"critical"</span>,
+                    category=<span class="st">"loop"</span>,
+                    message=<span class="st">f"Tool '</span>{name}<span class="st">' called </span>{count}<span class="st">x (threshold: "</span>
+                            <span class="st">f"</span>{self.config[<span class="st">'loop_threshold'</span>]}<span class="st">)"</span>,
+                ))
+
+        <span class="cm"># 2. Check cost</span>
+        total_cost = <span class="nb">sum</span>(s.get(<span class="st">"cost_usd"</span>, <span class="nr">0</span>) <span class="kw">for</span> s <span class="kw">in</span> spans)
+        <span class="kw">if</span> total_cost > self.config[<span class="st">"max_cost_usd"</span>]:
+            anomalies.append(Anomaly(
+                severity=<span class="st">"warning"</span>,
+                category=<span class="st">"cost"</span>,
+                message=<span class="st">f"Trace cost $</span>{total_cost:.4f}<span class="st"> exceeds "</span>
+                        <span class="st">f"$</span>{self.config[<span class="st">'max_cost_usd'</span>]}<span class="st"> threshold"</span>,
+            ))
+
+        <span class="cm"># 3. Check for token growth (context accumulation)</span>
+        llm_spans = [s <span class="kw">for</span> s <span class="kw">in</span> spans <span class="kw">if</span> s.get(<span class="st">"kind"</span>) == <span class="st">"llm"</span>]
+        <span class="kw">if</span> <span class="nb">len</span>(llm_spans) >= <span class="nr">2</span>:
+            first_input = llm_spans[<span class="nr">0</span>].get(<span class="st">"input_tokens"</span>, <span class="nr">1</span>)
+            last_input = llm_spans[-<span class="nr">1</span>].get(<span class="st">"input_tokens"</span>, <span class="nr">1</span>)
+            <span class="kw">if</span> first_input > <span class="nr">0</span>:
+                ratio = last_input / first_input
+                <span class="kw">if</span> ratio > self.config[<span class="st">"token_growth_ratio"</span>]:
+                    anomalies.append(Anomaly(
+                        severity=<span class="st">"warning"</span>,
+                        category=<span class="st">"cost"</span>,
+                        message=<span class="st">f"Input tokens grew </span>{ratio:.1f}<span class="st">x across "</span>
+                                <span class="st">f"</span>{<span class="nb">len</span>(llm_spans)}<span class="st"> turns (context bloat)"</span>,
+                    ))
+
+        <span class="cm"># 4. Check for errors</span>
+        error_spans = [s <span class="kw">for</span> s <span class="kw">in</span> spans <span class="kw">if</span> s.get(<span class="st">"status"</span>) == <span class="st">"error"</span>]
+        <span class="kw">for</span> es <span class="kw">in</span> error_spans:
+            anomalies.append(Anomaly(
+                severity=<span class="st">"critical"</span>,
+                category=<span class="st">"error"</span>,
+                message=<span class="st">f"Span '</span>{es.get(<span class="st">'name'</span>)}<span class="st">' failed: "</span>
+                        <span class="st">f"</span>{es.get(<span class="st">'error'</span>, <span class="st">'unknown'</span>)}<span class="st">"</span>,
+                span_id=es.get(<span class="st">"span_id"</span>),
+            ))
+
+        <span class="kw">return</span> anomalies
+
+<span class="cm"># Usage:</span>
+<span class="cm"># analyzer = TraceAnalyzer()</span>
+<span class="cm"># issues = analyzer.analyze(tracer.spans)</span>
+<span class="cm"># for issue in issues:</span>
+<span class="cm">#     print(f"[{issue.severity}] {issue.category}: {issue.message}")</span>
+</code></div>
+    </div>
+
+    <h3>Comparing Good vs. Bad Traces</h3>
+    <p>One of the most effective debugging techniques is side-by-side trace comparison. Take a trace where the agent succeeded and one where it failed for a similar query. Diff them systematically:</p>
+    <ul>
+      <li><strong>Tool sequence:</strong> Did the failing trace call tools in a different order? Did it call extra tools? Did it skip a tool the good trace used?</li>
+      <li><strong>Tool arguments:</strong> Were the arguments to the same tool different? Was one set of arguments more specific?</li>
+      <li><strong>Token counts:</strong> Did the failing trace have significantly more input tokens at any turn? This suggests context pollution.</li>
+      <li><strong>Timing:</strong> Was any span in the failing trace unusually slow? Timeouts can cause cascading failures.</li>
+      <li><strong>Error propagation:</strong> Did an early error go unhandled, causing downstream failures?</li>
+    </ul>
+
+    <h3>Cost Debugging: "Why Did This Query Cost $2.50?"</h3>
+    <p>When a single query costs significantly more than expected, the trace tells you exactly where the money went. Sort spans by cost (or by <code>input_tokens + output_tokens</code> if you haven't computed cost) and look at the top offenders. Common causes:</p>
+    <ul>
+      <li><strong>Context accumulation:</strong> Each turn includes the full conversation history. By turn 15, you're sending 50,000 tokens per call. The trace shows input token counts growing linearly.</li>
+      <li><strong>Large tool results:</strong> A tool returns a 10,000-word document, which gets included verbatim in the next prompt. The trace shows the tool result size in the span metadata.</li>
+      <li><strong>Model escalation:</strong> Your router sent the query to Opus when Sonnet would have sufficed. The trace shows which model was used on each span.</li>
+      <li><strong>Retry storms:</strong> An intermittent error caused three retries, each with the full context. The trace shows duplicate spans with growing latency.</li>
+    </ul>
+
+    <div class="callout callout-error">
+      <div class="callout-title">Real-World Scenario: The $47 Day</div>
+      <p>In a Cowork-style system with 30+ scheduled tasks, a task called <code>daily_report_generator</code> hit an empty database. Instead of failing gracefully, it entered a retry loop: search, get empty result, ask Claude "I didn't find anything, let me try differently," search again with a slightly different query, repeat. Each retry accumulated the prior conversation history. After 34 retries, the final turn sent 89,000 input tokens to Opus. The trace analyzer above would have caught this after the 3rd retry with a "loop" anomaly. Without tracing, it took two days to find.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODULE 6 -->
+<!-- ============================================================ -->
+<section class="module" id="module-6" data-module="6">
+  <div class="module-header" onclick="toggleModule(6)">
+    <input type="checkbox" class="module-checkbox" data-module="6" onclick="event.stopPropagation(); toggleCheckbox(6)">
+    <span class="module-number">6</span>
+    <span class="module-title-text">Production Monitoring</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>From Debugging to Dashboards</h3>
+    <p>Debugging is reactive. You look at traces after something goes wrong. Monitoring is proactive: you watch aggregate metrics to catch problems before users report them. Production agent monitoring requires a specific set of metrics that traditional web service monitoring doesn't cover.</p>
+
+    <h4>The Golden Signals for Agent Systems</h4>
+    <p>Google's Site Reliability Engineering book defines four golden signals: latency, traffic, errors, and saturation. For LLM agents, we need to extend these with agent-specific signals:</p>
+
+    <div class="table-wrapper">
+      <table>
+        <tr><th>Signal</th><th>Metric</th><th>Target</th><th>Alert Threshold</th></tr>
+        <tr><td><strong>Latency</strong></td><td>p50, p95, p99 response time</td><td>p50 &lt; 3s, p99 &lt; 15s</td><td>p99 &gt; 30s for 5 min</td></tr>
+        <tr><td><strong>Error Rate</strong></td><td>Failed traces / total traces</td><td>&lt; 2%</td><td>&gt; 5% for 10 min</td></tr>
+        <tr><td><strong>Cost per Query</strong></td><td>Average USD per trace</td><td>$0.01 - $0.05</td><td>&gt; $0.20 average over 1 hour</td></tr>
+        <tr><td><strong>Token Efficiency</strong></td><td>Output tokens / input tokens ratio</td><td>0.1 - 0.5</td><td>Ratio &gt; 1.0 (unusual verbosity)</td></tr>
+        <tr><td><strong>Tool Success Rate</strong></td><td>Successful tool calls / total</td><td>&gt; 95%</td><td>&lt; 85% for 15 min</td></tr>
+        <tr><td><strong>Turns per Query</strong></td><td>Average LLM calls per trace</td><td>2 - 5</td><td>&gt; 10 average over 1 hour</td></tr>
+        <tr><td><strong>Cache Hit Rate</strong></td><td>Prompt cache hits / total calls</td><td>&gt; 40%</td><td>&lt; 20% (cache invalidated?)</td></tr>
+        <tr><td><strong>Loop Detection</strong></td><td>Traces with &gt;3 same-tool calls</td><td>0</td><td>Any occurrence</td></tr>
+        <tr><td><strong>Max Tokens Hit</strong></td><td>% of calls hitting max_tokens</td><td>&lt; 5%</td><td>&gt; 15% (responses being truncated)</td></tr>
+      </table>
+    </div>
+
+    <h3>Building a Monitoring Class</h3>
+    <p>Here's a production-ready metrics collector that aggregates trace data into the golden signals above:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>agent_monitor.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">import</span> time
+<span class="kw">import</span> statistics
+<span class="kw">from</span> collections <span class="kw">import</span> defaultdict, deque
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">from</span> typing <span class="kw">import</span> Callable
+
+<span class="dc">@dataclass</span>
+<span class="kw">class</span> <span class="nb">AlertRule</span>:
+    name: <span class="nb">str</span>
+    check: Callable[["AgentMonitor"], <span class="nb">bool</span>]
+    message: <span class="nb">str</span>
+    cooldown_sec: <span class="nb">int</span> = <span class="nr">300</span>
+    last_fired: <span class="nb">float</span> = <span class="nr">0</span>
+
+<span class="kw">class</span> <span class="nb">AgentMonitor</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, window_size: <span class="nb">int</span> = <span class="nr">100</span>):
+        self.latencies: deque = deque(maxlen=window_size)
+        self.costs: deque = deque(maxlen=window_size)
+        self.errors: deque = deque(maxlen=window_size)
+        self.turns_per_query: deque = deque(maxlen=window_size)
+        self.tool_results: deque = deque(maxlen=window_size * <span class="nr">5</span>)
+        self.total_traces = <span class="nr">0</span>
+        self.alert_handlers: <span class="nb">list</span>[Callable] = []
+        self.rules: <span class="nb">list</span>[AlertRule] = self._default_rules()
+
+    <span class="kw">def</span> <span class="fn">record_trace</span>(self, spans: <span class="nb">list</span>[<span class="nb">dict</span>]):
+        <span class="st">"""Record metrics from a completed trace."""</span>
+        self.total_traces += <span class="nr">1</span>
+        root = <span class="nb">next</span>((s <span class="kw">for</span> s <span class="kw">in</span> spans <span class="kw">if</span> <span class="kw">not</span> s.get(<span class="st">"parent_id"</span>)), <span class="kw">None</span>)
+        <span class="kw">if</span> root:
+            self.latencies.append(root.get(<span class="st">"latency_ms"</span>, <span class="nr">0</span>))
+            self.errors.append(<span class="nr">1</span> <span class="kw">if</span> root.get(<span class="st">"status"</span>) == <span class="st">"error"</span> <span class="kw">else</span> <span class="nr">0</span>)
+
+        cost = <span class="nb">sum</span>(s.get(<span class="st">"cost_usd"</span>, <span class="nr">0</span>) <span class="kw">for</span> s <span class="kw">in</span> spans)
+        self.costs.append(cost)
+
+        llm_turns = <span class="nb">sum</span>(<span class="nr">1</span> <span class="kw">for</span> s <span class="kw">in</span> spans <span class="kw">if</span> s.get(<span class="st">"kind"</span>) == <span class="st">"llm"</span>)
+        self.turns_per_query.append(llm_turns)
+
+        <span class="kw">for</span> s <span class="kw">in</span> spans:
+            <span class="kw">if</span> s.get(<span class="st">"kind"</span>) == <span class="st">"tool"</span>:
+                self.tool_results.append(s.get(<span class="st">"status"</span>, <span class="st">"ok"</span>))
+
+        self._check_alerts()
+
+    <span class="kw">def</span> <span class="fn">get_dashboard</span>(self) -> <span class="nb">dict</span>:
+        <span class="st">"""Return current metrics snapshot for a dashboard."""</span>
+        lat = <span class="nb">sorted</span>(self.latencies) <span class="kw">if</span> self.latencies <span class="kw">else</span> [<span class="nr">0</span>]
+        <span class="kw">return</span> {
+            <span class="st">"total_traces"</span>: self.total_traces,
+            <span class="st">"p50_latency_ms"</span>: lat[<span class="nb">len</span>(lat) // <span class="nr">2</span>],
+            <span class="st">"p99_latency_ms"</span>: lat[<span class="nb">int</span>(<span class="nb">len</span>(lat) * <span class="nr">0.99</span>)],
+            <span class="st">"error_rate"</span>: <span class="nb">sum</span>(self.errors) / <span class="nb">max</span>(<span class="nb">len</span>(self.errors), <span class="nr">1</span>),
+            <span class="st">"avg_cost_usd"</span>: statistics.mean(self.costs) <span class="kw">if</span> self.costs <span class="kw">else</span> <span class="nr">0</span>,
+            <span class="st">"avg_turns"</span>: statistics.mean(self.turns_per_query)
+                          <span class="kw">if</span> self.turns_per_query <span class="kw">else</span> <span class="nr">0</span>,
+            <span class="st">"tool_success_rate"</span>: (
+                <span class="nb">sum</span>(<span class="nr">1</span> <span class="kw">for</span> r <span class="kw">in</span> self.tool_results <span class="kw">if</span> r == <span class="st">"ok"</span>)
+                / <span class="nb">max</span>(<span class="nb">len</span>(self.tool_results), <span class="nr">1</span>)
+            ),
+        }
+
+    <span class="kw">def</span> <span class="fn">_default_rules</span>(self) -> <span class="nb">list</span>[AlertRule]:
+        <span class="kw">return</span> [
+            AlertRule(
+                name=<span class="st">"high_error_rate"</span>,
+                check=<span class="kw">lambda</span> m: (
+                    <span class="nb">sum</span>(m.errors) / <span class="nb">max</span>(<span class="nb">len</span>(m.errors), <span class="nr">1</span>) > <span class="nr">0.05</span>
+                ),
+                message=<span class="st">"Error rate exceeds 5%"</span>,
+            ),
+            AlertRule(
+                name=<span class="st">"cost_spike"</span>,
+                check=<span class="kw">lambda</span> m: (
+                    statistics.mean(m.costs) > <span class="nr">0.20</span> <span class="kw">if</span> m.costs <span class="kw">else</span> <span class="kw">False</span>
+                ),
+                message=<span class="st">"Average cost per query exceeds $0.20"</span>,
+            ),
+        ]
+
+    <span class="kw">def</span> <span class="fn">_check_alerts</span>(self):
+        now = time.time()
+        <span class="kw">for</span> rule <span class="kw">in</span> self.rules:
+            <span class="kw">if</span> (now - rule.last_fired > rule.cooldown_sec
+                    <span class="kw">and</span> rule.check(self)):
+                rule.last_fired = now
+                <span class="kw">for</span> handler <span class="kw">in</span> self.alert_handlers:
+                    handler(rule.name, rule.message)
+</code></div>
+    </div>
+
+    <h3>SLOs for Agent Systems</h3>
+    <p>Service Level Objectives for agents are tricky because "correct" is harder to define than for traditional APIs. A REST endpoint either returns the right data or it doesn't. An agent might return a response that's 80% correct, or correct but unhelpfully verbose, or technically correct but misses the user's intent.</p>
+    <p>Practical SLOs for agent systems:</p>
+    <ul>
+      <li><strong>Availability SLO:</strong> 99.5% of agent invocations complete without an unhandled exception. This is your floor. If the agent crashes, that's always a failure.</li>
+      <li><strong>Latency SLO:</strong> 95% of queries complete in under 10 seconds, 99% in under 30 seconds. Adjust based on your use case. Interactive chat needs p99 &lt; 10s. Batch processing can tolerate minutes.</li>
+      <li><strong>Cost SLO:</strong> 99% of queries cost less than $0.50. The 1% allows for complex multi-tool queries. Anything exceeding $0.50 should be investigated.</li>
+      <li><strong>Quality SLO (the hard one):</strong> This requires user feedback integration. Set a target like "90% of rated responses receive positive feedback." Track this with trace-correlated thumbs-up/thumbs-down signals.</li>
+    </ul>
+
+    <h3>User Feedback Integration</h3>
+    <p>The most valuable signal in agent monitoring is user feedback, but only if it's correlated with traces. When a user clicks thumbs-down, you need to instantly link that feedback to the specific trace that generated the response. This lets you:</p>
+    <ul>
+      <li>Pull up the exact trace and see what went wrong</li>
+      <li>Aggregate negative feedback by tool, model, or query type</li>
+      <li>Identify systematic issues (e.g., "all queries involving the calendar tool get negative feedback")</li>
+      <li>Build evaluation datasets from real failures</li>
+    </ul>
+    <p>Implementation is straightforward: when generating a response, attach the <code>trace_id</code> to the response payload. When the user submits feedback, log it with the same <code>trace_id</code>. Your dashboard can then join these datasets.</p>
+
+    <h3>Production Alerting Channels</h3>
+    <p>Your monitoring system should alert through multiple channels based on severity:</p>
+    <ul>
+      <li><strong>Critical (P1):</strong> Error rate &gt; 10%, complete agent downtime, or a single trace costing &gt; $5. Route to PagerDuty / on-call phone.</li>
+      <li><strong>Warning (P2):</strong> Error rate &gt; 5%, cost spike &gt; 2x baseline, latency p99 &gt; 30s. Route to Slack #agent-alerts channel.</li>
+      <li><strong>Info (P3):</strong> New failure patterns, cache hit rate drop, model routing anomalies. Route to daily digest email.</li>
+    </ul>
+
+    <div class="callout callout-success">
+      <div class="callout-title">Production System Example: Learn Imagine v3</div>
+      <p>A production learning system running multiple agent types needs distinct monitoring per agent role. The research agent has a higher acceptable latency (30s) but lower cost tolerance ($0.10). The chat agent has strict latency requirements (5s p95) but can use cheaper models. The evaluation agent runs in batch mode and cares most about consistency. Each role gets its own SLO targets and alert thresholds, all fed from the same trace data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODULE 7 -->
+<!-- ============================================================ -->
+<section class="module" id="module-7" data-module="7">
+  <div class="module-header" onclick="toggleModule(7)">
+    <input type="checkbox" class="module-checkbox" data-module="7" onclick="event.stopPropagation(); toggleCheckbox(7)">
+    <span class="module-number">7</span>
+    <span class="module-title-text">Cost Optimization Through Tracing</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>Tracing as a Cost Reduction Tool</h3>
+    <p>Tracing isn't just for debugging. It's your most powerful tool for cost optimization. Without per-query cost visibility, you're optimizing blind. With it, you can identify the 20% of queries consuming 80% of your budget and target them precisely.</p>
+
+    <h4>Understanding Model Costs</h4>
+    <p>First, internalize the cost landscape. Prices as of mid-2026 (always verify current pricing):</p>
+
+    <div class="table-wrapper">
+      <table>
+        <tr><th>Model</th><th>Input (per 1M tokens)</th><th>Output (per 1M tokens)</th><th>Relative Cost</th><th>Typical Use</th></tr>
+        <tr><td>Claude Opus 4</td><td>$15.00</td><td>$75.00</td><td>1x (baseline)</td><td>Complex reasoning, code generation</td></tr>
+        <tr><td>Claude Sonnet 4</td><td>$3.00</td><td>$15.00</td><td>0.2x</td><td>General purpose, tool use</td></tr>
+        <tr><td>Claude Haiku 4</td><td>$0.80</td><td>$4.00</td><td>0.05x</td><td>Classification, simple tasks</td></tr>
+        <tr><td>GPT-4o</td><td>$2.50</td><td>$10.00</td><td>0.15x</td><td>General purpose alternative</td></tr>
+        <tr><td>GPT-4o-mini</td><td>$0.15</td><td>$0.60</td><td>0.01x</td><td>High-volume, simple tasks</td></tr>
+      </table>
+    </div>
+
+    <p>The cost difference between Haiku and Opus is <strong>20x</strong>. That means routing even 30% of your traffic from Opus to Haiku could reduce your bill by 50%. But you can only identify which queries are Haiku-eligible if you have trace data showing query complexity.</p>
+
+    <h3>Identifying Expensive Traces</h3>
+    <p>The first step in cost optimization is understanding your cost distribution. Build a cost analyzer that ranks traces by expense and identifies patterns:</p>
+
+    <div class="code-block-wrapper">
+      <div class="code-block-header"><span>cost_analyzer.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <div class="code-block"><code><span class="kw">import</span> statistics
+<span class="kw">from</span> collections <span class="kw">import</span> Counter, defaultdict
+<span class="kw">from</span> typing <span class="kw">import</span> Any
+
+MODEL_COSTS_PER_1K = {
+    <span class="st">"claude-opus-4-20250514"</span>:    (<span class="nr">0.015</span>, <span class="nr">0.075</span>),
+    <span class="st">"claude-sonnet-4-20250514"</span>:  (<span class="nr">0.003</span>, <span class="nr">0.015</span>),
+    <span class="st">"claude-haiku-4-20250414"</span>:   (<span class="nr">0.0008</span>, <span class="nr">0.004</span>),
+}
+
+<span class="kw">class</span> <span class="nb">CostAnalyzer</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self, traces: <span class="nb">list</span>[<span class="nb">list</span>[<span class="nb">dict</span>]]):
+        <span class="st">"""Each trace is a list of spans."""</span>
+        self.traces = traces
+
+    <span class="kw">def</span> <span class="fn">cost_of_span</span>(self, span: <span class="nb">dict</span>) -> <span class="nb">float</span>:
+        model = span.get(<span class="st">"model"</span>, <span class="st">""</span>)
+        inp = span.get(<span class="st">"input_tokens"</span>, <span class="nr">0</span>)
+        out = span.get(<span class="st">"output_tokens"</span>, <span class="nr">0</span>)
+        rates = MODEL_COSTS_PER_1K.get(model, (<span class="nr">0</span>, <span class="nr">0</span>))
+        <span class="kw">return</span> (inp / <span class="nr">1000</span>) * rates[<span class="nr">0</span>] + (out / <span class="nr">1000</span>) * rates[<span class="nr">1</span>]
+
+    <span class="kw">def</span> <span class="fn">top_expensive_traces</span>(self, n: <span class="nb">int</span> = <span class="nr">10</span>) -> <span class="nb">list</span>[<span class="nb">dict</span>]:
+        ranked = []
+        <span class="kw">for</span> trace <span class="kw">in</span> self.traces:
+            total = <span class="nb">sum</span>(self.cost_of_span(s) <span class="kw">for</span> s <span class="kw">in</span> trace)
+            trace_id = trace[<span class="nr">0</span>].get(<span class="st">"trace_id"</span>, <span class="st">"?"</span>) <span class="kw">if</span> trace <span class="kw">else</span> <span class="st">"?"</span>
+            ranked.append({<span class="st">"trace_id"</span>: trace_id, <span class="st">"cost"</span>: total,
+                           <span class="st">"spans"</span>: <span class="nb">len</span>(trace)})
+        ranked.sort(key=<span class="kw">lambda</span> x: x[<span class="st">"cost"</span>], reverse=<span class="kw">True</span>)
+        <span class="kw">return</span> ranked[:n]
+
+    <span class="kw">def</span> <span class="fn">cost_by_model</span>(self) -> <span class="nb">dict</span>[<span class="nb">str</span>, <span class="nb">float</span>]:
+        by_model: <span class="nb">dict</span>[<span class="nb">str</span>, <span class="nb">float</span>] = defaultdict(<span class="nb">float</span>)
+        <span class="kw">for</span> trace <span class="kw">in</span> self.traces:
+            <span class="kw">for</span> span <span class="kw">in</span> trace:
+                model = span.get(<span class="st">"model"</span>)
+                <span class="kw">if</span> model:
+                    by_model[model] += self.cost_of_span(span)
+        <span class="kw">return</span> <span class="nb">dict</span>(by_model)
+
+    <span class="kw">def</span> <span class="fn">model_routing_opportunities</span>(self) -> <span class="nb">list</span>[<span class="nb">dict</span>]:
+        <span class="st">"""Find traces using expensive models that might work with cheaper ones.
+        Heuristic: short input, low output, single tool call = probably Haiku-eligible.
+        """</span>
+        opportunities = []
+        <span class="kw">for</span> trace <span class="kw">in</span> self.traces:
+            llm_spans = [s <span class="kw">for</span> s <span class="kw">in</span> trace <span class="kw">if</span> s.get(<span class="st">"kind"</span>) == <span class="st">"llm"</span>]
+            <span class="kw">for</span> span <span class="kw">in</span> llm_spans:
+                model = span.get(<span class="st">"model"</span>, <span class="st">""</span>)
+                inp = span.get(<span class="st">"input_tokens"</span>, <span class="nr">0</span>)
+                out = span.get(<span class="st">"output_tokens"</span>, <span class="nr">0</span>)
+                <span class="kw">if</span> (<span class="st">"opus"</span> <span class="kw">in</span> model <span class="kw">or</span> <span class="st">"sonnet"</span> <span class="kw">in</span> model) \
+                        <span class="kw">and</span> inp &lt; <span class="nr">2000</span> <span class="kw">and</span> out &lt; <span class="nr">500</span>:
+                    savings = self.cost_of_span(span) - (
+                        (inp / <span class="nr">1000</span>) * <span class="nr">0.0008</span> + (out / <span class="nr">1000</span>) * <span class="nr">0.004</span>
+                    )
+                    opportunities.append({
+                        <span class="st">"span_id"</span>: span.get(<span class="st">"span_id"</span>),
+                        <span class="st">"current_model"</span>: model,
+                        <span class="st">"suggested"</span>: <span class="st">"claude-haiku-4-20250414"</span>,
+                        <span class="st">"potential_savings"</span>: <span class="nb">round</span>(savings, <span class="nr">6</span>),
+                    })
+        <span class="kw">return</span> opportunities
+</code></div>
+    </div>
+
+    <h3>Prompt Caching Strategies</h3>
+    <p>Anthropic's prompt caching can reduce input token costs by up to 90% for repeated prefixes. Tracing tells you whether caching is actually working:</p>
+    <ul>
+      <li><strong>Track cache_creation_input_tokens and cache_read_input_tokens</strong> in your spans. The Anthropic API returns these in the usage object. If <code>cache_read_input_tokens</code> is zero, your cache isn't being hit.</li>
+      <li><strong>Common cache miss causes:</strong> System prompt changed between calls (even a single character invalidates the cache), conversation history order changed, tools list modified.</li>
+      <li><strong>Optimization:</strong> Keep your system prompt and tools definition stable. Put the static parts first (they form the cache prefix). Put dynamic content (user message, conversation history) last.</li>
+    </ul>
+    <p>In your traces, add a computed field: <code>cache_hit_rate = cache_read_input_tokens / (cache_read_input_tokens + input_tokens)</code>. Dashboard this over time. A sudden drop means something invalidated your cache.</p>
+
+    <h3>Token Waste Analysis</h3>
+    <p>Common sources of token waste, identifiable through traces:</p>
+    <ul>
+      <li><strong>Over-long system prompts:</strong> Your system prompt is 3,000 tokens but most of it is rarely relevant. Trace analysis can show which parts of the system prompt are actually referenced in responses (by comparing system prompt content with response content). Trim the unused parts.</li>
+      <li><strong>Unnecessary tool calls:</strong> The agent calls <code>get_current_time</code> on every query, even when time is irrelevant. Trace analytics showing tool call frequency per query type reveal this pattern.</li>
+      <li><strong>Redundant context:</strong> The agent includes full search results when a summary would suffice. Traces show the tool result size vs. how much of it appears in the final response.</li>
+      <li><strong>Conversation history bloat:</strong> In multi-turn conversations, each turn includes all previous turns. Traces show input token counts growing linearly per turn. Solutions: summarize older turns, use a sliding window, or use prompt caching aggressively.</li>
+    </ul>
+
+    <h3>A/B Testing Model Versions</h3>
+    <p>Traces enable rigorous A/B testing of model versions. Route 10% of traffic to a new model, capture traces from both, and compare:</p>
+    <ul>
+      <li><strong>Quality:</strong> Correlate user feedback scores with model version</li>
+      <li><strong>Cost:</strong> Compare average cost per trace between versions</li>
+      <li><strong>Latency:</strong> Compare p50/p95/p99 latency</li>
+      <li><strong>Tool use patterns:</strong> Does the new model use tools differently? More efficiently?</li>
+      <li><strong>Error rates:</strong> Does the new model fail more often?</li>
+    </ul>
+    <p>In a multi-model setup where you route between Opus, Sonnet, and Haiku based on query complexity, traces give you the ground truth for your routing decisions. If your router sends 40% of traffic to Opus but trace analysis shows 60% of those queries are simple enough for Sonnet, you've found a significant cost optimization.</p>
+
+    <div class="callout">
+      <div class="callout-title">Rule of Thumb: The 80/20 of Agent Costs</div>
+      <p>In most agent systems, 80% of cost comes from 20% of queries. These are typically queries that trigger multiple tool calls, use expensive models, or get stuck in retry loops. Trace your top 20% by cost and optimize those specifically. The remaining 80% of queries are usually cheap enough that optimizing them yields diminishing returns.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- MODULE 8 -->
+<!-- ============================================================ -->
+<section class="module" id="module-8" data-module="8">
+  <div class="module-header" onclick="toggleModule(8)">
+    <input type="checkbox" class="module-checkbox" data-module="8" onclick="event.stopPropagation(); toggleCheckbox(8)">
+    <span class="module-number">8</span>
+    <span class="module-title-text">Building Your Observability Stack</span>
+    <span class="module-chevron">&#9662;</span>
+  </div>
+  <div class="module-body">
+    <h3>Reference Architecture</h3>
+    <p>Let's bring everything together. Here's a reference architecture for a production agent system with full observability, modeled after a Cowork-style setup with 30+ scheduled tasks, a command dispatcher, and multi-model routing:</p>
+
+    <div class="ascii-diagram">
+                         PRODUCTION AGENT OBSERVABILITY STACK
+
+  +------------------------------------------------------------------+
+  |                        USER REQUESTS                              |
+  |              (API, Scheduled Tasks, CLI, Webhooks)                |
+  +----------------------------+-------------------------------------+
+                               |
+                    +----------v-----------+
+                    |   COMMAND DISPATCHER  |
+                    |   (Routes to agents)  |
+                    |   trace_id generated  |
+                    +----------+-----------+
+                               |
+          +--------------------+--------------------+
+          |                    |                    |
+  +-------v------+    +-------v------+    +-------v------+
+  | Research      |    | Chat         |    | Task         |
+  | Agent         |    | Agent        |    | Agent        |
+  | (Opus/Sonnet) |    | (Sonnet)     |    | (Haiku)      |
+  +-------+------+    +-------+------+    +-------+------+
+          |                    |                    |
+          +--------------------+--------------------+
+                               |
+                    +----------v-----------+
+                    |   TRACE COLLECTOR    |
+                    |   (OTel Collector    |
+                    |    or SDK export)    |
+                    +----------+-----------+
+                               |
+              +----------------+----------------+
+              |                                 |
+   +----------v-----------+         +-----------v----------+
+   |   TRACE STORAGE       |         |   METRICS AGGREGATOR |
+   |   (Grafana Tempo /    |         |   (Prometheus /      |
+   |    Phoenix / SaaS)    |         |    custom)           |
+   +----------+------------+         +-----------+----------+
+              |                                 |
+   +----------v-----------+         +-----------v----------+
+   |   TRACE VIEWER        |         |   DASHBOARDS         |
+   |   (Grafana / Phoenix  |         |   (Grafana /         |
+   |    UI / custom)       |         |    custom)           |
+   +----------+------------+         +-----------+----------+
+              |                                 |
+              +----------------+----------------+
+                               |
+                    +----------v-----------+
+                    |   ALERTING           |
+                    |   (Slack, PagerDuty, |
+                    |    email)            |
+                    +-----------------------+
+    </div>
+
+    <h3>Choosing the Right Tool for Your Scale</h3>
+    <p>Here's a decision tree to guide your tool selection:</p>
+
+    <div class="ascii-diagram">
+START: How many agent queries per day?
+  |
+  +-- &lt; 100/day --> Helicone (zero setup) + manual log review
+  |
+  +-- 100-1,000/day --> Braintrust or LangSmith (managed SaaS)
+  |                      Reason: you need dashboards but not infra
+  |
+  +-- 1,000-10,000/day --> Phoenix self-hosted + Grafana dashboards
+  |                         Reason: SaaS costs add up, you need control
+  |
+  +-- &gt; 10,000/day --> OpenTelemetry + Grafana Tempo + custom dashboards
+                        Reason: you need scale, customization, and
+                        integration with existing observability stack
+
+MODIFIER: Is data sensitivity high? (PII, PHI, financial)
+  |
+  +-- YES --> Self-hosted only (Phoenix, OTel, or Helicone self-hosted)
+  |
+  +-- NO --> SaaS is fine
+
+MODIFIER: Do you have an existing observability stack?
+  |
+  +-- YES (Datadog/Grafana/etc.) --> OTel + integrate with existing
+  |
+  +-- NO --> Standalone tool (Braintrust, LangSmith, Phoenix)
+    </div>
+
+    <h3>Self-Hosted vs. SaaS: The Tradeoffs</h3>
+    <p>This decision deserves careful consideration because it affects cost, maintenance burden, and data governance:</p>
+    <ul>
+      <li><strong>SaaS (LangSmith, Braintrust, Helicone cloud):</strong> Zero infrastructure maintenance. Automatic updates. Shared community features. But: your prompt data leaves your infrastructure, which may violate compliance requirements. Costs scale linearly with volume. You're dependent on the vendor's uptime and roadmap.</li>
+      <li><strong>Self-Hosted (Phoenix, OTel + Tempo, Helicone self-hosted):</strong> Full data control. Fixed infrastructure cost (doesn't scale with query volume once provisioned). You can customize everything. But: you own the ops burden. Upgrades, scaling, backups, and monitoring the monitoring system are all your responsibility.</li>
+    </ul>
+    <p>My recommendation: start with SaaS to move fast, build a thin abstraction layer, and migrate to self-hosted when you hit one of these triggers: (a) your monthly SaaS bill exceeds the cost of a dedicated VM, (b) a compliance requirement demands data residency, or (c) you need customization the SaaS doesn't support.</p>
+
+    <h3>OpenTelemetry as the Universal Standard</h3>
+    <p>Regardless of which tool you choose, instrument with OpenTelemetry semantics. Here's why:</p>
+    <ul>
+      <li><strong>Portability:</strong> OTel traces can be exported to any compatible backend. Switch from Phoenix to Grafana Tempo to Datadog without changing your application code.</li>
+      <li><strong>Ecosystem:</strong> OTel has auto-instrumentation libraries for HTTP clients, databases, and message queues. Your agent's non-LLM dependencies get traced for free.</li>
+      <li><strong>Standards:</strong> The GenAI semantic conventions are being standardized. Early adoption means your traces will be compatible with future tooling.</li>
+      <li><strong>Correlation:</strong> OTel lets you correlate LLM traces with infrastructure traces. An agent that's slow because the database is slow shows up as one connected trace, not two disconnected investigations.</li>
+    </ul>
+
+    <h3>Retention Policies</h3>
+    <p>Traces are verbose. A single agent query might generate 5-20KB of trace data. At 10,000 queries/day, that's 50-200MB/day, or 1.5-6GB/month. Manageable, but it adds up.</p>
+    <p>Recommended retention strategy:</p>
+    <ul>
+      <li><strong>Hot storage (full detail, 7 days):</strong> Keep all spans, all metadata, all input/output text. This is your debugging window.</li>
+      <li><strong>Warm storage (aggregated, 90 days):</strong> Keep span trees and metadata, but drop full prompt/completion text. Replace with summaries or hashes. This is your trend analysis window.</li>
+      <li><strong>Cold storage (metrics only, 1 year):</strong> Keep only aggregated metrics: cost, latency, error counts, model usage. This is your capacity planning window.</li>
+      <li><strong>Special retention:</strong> Keep error traces and traces with negative user feedback at full detail indefinitely. These are your most valuable debugging and training data.</li>
+    </ul>
+
+    <h3>Building Custom Dashboards</h3>
+    <p>If you're using Grafana (which you should, because it's free and excellent), here are the panels for your agent observability dashboard:</p>
+    <ol>
+      <li><strong>Top row:</strong> Four stat panels showing current error rate, p50 latency, average cost per query, and total traces in the last hour</li>
+      <li><strong>Second row:</strong> Time series of error rate and latency (p50, p95, p99) over the last 24 hours</li>
+      <li><strong>Third row:</strong> Bar chart of cost by model, pie chart of tool usage distribution</li>
+      <li><strong>Fourth row:</strong> Table of recent error traces (linked to trace viewer), table of most expensive traces</li>
+      <li><strong>Bottom row:</strong> Cache hit rate over time, turns-per-query distribution histogram</li>
+    </ol>
+
+    <h3>The Meta-Problem: Observability of Your Observability</h3>
+    <p>There's a delicious irony in building observability for AI agents: the observability system itself needs monitoring. If your trace collector goes down, you lose visibility at the exact moment you need it most (because something is probably going wrong).</p>
+    <p>Practical measures:</p>
+    <ul>
+      <li><strong>Health checks:</strong> Monitor your trace collector's uptime independently of the traces it collects. A simple HTTP health check endpoint, monitored by an external service (UptimeRobot, Pingdom), is sufficient.</li>
+      <li><strong>Queue depth monitoring:</strong> If you're using a batch span processor (and you should be, for performance), monitor the queue depth. A growing queue means you're producing traces faster than you can export them.</li>
+      <li><strong>Sampling fallback:</strong> If trace export fails, don't lose the data silently. Fall back to writing spans to a local file that can be replayed later. Better to have a big log file than no traces.</li>
+      <li><strong>Separate critical path:</strong> Your trace export should never block your agent's response path. Use async export with a bounded queue. If the queue is full, drop spans (with a counter metric), don't slow down the agent.</li>
+    </ul>
+
+    <h3>Putting It All Together: Your First Week</h3>
+    <p>If you're starting from zero, here's a practical one-week plan to go from no observability to a production-grade setup:</p>
+    <ol>
+      <li><strong>Day 1:</strong> Add the basic trace decorator (Module 4, Pattern 1) to your agent's LLM calls. Deploy. You now have latency and cost visibility.</li>
+      <li><strong>Day 2:</strong> Add tool call tracing (Pattern 2). Deploy. You now have full span trees.</li>
+      <li><strong>Day 3:</strong> Set up a trace backend. If SaaS: sign up for Braintrust or LangSmith, add their SDK. If self-hosted: <code>pip install arize-phoenix</code> and <code>phoenix serve</code>. Export your spans.</li>
+      <li><strong>Day 4:</strong> Build the trace analyzer (Module 5). Add it as a post-processing step. Log anomalies to your team's Slack channel.</li>
+      <li><strong>Day 5:</strong> Set up the monitoring class (Module 6). Create a Grafana dashboard (or use your trace tool's built-in dashboard) with the golden signals.</li>
+      <li><strong>Day 6:</strong> Run the cost analyzer (Module 7) on your first week of data. Identify the top 10 most expensive traces. Fix the obvious wins (loops, model routing).</li>
+      <li><strong>Day 7:</strong> Write documentation for your team. Add alerting rules. Celebrate: you've gone from black box to glass box in one week.</li>
+    </ol>
+
+    <div class="callout callout-success">
+      <div class="callout-title">Final Thought</div>
+      <p>The best observability system is the one you actually use. Don't over-engineer your first version. Start with the basic decorator, iterate based on what you learn from the data, and invest in more sophisticated tooling only when the data tells you where to look. Your agents are already running. Start watching them today.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-celebration" id="footer-celebration">
+    Course Complete!
+  </div>
+  <div class="footer-stats" id="footer-stats">
+    <span id="completed-count">0</span> of 8 modules completed
+  </div>
+  <div class="footer-sub">
+    Agent Tracing &amp; Observability &mdash; Mustafa Furniturewala &mdash; June 2026
+  </div>
+</footer>
+
+<script>
+// ========== State Management ==========
+const STORAGE_KEY = 'agent-tracing-course-progress';
+
+function loadProgress() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+}
+
+function saveProgress(progress) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  } catch {}
+}
+
+// ========== Module Toggle ==========
+function toggleModule(num) {
+  const module = document.getElementById('module-' + num);
+  if (!module) return;
+  module.classList.toggle('expanded');
+}
+
+// ========== Checkbox Toggle ==========
+function toggleCheckbox(num) {
+  const progress = loadProgress();
+  const checkbox = document.querySelector(`.module-checkbox[data-module="${num}"]`);
+  if (!checkbox) return;
+  progress[num] = checkbox.checked;
+  saveProgress(progress);
+  updateUI();
+}
+
+// ========== UI Update ==========
+function updateUI() {
+  const progress = loadProgress();
+  let completedCount = 0;
+
+  for (let i = 1; i <= 8; i++) {
+    const checkbox = document.querySelector(`.module-checkbox[data-module="${i}"]`);
+    const navLink = document.querySelector(`.nav-module-link[data-module="${i}"]`);
+
+    if (checkbox) {
+      checkbox.checked = !!progress[i];
+    }
+    if (navLink) {
+      if (progress[i]) {
+        navLink.classList.add('completed');
+        completedCount++;
+      } else {
+        navLink.classList.remove('completed');
+      }
+    }
+  }
+
+  // Progress bar
+  const progressBar = document.getElementById('progress-bar');
+  if (progressBar) {
+    progressBar.style.width = ((completedCount / 8) * 100) + '%';
+  }
+
+  // Nav completion text
+  const navCompletion = document.getElementById('nav-completion');
+  if (navCompletion) {
+    navCompletion.textContent = completedCount + '/8';
+  }
+
+  // Footer
+  const footerStats = document.getElementById('footer-stats');
+  const footerCelebration = document.getElementById('footer-celebration');
+  const completedCountEl = document.getElementById('completed-count');
+
+  if (completedCountEl) completedCountEl.textContent = completedCount;
+
+  if (completedCount === 8 && footerCelebration) {
+    footerCelebration.classList.add('visible');
+  } else if (footerCelebration) {
+    footerCelebration.classList.remove('visible');
+  }
+}
+
+// ========== Active Module Tracking ==========
+function updateActiveModule() {
+  const modules = document.querySelectorAll('.module');
+  const navLinks = document.querySelectorAll('.nav-module-link');
+  let activeNum = '1';
+
+  modules.forEach(function(mod) {
+    const rect = mod.getBoundingClientRect();
+    if (rect.top <= 120) {
+      activeNum = mod.dataset.module;
+    }
+  });
+
+  navLinks.forEach(function(link) {
+    if (link.dataset.module === activeNum) {
+      link.classList.add('active');
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+
+// ========== Copy Code ==========
+function copyCode(btn) {
+  const wrapper = btn.closest('.code-block-wrapper');
+  const codeBlock = wrapper.querySelector('.code-block');
+  const text = codeBlock.textContent;
+
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+  }).catch(function() {
+    // Fallback
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+
+// ========== Hamburger Menu ==========
+document.getElementById('hamburger').addEventListener('click', function() {
+  document.getElementById('nav-modules').classList.toggle('open');
+});
+
+// Close mobile nav when a link is clicked
+document.querySelectorAll('.nav-module-link').forEach(function(link) {
+  link.addEventListener('click', function() {
+    document.getElementById('nav-modules').classList.remove('open');
+  });
+});
+
+// ========== Scroll Listener ==========
+let scrollTimeout;
+window.addEventListener('scroll', function() {
+  if (scrollTimeout) cancelAnimationFrame(scrollTimeout);
+  scrollTimeout = requestAnimationFrame(updateActiveModule);
+});
+
+// ========== Init ==========
+updateUI();
+updateActiveModule();
+</script>
+</body>
+</html>

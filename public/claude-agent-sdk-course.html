@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Agent SDK - Interactive Course</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-card: #111827;
+            --bg-card-hover: #1a2332;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --accent-dark: #2563eb;
+            --text-body: #e2e8f0;
+            --text-heading: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border: #1e293b;
+            --border-light: #334155;
+            --success: #22c55e;
+            --success-bg: rgba(34, 197, 94, 0.1);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --error: #ef4444;
+            --purple: #a78bfa;
+            --purple-bg: rgba(167, 139, 250, 0.1);
+            --cyan: #22d3ee;
+            --card-radius: 16px;
+            --section-gap: 2.5rem;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-body);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 15, 26, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-heading);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .navbar-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+            font-weight: 800;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .progress-bar-outer {
+            width: 180px;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--purple));
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--border);
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.completed {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            position: relative;
+            padding: 6rem 1.5rem 4rem;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: var(--accent-light);
+            padding: 0.4rem 1rem;
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            color: var(--text-heading);
+            line-height: 1.15;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent-light), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-description {
+            max-width: 640px;
+            margin: 0 auto 2rem;
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            color: white;
+            padding: 0.85rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .hero-stat-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        .container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        /* ===== MODULE CARD ===== */
+        .module-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 2.5rem;
+            margin-bottom: var(--section-gap);
+            transition: border-color 0.3s;
+        }
+
+        .module-card:hover {
+            border-color: var(--border-light);
+        }
+
+        .module-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .module-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        .module-title-area {
+            flex: 1;
+        }
+
+        .module-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            line-height: 1.3;
+        }
+
+        .module-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            margin-top: 0.25rem;
+        }
+
+        /* ===== COMPLETION CHECKBOX ===== */
+        .completion-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            user-select: none;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+            margin-bottom: 2rem;
+        }
+
+        .completion-toggle:hover {
+            border-color: var(--accent);
+        }
+
+        .completion-toggle.checked {
+            background: var(--success-bg);
+            border-color: var(--success);
+        }
+
+        .checkbox-visual {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--border-light);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .completion-toggle.checked .checkbox-visual {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .checkbox-visual svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .completion-toggle.checked .checkbox-visual svg {
+            opacity: 1;
+        }
+
+        .completion-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .completion-toggle.checked .completion-label {
+            color: var(--success);
+        }
+
+        /* ===== OBJECTIVES BOX ===== */
+        .objectives-box {
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .objectives-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .objectives-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .objectives-list li {
+            padding: 0.3rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-body);
+            font-size: 0.95rem;
+        }
+
+        .objectives-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+            font-family: monospace;
+        }
+
+        /* ===== PROSE ===== */
+        .concept-text {
+            margin-bottom: 2rem;
+        }
+
+        .concept-text h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .concept-text h3:first-child {
+            margin-top: 0;
+        }
+
+        .concept-text p {
+            margin-bottom: 1rem;
+            color: var(--text-body);
+            line-height: 1.8;
+        }
+
+        .concept-text strong {
+            color: var(--text-heading);
+        }
+
+        .concept-text code {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-light);
+            padding: 0.15em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+        }
+
+        /* ===== CODE BLOCKS ===== */
+        .code-block-wrapper {
+            position: relative;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .code-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: rgba(30, 41, 59, 0.5);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-block-lang {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: transparent;
+            border: 1px solid var(--border-light);
+            color: var(--text-muted);
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .copy-btn:hover {
+            background: var(--border);
+            color: var(--text-heading);
+        }
+
+        .copy-btn.copied {
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .code-block-wrapper pre {
+            margin: 0 !important;
+            padding: 1.25rem !important;
+            border-radius: 0 !important;
+            background: #1a1e2e !important;
+            font-size: 0.88rem !important;
+            line-height: 1.7 !important;
+            overflow-x: auto;
+        }
+
+        .code-block-wrapper pre code {
+            background: none !important;
+            padding: 0 !important;
+            font-size: inherit !important;
+            color: inherit !important;
+        }
+
+        /* ===== EXERCISE BOX ===== */
+        .exercise-box {
+            background: rgba(167, 139, 250, 0.06);
+            border: 1px solid rgba(167, 139, 250, 0.15);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            margin-top: 2rem;
+        }
+
+        .exercise-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--purple);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .exercise-description {
+            margin-bottom: 1rem;
+            color: var(--text-body);
+        }
+
+        .exercise-steps {
+            list-style: none;
+            padding: 0;
+            counter-reset: step;
+        }
+
+        .exercise-steps li {
+            counter-increment: step;
+            padding: 0.4rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-body);
+            font-size: 0.95rem;
+        }
+
+        .exercise-steps li::before {
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(167, 139, 250, 0.15);
+            color: var(--purple);
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 0.45rem;
+        }
+
+        /* ===== TAKEAWAYS BOX ===== */
+        .takeaways-box {
+            background: rgba(34, 197, 94, 0.06);
+            border: 1px solid rgba(34, 197, 94, 0.15);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .takeaways-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .takeaways-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .takeaways-list li {
+            padding: 0.3rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-body);
+            font-size: 0.95rem;
+        }
+
+        .takeaways-list li::before {
+            content: '\2713';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        /* ===== INFO CALLOUT ===== */
+        .callout {
+            background: rgba(245, 158, 11, 0.06);
+            border-left: 3px solid var(--warning);
+            border-radius: 0 10px 10px 0;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.92rem;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            color: var(--warning);
+            margin-bottom: 0.25rem;
+            font-size: 0.85rem;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--accent-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-heading);
+        }
+
+        .footer-note {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        /* ===== TABLE OF CONTENTS ===== */
+        .toc {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--card-radius);
+            padding: 2rem;
+            margin-bottom: var(--section-gap);
+        }
+
+        .toc-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin-bottom: 1rem;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc-list li {
+            margin-bottom: 0.25rem;
+        }
+
+        .toc-list a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-body);
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .toc-list a:hover {
+            background: rgba(59, 130, 246, 0.08);
+            color: var(--accent-light);
+        }
+
+        .toc-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--border);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .navbar {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .progress-bar-outer {
+                width: 100px;
+            }
+
+            .hero {
+                padding: 4rem 1rem 3rem;
+            }
+
+            .hero-stats {
+                gap: 1.5rem;
+            }
+
+            .module-card {
+                padding: 1.5rem;
+            }
+
+            .module-header {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .container {
+                padding: 0 1rem 3rem;
+            }
+
+            .hero-description {
+                font-size: 1rem;
+            }
+
+            .code-block-wrapper pre {
+                font-size: 0.8rem !important;
+                padding: 1rem !important;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-dim);
+        }
+
+        /* ===== SEPARATOR ===== */
+        .section-sep {
+            height: 1px;
+            background: var(--border);
+            margin: 2rem 0;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== NAVBAR ==================== -->
+<nav class="navbar" id="navbar">
+    <a href="#hero" class="navbar-brand">
+        <div class="navbar-logo">C</div>
+        <span>Agent SDK Course</span>
+    </a>
+    <div class="progress-container">
+        <div class="progress-bar-outer">
+            <div class="progress-bar-inner" id="progressBar"></div>
+        </div>
+        <span class="progress-text" id="progressText">0 / 6 complete</span>
+    </div>
+    <div class="nav-links">
+        <a href="#module1" class="nav-link" id="nav1">1</a>
+        <a href="#module2" class="nav-link" id="nav2">2</a>
+        <a href="#module3" class="nav-link" id="nav3">3</a>
+        <a href="#module4" class="nav-link" id="nav4">4</a>
+        <a href="#module5" class="nav-link" id="nav5">5</a>
+        <a href="#module6" class="nav-link" id="nav6">6</a>
+    </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero" id="hero">
+    <div class="hero-badge">Interactive Hands-On Course</div>
+    <h1>Master the <span>Claude Agent SDK</span></h1>
+    <p class="hero-description">
+        Build intelligent, tool-using AI agents from scratch. Learn to create custom tools,
+        orchestrate multi-agent systems, manage state, and deploy production-ready agentic applications.
+    </p>
+    <a href="#module1" class="hero-cta">Start Learning &darr;</a>
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <div class="hero-stat-number">6</div>
+            <div class="hero-stat-label">Modules</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-number">15+</div>
+            <div class="hero-stat-label">Code Examples</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-number">6</div>
+            <div class="hero-stat-label">Exercises</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-number">Python</div>
+            <div class="hero-stat-label">Language</div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== MAIN CONTENT ==================== -->
+<div class="container">
+
+    <!-- TABLE OF CONTENTS -->
+    <div class="toc">
+        <div class="toc-title">Course Modules</div>
+        <ul class="toc-list">
+            <li><a href="#module1"><span class="toc-num">1</span> Setup &amp; Hello World Agent</a></li>
+            <li><a href="#module2"><span class="toc-num">2</span> Custom Tools</a></li>
+            <li><a href="#module3"><span class="toc-num">3</span> Multi-Agent Systems</a></li>
+            <li><a href="#module4"><span class="toc-num">4</span> Memory &amp; State</a></li>
+            <li><a href="#module5"><span class="toc-num">5</span> MCP Integration</a></li>
+            <li><a href="#module6"><span class="toc-num">6</span> Capstone &mdash; Build a Complete Agentic App</a></li>
+        </ul>
+    </div>
+
+    <!-- ================================================================ -->
+    <!--                         MODULE 1                                  -->
+    <!-- ================================================================ -->
+    <section class="module-card" id="module1">
+        <div class="module-header">
+            <div class="module-number">1</div>
+            <div class="module-title-area">
+                <div class="module-title">Setup &amp; Hello World Agent</div>
+                <div class="module-subtitle">Install the SDK, configure credentials, and run your first agent</div>
+            </div>
+        </div>
+
+        <div class="completion-toggle" data-module="1" onclick="toggleModule(1)">
+            <div class="checkbox-visual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="completion-label">Mark as complete</span>
+        </div>
+
+        <!-- Objectives -->
+        <div class="objectives-box">
+            <div class="objectives-title">&#127919; Learning Objectives</div>
+            <ul class="objectives-list">
+                <li>Install the Claude Agent SDK via pip</li>
+                <li>Configure your Anthropic API key</li>
+                <li>Run your first agent and see it use tools</li>
+                <li>Understand message types: SystemMessage, AssistantMessage, ResultMessage</li>
+            </ul>
+        </div>
+
+        <!-- Concepts -->
+        <div class="concept-text">
+            <h3>What is the Claude Agent SDK?</h3>
+            <p>
+                The Claude Agent SDK is a Python library that lets you build <strong>agentic applications</strong> powered by Claude.
+                Unlike simple API calls where you send a prompt and get a response, the Agent SDK enables Claude to
+                <strong>use tools</strong>, <strong>make decisions</strong>, and <strong>take actions</strong> in an autonomous loop.
+            </p>
+            <p>
+                At its core, the SDK implements an <strong>agent loop</strong>: Claude receives a prompt, decides which tools to call,
+                executes those tools, observes the results, and continues until the task is complete. You don't need to
+                manually orchestrate this &mdash; the SDK handles it for you.
+            </p>
+
+            <h3>The Agent Loop</h3>
+            <p>
+                When you call <code>query()</code>, the SDK starts an asynchronous iteration. Each iteration yields a
+                <strong>message</strong> that represents one step in the agent's reasoning or action cycle. The three
+                primary message types are:
+            </p>
+            <p>
+                <strong>SystemMessage</strong> &mdash; Internal SDK messages such as initialization events. The <code>init</code>
+                subtype includes the <code>session_id</code> you can use to resume conversations later.
+            </p>
+            <p>
+                <strong>AssistantMessage</strong> &mdash; Claude's thoughts, tool calls, and intermediate reasoning. You can
+                inspect these to see what Claude is doing at each step.
+            </p>
+            <p>
+                <strong>ResultMessage</strong> &mdash; The final result when the agent loop completes. Check <code>message.subtype</code>
+                for <code>"success"</code> or <code>"error"</code> and read <code>message.result</code> for the output.
+            </p>
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- Code Examples -->
+        <div class="concept-text">
+            <h3>Step 1: Install the SDK</h3>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Bash</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-bash">pip install claude-agent-sdk httpx</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Step 2: Set Your API Key</h3>
+            <p>
+                The SDK reads your API key from the <code>ANTHROPIC_API_KEY</code> environment variable.
+                Set it in your terminal before running any agent code.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Bash</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-bash">export ANTHROPIC_API_KEY="sk-ant-your-key-here"</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Step 3: Hello World Agent</h3>
+            <p>
+                This is the simplest possible agent. It uses the <code>Bash</code> and <code>Glob</code> tools
+                to list files in the current directory. Notice how you iterate over messages asynchronously.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions
+
+async def main():
+    async for message in query(
+        prompt="What files are in this directory?",
+        options=ClaudeAgentOptions(allowed_tools=["Bash", "Glob"]),
+    ):
+        if hasattr(message, "result"):
+            print(message.result)
+
+asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Step 4: Inspecting Message Types</h3>
+            <p>
+                To understand what the agent is doing under the hood, inspect each message type as it
+                comes through the async iterator.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from claude_agent_sdk import (
+    query, ClaudeAgentOptions,
+    SystemMessage, AssistantMessage, ResultMessage
+)
+
+async def main():
+    async for message in query(
+        prompt="List all Python files in this directory",
+        options=ClaudeAgentOptions(allowed_tools=["Bash", "Glob"]),
+    ):
+        if isinstance(message, SystemMessage):
+            print(f"[SYSTEM] subtype={message.subtype}")
+            if message.subtype == "init":
+                print(f"  Session ID: {message.data['session_id']}")
+
+        elif isinstance(message, AssistantMessage):
+            print(f"[ASSISTANT] {message.content[:100]}...")
+
+        elif isinstance(message, ResultMessage):
+            print(f"[RESULT] status={message.subtype}")
+            print(message.result)
+
+asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="callout">
+            <div class="callout-title">Note</div>
+            The SDK uses Python's <code>asyncio</code> throughout. All agent interactions are async generators,
+            so you must use <code>async for</code> to iterate over messages.
+        </div>
+
+        <hr class="section-sep">
+
+        <!-- Exercise -->
+        <div class="exercise-box">
+            <div class="exercise-title">&#128736; Exercise: Code Summarizer Agent</div>
+            <p class="exercise-description">
+                Build an agent that reads a Python file and prints a concise summary of its contents &mdash;
+                including classes, functions, and top-level logic.
+            </p>
+            <ol class="exercise-steps">
+                <li>Create a new file called <code>summarizer.py</code></li>
+                <li>Import <code>query</code>, <code>ClaudeAgentOptions</code>, and <code>ResultMessage</code></li>
+                <li>Call <code>query()</code> with a prompt like: <code>"Read the file example.py and provide a summary of its classes, functions, and purpose"</code></li>
+                <li>Allow the tools <code>["Read", "Glob"]</code> so Claude can find and read files</li>
+                <li>Print only the final <code>ResultMessage</code> where <code>subtype == "success"</code></li>
+                <li>Test it on any Python file in your project</li>
+            </ol>
+        </div>
+
+        <!-- Takeaways -->
+        <div class="takeaways-box">
+            <div class="takeaways-title">&#128218; Key Takeaways</div>
+            <ul class="takeaways-list">
+                <li>The SDK manages the entire agent loop automatically &mdash; tool calls, results, and follow-ups</li>
+                <li>Use <code>async for</code> to iterate over messages from <code>query()</code></li>
+                <li>Three message types: SystemMessage (init), AssistantMessage (reasoning), ResultMessage (final output)</li>
+                <li>The <code>allowed_tools</code> option controls which tools the agent can use</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!--                         MODULE 2                                  -->
+    <!-- ================================================================ -->
+    <section class="module-card" id="module2">
+        <div class="module-header">
+            <div class="module-number">2</div>
+            <div class="module-title-area">
+                <div class="module-title">Custom Tools</div>
+                <div class="module-subtitle">Define your own tools and create in-process MCP servers</div>
+            </div>
+        </div>
+
+        <div class="completion-toggle" data-module="2" onclick="toggleModule(2)">
+            <div class="checkbox-visual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="completion-label">Mark as complete</span>
+        </div>
+
+        <div class="objectives-box">
+            <div class="objectives-title">&#127919; Learning Objectives</div>
+            <ul class="objectives-list">
+                <li>Define custom tools using the <code>@tool</code> decorator</li>
+                <li>Create in-process MCP servers with <code>create_sdk_mcp_server</code></li>
+                <li>Handle tool errors gracefully with <code>is_error</code></li>
+                <li>Understand the tool naming convention: <code>mcp__{server}__{tool}</code></li>
+            </ul>
+        </div>
+
+        <div class="concept-text">
+            <h3>Tool Anatomy</h3>
+            <p>
+                A custom tool in the Agent SDK has four parts: a <strong>name</strong>, a <strong>description</strong>
+                (used by Claude to decide when to call it), an <strong>input schema</strong> (defines the parameters),
+                and a <strong>handler function</strong> (the async function that runs when the tool is called).
+            </p>
+            <p>
+                Tools are grouped into <strong>MCP servers</strong>. Even for a single tool, you create an MCP server
+                to host it. This server runs <strong>in-process</strong> &mdash; no separate server process needed. When
+                Claude wants to call your tool, it references it as <code>mcp__{server_name}__{tool_name}</code>.
+            </p>
+
+            <h3>In-Process MCP Servers</h3>
+            <p>
+                The <code>create_sdk_mcp_server()</code> function creates a lightweight MCP server that runs inside
+                your Python process. You register tools with the <code>@tool</code> decorator, group them into a server,
+                and pass the server to your <code>query()</code> call via the <code>mcp_servers</code> option.
+            </p>
+
+            <h3>Error Handling</h3>
+            <p>
+                When a tool encounters an error, return a response with <code>is_error=True</code>. This tells Claude
+                that the tool failed, so it can try a different approach or report the error to the user &mdash; rather
+                than crashing the agent loop entirely.
+            </p>
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="concept-text">
+            <h3>Example: Weather Temperature Tool</h3>
+            <p>
+                This example defines a tool that fetches the current temperature from the Open-Meteo API.
+                It demonstrates the full lifecycle: decorator, schema, async handler, and MCP server creation.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">from claude_agent_sdk import tool, create_sdk_mcp_server
+
+@tool(
+    "get_temperature",
+    "Get the current temperature at a location",
+    {"latitude": float, "longitude": float},
+)
+async def get_temperature(args):
+    import httpx
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": args["latitude"],
+                "longitude": args["longitude"],
+                "current": "temperature_2m",
+                "temperature_unit": "fahrenheit",
+            },
+        )
+        data = response.json()
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": f"Temperature: {data['current']['temperature_2m']}°F",
+            }
+        ]
+    }
+
+# Create the MCP server
+weather_server = create_sdk_mcp_server(
+    name="weather",
+    version="1.0.0",
+    tools=[get_temperature],
+)</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Using the Tool in a Query</h3>
+            <p>
+                Pass the MCP server to <code>query()</code> and allow the tool by its full name:
+                <code>mcp__weather__get_temperature</code>. The naming convention is always
+                <code>mcp__{server_name}__{tool_name}</code>.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage
+
+async def main():
+    options = ClaudeAgentOptions(
+        mcp_servers={"weather": weather_server},
+        allowed_tools=["mcp__weather__get_temperature"],
+    )
+    async for message in query(
+        prompt="What's the temperature in San Francisco?",
+        options=options,
+    ):
+        if isinstance(message, ResultMessage) and message.subtype == "success":
+            print(message.result)
+
+asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Error Handling Pattern</h3>
+            <p>
+                Return an error response so Claude knows the tool failed and can adapt.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">@tool(
+    "fetch_stock_price",
+    "Look up a stock price by ticker symbol",
+    {"ticker": str},
+)
+async def fetch_stock_price(args):
+    try:
+        # ... fetch stock price logic ...
+        price = 182.63
+        return {
+            "content": [{"type": "text", "text": f"{args['ticker']}: ${price}"}]
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "is_error": True,
+        }</code></pre>
+        </div>
+
+        <div class="callout">
+            <div class="callout-title">Tip</div>
+            You can use wildcard patterns in <code>allowed_tools</code>. For example,
+            <code>"mcp__weather__*"</code> allows all tools on the weather server.
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="exercise-box">
+            <div class="exercise-title">&#128736; Exercise: Database Lookup Tool</div>
+            <p class="exercise-description">
+                Build a custom tool that queries a SQLite database and returns results.
+            </p>
+            <ol class="exercise-steps">
+                <li>Create a SQLite database with a <code>users</code> table (columns: id, name, email)</li>
+                <li>Define a tool called <code>query_users</code> that accepts a <code>search_term</code> parameter</li>
+                <li>The handler should query the database with a <code>LIKE</code> clause on the name column</li>
+                <li>Return matching rows as a formatted text response</li>
+                <li>Add error handling for database connection failures</li>
+                <li>Create an MCP server named <code>"database"</code> and test with a query like "Find all users named Alice"</li>
+            </ol>
+        </div>
+
+        <div class="takeaways-box">
+            <div class="takeaways-title">&#128218; Key Takeaways</div>
+            <ul class="takeaways-list">
+                <li>Tools extend Claude's abilities beyond text &mdash; to APIs, databases, file systems, and more</li>
+                <li>The <code>@tool</code> decorator defines name, description, and input schema in one place</li>
+                <li>Use <code>create_sdk_mcp_server()</code> to group tools into in-process MCP servers</li>
+                <li>Return <code>is_error: True</code> to let Claude recover gracefully from tool failures</li>
+                <li>Tool names follow the convention <code>mcp__{server}__{tool}</code></li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!--                         MODULE 3                                  -->
+    <!-- ================================================================ -->
+    <section class="module-card" id="module3">
+        <div class="module-header">
+            <div class="module-number">3</div>
+            <div class="module-title-area">
+                <div class="module-title">Multi-Agent Systems</div>
+                <div class="module-subtitle">Create subagents, coordinate specialists, and build delegation patterns</div>
+            </div>
+        </div>
+
+        <div class="completion-toggle" data-module="3" onclick="toggleModule(3)">
+            <div class="checkbox-visual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="completion-label">Mark as complete</span>
+        </div>
+
+        <div class="objectives-box">
+            <div class="objectives-title">&#127919; Learning Objectives</div>
+            <ul class="objectives-list">
+                <li>Create subagents with <code>AgentDefinition</code></li>
+                <li>Coordinate multiple agents with delegation patterns</li>
+                <li>Understand parallelization, specialization, and escalation</li>
+                <li>Track agent hierarchy with <code>parent_tool_use_id</code></li>
+            </ul>
+        </div>
+
+        <div class="concept-text">
+            <h3>Subagents as Focused Specialists</h3>
+            <p>
+                A single agent with many tools and a broad prompt can get confused about priorities. The solution is
+                <strong>subagents</strong> &mdash; smaller agents with focused prompts and limited tool sets. A
+                <strong>coordinator agent</strong> decides which subagent to delegate to based on the task.
+            </p>
+            <p>
+                You define subagents using <code>AgentDefinition</code>, which specifies the agent's description
+                (used by the coordinator to decide when to delegate), its system prompt, and the tools it can access.
+            </p>
+
+            <h3>Coordination Patterns</h3>
+            <p>
+                There are three main patterns for multi-agent coordination:
+            </p>
+            <p>
+                <strong>Specialization</strong> &mdash; Each subagent is an expert in a specific domain. A security
+                reviewer focuses only on vulnerabilities; a code quality reviewer only evaluates maintainability.
+            </p>
+            <p>
+                <strong>Parallelization</strong> &mdash; The coordinator delegates to multiple subagents simultaneously
+                to gather diverse perspectives, then synthesizes the results.
+            </p>
+            <p>
+                <strong>Escalation</strong> &mdash; Simple tasks are handled directly; complex or ambiguous tasks get
+                escalated to a more capable or specialized subagent.
+            </p>
+
+            <h3>Tracking Agent Hierarchy</h3>
+            <p>
+                Each subagent call is tracked via a <code>parent_tool_use_id</code>, which lets you trace
+                which coordinator spawned which subagent. This is useful for logging and debugging
+                complex multi-agent interactions.
+            </p>
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="concept-text">
+            <h3>Example: Code Review with Specialist Subagents</h3>
+            <p>
+                This example creates two specialist subagents &mdash; a security reviewer and a quality reviewer &mdash;
+                and lets the coordinator delegate to each one as appropriate.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions, AgentDefinition
+
+async def main():
+    async for message in query(
+        prompt="Review this codebase for security issues and code quality",
+        options=ClaudeAgentOptions(
+            allowed_tools=["Read", "Glob", "Grep", "Agent"],
+            agents={
+                "security-reviewer": AgentDefinition(
+                    description="Security expert that finds vulnerabilities.",
+                    prompt=(
+                        "Analyze code for security issues: "
+                        "injection, auth flaws, data exposure. "
+                        "Report each finding with severity and recommendation."
+                    ),
+                    tools=["Read", "Glob", "Grep"],
+                ),
+                "quality-reviewer": AgentDefinition(
+                    description="Code quality expert for maintainability reviews.",
+                    prompt=(
+                        "Review code for readability, DRY, SOLID principles. "
+                        "Identify code smells, complex functions, and "
+                        "suggest improvements."
+                    ),
+                    tools=["Read", "Glob", "Grep"],
+                ),
+            },
+        ),
+    ):
+        if hasattr(message, "result"):
+            print(message.result)
+
+asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>How It Works</h3>
+            <p>
+                The coordinator agent receives the prompt and has access to the <code>Agent</code> tool, which lets
+                it spawn subagents. It sees the agent definitions you provided and decides which subagent(s) to
+                call. Each subagent gets its own conversation context with its specialized prompt and limited tool set.
+            </p>
+            <p>
+                The <code>Agent</code> tool must be included in the coordinator's <code>allowed_tools</code> for
+                delegation to work. Subagents don't need the <code>Agent</code> tool unless you want them to
+                further delegate (nested agents).
+            </p>
+        </div>
+
+        <div class="callout">
+            <div class="callout-title">Design Tip</div>
+            Keep subagent prompts focused and specific. A prompt like "Find security issues" is better than
+            "Review the code" for a security specialist. Focused prompts lead to better, more actionable results.
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="exercise-box">
+            <div class="exercise-title">&#128736; Exercise: Documentation Pipeline</div>
+            <p class="exercise-description">
+                Build a multi-agent system for generating project documentation with a coordinator
+                and two specialist agents.
+            </p>
+            <ol class="exercise-steps">
+                <li>Create a coordinator agent with the prompt: "Generate comprehensive documentation for this project"</li>
+                <li>Define an <code>"api-documenter"</code> subagent that extracts function signatures, parameters, and return types</li>
+                <li>Define a <code>"readme-writer"</code> subagent that creates a project overview with setup instructions</li>
+                <li>Give both subagents access to <code>["Read", "Glob", "Grep"]</code> tools</li>
+                <li>Run the coordinator on a real project directory and observe how it delegates</li>
+                <li>Print both the intermediate <code>AssistantMessage</code> events and the final <code>ResultMessage</code></li>
+            </ol>
+        </div>
+
+        <div class="takeaways-box">
+            <div class="takeaways-title">&#128218; Key Takeaways</div>
+            <ul class="takeaways-list">
+                <li>Subagents are defined with <code>AgentDefinition</code> containing description, prompt, and tools</li>
+                <li>The coordinator uses the <code>Agent</code> tool to delegate tasks to specialists</li>
+                <li>Focused prompts per agent produce better results than one agent doing everything</li>
+                <li>Three coordination patterns: specialization, parallelization, and escalation</li>
+                <li>You can nest agents (subagents delegating to sub-subagents) but keep hierarchies shallow</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!--                         MODULE 4                                  -->
+    <!-- ================================================================ -->
+    <section class="module-card" id="module4">
+        <div class="module-header">
+            <div class="module-number">4</div>
+            <div class="module-title-area">
+                <div class="module-title">Memory &amp; State</div>
+                <div class="module-subtitle">Use sessions for continuity, resume conversations, and manage project context</div>
+            </div>
+        </div>
+
+        <div class="completion-toggle" data-module="4" onclick="toggleModule(4)">
+            <div class="checkbox-visual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="completion-label">Mark as complete</span>
+        </div>
+
+        <div class="objectives-box">
+            <div class="objectives-title">&#127919; Learning Objectives</div>
+            <ul class="objectives-list">
+                <li>Capture and use session IDs from SystemMessage events</li>
+                <li>Resume previous sessions to maintain conversational context</li>
+                <li>Understand session forking for branching conversations</li>
+                <li>Use CLAUDE.md files for persistent project-level context</li>
+            </ul>
+        </div>
+
+        <div class="concept-text">
+            <h3>Session IDs &amp; Continuity</h3>
+            <p>
+                Every time you call <code>query()</code>, the SDK emits a <code>SystemMessage</code> with subtype
+                <code>"init"</code> containing a <code>session_id</code>. This ID uniquely identifies the
+                conversation context &mdash; all the messages, tool calls, and results accumulated during that query.
+            </p>
+            <p>
+                To continue a conversation where you left off, pass the session ID to the <code>resume</code> option
+                in a subsequent <code>query()</code> call. The agent will have access to everything from the
+                previous session, as if you never stopped.
+            </p>
+
+            <h3>Resuming Sessions</h3>
+            <p>
+                Session resume is essential for multi-turn interactions. For example, you might ask an agent to
+                read and analyze a codebase in one query, then ask follow-up questions in a second query &mdash;
+                without the agent needing to re-read all the files.
+            </p>
+
+            <h3>CLAUDE.md for Project Context</h3>
+            <p>
+                The <code>CLAUDE.md</code> file is a special convention for providing persistent project-level
+                context to agents. Place it in your project root, and agents will automatically read it for
+                background information about coding conventions, architecture decisions, and project-specific
+                instructions. It acts as long-term memory that persists across all sessions.
+            </p>
+
+            <h3>Managed Agents &amp; Memory Stores</h3>
+            <p>
+                For production deployments, Managed Agents support <strong>memory stores</strong> &mdash; persistent
+                key-value stores that survive across sessions. This lets agents remember user preferences,
+                learned patterns, and accumulated knowledge over time, without relying solely on session continuity.
+            </p>
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="concept-text">
+            <h3>Example: Session Resume</h3>
+            <p>
+                This example shows how to capture a session ID from the first query and resume it
+                in a second query. The second query has full context from the first.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from claude_agent_sdk import (
+    query, ClaudeAgentOptions,
+    SystemMessage, ResultMessage
+)
+
+async def main():
+    session_id = None
+
+    # First query: read and analyze
+    print("--- Query 1: Analyzing auth module ---")
+    async for message in query(
+        prompt="Read and analyze the auth module in this project",
+        options=ClaudeAgentOptions(allowed_tools=["Read", "Glob"]),
+    ):
+        if isinstance(message, SystemMessage) and message.subtype == "init":
+            session_id = message.data["session_id"]
+            print(f"Session ID: {session_id}")
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+    # Second query: follow up with full context
+    print("\n--- Query 2: Follow-up with context ---")
+    async for message in query(
+        prompt="Now find all security issues in what you just read",
+        options=ClaudeAgentOptions(resume=session_id),
+    ):
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Example: CLAUDE.md File</h3>
+            <p>
+                Place this file in your project root. Agents will pick it up automatically.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Bash</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-bash"># CLAUDE.md - Project context for agents
+
+## Project: MyApp API Server
+- Framework: FastAPI
+- Database: PostgreSQL with SQLAlchemy ORM
+- Auth: JWT tokens with bcrypt password hashing
+- Python version: 3.12
+
+## Coding Conventions
+- Use type hints on all function signatures
+- Prefer async/await for I/O operations
+- Tests go in tests/ directory, mirroring src/ structure
+- Use pydantic models for request/response validation
+
+## Important Notes
+- Never modify migration files directly
+- The auth module in src/auth/ is security-critical
+- Environment variables are in .env (not committed)</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Managed Agents: Memory Stores (Conceptual)</h3>
+            <p>
+                In a managed deployment, memory stores allow persistent data across sessions.
+                The agent can save and retrieve key-value pairs that survive between conversations.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python"># Conceptual example - Managed Agents API
+# Memory stores persist data across sessions
+
+# Agent saves a learned preference
+await memory.set("user_preference_language", "python")
+await memory.set("last_reviewed_file", "src/auth/middleware.py")
+
+# In a later session, the agent retrieves it
+lang = await memory.get("user_preference_language")
+# Returns: "python"</code></pre>
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="exercise-box">
+            <div class="exercise-title">&#128736; Exercise: Multi-Turn Code Analyzer</div>
+            <p class="exercise-description">
+                Build an agent that performs iterative code analysis across multiple turns,
+                remembering what it has already read.
+            </p>
+            <ol class="exercise-steps">
+                <li>Create the first query: "Read all Python files in the src/ directory and catalog them"</li>
+                <li>Capture the session ID from the <code>SystemMessage</code> init event</li>
+                <li>Resume with a second query: "Which of those files have the most complex functions?"</li>
+                <li>Resume again with a third query: "Generate a refactoring plan for the most complex file"</li>
+                <li>Print the result from each query to see how context builds up</li>
+                <li>Observe that the agent does not re-read files in subsequent queries &mdash; it remembers them</li>
+            </ol>
+        </div>
+
+        <div class="takeaways-box">
+            <div class="takeaways-title">&#128218; Key Takeaways</div>
+            <ul class="takeaways-list">
+                <li>Session IDs are captured from <code>SystemMessage</code> events with subtype <code>"init"</code></li>
+                <li>Pass <code>resume=session_id</code> to continue where you left off</li>
+                <li>CLAUDE.md provides persistent project-level context without session management</li>
+                <li>Memory stores (Managed Agents) allow cross-session persistence at scale</li>
+                <li>Multi-turn patterns avoid redundant tool calls by maintaining conversation context</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!--                         MODULE 5                                  -->
+    <!-- ================================================================ -->
+    <section class="module-card" id="module5">
+        <div class="module-header">
+            <div class="module-number">5</div>
+            <div class="module-title-area">
+                <div class="module-title">MCP Integration</div>
+                <div class="module-subtitle">Connect external MCP servers and combine diverse tool sources</div>
+            </div>
+        </div>
+
+        <div class="completion-toggle" data-module="5" onclick="toggleModule(5)">
+            <div class="checkbox-visual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="completion-label">Mark as complete</span>
+        </div>
+
+        <div class="objectives-box">
+            <div class="objectives-title">&#127919; Learning Objectives</div>
+            <ul class="objectives-list">
+                <li>Connect external MCP servers using stdio transport</li>
+                <li>Combine built-in tools, custom tools, and external MCP tools</li>
+                <li>Understand how the MCP protocol bridges the SDK to external systems</li>
+                <li>Configure multiple MCP servers in a single agent</li>
+            </ul>
+        </div>
+
+        <div class="concept-text">
+            <h3>MCP Servers as Tool Providers</h3>
+            <p>
+                The <strong>Model Context Protocol (MCP)</strong> is an open standard for connecting AI agents
+                to external tool providers. MCP servers expose tools over a standardized interface, and the
+                Agent SDK can connect to them seamlessly.
+            </p>
+            <p>
+                There are two types of MCP servers you can use with the SDK:
+            </p>
+            <p>
+                <strong>In-process servers</strong> &mdash; Created with <code>create_sdk_mcp_server()</code> as
+                we saw in Module 2. These run inside your Python process with zero latency overhead.
+            </p>
+            <p>
+                <strong>External servers</strong> &mdash; Separate processes that communicate via <strong>stdio transport</strong>.
+                You specify a command to launch them (e.g., <code>npx</code> for Node.js servers), and the SDK
+                manages the subprocess lifecycle automatically.
+            </p>
+
+            <h3>Stdio Transport</h3>
+            <p>
+                External MCP servers use stdio (standard input/output) for communication. You provide
+                the <code>command</code> and <code>args</code> to launch the server process. The SDK starts
+                the process, sends tool calls via stdin, and reads results from stdout. This is the most
+                common transport for MCP servers.
+            </p>
+
+            <h3>Combining Tool Sources</h3>
+            <p>
+                A powerful pattern is combining <strong>built-in tools</strong> (like Read, Glob, Bash),
+                <strong>custom in-process tools</strong> (your @tool definitions), and <strong>external MCP
+                tools</strong> in a single agent. This gives Claude access to a wide range of capabilities
+                while keeping each tool provider focused and maintainable.
+            </p>
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="concept-text">
+            <h3>Example: Playwright Browser Automation</h3>
+            <p>
+                Connect the Playwright MCP server for browser automation. This lets Claude navigate
+                web pages, fill forms, click buttons, and extract content.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage
+
+async def main():
+    options = ClaudeAgentOptions(
+        mcp_servers={
+            "playwright": {
+                "command": "npx",
+                "args": ["@playwright/mcp@latest"],
+            }
+        },
+    )
+
+    async for message in query(
+        prompt="Go to https://example.com and tell me the page title",
+        options=options,
+    ):
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Example: Filesystem MCP Server</h3>
+            <p>
+                The filesystem MCP server provides sandboxed file operations with configurable
+                permissions. Useful when you want more control than the built-in tools provide.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">options = ClaudeAgentOptions(
+    mcp_servers={
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "/path/to/allowed/directory",
+            ],
+        }
+    },
+)</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Example: Combining Multiple MCP Servers</h3>
+            <p>
+                You can register multiple MCP servers and mix them with built-in and custom tools.
+                This gives your agent maximum capability.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from claude_agent_sdk import (
+    query, ClaudeAgentOptions, ResultMessage,
+    tool, create_sdk_mcp_server,
+)
+
+# Custom in-process tool
+@tool("analyze_sentiment", "Analyze text sentiment", {"text": str})
+async def analyze_sentiment(args):
+    # Simplified example
+    text = args["text"].lower()
+    if any(w in text for w in ["great", "love", "excellent"]):
+        sentiment = "positive"
+    elif any(w in text for w in ["bad", "hate", "terrible"]):
+        sentiment = "negative"
+    else:
+        sentiment = "neutral"
+    return {"content": [{"type": "text", "text": f"Sentiment: {sentiment}"}]}
+
+custom_server = create_sdk_mcp_server(
+    name="analysis", version="1.0.0", tools=[analyze_sentiment]
+)
+
+async def main():
+    options = ClaudeAgentOptions(
+        # Built-in tools
+        allowed_tools=[
+            "Read", "Glob", "Grep",
+            "mcp__analysis__*",      # Custom tools
+            "mcp__playwright__*",     # External MCP tools
+        ],
+        mcp_servers={
+            # In-process custom server
+            "analysis": custom_server,
+            # External MCP server (Playwright)
+            "playwright": {
+                "command": "npx",
+                "args": ["@playwright/mcp@latest"],
+            },
+        },
+    )
+
+    async for message in query(
+        prompt="Visit example.com and analyze the sentiment of the page text",
+        options=options,
+    ):
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="callout">
+            <div class="callout-title">MCP Ecosystem</div>
+            There is a growing ecosystem of pre-built MCP servers for databases (PostgreSQL, SQLite),
+            APIs (GitHub, Slack, Google Drive), cloud services (AWS, GCP), and more. Check the
+            MCP server registry for available integrations.
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="exercise-box">
+            <div class="exercise-title">&#128736; Exercise: Combined MCP Agent</div>
+            <p class="exercise-description">
+                Build an agent that uses both an external MCP server and a custom tool together.
+            </p>
+            <ol class="exercise-steps">
+                <li>Create a custom tool called <code>summarize_data</code> that formats data into a report</li>
+                <li>Connect the filesystem MCP server to a specific directory</li>
+                <li>Configure the agent with both the custom server and the filesystem server</li>
+                <li>Prompt the agent: "List all JSON files in the data directory, read them, and summarize the contents"</li>
+                <li>The agent should use the filesystem MCP server to read files and your custom tool to format results</li>
+                <li>Observe how Claude seamlessly switches between tool sources</li>
+            </ol>
+        </div>
+
+        <div class="takeaways-box">
+            <div class="takeaways-title">&#128218; Key Takeaways</div>
+            <ul class="takeaways-list">
+                <li>External MCP servers use stdio transport &mdash; specify <code>command</code> and <code>args</code></li>
+                <li>The SDK manages the MCP server subprocess lifecycle for you</li>
+                <li>Combine built-in, custom, and external tools using the <code>allowed_tools</code> wildcard patterns</li>
+                <li>MCP is an open ecosystem with many pre-built servers for popular services</li>
+                <li>In-process servers have zero latency; external servers add subprocess overhead but unlock any language/runtime</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ================================================================ -->
+    <!--                         MODULE 6                                  -->
+    <!-- ================================================================ -->
+    <section class="module-card" id="module6">
+        <div class="module-header">
+            <div class="module-number">6</div>
+            <div class="module-title-area">
+                <div class="module-title">Capstone &mdash; Build a Complete Agentic App</div>
+                <div class="module-subtitle">Combine everything: tools, subagents, hooks, sessions, and MCP</div>
+            </div>
+        </div>
+
+        <div class="completion-toggle" data-module="6" onclick="toggleModule(6)">
+            <div class="checkbox-visual">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span class="completion-label">Mark as complete</span>
+        </div>
+
+        <div class="objectives-box">
+            <div class="objectives-title">&#127919; Learning Objectives</div>
+            <ul class="objectives-list">
+                <li>Combine all concepts into a production-grade agent application</li>
+                <li>Use hooks for observability, logging, and auditing</li>
+                <li>Configure permission modes for safety</li>
+                <li>Design agents for real-world deployment</li>
+            </ul>
+        </div>
+
+        <div class="concept-text">
+            <h3>Putting It All Together</h3>
+            <p>
+                A production-grade agent application combines multiple concepts: <strong>custom tools</strong> for
+                domain-specific functionality, <strong>subagents</strong> for delegating specialized tasks,
+                <strong>hooks</strong> for observability and auditing, <strong>sessions</strong> for multi-turn
+                interactions, and <strong>MCP servers</strong> for external integrations.
+            </p>
+
+            <h3>Hooks for Observability</h3>
+            <p>
+                <strong>Hooks</strong> let you intercept agent events for logging, auditing, rate limiting, or
+                custom logic. The most common hook is <code>PostToolUse</code>, which fires after every tool
+                call. You can match specific tools using regex patterns with <code>HookMatcher</code>.
+            </p>
+            <p>
+                Hooks receive the tool input data, the tool use ID, and a context object. They are async
+                functions that return a dictionary (which can be empty for pure logging hooks).
+            </p>
+
+            <h3>Permission Modes</h3>
+            <p>
+                The <code>permission_mode</code> option controls how the agent handles potentially destructive
+                operations:
+            </p>
+            <p>
+                <strong>"default"</strong> &mdash; The agent asks for confirmation before writing files or
+                running commands. Good for interactive use.
+            </p>
+            <p>
+                <strong>"acceptEdits"</strong> &mdash; The agent can write files without asking but still
+                confirms before running shell commands. Good for automated code generation tasks.
+            </p>
+            <p>
+                <strong>"full"</strong> &mdash; The agent runs everything without confirmation. Only use this
+                in sandboxed or trusted environments.
+            </p>
+
+            <h3>Deployment Considerations</h3>
+            <p>
+                When deploying agents to production, consider: <strong>rate limiting</strong> (use hooks to
+                throttle tool calls), <strong>error recovery</strong> (sessions let you resume after failures),
+                <strong>cost control</strong> (limit max turns and token usage), and <strong>security</strong>
+                (restrict tools to the minimum necessary set).
+            </p>
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="concept-text">
+            <h3>Capstone Project: Codebase Health Checker</h3>
+            <p>
+                This complete application demonstrates every concept from the course. It uses subagents for
+                different analysis types, custom tools for metrics, hooks for audit logging, and session
+                management for iterative improvement.
+            </p>
+        </div>
+
+        <div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span class="code-block-lang">Python</span>
+                <button class="copy-btn" onclick="copyCode(this)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <pre><code class="language-python">import asyncio
+from datetime import datetime
+from claude_agent_sdk import (
+    query,
+    ClaudeAgentOptions,
+    AgentDefinition,
+    tool,
+    create_sdk_mcp_server,
+    HookMatcher,
+    SystemMessage,
+    ResultMessage,
+)
+
+
+# ── Custom Metrics Tool ──────────────────────────────────────
+@tool(
+    "calculate_complexity",
+    "Calculate cyclomatic complexity of a Python file",
+    {"file_path": str},
+)
+async def calculate_complexity(args):
+    """Analyze a Python file and return a complexity score."""
+    try:
+        with open(args["file_path"], "r") as f:
+            code = f.read()
+
+        # Count complexity indicators
+        branches = sum(
+            code.count(kw)
+            for kw in ["if ", "elif ", "for ", "while ", "except ", "with "]
+        )
+        functions = code.count("def ")
+        classes = code.count("class ")
+
+        score = branches + functions
+        level = (
+            "low" if score < 10
+            else "moderate" if score < 25
+            else "high"
+        )
+
+        return {
+            "content": [{
+                "type": "text",
+                "text": (
+                    f"File: {args['file_path']}\n"
+                    f"Complexity score: {score} ({level})\n"
+                    f"Branches: {branches}, Functions: {functions}, "
+                    f"Classes: {classes}"
+                ),
+            }]
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "is_error": True,
+        }
+
+
+@tool(
+    "count_lines",
+    "Count lines of code, comments, and blanks in a file",
+    {"file_path": str},
+)
+async def count_lines(args):
+    """Count different types of lines in a source file."""
+    try:
+        with open(args["file_path"], "r") as f:
+            lines = f.readlines()
+
+        total = len(lines)
+        blank = sum(1 for ln in lines if ln.strip() == "")
+        comments = sum(1 for ln in lines if ln.strip().startswith("#"))
+        code = total - blank - comments
+
+        return {
+            "content": [{
+                "type": "text",
+                "text": (
+                    f"File: {args['file_path']}\n"
+                    f"Total: {total}, Code: {code}, "
+                    f"Comments: {comments}, Blank: {blank}"
+                ),
+            }]
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "is_error": True,
+        }
+
+
+# Create the metrics MCP server
+metrics_server = create_sdk_mcp_server(
+    name="metrics",
+    version="1.0.0",
+    tools=[calculate_complexity, count_lines],
+)
+
+
+# ── Audit Hook ────────────────────────────────────────────────
+async def audit_hook(input_data, tool_use_id, context):
+    """Log every tool call for auditing purposes."""
+    timestamp = datetime.now().isoformat()
+    tool_name = input_data.get("tool_name", "unknown")
+    with open("./agent_audit.log", "a") as f:
+        f.write(
+            f"{timestamp} | tool={tool_name} | "
+            f"id={tool_use_id}\n"
+        )
+    return {}
+
+
+# ── Main Application ─────────────────────────────────────────
+async def main():
+    session_id = None
+
+    print("=" * 60)
+    print("  Codebase Health Checker")
+    print("=" * 60)
+
+    # Phase 1: Initial comprehensive analysis
+    print("\n[Phase 1] Running comprehensive health check...\n")
+
+    async for message in query(
+        prompt=(
+            "Perform a comprehensive health check on this codebase. "
+            "Use the security auditor to find vulnerabilities, "
+            "the test coverage analyzer to review tests, and "
+            "the metrics tools to measure complexity. "
+            "Provide a detailed health report."
+        ),
+        options=ClaudeAgentOptions(
+            allowed_tools=[
+                "Read", "Glob", "Grep", "Bash", "Agent",
+                "mcp__metrics__*",
+            ],
+            mcp_servers={"metrics": metrics_server},
+            agents={
+                "security-auditor": AgentDefinition(
+                    description=(
+                        "Finds security vulnerabilities in code."
+                    ),
+                    prompt=(
+                        "Scan for common security issues: "
+                        "SQL injection, XSS, hardcoded secrets, "
+                        "insecure dependencies, auth flaws. "
+                        "Rate each finding as critical/high/medium/low."
+                    ),
+                    tools=["Read", "Glob", "Grep"],
+                ),
+                "test-coverage-analyzer": AgentDefinition(
+                    description=(
+                        "Analyzes test coverage and suggests "
+                        "improvements."
+                    ),
+                    prompt=(
+                        "Review test files and identify gaps. "
+                        "Check for missing edge cases, untested "
+                        "functions, and suggest new test cases."
+                    ),
+                    tools=["Read", "Glob", "Grep", "Bash"],
+                ),
+            },
+            hooks={
+                "PostToolUse": [
+                    HookMatcher(
+                        matcher=".*",
+                        hooks=[audit_hook],
+                    )
+                ]
+            },
+            permission_mode="acceptEdits",
+        ),
+    ):
+        if isinstance(message, SystemMessage):
+            if message.subtype == "init":
+                session_id = message.data["session_id"]
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+    # Phase 2: Follow-up with session context
+    if session_id:
+        print("\n" + "=" * 60)
+        print("[Phase 2] Generating improvement plan...\n")
+
+        async for message in query(
+            prompt=(
+                "Based on the health check you just performed, "
+                "create a prioritized improvement plan. "
+                "List the top 5 actions ranked by impact."
+            ),
+            options=ClaudeAgentOptions(resume=session_id),
+        ):
+            if isinstance(message, ResultMessage):
+                print(message.result)
+
+    print("\n" + "=" * 60)
+    print("  Health check complete. See agent_audit.log for details.")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="concept-text">
+            <h3>Architecture Breakdown</h3>
+            <p>
+                Let's trace through the key design decisions in this capstone project:
+            </p>
+            <p>
+                <strong>Custom Tools</strong> &mdash; <code>calculate_complexity</code> and <code>count_lines</code>
+                provide domain-specific metrics that Claude can't compute on its own. They're registered on
+                the <code>metrics</code> MCP server using the pattern from Module 2.
+            </p>
+            <p>
+                <strong>Subagents</strong> &mdash; The <code>security-auditor</code> and <code>test-coverage-analyzer</code>
+                are specialists with focused prompts. The coordinator delegates to them automatically based
+                on the task decomposition (Module 3 patterns).
+            </p>
+            <p>
+                <strong>Hooks</strong> &mdash; The <code>audit_hook</code> logs every tool call with a timestamp,
+                creating an audit trail. The <code>HookMatcher</code> with <code>".*"</code> matches all tools.
+                In production, you could add rate limiting or cost tracking here.
+            </p>
+            <p>
+                <strong>Sessions</strong> &mdash; Phase 1 captures the session ID, and Phase 2 resumes with full
+                context. The improvement plan in Phase 2 references findings from Phase 1 without re-reading
+                any files (Module 4 pattern).
+            </p>
+            <p>
+                <strong>Permission Mode</strong> &mdash; <code>"acceptEdits"</code> lets the agent write files
+                (like the audit log) without manual confirmation, appropriate for automated CI/CD use.
+            </p>
+        </div>
+
+        <div class="callout">
+            <div class="callout-title">Production Tip</div>
+            In a real deployment, add <code>max_turns</code> to <code>ClaudeAgentOptions</code> to prevent
+            runaway agent loops, and use hooks to track token consumption for cost management.
+        </div>
+
+        <hr class="section-sep">
+
+        <div class="exercise-box">
+            <div class="exercise-title">&#128736; Exercise: Extend the Capstone</div>
+            <p class="exercise-description">
+                Take the Codebase Health Checker and extend it with new capabilities.
+            </p>
+            <ol class="exercise-steps">
+                <li>Add a new subagent: <code>"dependency-checker"</code> that reviews <code>requirements.txt</code> or <code>pyproject.toml</code> for outdated or vulnerable packages</li>
+                <li>Create a new custom tool: <code>check_type_coverage</code> that counts how many functions have type hints vs. those that don't</li>
+                <li>Add a second hook that tracks the total number of tool calls and prints a summary at the end</li>
+                <li>Add a Phase 3 that resumes the session and asks the agent to generate a markdown report file</li>
+                <li>Test the full pipeline on a real Python project</li>
+                <li>Review the <code>agent_audit.log</code> to understand the agent's decision-making process</li>
+            </ol>
+        </div>
+
+        <div class="takeaways-box">
+            <div class="takeaways-title">&#128218; Key Takeaways</div>
+            <ul class="takeaways-list">
+                <li>Production agents combine tools, subagents, hooks, and sessions into a cohesive system</li>
+                <li>Hooks provide observability without modifying agent logic &mdash; perfect for logging and auditing</li>
+                <li>Permission modes control safety boundaries: <code>default</code>, <code>acceptEdits</code>, or <code>full</code></li>
+                <li>Session resume enables multi-phase workflows where each phase builds on previous results</li>
+                <li>The Agent SDK handles orchestration complexity so you can focus on domain logic</li>
+                <li>Always set resource limits (max turns, rate limiting) for production deployments</li>
+            </ul>
+        </div>
+    </section>
+
+</div><!-- end .container -->
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="footer">
+    <div class="footer-links">
+        <a href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-agent-sdk" target="_blank" rel="noopener">Official SDK Docs</a>
+        <a href="https://github.com/anthropics/claude-code" target="_blank" rel="noopener">Claude Code GitHub</a>
+        <a href="https://docs.anthropic.com/en/docs/agents-and-tools/mcp" target="_blank" rel="noopener">MCP Documentation</a>
+        <a href="https://www.anthropic.com/research" target="_blank" rel="noopener">Anthropic Research</a>
+    </div>
+    <p class="footer-note">
+        Claude Agent SDK Interactive Course &mdash; Built for hands-on learning.
+        <br>Content is for educational purposes. Always refer to the official documentation for the latest API details.
+    </p>
+</footer>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+<script>
+    // ── Module completion state ──
+    var moduleComplete = {1: false, 2: false, 3: false, 4: false, 5: false, 6: false};
+
+    function toggleModule(num) {
+        moduleComplete[num] = !moduleComplete[num];
+        updateUI();
+    }
+
+    function updateUI() {
+        // Update checkboxes
+        document.querySelectorAll('.completion-toggle').forEach(function(el) {
+            var mod = parseInt(el.getAttribute('data-module'));
+            if (moduleComplete[mod]) {
+                el.classList.add('checked');
+                el.querySelector('.completion-label').textContent = 'Completed!';
+            } else {
+                el.classList.remove('checked');
+                el.querySelector('.completion-label').textContent = 'Mark as complete';
+            }
+        });
+
+        // Update progress bar
+        var completed = 0;
+        for (var k in moduleComplete) {
+            if (moduleComplete[k]) completed++;
+        }
+        var pct = Math.round((completed / 6) * 100);
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressText').textContent = completed + ' / 6 complete';
+
+        // Update nav links
+        for (var i = 1; i <= 6; i++) {
+            var navEl = document.getElementById('nav' + i);
+            if (navEl) {
+                if (moduleComplete[i]) {
+                    navEl.classList.add('completed');
+                } else {
+                    navEl.classList.remove('completed');
+                }
+            }
+        }
+    }
+
+    // ── Copy button handler ──
+    function copyCode(btn) {
+        var wrapper = btn.closest('.code-block-wrapper');
+        var code = wrapper.querySelector('code');
+        var text = code.textContent;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                showCopied(btn);
+            }).catch(function() {
+                fallbackCopy(text, btn);
+            });
+        } else {
+            fallbackCopy(text, btn);
+        }
+    }
+
+    function fallbackCopy(text, btn) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showCopied(btn);
+        } catch (e) {
+            // silently fail
+        }
+        document.body.removeChild(ta);
+    }
+
+    function showCopied(btn) {
+        btn.classList.add('copied');
+        var original = btn.innerHTML;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!';
+        setTimeout(function() {
+            btn.classList.remove('copied');
+            btn.innerHTML = original;
+        }, 2000);
+    }
+
+    // ── Smooth scroll for anchor links ──
+    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+        anchor.addEventListener('click', function(e) {
+            var target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                var offset = 70; // navbar height
+                var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                window.scrollTo({top: top, behavior: 'smooth'});
+            }
+        });
+    });
+
+    // ── Initialize UI ──
+    updateUI();
+
+    // ── Re-highlight after Prism loads ──
+    if (typeof Prism !== 'undefined') {
+        Prism.highlightAll();
+    }
+</script>
+</body>
+</html>

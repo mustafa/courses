@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>State of Generative AI — May 2026 | A Technical Deep Dive</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0f1a;
+  --bg-card: #111827;
+  --bg-card-alt: #1a2332;
+  --bg-code: #0d1117;
+  --accent: #4ea8de;
+  --accent-dim: #2a6f9e;
+  --accent-glow: rgba(78,168,222,0.15);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-bright: #f8fafc;
+  --border: #1e293b;
+  --border-light: #334155;
+  --green: #34d399;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --purple: #a78bfa;
+  --pink: #f472b6;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, "Liberation Mono", Menlo, monospace;
+  --max-w: 960px;
+  --nav-h: 56px;
+}
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; }
+
+/* ===== NAV ===== */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,15,26,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: var(--nav-h);
+  display: flex; align-items: center;
+  padding: 0 24px;
+}
+.nav-title {
+  font-size: 15px; font-weight: 700; color: var(--accent);
+  white-space: nowrap; margin-right: 24px;
+}
+.nav-links {
+  display: flex; gap: 4px; overflow-x: auto;
+  scrollbar-width: none; flex: 1;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  font-size: 12px; padding: 6px 10px; border-radius: 6px;
+  white-space: nowrap; color: var(--text-dim);
+  transition: all 0.2s;
+}
+.nav-links a:hover, .nav-links a.active {
+  background: var(--accent-glow); color: var(--accent); text-decoration: none;
+}
+.nav-progress {
+  position: absolute; bottom: 0; left: 0; height: 2px;
+  background: var(--accent); width: 0%; transition: width 0.3s;
+}
+.hamburger {
+  display: none; background: none; border: none; color: var(--text);
+  font-size: 24px; cursor: pointer; padding: 4px 8px;
+}
+
+/* ===== LAYOUT ===== */
+.container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+.hero {
+  padding: 80px 0 60px; text-align: center;
+  background: linear-gradient(180deg, rgba(78,168,222,0.08) 0%, transparent 100%);
+}
+.hero h1 { font-size: 42px; font-weight: 800; color: var(--text-bright); margin-bottom: 12px; letter-spacing: -1px; }
+.hero .subtitle { font-size: 18px; color: var(--text-dim); max-width: 600px; margin: 0 auto 24px; }
+.hero .meta { font-size: 13px; color: var(--accent-dim); }
+.hero .meta span { margin: 0 8px; }
+
+/* ===== MODULES ===== */
+.module {
+  margin: 48px 0; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  background: var(--bg-card);
+}
+.module-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 20px 24px; cursor: pointer;
+  background: var(--bg-card);
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s;
+  user-select: none;
+}
+.module-header:hover { background: var(--bg-card-alt); }
+.module-header .num {
+  background: var(--accent); color: var(--bg);
+  font-size: 13px; font-weight: 800;
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.module-header h2 { font-size: 20px; font-weight: 700; color: var(--text-bright); flex: 1; }
+.module-header .chevron {
+  font-size: 20px; color: var(--text-dim);
+  transition: transform 0.3s;
+}
+.module.open .module-header { border-bottom-color: var(--border); }
+.module.open .module-header .chevron { transform: rotate(180deg); }
+.module-body { display: none; padding: 32px 24px; }
+.module.open .module-body { display: block; }
+
+/* ===== PROGRESS CHECKBOX ===== */
+.progress-check {
+  display: flex; align-items: center; gap: 8px;
+  margin-left: auto; flex-shrink: 0;
+}
+.progress-check input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 20px; height: 20px; border: 2px solid var(--border-light);
+  border-radius: 4px; cursor: pointer; position: relative;
+  transition: all 0.2s;
+}
+.progress-check input[type="checkbox"]:checked {
+  background: var(--green); border-color: var(--green);
+}
+.progress-check input[type="checkbox"]:checked::after {
+  content: "✓"; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--bg); font-size: 13px; font-weight: 800;
+}
+.progress-check label { font-size: 12px; color: var(--text-dim); }
+
+/* ===== TYPOGRAPHY ===== */
+.module-body h3 {
+  font-size: 18px; font-weight: 700; color: var(--accent);
+  margin: 32px 0 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.module-body h3:first-child { margin-top: 0; }
+.module-body h4 { font-size: 15px; font-weight: 700; color: var(--text-bright); margin: 24px 0 8px; }
+.module-body p { margin: 12px 0; color: var(--text); }
+.module-body ul, .module-body ol { margin: 12px 0 12px 20px; }
+.module-body li { margin: 6px 0; color: var(--text); }
+.module-body strong { color: var(--text-bright); }
+
+/* ===== CALLOUTS ===== */
+.callout {
+  margin: 20px 0; padding: 16px 20px;
+  border-radius: 8px; border-left: 4px solid;
+  font-size: 14px;
+}
+.callout-takeaway {
+  background: rgba(78,168,222,0.08); border-color: var(--accent);
+}
+.callout-takeaway .callout-title { color: var(--accent); }
+.callout-warning {
+  background: rgba(251,191,36,0.08); border-color: var(--yellow);
+}
+.callout-warning .callout-title { color: var(--yellow); }
+.callout-opinion {
+  background: rgba(167,139,250,0.08); border-color: var(--purple);
+}
+.callout-opinion .callout-title { color: var(--purple); }
+.callout-title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+/* ===== TABLES ===== */
+.table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead { background: var(--bg-card-alt); }
+th { padding: 12px 16px; text-align: left; font-weight: 700; color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+td { padding: 10px 16px; border-top: 1px solid var(--border); color: var(--text); }
+tr:hover td { background: rgba(78,168,222,0.04); }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+}
+.badge-green { background: rgba(52,211,153,0.15); color: var(--green); }
+.badge-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+.badge-red { background: rgba(248,113,113,0.15); color: var(--red); }
+.badge-blue { background: rgba(78,168,222,0.15); color: var(--accent); }
+.badge-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+
+/* ===== CODE ===== */
+pre {
+  background: var(--bg-code); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px; margin: 16px 0;
+  overflow-x: auto; font-size: 13px; line-height: 1.6;
+}
+code { font-family: var(--mono); }
+pre code { color: var(--text); }
+.code-label {
+  display: inline-block; background: var(--accent-dim);
+  color: var(--text-bright); font-size: 11px; font-weight: 700;
+  padding: 2px 10px; border-radius: 4px 4px 0 0;
+  margin-bottom: -1px; position: relative; z-index: 1;
+}
+p code, li code {
+  background: var(--bg-code); padding: 2px 6px; border-radius: 4px;
+  font-size: 13px; border: 1px solid var(--border);
+}
+/* Syntax highlighting classes */
+.kw { color: #ff7b72; } /* keyword */
+.fn { color: #d2a8ff; } /* function */
+.str { color: #a5d6ff; } /* string */
+.cm { color: #8b949e; } /* comment */
+.num { color: #79c0ff; } /* number */
+.op { color: #ff7b72; } /* operator */
+.var { color: #ffa657; } /* variable */
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center; padding: 48px 24px; margin-top: 60px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim); font-size: 13px;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar-wrap {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 24px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 8px;
+  margin: 24px 0;
+}
+.progress-bar-bg {
+  flex: 1; height: 8px; background: var(--border);
+  border-radius: 4px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; background: var(--green);
+  border-radius: 4px; transition: width 0.5s ease;
+  width: 0%;
+}
+.progress-text { font-size: 13px; color: var(--text-dim); white-space: nowrap; font-weight: 600; }
+
+/* ===== TOC ===== */
+.toc {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px; margin: 32px 0;
+}
+.toc-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 8px;
+  transition: all 0.2s; cursor: pointer; text-decoration: none;
+}
+.toc-item:hover {
+  border-color: var(--accent); background: var(--bg-card-alt);
+  text-decoration: none;
+}
+.toc-item .toc-num {
+  background: var(--accent-glow); color: var(--accent);
+  font-size: 13px; font-weight: 800;
+  width: 28px; height: 28px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.toc-item .toc-label { font-size: 14px; color: var(--text); font-weight: 500; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 28px; }
+  .hero .subtitle { font-size: 15px; }
+  .nav-links { display: none; }
+  .nav-links.open { display: flex; flex-direction: column; position: absolute; top: var(--nav-h); left: 0; right: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 12px; gap: 4px; }
+  .hamburger { display: block; margin-left: auto; }
+  .module-body { padding: 20px 16px; }
+  .module-header { padding: 16px; }
+  .module-header h2 { font-size: 16px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+  pre { font-size: 12px; padding: 14px; }
+  .toc { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .hero { padding: 48px 0 36px; }
+  .hero h1 { font-size: 24px; }
+  .container { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav class="nav">
+  <div class="nav-title">GenAI 2026</div>
+  <div class="nav-links" id="navLinks">
+    <a href="#mod1">Models</a>
+    <a href="#mod2">APIs</a>
+    <a href="#mod3">Agents</a>
+    <a href="#mod4">Reasoning</a>
+    <a href="#mod5">Multimodal</a>
+    <a href="#mod6">Fine-Tuning</a>
+    <a href="#mod7">RAG</a>
+    <a href="#mod8">Safety</a>
+    <a href="#mod9">Business</a>
+    <a href="#mod10">What's Next</a>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+  <div class="nav-progress" id="navProgress"></div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="container">
+    <h1>The State of Generative AI</h1>
+    <p class="subtitle">A dense, opinionated technical survey for senior engineers. Everything that matters as of May 2026 — models, APIs, agents, reasoning, and the business war underneath.</p>
+    <p class="meta">
+      <span>Last updated: May 2026</span>
+      <span>•</span>
+      <span>~2–3 hours reading</span>
+      <span>•</span>
+      <span>10 Modules</span>
+    </p>
+  </div>
+</section>
+
+<div class="container">
+
+<!-- PROGRESS -->
+<div class="progress-bar-wrap">
+  <span class="progress-text" id="progressText">0 / 10 complete</span>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <a class="toc-item" href="#mod1"><span class="toc-num">1</span><span class="toc-label">Model Landscape</span></a>
+  <a class="toc-item" href="#mod2"><span class="toc-num">2</span><span class="toc-label">The API Wars</span></a>
+  <a class="toc-item" href="#mod3"><span class="toc-num">3</span><span class="toc-label">Agents & Orchestration</span></a>
+  <a class="toc-item" href="#mod4"><span class="toc-num">4</span><span class="toc-label">Reasoning & Chain-of-Thought</span></a>
+  <a class="toc-item" href="#mod5"><span class="toc-num">5</span><span class="toc-label">Multimodal Frontier</span></a>
+  <a class="toc-item" href="#mod6"><span class="toc-num">6</span><span class="toc-label">Fine-Tuning Playbook</span></a>
+  <a class="toc-item" href="#mod7"><span class="toc-num">7</span><span class="toc-label">RAG & Knowledge Systems</span></a>
+  <a class="toc-item" href="#mod8"><span class="toc-num">8</span><span class="toc-label">Safety & Governance</span></a>
+  <a class="toc-item" href="#mod9"><span class="toc-num">9</span><span class="toc-label">Business Landscape</span></a>
+  <a class="toc-item" href="#mod10"><span class="toc-num">10</span><span class="toc-label">What's Next</span></a>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 1: MODEL LANDSCAPE -->
+<!-- ============================================================ -->
+<div class="module open" id="mod1">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">01</span>
+    <h2>The Model Landscape: Who's Winning, Who's Catching Up</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check1" onchange="updateProgress()">
+      <label for="check1">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Big Picture</h3>
+    <p>The model landscape in mid-2026 is defined by a single uncomfortable truth for investors: <strong>the gap between frontier labs has compressed dramatically</strong>. What was once a clear hierarchy — OpenAI first, everyone else scrambling — has become a five-way race where leadership rotates quarterly. Claude 4.6 leads on coding and agentic tasks; GPT-5 dominates creative and conversational use; Gemini 2.5 owns multimodal integration; and open-weight models from Meta and DeepSeek have crossed the "good enough for production" threshold in most categories.</p>
+
+    <p>The practical implication for engineering leaders: model selection is now a <strong>portfolio decision</strong>, not a "pick the best one" decision. The best teams run 2–3 models, routing by task type, cost, and latency requirements.</p>
+
+    <h3>Frontier Model Comparison</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Lab</th>
+            <th>Context</th>
+            <th>Params (est.)</th>
+            <th>Strengths</th>
+            <th>Weaknesses</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Claude Opus 4.6</strong></td>
+            <td>Anthropic</td>
+            <td>200K</td>
+            <td>~350B (MoE)</td>
+            <td>Coding, agentic loops, instruction following, safety</td>
+            <td>Image generation, real-time streaming latency</td>
+          </tr>
+          <tr>
+            <td><strong>Claude Sonnet 4.6</strong></td>
+            <td>Anthropic</td>
+            <td>200K</td>
+            <td>~100B (MoE)</td>
+            <td>Best cost/quality ratio, fast for agents, strong coding</td>
+            <td>Slightly less nuance on creative writing vs Opus</td>
+          </tr>
+          <tr>
+            <td><strong>Claude Haiku 4.5</strong></td>
+            <td>Anthropic</td>
+            <td>200K</td>
+            <td>~30B (MoE)</td>
+            <td>Speed, classification, extraction, high throughput</td>
+            <td>Complex multi-step reasoning</td>
+          </tr>
+          <tr>
+            <td><strong>GPT-5</strong></td>
+            <td>OpenAI</td>
+            <td>256K</td>
+            <td>~500B+ (MoE)</td>
+            <td>Creative writing, conversation, broad knowledge, tool use</td>
+            <td>Higher hallucination rate, inconsistent code quality</td>
+          </tr>
+          <tr>
+            <td><strong>GPT-5 Mini</strong></td>
+            <td>OpenAI</td>
+            <td>128K</td>
+            <td>~80B (MoE)</td>
+            <td>Good balance, fast, cheaper than GPT-5</td>
+            <td>Below Sonnet 4.6 on most coding benchmarks</td>
+          </tr>
+          <tr>
+            <td><strong>Gemini 2.5 Pro</strong></td>
+            <td>Google</td>
+            <td>1M+</td>
+            <td>~400B (MoE)</td>
+            <td>Massive context, native multimodal, Google integrations</td>
+            <td>API reliability, system prompt adherence</td>
+          </tr>
+          <tr>
+            <td><strong>Gemini 2.5 Flash</strong></td>
+            <td>Google</td>
+            <td>1M</td>
+            <td>~80B (MoE)</td>
+            <td>Speed, cost, good enough quality, huge context</td>
+            <td>Weaker instruction following than Claude/GPT peers</td>
+          </tr>
+          <tr>
+            <td><strong>Llama 4 Maverick</strong></td>
+            <td>Meta</td>
+            <td>128K (1M reported)</td>
+            <td>400B (17B active, 128 experts)</td>
+            <td>Open weights, strong multilingual, very efficient</td>
+            <td>Agentic tasks, long-context coherence at 1M</td>
+          </tr>
+          <tr>
+            <td><strong>Llama 4 Scout</strong></td>
+            <td>Meta</td>
+            <td>128K (10M reported)</td>
+            <td>109B (17B active, 16 experts)</td>
+            <td>Fits on single H100, competitive with Gemini Flash</td>
+            <td>Quality gap vs frontier on complex reasoning</td>
+          </tr>
+          <tr>
+            <td><strong>DeepSeek-V3</strong></td>
+            <td>DeepSeek</td>
+            <td>128K</td>
+            <td>685B (37B active)</td>
+            <td>Math, code, reasoning — at fraction of cost</td>
+            <td>Censorship (China), English nuance, safety</td>
+          </tr>
+          <tr>
+            <td><strong>DeepSeek-R1</strong></td>
+            <td>DeepSeek</td>
+            <td>128K</td>
+            <td>685B (37B active)</td>
+            <td>Reasoning chains rival o3, open weights</td>
+            <td>Verbose, slow, censorship on sensitive topics</td>
+          </tr>
+          <tr>
+            <td><strong>Mistral Large 3</strong></td>
+            <td>Mistral</td>
+            <td>128K</td>
+            <td>~120B</td>
+            <td>European data sovereignty, multilingual, function calling</td>
+            <td>Not competitive on frontier benchmarks</td>
+          </tr>
+          <tr>
+            <td><strong>Grok-3</strong></td>
+            <td>xAI</td>
+            <td>128K</td>
+            <td>~300B (MoE)</td>
+            <td>Real-time data access, unfiltered responses</td>
+            <td>Safety concerns, inconsistent quality</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>The "which model is best" question is dead.</strong> For Coursera's use case, the winning move is Sonnet 4.6 as your workhorse (fast, reliable, great at structured output), Opus 4.6 for complex content generation and assessment design, and Gemini Flash for bulk processing where cost matters. Keep Llama 4 Scout on your radar for on-prem inference when data sovereignty is a concern for international markets.</p>
+    </div>
+
+    <h3>The MoE Revolution</h3>
+    <p>Every frontier model released in 2025–2026 is a Mixture of Experts architecture. This is the single most important architectural shift since the transformer itself. MoE means a 685B parameter model (DeepSeek-V3) only activates ~37B parameters per token — making it <em>cheaper to serve</em> than a dense 70B model while being dramatically smarter.</p>
+
+    <p>The implications are cascading: smaller models are now punching above their weight because they're effectively large models that only activate the neurons they need. Meta's Llama 4 Scout (109B total, 17B active) fits on a single H100 and trades blows with models 5x its compute budget. This has obliterated the "bigger = better" narrative that defined 2023–2024.</p>
+
+    <h4>What to Watch: Dense vs. MoE Trade-offs</h4>
+    <p>MoE isn't free lunch. Expert routing introduces non-determinism — the same prompt can activate different expert combinations, leading to slightly different outputs. For applications requiring strict reproducibility (assessment grading, certification), you may prefer dense models or need to pin routing seeds. MoE models also have higher memory footprints for self-hosting, since all experts must be loaded even if only a few fire per forward pass.</p>
+
+    <h3>Open Weight Models Have Crossed the Threshold</h3>
+    <p>The narrative that open-weight models are "always behind" is now false. DeepSeek-R1 matches or exceeds GPT-4o on math and code benchmarks. Llama 4 Maverick is competitive with Claude Sonnet 4.6 on many tasks. The gap is real but narrowing — and for many production use cases, the gap doesn't matter.</p>
+
+    <p>The strategic question is no longer "are open models good enough?" but "when does self-hosting save money?" The crossover happens around <strong>100M tokens/month</strong> for a Llama-class model on 8×H100s. Below that, API providers win on convenience and burst capacity.</p>
+
+    <h3>The Benchmark Problem</h3>
+    <p>By mid-2026, every major benchmark has been effectively saturated or gamed. MMLU, HumanEval, GSM-8K — frontier models score 90%+ on all of them. The industry has shifted to harder evals: SWE-bench Verified (real GitHub issues), GPQA Diamond (PhD-level science), and private company-specific benchmarks.</p>
+
+    <p>The dirty secret: <strong>vibes-based evaluation has become legitimate</strong>. When benchmarks can't differentiate models, human preference studies and "which model do engineers actually prefer for this task" become the tiebreaker. Anthropic's model card for Claude 4.6 prominently features internal blind preference data alongside benchmark scores — a sign that the field is maturing past pure metric optimization.</p>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Opinionated Take</div>
+      <p>If you're still picking models by benchmark leaderboards, you're optimizing for the wrong thing. Build a task-specific eval suite with 200–500 examples from your actual production data. Run every candidate model against it. The winner will surprise you — it's rarely the one on top of the public leaderboard. At Coursera-scale, this eval suite investment pays for itself within a quarter.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 2: API WARS -->
+<!-- ============================================================ -->
+<div class="module" id="mod2">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">02</span>
+    <h2>The API Wars: Pricing, Platforms & Lock-in</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check2" onchange="updateProgress()">
+      <label for="check2">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>Pricing Comparison (as of May 2026)</h3>
+    <p>API pricing has compressed dramatically. The cost of intelligence has dropped roughly 10× per year since GPT-4's launch. What cost $60/M tokens in early 2024 now costs $3–15/M for equivalent quality. The race to the bottom is real — but hidden costs in reliability, rate limits, and feature gaps make raw $/token comparisons misleading.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Input $/1M tok</th>
+            <th>Output $/1M tok</th>
+            <th>Context</th>
+            <th>Rate Limits (Tier 4)</th>
+            <th>Batch Discount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Claude Opus 4.6</strong></td>
+            <td>$15</td>
+            <td>$75</td>
+            <td>200K</td>
+            <td>4K RPM / 400K TPM</td>
+            <td>50% off</td>
+          </tr>
+          <tr>
+            <td><strong>Claude Sonnet 4.6</strong></td>
+            <td>$3</td>
+            <td>$15</td>
+            <td>200K</td>
+            <td>4K RPM / 400K TPM</td>
+            <td>50% off</td>
+          </tr>
+          <tr>
+            <td><strong>Claude Haiku 4.5</strong></td>
+            <td>$0.80</td>
+            <td>$4</td>
+            <td>200K</td>
+            <td>4K RPM / 400K TPM</td>
+            <td>50% off</td>
+          </tr>
+          <tr>
+            <td><strong>GPT-5</strong></td>
+            <td>$12</td>
+            <td>$60</td>
+            <td>256K</td>
+            <td>10K RPM / 2M TPM</td>
+            <td>50% off</td>
+          </tr>
+          <tr>
+            <td><strong>GPT-5 Mini</strong></td>
+            <td>$2</td>
+            <td>$8</td>
+            <td>128K</td>
+            <td>30K RPM / 10M TPM</td>
+            <td>50% off</td>
+          </tr>
+          <tr>
+            <td><strong>Gemini 2.5 Pro</strong></td>
+            <td>$2.50</td>
+            <td>$15</td>
+            <td>1M+</td>
+            <td>2K RPM / 4M TPM</td>
+            <td>~50% off (Batch API)</td>
+          </tr>
+          <tr>
+            <td><strong>Gemini 2.5 Flash</strong></td>
+            <td>$0.15</td>
+            <td>$0.60</td>
+            <td>1M</td>
+            <td>4K RPM / 4M TPM</td>
+            <td>~50% off</td>
+          </tr>
+          <tr>
+            <td><strong>DeepSeek-V3 (API)</strong></td>
+            <td>$0.27</td>
+            <td>$1.10</td>
+            <td>128K</td>
+            <td>Limited during peaks</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">Hidden Costs Warning</div>
+      <p>Raw token pricing tells maybe 40% of the story. Factor in: <strong>(1)</strong> prompt caching discounts — Anthropic offers up to 90% off cached input tokens, which massively favors workloads with stable system prompts; <strong>(2)</strong> extended thinking tokens — reasoning models bill for "thinking" tokens that you never see but still pay for; <strong>(3)</strong> rate limit headroom — Google's lower RPM limits can bottleneck batch processing; <strong>(4)</strong> reliability SLAs — Anthropic and OpenAI offer 99.9% uptime guarantees on enterprise tiers.</p>
+    </div>
+
+    <h3>The Anthropic API</h3>
+    <p>Anthropic's API has matured into arguably the most developer-friendly in the space. Key differentiators as of May 2026:</p>
+    <ul>
+      <li><strong>Prompt Caching:</strong> Up to 90% discount on cached input tokens. System prompts, few-shot examples, and large documents can be cached across requests. This is a game-changer for applications with stable system prompts — at Coursera-scale, this alone could cut API costs 40–60%.</li>
+      <li><strong>Extended Thinking:</strong> Claude can show its reasoning chain via a dedicated <code>thinking</code> block in the response. You can set a <code>budget_tokens</code> to control how much "thinking" the model does — critical for cost management on reasoning-heavy tasks.</li>
+      <li><strong>Tool Use (Function Calling):</strong> Native support for structured tool definitions. Claude excels at multi-step tool chains — the agentic loop pattern where it decides which tool to call, processes the result, and decides next steps.</li>
+      <li><strong>Batches API:</strong> 50% cost reduction for async workloads. Submit up to 100K requests, results in ~24 hours. Perfect for assessment grading, content analysis, bulk translations.</li>
+      <li><strong>Citations:</strong> Built-in source attribution when working with provided documents — crucial for education use cases where provenance matters.</li>
+    </ul>
+
+    <div class="code-label">Python — Anthropic API with Extended Thinking</div>
+<pre><code><span class="kw">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    <span class="var">model</span>=<span class="str">"claude-opus-4-6"</span>,
+    <span class="var">max_tokens</span>=<span class="num">16000</span>,
+    <span class="var">thinking</span>={
+        <span class="str">"type"</span>: <span class="str">"enabled"</span>,
+        <span class="str">"budget_tokens"</span>: <span class="num">10000</span>  <span class="cm"># Max tokens for reasoning</span>
+    },
+    <span class="var">messages</span>=[{
+        <span class="str">"role"</span>: <span class="str">"user"</span>,
+        <span class="str">"content"</span>: <span class="str">"Analyze this student's essay for critical thinking depth..."</span>
+    }]
+)
+
+<span class="cm"># Response contains both thinking and text blocks</span>
+<span class="kw">for</span> block <span class="kw">in</span> response.content:
+    <span class="kw">if</span> block.type == <span class="str">"thinking"</span>:
+        <span class="fn">print</span>(<span class="str">"Reasoning:"</span>, block.thinking)
+    <span class="kw">elif</span> block.type == <span class="str">"text"</span>:
+        <span class="fn">print</span>(<span class="str">"Answer:"</span>, block.text)
+</code></pre>
+
+    <h3>The OpenAI API</h3>
+    <p>OpenAI remains the default choice for many teams purely through inertia and ecosystem breadth. Their API surface area is enormous — chat completions, embeddings, image generation (DALL-E 3), audio (Whisper, TTS), Realtime API for voice, file search, assistants, and more. The "everything under one roof" pitch is compelling, but the sprawl means individual features often lag behind focused competitors.</p>
+
+    <p>Key considerations: OpenAI's <strong>Structured Outputs</strong> feature (JSON schema enforcement) is excellent and more battle-tested than competitors. Their <strong>Assistants API</strong> provides server-side state management — useful if you don't want to manage conversation history yourself, but it adds vendor lock-in. The <strong>Realtime API</strong> for voice is genuinely best-in-class for conversational AI, though Gemini's native audio support is closing fast.</p>
+
+    <div class="code-label">Python — OpenAI Structured Output</div>
+<pre><code><span class="kw">from</span> openai <span class="kw">import</span> OpenAI
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="fn">GradeResult</span>(BaseModel):
+    score: <span class="var">int</span>
+    feedback: <span class="var">str</span>
+    strengths: list[<span class="var">str</span>]
+    areas_for_improvement: list[<span class="var">str</span>]
+
+client = OpenAI()
+completion = client.beta.chat.completions.parse(
+    <span class="var">model</span>=<span class="str">"gpt-5"</span>,
+    <span class="var">messages</span>=[
+        {<span class="str">"role"</span>: <span class="str">"system"</span>, <span class="str">"content"</span>: <span class="str">"Grade this assignment 0-100."</span>},
+        {<span class="str">"role"</span>: <span class="str">"user"</span>, <span class="str">"content"</span>: essay_text}
+    ],
+    <span class="var">response_format</span>=GradeResult
+)
+result = completion.choices[<span class="num">0</span>].message.parsed
+</code></pre>
+
+    <h3>The Google API (Vertex AI / Gemini API)</h3>
+    <p>Google's play is differentiated on two axes: <strong>context window</strong> and <strong>cost</strong>. Gemini 2.5 Flash at $0.15/M input tokens with a 1M context window is absurdly cheap for document-heavy workflows. If you need to ingest an entire textbook and answer questions about it, Gemini is the economic winner by a wide margin.</p>
+
+    <p>The caveat: Google's API reliability and documentation quality still lag. Enterprise customers report intermittent 500 errors during peak usage, and the dual API surface (Gemini API vs. Vertex AI) creates confusion about which features are available where. The Vertex AI path adds GCP lock-in. If your infrastructure is already on GCP, this is a non-issue. If it's on AWS, the friction is real.</p>
+
+    <h3>Platform Lock-in Analysis</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Lock-in Risk</th>
+            <th>Primary Lock-in Vectors</th>
+            <th>Mitigation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Anthropic</strong></td>
+            <td><span class="badge badge-green">Low</span></td>
+            <td>Prompt caching format, MCP protocol</td>
+            <td>MCP is open standard; caching is a pricing feature, not API shape</td>
+          </tr>
+          <tr>
+            <td><strong>OpenAI</strong></td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+            <td>Assistants API (server state), fine-tuning, DALL-E integration</td>
+            <td>Avoid Assistants API; manage state yourself; use separate image gen</td>
+          </tr>
+          <tr>
+            <td><strong>Google</strong></td>
+            <td><span class="badge badge-red">High</span></td>
+            <td>Vertex AI GCP coupling, Grounding with Google Search, GCS integration</td>
+            <td>Use Gemini API directly; avoid Vertex-specific features</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>Build an abstraction layer.</strong> Use a thin wrapper (even 50 lines of code) that normalizes the message format across providers. The Anthropic and OpenAI message formats are close enough that a unified interface takes a day to build. This lets you A/B test models, fail over between providers, and avoid rewriting your codebase when the price war inevitably shifts. Anthropic's open MCP protocol for tool integration is the most future-proof bet for tooling standards.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 3: AGENTS -->
+<!-- ============================================================ -->
+<div class="module" id="mod3">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">03</span>
+    <h2>Agents & Orchestration: The Year Agents Got Real</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check3" onchange="updateProgress()">
+      <label for="check3">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Agent Landscape in 2026</h3>
+    <p>2025 was the year agents went from demos to production. 2026 is the year they became <em>boring infrastructure</em> — which is exactly what you want from a technology you're betting your platform on. The hype cycle has settled, and what remains is a clear pattern: <strong>agents are just LLMs in a loop with tool access and memory</strong>. The magic is in the orchestration, not the individual model call.</p>
+
+    <p>Three frameworks dominate production deployments:</p>
+
+    <h3>Claude Agent SDK (Anthropic)</h3>
+    <p>Anthropic's Agent SDK, released alongside Claude Code, is the most opinionated of the three. Its core insight: <strong>most agent failures come from over-engineering the orchestration</strong>. The SDK favors a "put the model in a loop" approach — give it tools, let it decide what to do, and intervene only when it goes off track.</p>
+
+    <p>Key concepts:</p>
+    <ul>
+      <li><strong>Agent loop:</strong> The SDK manages the retry/tool-call/response cycle automatically. You define tools, the agent decides when and how to use them.</li>
+      <li><strong>Hooks:</strong> Lifecycle callbacks (before/after tool calls, on error) for logging, guardrails, and human-in-the-loop checkpoints.</li>
+      <li><strong>MCP Integration:</strong> Native support for the Model Context Protocol, meaning your agent can connect to any MCP-compatible data source or tool.</li>
+      <li><strong>Subagents:</strong> Spawn child agents for parallel subtasks, each with their own tool set and context.</li>
+    </ul>
+
+    <div class="code-label">Python — Claude Agent SDK Pattern</div>
+<pre><code><span class="kw">import</span> anthropic
+<span class="kw">from</span> anthropic.agent <span class="kw">import</span> Agent, Tool
+
+<span class="cm"># Define tools the agent can use</span>
+tools = [
+    Tool(
+        <span class="var">name</span>=<span class="str">"search_courses"</span>,
+        <span class="var">description</span>=<span class="str">"Search Coursera course catalog"</span>,
+        <span class="var">input_schema</span>={
+            <span class="str">"type"</span>: <span class="str">"object"</span>,
+            <span class="str">"properties"</span>: {
+                <span class="str">"query"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>},
+                <span class="str">"level"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>,
+                         <span class="str">"enum"</span>: [<span class="str">"beginner"</span>, <span class="str">"intermediate"</span>, <span class="str">"advanced"</span>]}
+            }
+        },
+        <span class="var">handler</span>=search_courses_fn
+    ),
+    Tool(
+        <span class="var">name</span>=<span class="str">"generate_quiz"</span>,
+        <span class="var">description</span>=<span class="str">"Generate assessment questions for a topic"</span>,
+        <span class="var">input_schema</span>={...},
+        <span class="var">handler</span>=generate_quiz_fn
+    )
+]
+
+<span class="cm"># Create and run agent</span>
+agent = Agent(
+    <span class="var">model</span>=<span class="str">"claude-sonnet-4-6"</span>,
+    <span class="var">tools</span>=tools,
+    <span class="var">system</span>=<span class="str">"You are a course design assistant for Coursera..."</span>,
+    <span class="var">max_turns</span>=<span class="num">20</span>,
+    <span class="var">hooks</span>={
+        <span class="str">"before_tool_call"</span>: log_tool_usage,
+        <span class="str">"on_error"</span>: handle_agent_error
+    }
+)
+
+result = <span class="kw">await</span> agent.run(<span class="str">"Design a 4-week ML fundamentals course..."</span>)
+</code></pre>
+
+    <h3>OpenAI Agents SDK</h3>
+    <p>OpenAI's Agents SDK takes a more structured approach with explicit <strong>agent handoffs</strong>. You define specialized agents (researcher, writer, reviewer) and the SDK manages routing between them. This works well for well-defined workflows but can be rigid for open-ended exploration.</p>
+
+    <p>Key differentiator: the <strong>Responses API</strong> — a stateless alternative to the Assistants API that's become the recommended path. It supports tool calling, structured output, and web search in a single call without server-side state management.</p>
+
+    <h3>Model Context Protocol (MCP)</h3>
+    <p>MCP is arguably <strong>the most important infrastructure standard to emerge in 2025</strong>. Created by Anthropic but designed as an open protocol, MCP standardizes how LLMs connect to external tools and data sources. Think of it as "USB-C for AI" — a universal interface that lets any model talk to any tool.</p>
+
+    <h4>Why MCP Matters</h4>
+    <p>Before MCP, every integration was bespoke. Want your agent to query a database? Write a custom tool. Want it to read Slack messages? Another custom tool. Want it to search your docs? Yet another. MCP replaces this N×M integration problem with a standard protocol:</p>
+    <ul>
+      <li><strong>MCP Servers</strong> expose resources (data) and tools (actions) through a standardized JSON-RPC interface.</li>
+      <li><strong>MCP Clients</strong> (the AI application) discover and invoke these tools without knowing implementation details.</li>
+      <li><strong>Transport-agnostic:</strong> Works over stdio, HTTP/SSE, or WebSockets.</li>
+    </ul>
+
+    <p>The ecosystem has exploded: there are now MCP servers for PostgreSQL, Slack, GitHub, Google Drive, Jira, Salesforce, and hundreds more. For Coursera, you could build MCP servers that expose your course catalog, learner data, and assessment engine — then any MCP-compatible agent can use them.</p>
+
+    <div class="code-label">TypeScript — Simple MCP Server</div>
+<pre><code><span class="kw">import</span> { McpServer } <span class="kw">from</span> <span class="str">"@modelcontextprotocol/sdk/server/mcp.js"</span>;
+
+<span class="kw">const</span> server = <span class="kw">new</span> <span class="fn">McpServer</span>({
+  <span class="var">name</span>: <span class="str">"coursera-catalog"</span>,
+  <span class="var">version</span>: <span class="str">"1.0.0"</span>
+});
+
+<span class="cm">// Expose a tool</span>
+server.<span class="fn">tool</span>(
+  <span class="str">"search_courses"</span>,
+  <span class="str">"Search the Coursera course catalog"</span>,
+  { <span class="var">query</span>: { <span class="var">type</span>: <span class="str">"string"</span> }, <span class="var">limit</span>: { <span class="var">type</span>: <span class="str">"number"</span> } },
+  <span class="kw">async</span> ({ query, limit }) => {
+    <span class="kw">const</span> results = <span class="kw">await</span> <span class="fn">searchCatalog</span>(query, limit);
+    <span class="kw">return</span> { content: [{ <span class="var">type</span>: <span class="str">"text"</span>, <span class="var">text</span>: JSON.<span class="fn">stringify</span>(results) }] };
+  }
+);
+
+<span class="cm">// Expose a resource</span>
+server.<span class="fn">resource</span>(
+  <span class="str">"course://{courseId}"</span>,
+  <span class="str">"Get full course details"</span>,
+  <span class="kw">async</span> (uri) => {
+    <span class="kw">const</span> course = <span class="kw">await</span> <span class="fn">getCourse</span>(uri.pathname);
+    <span class="kw">return</span> { contents: [{ <span class="var">uri</span>: uri.href, <span class="var">text</span>: JSON.<span class="fn">stringify</span>(course) }] };
+  }
+);
+</code></pre>
+
+    <h3>Multi-Agent Architectures</h3>
+    <p>The multi-agent pattern has settled into three reliable architectures:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Pattern</th><th>Description</th><th>Best For</th><th>Watch Out</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Orchestrator → Workers</strong></td>
+            <td>One agent decomposes tasks and delegates to specialized sub-agents</td>
+            <td>Complex workflows, content pipelines</td>
+            <td>Orchestrator bottleneck, cost multiplication</td>
+          </tr>
+          <tr>
+            <td><strong>Pipeline / Chain</strong></td>
+            <td>Sequential agents, each processing and passing forward</td>
+            <td>Content review, data transformation</td>
+            <td>Error propagation, latency stacking</td>
+          </tr>
+          <tr>
+            <td><strong>Debate / Critique</strong></td>
+            <td>Multiple agents argue positions, a judge synthesizes</td>
+            <td>Assessment design, content accuracy</td>
+            <td>3× cost, can be slow, diminishing returns</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>Start with a single agent and a good set of tools before going multi-agent.</strong> The industry over-invested in multi-agent architectures in 2025, and most teams learned that a single well-prompted agent with 10 tools outperforms a swarm of 5 specialized agents 80% of the time. Go multi-agent only when you need genuine parallelism or adversarial review. And adopt MCP now — it's becoming the standard integration layer and future-proofs your tooling investment.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 4: REASONING -->
+<!-- ============================================================ -->
+<div class="module" id="mod4">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">04</span>
+    <h2>Reasoning & Chain-of-Thought: When Models Think</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check4" onchange="updateProgress()">
+      <label for="check4">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Reasoning Revolution</h3>
+    <p>The biggest capability jump in 2024–2025 wasn't a bigger model — it was teaching models to <em>think before they answer</em>. OpenAI's o1 (September 2024) proved that inference-time compute — letting the model spend more tokens reasoning internally — could dramatically improve performance on hard problems. By mid-2026, every frontier lab has a reasoning mode, and the architecture of how this works is now well understood.</p>
+
+    <h3>How Extended Thinking Works</h3>
+    <p>The core insight is simple: instead of generating an answer in a single forward pass, the model generates a chain of intermediate reasoning steps. These steps are generated autoregressively (each token depending on the previous), which means the model can "correct course" mid-thought — something that's impossible in a single forward pass.</p>
+
+    <p>There are two implementation patterns:</p>
+    <ul>
+      <li><strong>Hidden reasoning (OpenAI o-series):</strong> The model generates internal reasoning tokens that are not shown to the user. You pay for these tokens but never see them. The API returns only a summary. This is a black box — you can't inspect the reasoning chain.</li>
+      <li><strong>Visible reasoning (Claude Extended Thinking, DeepSeek-R1):</strong> The reasoning chain is returned in a separate block. You can inspect, log, and use it for debugging. Claude returns a <code>thinking</code> block alongside the <code>text</code> block. This is dramatically more useful for production systems where you need to understand <em>why</em> the model reached a conclusion.</li>
+    </ul>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Opinionated Take</div>
+      <p>Visible reasoning is strictly superior for production systems. If your model is grading a student's work and you can't explain <em>why</em> it gave a B+ instead of an A-, you have an accountability problem. Anthropic's decision to make thinking blocks visible and inspectable is the right design for education technology. OpenAI's hidden reasoning may score higher on some benchmarks, but you're trading debuggability for a few points of accuracy.</p>
+    </div>
+
+    <h3>The Reasoning Model Landscape</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Model</th><th>Approach</th><th>Reasoning Visible?</th><th>Budget Control?</th><th>Best At</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Claude 4.6 (Extended Thinking)</strong></td>
+            <td>Budget-controlled visible CoT</td>
+            <td><span class="badge badge-green">Yes</span></td>
+            <td><span class="badge badge-green">Yes</span> (budget_tokens)</td>
+            <td>Coding, analysis, structured reasoning</td>
+          </tr>
+          <tr>
+            <td><strong>OpenAI o3</strong></td>
+            <td>Hidden internal reasoning</td>
+            <td><span class="badge badge-red">No</span> (summary only)</td>
+            <td><span class="badge badge-yellow">Partial</span> (reasoning_effort)</td>
+            <td>Math, science, competition problems</td>
+          </tr>
+          <tr>
+            <td><strong>OpenAI o4-mini</strong></td>
+            <td>Efficient hidden reasoning</td>
+            <td><span class="badge badge-red">No</span></td>
+            <td><span class="badge badge-yellow">Partial</span></td>
+            <td>Cost-effective reasoning, code</td>
+          </tr>
+          <tr>
+            <td><strong>DeepSeek-R1</strong></td>
+            <td>Visible CoT (open weights)</td>
+            <td><span class="badge badge-green">Yes</span></td>
+            <td><span class="badge badge-red">No</span></td>
+            <td>Math proofs, formal reasoning</td>
+          </tr>
+          <tr>
+            <td><strong>Gemini 2.5 (Thinking)</strong></td>
+            <td>Configurable thinking</td>
+            <td><span class="badge badge-green">Yes</span></td>
+            <td><span class="badge badge-green">Yes</span></td>
+            <td>Multimodal reasoning, long docs</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Training Reasoning: GRPO and Beyond</h3>
+    <p>How do you train a model to reason? This is where <strong>Group Relative Policy Optimization (GRPO)</strong> — pioneered by DeepSeek — has become the dominant technique. GRPO is an evolution of reinforcement learning from human feedback, but with a key twist: instead of using a separate reward model, it generates multiple responses to the same prompt and uses the <em>relative ranking</em> within the group as the training signal.</p>
+
+    <h4>GRPO vs. Traditional RL</h4>
+    <p>In standard RLHF (PPO-based), you train a reward model on human preferences, then use it to guide policy optimization. This requires a separate reward model, a reference model for KL-divergence penalties, and careful hyperparameter tuning. GRPO simplifies this: generate K responses, score them (using a verifier or outcome-based metric), and optimize the policy to increase the probability of higher-ranked responses relative to lower-ranked ones.</p>
+
+    <p>The implications for practitioners: GRPO makes it feasible to add reasoning capabilities to smaller, cheaper models. You can take a Llama 4 Scout, run GRPO with math/code verifiers, and get meaningfully better reasoning without the infrastructure complexity of full RLHF. DeepSeek-R1 was trained almost entirely with GRPO, and its reasoning quality rivals o3 on many benchmarks.</p>
+
+    <h4>When to Use Reasoning Models</h4>
+    <p>Reasoning models are <strong>not</strong> universally better. They're slower and more expensive per token (because you're paying for thinking tokens). The decision framework:</p>
+    <ul>
+      <li><strong>Use reasoning mode</strong> for: complex multi-step problems, code debugging, mathematical proofs, nuanced assessment rubrics, any task where "thinking step by step" would help a human expert.</li>
+      <li><strong>Skip reasoning mode</strong> for: classification, extraction, simple Q&A, content generation, any task where the first intuitive answer is usually correct. A standard Sonnet 4.6 call at 5× lower cost will perform identically on these tasks.</li>
+    </ul>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>Reasoning models are compute/quality knobs, not magic.</strong> Use <code>budget_tokens</code> in Claude's Extended Thinking to control the trade-off: 1K tokens of thinking for quick sanity checks, 10K for complex analysis. For Coursera, the killer use case is assessment design and grading — let the model reason through rubric criteria step by step, then inspect the thinking chain for quality assurance. Train your team to read thinking blocks the way they'd review a colleague's work.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 5: MULTIMODAL -->
+<!-- ============================================================ -->
+<div class="module" id="mod5">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">05</span>
+    <h2>The Multimodal Frontier: Vision, Audio, Video & Beyond</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check5" onchange="updateProgress()">
+      <label for="check5">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>Where We Are</h3>
+    <p>Multimodal AI has gone from "impressive demo" to "table stakes" in 18 months. Every frontier model now accepts images and most accept audio. Video understanding is maturing rapidly. Image and video <em>generation</em> have reached commercial quality. The convergence of all modalities into single models is the defining architectural trend of 2026.</p>
+
+    <h3>Vision (Image Understanding)</h3>
+    <p>All frontier models now have strong vision capabilities. Claude 4.6, GPT-5, and Gemini 2.5 can all analyze charts, read handwritten text, understand screenshots, and reason about complex visual content. The quality gap between them has narrowed significantly.</p>
+
+    <p>Gemini has a structural advantage here: it was designed as "natively multimodal" from the ground up, meaning images are processed through the same transformer weights as text. Claude and GPT-5 use a vision encoder that feeds into the language model, which works well but can miss subtle spatial relationships.</p>
+
+    <p>For education: vision capabilities are a game-changer for <strong>STEM assessment</strong>. Students can photograph handwritten math solutions, circuit diagrams, or lab results, and the model can evaluate them. The accuracy on handwritten math recognition has reached ~95% for well-lit photos — good enough for formative assessment, not yet reliable enough for high-stakes exams.</p>
+
+    <h3>Audio & Voice</h3>
+    <p>OpenAI's <strong>Realtime API</strong> (now in its second generation) remains the leader for real-time conversational voice AI. It supports speech-to-speech with ~300ms latency, interruption handling, and function calling mid-conversation. The voice quality is remarkably natural — prosody, pacing, and emotional tone are all well-handled.</p>
+
+    <p>Gemini's <strong>Live API</strong> offers similar capabilities with native audio understanding (the model processes audio directly, not through a speech-to-text intermediary), which enables better handling of tone, hesitation, and non-verbal audio cues.</p>
+
+    <p>Claude currently processes audio through transcription rather than native audio understanding, which means it's not competitive for real-time voice applications. However, for async audio processing (analyzing recorded lectures, transcribing student submissions), the transcription-based approach works well.</p>
+
+    <h3>Video</h3>
+    <p>Video understanding is the active frontier. Gemini leads here — it can process up to an hour of video natively, understanding temporal relationships, identifying key moments, and answering questions about content that requires watching the video. Claude and GPT-5 handle video through frame extraction (sampling keyframes and analyzing them as images), which works for many use cases but misses temporal dynamics.</p>
+
+    <h3>Image Generation</h3>
+    <p>The image generation landscape has consolidated:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Model</th><th>Provider</th><th>Strength</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>GPT-5 (native)</strong></td>
+            <td>OpenAI</td>
+            <td>Best text rendering, instruction following, integrated with chat</td>
+            <td>Style consistency across generations</td>
+          </tr>
+          <tr>
+            <td><strong>Imagen 3</strong></td>
+            <td>Google</td>
+            <td>Photorealism, Google Workspace integration</td>
+            <td>API availability, safety restrictions</td>
+          </tr>
+          <tr>
+            <td><strong>Flux (Pro/Dev)</strong></td>
+            <td>Black Forest Labs</td>
+            <td>Quality, speed, open-source options available</td>
+            <td>Requires separate API integration</td>
+          </tr>
+          <tr>
+            <td><strong>Stable Diffusion 3.5</strong></td>
+            <td>Stability AI</td>
+            <td>Open source, self-hostable, fine-tunable</td>
+            <td>Prompt engineering difficulty, text rendering</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Video Generation (Sora and Competitors)</h3>
+    <p>OpenAI's <strong>Sora</strong> launched as a consumer product in late 2024 and has improved significantly through 2025. It generates 5–20 second clips that are visually impressive but still struggle with physics consistency (hands, object permanence) and temporal coherence beyond ~10 seconds. Google's <strong>Veo 2</strong> is competitive on quality. Runway Gen-3 and Pika have carved niches in professional video editing workflows.</p>
+
+    <p>The honest assessment: video generation is not yet reliable enough for educational content production at scale. You'll spend more time fixing artifacts than you would shooting the video. Where it shines: concept visualizations, placeholder content, and marketing materials where perfect accuracy isn't required.</p>
+
+    <h3>Code Generation as a Modality</h3>
+    <p>This deserves its own section because code generation has become qualitatively different from text generation. Claude 4.6 and GPT-5 can now write, debug, and refactor production-quality code across complex codebases. The key advance: <strong>agentic coding</strong> — models that can navigate a codebase, understand project structure, run tests, read error messages, and iterate until the code works.</p>
+
+    <p>Claude Code (Anthropic's CLI tool) and GitHub Copilot Workspace represent the state of the art. These are not autocomplete tools — they're engineering agents that can take a GitHub issue description and produce a working PR. SWE-bench Verified scores have gone from ~13% (GPT-4, early 2024) to ~70%+ (Claude Opus 4.6, May 2026) — meaning the model can autonomously resolve about 70% of real GitHub issues from top open-source repos.</p>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>Multimodal is ready for education, with caveats.</strong> Vision for grading visual work: ready. Audio for lecture analysis: ready. Real-time voice for tutoring: ready (but use OpenAI Realtime or Gemini Live, not Claude). Video understanding for course QA: emerging. Image/video generation for content creation: useful for drafts, not final assets. Code generation for internal tooling: a genuine force multiplier — expect 30–50% productivity gains for your engineering team.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 6: FINE-TUNING -->
+<!-- ============================================================ -->
+<div class="module" id="mod6">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">06</span>
+    <h2>The Fine-Tuning Playbook: When, Why & How</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check6" onchange="updateProgress()">
+      <label for="check6">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Decision Framework</h3>
+    <p>The most expensive mistake in applied AI is fine-tuning when you shouldn't. The second most expensive is not fine-tuning when you should. Here's the framework that has held up across hundreds of production deployments:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Approach</th><th>When to Use</th><th>Cost</th><th>Time to Deploy</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Prompt Engineering</strong></td>
+            <td>Always start here. 80% of use cases are solved with good prompts + few-shot examples.</td>
+            <td><span class="badge badge-green">$0</span></td>
+            <td>Hours</td>
+          </tr>
+          <tr>
+            <td><strong>RAG</strong></td>
+            <td>When the model needs access to your data (knowledge it wasn't trained on).</td>
+            <td><span class="badge badge-green">Low</span></td>
+            <td>Days</td>
+          </tr>
+          <tr>
+            <td><strong>Fine-Tuning (SFT)</strong></td>
+            <td>When you need to change the model's <em>behavior</em> — output format, tone, domain terminology, consistent style.</td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+            <td>Weeks</td>
+          </tr>
+          <tr>
+            <td><strong>RLHF / DPO / GRPO</strong></td>
+            <td>When you need to align the model with nuanced human preferences that can't be expressed as examples.</td>
+            <td><span class="badge badge-red">High</span></td>
+            <td>Months</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">Common Mistake</div>
+      <p>Teams fine-tune to inject knowledge (facts about their company, product details). This almost always fails. Fine-tuning changes <em>behavior</em>, not <em>knowledge</em>. If you need the model to know about your 2,000 courses, use RAG. If you need the model to grade assignments in your specific rubric style, fine-tune.</p>
+    </div>
+
+    <h3>Supervised Fine-Tuning (SFT)</h3>
+    <p>SFT is the bread-and-butter technique: you provide (input, desired_output) pairs, and the model learns to produce outputs that look like your examples. With LoRA (Low-Rank Adaptation), you only train a small number of adapter parameters — typically 0.1–1% of the full model — making it feasible to fine-tune even large models on a single GPU.</p>
+
+    <h4>Practical SFT Guidelines</h4>
+    <ul>
+      <li><strong>Data quality > data quantity.</strong> 500 high-quality examples beat 5,000 mediocre ones. Every example should be something you'd be proud to ship.</li>
+      <li><strong>Diverse examples.</strong> Cover edge cases, different input lengths, various difficulty levels. If you only train on easy examples, the model will struggle on hard ones.</li>
+      <li><strong>LoRA rank matters.</strong> Rank 8–16 for behavior changes (format, tone). Rank 32–64 for domain-specific knowledge integration. Higher rank = more parameters = more data needed.</li>
+      <li><strong>Validation set:</strong> Hold out 10–20% of your data. If training loss drops but validation loss increases, you're overfitting.</li>
+    </ul>
+
+    <h3>Alignment Techniques Compared</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Technique</th><th>Training Signal</th><th>Data Format</th><th>Complexity</th><th>When to Use</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>SFT</strong></td>
+            <td>Supervised examples</td>
+            <td>(prompt, ideal_response)</td>
+            <td><span class="badge badge-green">Low</span></td>
+            <td>Format, style, domain adaptation</td>
+          </tr>
+          <tr>
+            <td><strong>RLHF (PPO)</strong></td>
+            <td>Reward model from human prefs</td>
+            <td>Ranked response pairs + reward model</td>
+            <td><span class="badge badge-red">Very High</span></td>
+            <td>Complex preference alignment (the labs use this)</td>
+          </tr>
+          <tr>
+            <td><strong>DPO</strong></td>
+            <td>Direct preference pairs</td>
+            <td>(prompt, chosen, rejected)</td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+            <td>Preference alignment without reward model</td>
+          </tr>
+          <tr>
+            <td><strong>GRPO</strong></td>
+            <td>Group relative ranking</td>
+            <td>K responses ranked per prompt</td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+            <td>Reasoning, math, code — where correctness is verifiable</td>
+          </tr>
+          <tr>
+            <td><strong>KTO</strong></td>
+            <td>Binary good/bad signal</td>
+            <td>(prompt, response, good/bad)</td>
+            <td><span class="badge badge-green">Low</span></td>
+            <td>When you only have thumbs up/down data</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>LoRA: The Practitioner's Guide</h3>
+    <p><strong>Low-Rank Adaptation (LoRA)</strong> has become the default fine-tuning method for production teams. Instead of updating all model parameters, LoRA decomposes the weight updates into low-rank matrices, reducing trainable parameters by 100–1000×.</p>
+
+    <p>Key practical details:</p>
+    <ul>
+      <li><strong>QLoRA</strong> (quantized LoRA): Fine-tune a 4-bit quantized model with LoRA adapters in full precision. This lets you fine-tune a 70B model on a single 48GB GPU. Quality loss from quantization is minimal for most tasks.</li>
+      <li><strong>LoRA merging:</strong> After training, merge the adapter back into the base model for zero-overhead inference. No latency penalty compared to the base model.</li>
+      <li><strong>Multi-LoRA serving:</strong> Frameworks like vLLM and SGLang support serving multiple LoRA adapters on the same base model — route to different adapters based on task type. One base Llama 4 model with 10 LoRA adapters for 10 different use cases.</li>
+    </ul>
+
+    <h3>Fine-Tuning with Provider APIs</h3>
+    <p>If you don't want to manage GPUs, both OpenAI and Google offer fine-tuning through their APIs. Anthropic doesn't offer public fine-tuning for Claude (as of May 2026) — they provide fine-tuning as a managed service for enterprise customers. OpenAI's fine-tuning API supports GPT-5 Mini and is well-documented. Google's Vertex AI supports fine-tuning Gemini models with standard SFT and RL-based approaches.</p>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>For most teams, the answer is: don't fine-tune yet.</strong> The quality of base models has improved so dramatically that prompt engineering + RAG covers 90% of use cases. Fine-tune only when you have a clear behavior change that prompting can't achieve, at least 500 quality examples, and a robust eval suite to measure improvement. If you do fine-tune, start with SFT + LoRA on an open model (Llama 4 Scout). If you need preference alignment, DPO is the pragmatic choice — it's 90% of RLHF quality at 20% of the complexity. Reserve GRPO for tasks with verifiable correctness (math, code, structured outputs).</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 7: RAG -->
+<!-- ============================================================ -->
+<div class="module" id="mod7">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">07</span>
+    <h2>RAG & Knowledge Systems: Beyond Naive Retrieval</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check7" onchange="updateProgress()">
+      <label for="check7">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>RAG in 2026: Mature but Misunderstood</h3>
+    <p>Retrieval-Augmented Generation (RAG) is the most deployed AI pattern in enterprise — and also the most poorly implemented. The concept is simple: retrieve relevant documents, stuff them into the prompt, let the model answer based on them. The execution is full of traps.</p>
+
+    <p>The landscape has evolved significantly. Naive RAG (embed → retrieve top-K → prompt) has given way to sophisticated pipelines that look more like traditional search engineering than pure ML. The best RAG systems in 2026 combine semantic search, keyword search, re-ranking, query expansion, and intelligent chunking.</p>
+
+    <h3>The RAG Stack</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Layer</th><th>Options</th><th>Recommendation</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Embedding Model</strong></td>
+            <td>OpenAI text-embedding-3, Cohere embed-v4, Voyage-3, BGE-M3, Nomic</td>
+            <td>Voyage-3 for quality; text-embedding-3-small for cost</td>
+          </tr>
+          <tr>
+            <td><strong>Vector DB</strong></td>
+            <td>Pinecone, Weaviate, Qdrant, ChromaDB, pgvector, Milvus</td>
+            <td>pgvector if you're on Postgres; Pinecone for managed; Qdrant for self-hosted</td>
+          </tr>
+          <tr>
+            <td><strong>Chunking</strong></td>
+            <td>Fixed-size, semantic, document-structure-aware, recursive</td>
+            <td>Document-structure-aware (respect headers, paragraphs, code blocks)</td>
+          </tr>
+          <tr>
+            <td><strong>Re-ranking</strong></td>
+            <td>Cohere Rerank, Voyage Rerank, cross-encoder models</td>
+            <td>Always re-rank. Cohere Rerank 3 is the default choice.</td>
+          </tr>
+          <tr>
+            <td><strong>Hybrid Search</strong></td>
+            <td>BM25 + vector, SPLADE + vector</td>
+            <td>Always combine keyword + semantic. BM25 is embarrassingly effective.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Chunking Problem (Solved?)</h3>
+    <p>Chunking remains the most impactful and least glamorous part of RAG. The right chunking strategy can improve retrieval quality more than switching embedding models. The state of the art in 2026:</p>
+    <ul>
+      <li><strong>Contextual chunking:</strong> Anthropic published a technique called "Contextual Retrieval" — before embedding each chunk, prepend a short context description (generated by a cheap model) that explains where this chunk sits in the overall document. This dramatically improves retrieval for chunks that are only meaningful in context.</li>
+      <li><strong>Late chunking:</strong> Embed the entire document first, then split embeddings at chunk boundaries. This preserves cross-chunk relationships that are lost in traditional chunk-then-embed approaches.</li>
+      <li><strong>Hierarchical chunking:</strong> Maintain chunks at multiple granularities (paragraph, section, document). Retrieve at the paragraph level, then expand to include surrounding context. This gives the best of both precision and recall.</li>
+    </ul>
+
+    <h3>GraphRAG</h3>
+    <p>Microsoft's <strong>GraphRAG</strong> introduced a genuinely new pattern: instead of retrieving raw text chunks, build a knowledge graph from your documents (entities, relationships, summaries at multiple levels), then retrieve from the graph. This excels at <em>global</em> questions ("What are the main themes across our course catalog?") that traditional RAG handles poorly because the answer spans many documents.</p>
+
+    <p>The trade-off: GraphRAG requires significant upfront processing (building the knowledge graph costs ~$X per document in LLM calls) and doesn't handle rapidly changing data well. For a Coursera course catalog that changes weekly, you'd need incremental graph updates — which the tooling is still maturing on.</p>
+
+    <h3>MCP as an Alternative to RAG</h3>
+    <p>Here's the provocative question: <strong>do you even need RAG?</strong> For many use cases, MCP (Model Context Protocol) offers a simpler alternative. Instead of pre-computing embeddings and maintaining a vector database, you give the agent a tool that can query your data directly.</p>
+
+    <p>The pattern: define an MCP tool called <code>search_courses</code> that takes a query string and returns relevant results from your existing search infrastructure (Elasticsearch, Algolia, whatever you already have). The LLM decides when to search, what to search for, and how to combine results. No embedding pipeline, no vector DB, no chunking strategy.</p>
+
+    <p>When to prefer MCP over RAG:</p>
+    <ul>
+      <li>Your data already has good search infrastructure</li>
+      <li>Data changes frequently (daily or more)</li>
+      <li>The model needs to make targeted queries rather than passively having context</li>
+      <li>You're building an agentic system anyway</li>
+    </ul>
+
+    <p>When to prefer RAG:</p>
+    <ul>
+      <li>You need to process the entire knowledge base against every query (e.g., finding all relevant courses)</li>
+      <li>Latency matters — pre-computed embeddings are faster than real-time search</li>
+      <li>You need semantic similarity that keyword search can't provide</li>
+      <li>The model needs extensive context (multiple long documents) to answer well</li>
+    </ul>
+
+    <h3>The Long-Context Escape Hatch</h3>
+    <p>With Gemini offering 1M+ token context windows and Claude at 200K, a legitimate question is whether you need RAG at all for moderate-sized corpora. If your entire knowledge base fits in 200K tokens (~150K words), you can just stuff it all into the prompt.</p>
+
+    <p>This is not as absurd as it sounds. For a course catalog of 200 courses with short descriptions, the entire catalog might be 50K tokens. Prompt caching means you pay full price once and then 90% less on subsequent queries. The downside: latency increases with context length (roughly linearly), and very long contexts can dilute the model's attention on the most relevant sections.</p>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>The best RAG system is the one you don't build.</strong> Before investing in an embedding pipeline, try: (1) can you fit the data in the context window with prompt caching? (2) can you use MCP tools to query your existing search infrastructure? If neither works, build RAG — but do it properly: hybrid search (BM25 + vector), always re-rank, use contextual chunking, and eval relentlessly. The difference between good and bad RAG is 40+ percentage points on retrieval accuracy. Don't ship bad RAG — it's worse than no RAG because users lose trust.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 8: SAFETY -->
+<!-- ============================================================ -->
+<div class="module" id="mod8">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">08</span>
+    <h2>Safety, Alignment & Governance: The Guardrails</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check8" onchange="updateProgress()">
+      <label for="check8">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Safety Landscape Has Matured</h3>
+    <p>AI safety has evolved from an abstract concern to an engineering discipline with concrete tools, standards, and regulations. The conversation has shifted from "will AI destroy humanity?" to "how do we prevent a student from tricking the AI tutor into writing their essay?" Both matter, but the latter is what you'll deal with daily.</p>
+
+    <h3>Constitutional AI (Anthropic)</h3>
+    <p>Anthropic's <strong>Constitutional AI (CAI)</strong> is the most influential alignment technique to emerge from industry research. The core idea: instead of training the model on human feedback for every possible scenario, give it a set of principles (a "constitution") and train it to self-critique and revise its outputs to comply with those principles.</p>
+
+    <p>In practice, CAI training has two phases:</p>
+    <ul>
+      <li><strong>SL-CAI:</strong> Generate responses, have the model critique them against the constitution, revise, and fine-tune on the revisions.</li>
+      <li><strong>RL-CAI:</strong> Use the constitution-trained model as its own reward model for RLHF, reducing reliance on human annotators.</li>
+    </ul>
+
+    <p>For application developers, the takeaway is that Claude's safety behavior is principled and predictable — it follows rules rather than pattern-matching on "dangerous-sounding" words. This means fewer false positives on legitimate educational content (a chemistry course discussing reactions won't trigger safety filters) and more robust protection against actual misuse.</p>
+
+    <h3>Prompt Injection: The Unsolved Problem</h3>
+    <p>Prompt injection remains the most serious security vulnerability in LLM applications in 2026. Despite significant research, there is no complete solution. The attack surface is simple: user-provided content (or content retrieved from external sources) contains instructions that override the system prompt.</p>
+
+    <h4>Attack Categories</h4>
+    <ul>
+      <li><strong>Direct injection:</strong> User writes "Ignore previous instructions and..." in their input. Basic, easily caught.</li>
+      <li><strong>Indirect injection:</strong> Malicious instructions embedded in documents, web pages, or databases that the model retrieves. Much harder to catch because the model doesn't know which content is trusted.</li>
+      <li><strong>Multi-turn escalation:</strong> Gradually shifting the model's behavior over multiple conversation turns. Each individual message looks benign; the cumulative effect is a jailbreak.</li>
+    </ul>
+
+    <h4>Defense Strategies (State of the Art)</h4>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Defense</th><th>Effectiveness</th><th>Implementation Cost</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Input/output classifiers</strong></td>
+            <td><span class="badge badge-yellow">Medium</span></td>
+            <td>Low</td>
+            <td>Run a separate model to detect injection attempts. High false positive rate.</td>
+          </tr>
+          <tr>
+            <td><strong>Privilege separation</strong></td>
+            <td><span class="badge badge-green">High</span></td>
+            <td>Medium</td>
+            <td>Different trust levels for system prompt, user input, retrieved content. Best architectural defense.</td>
+          </tr>
+          <tr>
+            <td><strong>Output validation</strong></td>
+            <td><span class="badge badge-green">High</span></td>
+            <td>Low</td>
+            <td>Validate model outputs against expected format/content. Catches when injection succeeds.</td>
+          </tr>
+          <tr>
+            <td><strong>Sandboxing</strong></td>
+            <td><span class="badge badge-green">High</span></td>
+            <td>High</td>
+            <td>Run tools in sandboxed environments. Limits blast radius even if injection succeeds.</td>
+          </tr>
+          <tr>
+            <td><strong>Human-in-the-loop</strong></td>
+            <td><span class="badge badge-green">Very High</span></td>
+            <td>Very High</td>
+            <td>Require human approval for high-stakes actions. The nuclear option.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The EU AI Act</h3>
+    <p>The EU AI Act is now partially in force (as of August 2025 for prohibited practices, with the full regime phasing in through 2027). For an education platform like Coursera operating in the EU, the key provisions:</p>
+    <ul>
+      <li><strong>High-risk classification:</strong> AI systems used for educational assessment and access to education are classified as high-risk. This means mandatory conformity assessments, risk management systems, data governance requirements, and human oversight obligations.</li>
+      <li><strong>Transparency requirements:</strong> Users must be informed when they're interacting with an AI system. If AI is used for grading, this must be disclosed.</li>
+      <li><strong>General-Purpose AI (GPAI):</strong> Frontier model providers (Anthropic, OpenAI, Google) have obligations around documentation, copyright compliance, and systemic risk assessment. This is their problem, not yours — but it affects model availability and features in the EU.</li>
+      <li><strong>Prohibited practices:</strong> Social scoring, real-time biometric identification, and emotion recognition in educational settings are prohibited. If you were considering sentiment analysis of student videos for engagement metrics, reconsider.</li>
+    </ul>
+
+    <h3>Practical Safety for Education AI</h3>
+    <p>The safety concerns specific to education:</p>
+    <ul>
+      <li><strong>Academic integrity:</strong> Students using AI to complete assignments. Detection tools (GPTZero, Turnitin AI detection) have ~85% accuracy with a 10–15% false positive rate — unacceptable for high-stakes decisions. Better approach: redesign assessments to be AI-resistant (oral exams, process portfolios, collaborative projects) or AI-embracing (explicitly allow AI use and grade the student's ability to direct it).</li>
+      <li><strong>Bias in assessment:</strong> AI grading systems can exhibit bias correlated with writing style, dialect, or cultural references. Regular bias audits across demographic groups are essential, not optional.</li>
+      <li><strong>Hallucination in tutoring:</strong> An AI tutor that confidently teaches wrong information is worse than no AI tutor. For factual domains, always ground the model's responses in verified course materials (RAG), and display confidence levels to students.</li>
+      <li><strong>Data privacy:</strong> Student data is protected under FERPA (US) and GDPR (EU). Ensure no student PII is sent to model providers, or use providers with BAA/DPA agreements and data processing addendums.</li>
+    </ul>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>Safety is not a feature — it's the foundation.</strong> For education AI: (1) Assume prompt injection will happen and design defensively with privilege separation and output validation. (2) Start EU AI Act compliance now — the high-risk requirements for educational AI are substantial and take time to implement. (3) Don't use AI detection tools for academic integrity — the false positive rate is too high. Redesign assessments instead. (4) Audit for bias quarterly, with real student data and disaggregated metrics.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- MODULE 9: BUSINESS -->
+<!-- ============================================================ -->
+<div class="module" id="mod9">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">09</span>
+    <h2>The Business Landscape: Money, Strategy & Power</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check9" onchange="updateProgress()">
+      <label for="check9">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Capital Stack</h3>
+    <p>The AI industry has absorbed more capital in 2024–2026 than any technology sector in history. The numbers are staggering and worth understanding because they shape what's available to you as a buyer.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Company</th><th>Valuation (est.)</th><th>Total Raised</th><th>Revenue Run Rate</th><th>Strategic Bet</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>OpenAI</strong></td>
+            <td>$300B+</td>
+            <td>$30B+</td>
+            <td>$10B+ ARR</td>
+            <td>Consumer + enterprise platform, vertical integration</td>
+          </tr>
+          <tr>
+            <td><strong>Anthropic</strong></td>
+            <td>$60B+</td>
+            <td>$15B+</td>
+            <td>$3B+ ARR</td>
+            <td>Safety-first, enterprise APIs, developer tools (Claude Code)</td>
+          </tr>
+          <tr>
+            <td><strong>Google DeepMind</strong></td>
+            <td>Part of Alphabet ($2T+)</td>
+            <td>Internal</td>
+            <td>Integrated</td>
+            <td>Full-stack AI: models + cloud + distribution (Android, Search)</td>
+          </tr>
+          <tr>
+            <td><strong>Meta AI</strong></td>
+            <td>Part of Meta ($1.5T+)</td>
+            <td>Internal</td>
+            <td>Open-source strategy</td>
+            <td>Open weights as ecosystem play; AI for social products</td>
+          </tr>
+          <tr>
+            <td><strong>xAI</strong></td>
+            <td>$50B+</td>
+            <td>$12B+</td>
+            <td>Early</td>
+            <td>Real-time data via X/Twitter, aggressive compute buildout</td>
+          </tr>
+          <tr>
+            <td><strong>DeepSeek</strong></td>
+            <td>Private (backed by High-Flyer)</td>
+            <td>~$1B</td>
+            <td>Minimal</td>
+            <td>Prove frontier AI can be built cheaply; open-source credibility</td>
+          </tr>
+          <tr>
+            <td><strong>Mistral</strong></td>
+            <td>$6B+</td>
+            <td>$1B+</td>
+            <td>~$100M ARR</td>
+            <td>European sovereign AI, enterprise, open-source + commercial</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Strategic Analysis by Company</h3>
+
+    <h4>OpenAI: The Platform Play</h4>
+    <p>OpenAI's strategy has shifted from "build the best model" to "build the platform." ChatGPT has 400M+ weekly users. The enterprise product (ChatGPT Enterprise/Team) is growing rapidly. The API business, while large in absolute terms, is increasingly a means to attract developers who then upsell their customers to ChatGPT Plus.</p>
+
+    <p>The risk: OpenAI is trying to be everything — model lab, consumer product, enterprise platform, and app store (GPTs). This works while they're the default choice, but as model quality converges across providers, the "everything" strategy means they're fighting on many fronts simultaneously. Their transition from nonprofit to for-profit has also created governance concerns that enterprise buyers (especially in regulated industries like education) should monitor.</p>
+
+    <h4>Anthropic: The Enterprise Trust Play</h4>
+    <p>Anthropic has positioned itself as the "serious" AI company — safety-focused, enterprise-oriented, and developer-friendly. Claude Code has become a genuine hit among developers, and Claude's performance on coding and agentic tasks has made Anthropic the preferred API for many tech companies.</p>
+
+    <p>The strategic insight: by investing heavily in safety research and Constitutional AI, Anthropic has built <em>trust</em> as a competitive moat. In regulated industries (finance, healthcare, education), trust in your AI provider is not a nice-to-have — it's a procurement requirement. Anthropic's safety credentials are a genuine differentiator, not just marketing.</p>
+
+    <h4>Google: The Infrastructure Advantage</h4>
+    <p>Google's AI strategy is harder to parse because it's embedded in a $2T+ company with distribution advantages no startup can match. Gemini is integrated into Google Search, Gmail, Docs, Android, and Cloud. They don't need to win on model quality — they need to be "good enough" while leveraging distribution.</p>
+
+    <p>For buyers: Google is the infrastructure play. If you're on GCP, Gemini integration is nearly frictionless. The 1M+ token context window is a genuine differentiator for document-heavy workloads. But the API reliability and developer experience still lag Anthropic and OpenAI.</p>
+
+    <h4>Meta: The Open-Source Kingmaker</h4>
+    <p>Meta's open-weight strategy with Llama is not altruism — it's a strategic play to commoditize the model layer (where Meta doesn't make money) and drive value to the application layer (where Meta's products live). Llama 4 has fragmented the commercial model market and given enterprises a credible self-hosting option.</p>
+
+    <p>The result: Meta has more influence over the AI ecosystem than its revenue from AI would suggest. Every company that self-hosts Llama is a company that isn't paying OpenAI or Anthropic. This competitive pressure keeps API prices falling — which benefits everyone, including Meta's own AI-powered products.</p>
+
+    <h3>The Compute Bottleneck</h3>
+    <p>The single biggest constraint on AI progress in 2026 is not algorithmic — it's compute. NVIDIA's H100/H200/B200 GPUs remain in short supply, and the pricing reflects it. Training frontier models requires $100M–$1B+ in compute. Serving them at scale requires thousands of GPUs.</p>
+
+    <p>This has created a "GPU-rich vs. GPU-poor" divide. Google, Meta, and Microsoft (via OpenAI) have massive compute arsenals. Anthropic has secured significant capacity through Amazon (AWS) partnership. Startups without GPU access are increasingly unable to train competitive frontier models — which is why the number of frontier labs has not grown despite the billions flowing into the sector.</p>
+
+    <h3>The Application Layer</h3>
+    <p>The real money is moving to the application layer. Notable patterns:</p>
+    <ul>
+      <li><strong>Vertical AI SaaS:</strong> Companies building domain-specific AI products (Harvey for legal, Abridge for medical, Cursor/Windsurf for coding) are reaching $100M+ ARR faster than any previous SaaS cohort. The model is a commodity input; the value is in the domain-specific data, workflows, and UX.</li>
+      <li><strong>AI-native education:</strong> Companies like Khanmigo (Khan Academy + GPT), Duolingo Max (with Gemini), and various startups are building AI-first learning experiences. This is Coursera's competitive landscape — and the window to build a defensible AI-native product is 12–18 months.</li>
+      <li><strong>Developer tools:</strong> The "AI for developers" category (Cursor, GitHub Copilot, Claude Code, Windsurf) has matured from experimental to essential. Most professional developers now use AI assistance daily. The market is large (~$10B annually) and growing.</li>
+    </ul>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>The model layer is commoditizing; the application layer is where value accrues.</strong> Coursera's competitive advantage is not which model it uses (everyone has access to Claude, GPT-5, Gemini) but how it integrates AI into the learning experience. The companies winning in AI are those with unique data (your learner data and course content), unique workflows (your assessment and credentialing pipeline), and unique distribution (your university and enterprise relationships). Invest in the application layer, not in chasing the latest model release.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 10: WHAT'S NEXT -->
+<!-- ============================================================ -->
+<div class="module" id="mod10">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">10</span>
+    <h2>What's Next: Scaling Laws, AGI & the Future of Education AI</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check10" onchange="updateProgress()">
+      <label for="check10">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Scaling Laws Debate</h3>
+    <p>The "scaling laws" hypothesis — that model capabilities improve predictably with more compute, data, and parameters — drove the industry from 2020 to 2024. The hypothesis was largely correct: GPT-2 → GPT-3 → GPT-4 showed smooth, predictable improvements on benchmarks as scale increased.</p>
+
+    <p>But in 2025, the narrative cracked. Several data points suggest we're hitting diminishing returns on pre-training scale alone:</p>
+    <ul>
+      <li><strong>Data wall:</strong> We've approximately exhausted the public internet for high-quality training text. Synthetic data (model-generated) is being used to supplement, but it introduces quality ceilings and potential model collapse.</li>
+      <li><strong>Benchmark saturation:</strong> Frontier models score 90%+ on most standard benchmarks, making it hard to demonstrate improvement from additional scale.</li>
+      <li><strong>Cost constraints:</strong> Training runs have gone from $10M (GPT-4) to $100M+ (GPT-5), with diminishing quality improvements per dollar.</li>
+    </ul>
+
+    <p>However, the response has been clever: instead of abandoning scale, labs have shifted to <strong>test-time compute scaling</strong>. The o-series models, Claude's Extended Thinking, and DeepSeek-R1 show that you can get significant quality improvements by spending more compute at inference time (reasoning) rather than training time. This is a fundamental paradigm shift — and it's why reasoning models are the most important development of 2025–2026.</p>
+
+    <h3>The AGI Question</h3>
+    <p>Every frontier lab has published timelines suggesting AGI (however they define it) is 2–5 years away. These claims are worth neither dismissing nor taking at face value.</p>
+
+    <p>What's actually happening: capabilities are expanding in <em>breadth</em> faster than in <em>depth</em>. Models can now do a wider range of tasks competently, but they still struggle with:</p>
+    <ul>
+      <li><strong>Novel reasoning:</strong> Tasks requiring genuine insight that wasn't in the training distribution. Models are excellent at recombining existing knowledge but rarely generate truly novel solutions.</li>
+      <li><strong>Long-horizon planning:</strong> Tasks requiring consistent execution over hours or days. Agentic loops help, but error accumulates over many steps.</li>
+      <li><strong>Self-knowledge:</strong> Models still hallucinate about their own capabilities and confidently attempt tasks they cannot do. Calibration has improved but remains imperfect.</li>
+      <li><strong>Robust generalization:</strong> Performance on distribution-shifted versions of "solved" tasks reveals that some capabilities are more brittle than benchmarks suggest.</li>
+    </ul>
+
+    <p>The pragmatic view: whether AGI arrives in 2028 or 2035 doesn't change what you should build today. The current generation of models is transformatively useful — good enough to automate significant portions of knowledge work, including education. Focus on capturing value with today's capabilities while building architecture flexible enough to absorb capability jumps.</p>
+
+    <h3>The Future of Education AI</h3>
+    <p>AI will transform education more profoundly than any technology since the printing press. This is not hype — the capabilities are already here for most of the following, and the remaining gaps will close within 12–24 months:</p>
+
+    <h4>Near-Term (2026–2027)</h4>
+    <ul>
+      <li><strong>AI tutoring at scale:</strong> One-on-one tutoring is the gold standard of education (Bloom's 2-sigma problem). AI tutors powered by current models can provide 80% of the benefit at 0.1% of the cost. The key is grounding them in verified course content (RAG) and designing interactions that promote active learning rather than passive answer-seeking.</li>
+      <li><strong>Automated assessment:</strong> Beyond multiple choice. AI can now grade essays, code submissions, design projects, and mathematical proofs with human-level accuracy when given clear rubrics and reference materials. The constraint is not capability but trust — instructors need to see and verify AI grading before they'll adopt it.</li>
+      <li><strong>Adaptive learning paths:</strong> Models that understand a student's knowledge state and dynamically adjust content difficulty, pacing, and modality. The technology is ready; the content pipeline (generating variations of explanations, practice problems, and examples) is the bottleneck.</li>
+      <li><strong>Content generation:</strong> AI-generated practice problems, case studies, and worked examples. Not replacement of expert-authored core content, but multiplication of supplementary materials.</li>
+    </ul>
+
+    <h4>Medium-Term (2027–2029)</h4>
+    <ul>
+      <li><strong>AI teaching assistants:</strong> Always-available TAs that handle 80% of student questions, escalating to human instructors for complex or sensitive issues. This is already being piloted at several universities.</li>
+      <li><strong>Personalized credentialing:</strong> AI-powered skill assessment that goes beyond course completion to verified competency demonstration. The model observes you solving problems, evaluates your approach, and certifies specific skills.</li>
+      <li><strong>Multimodal learning:</strong> Courses that seamlessly combine text, interactive simulations, voice tutoring, and video — all orchestrated by AI based on the student's learning preferences and progress.</li>
+    </ul>
+
+    <h4>Long-Term (2029+)</h4>
+    <ul>
+      <li><strong>AI-designed curricula:</strong> AI systems that analyze labor market data, employer needs, and learner outcomes to design optimal learning paths. The human role shifts from content creator to content curator and quality assurer.</li>
+      <li><strong>Continuous assessment:</strong> Assessment becomes indistinguishable from learning. Every interaction with the AI tutor is an assessment opportunity — no more "study then test" cycles.</li>
+    </ul>
+
+    <h3>What to Build Now</h3>
+    <p>For a VP of Engineering at an education company, the action items are clear:</p>
+    <ol>
+      <li><strong>Build the AI infrastructure layer:</strong> Multi-model routing, prompt management, eval frameworks, MCP-based tool integration. This is the foundation everything else depends on.</li>
+      <li><strong>Start with tutoring and assessment:</strong> These have the highest impact and are most feasible with current technology. Use RAG to ground the AI in your course content. Use extended thinking for rubric-based grading.</li>
+      <li><strong>Invest in eval:</strong> Build task-specific eval suites for every AI-powered feature. Without evals, you're flying blind. Plan to spend 20–30% of your AI engineering effort on evaluation and monitoring.</li>
+      <li><strong>Hire for the right skills:</strong> You need ML engineers who understand both traditional software engineering and model behavior. The hardest skill to find: people who can design good prompts, build robust eval suites, and debug when the model does unexpected things.</li>
+      <li><strong>Plan for regulation:</strong> EU AI Act compliance for educational AI is non-trivial. Start the conformity assessment process now — it takes 6–12 months and will only get more demanding.</li>
+    </ol>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p><strong>The window to build a defensible AI-native education product is now.</strong> Models are good enough. Infrastructure is maturing. Regulation is arriving but hasn't yet locked in winners. The companies that build deep AI integration into their learning products in 2026–2027 will have data flywheels (AI-generated interactions produce data that improves the AI) that late movers can't replicate. Don't wait for AGI — build with what's here today and architect for what's coming.</p>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ===== FOOTER ===== -->
+<div class="footer">
+  <p>State of Generative AI — May 2026</p>
+  <p style="margin-top:8px;">A technical deep dive for senior engineering leaders. Written for offline reading.</p>
+  <p style="margin-top:8px;">This document reflects the state of the art as of May 2026. The field moves fast — revisit quarterly.</p>
+</div>
+
+</div><!-- /container -->
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+// Toggle modules
+function toggleModule(header) {
+  const mod = header.parentElement;
+  mod.classList.toggle('open');
+}
+
+// Progress tracking
+function updateProgress() {
+  const checks = document.querySelectorAll('.progress-check input[type="checkbox"]');
+  const total = checks.length;
+  let done = 0;
+  checks.forEach(c => { if (c.checked) done++; });
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = done + ' / ' + total + ' complete';
+  // Save to URL hash for persistence
+  const state = Array.from(checks).map(c => c.checked ? '1' : '0').join('');
+  try { localStorage.setItem('genai-progress', state); } catch(e) {}
+}
+
+// Restore progress
+function restoreProgress() {
+  try {
+    const state = localStorage.getItem('genai-progress');
+    if (state) {
+      const checks = document.querySelectorAll('.progress-check input[type="checkbox"]');
+      state.split('').forEach((v, i) => {
+        if (checks[i]) checks[i].checked = v === '1';
+      });
+      updateProgress();
+    }
+  } catch(e) {}
+}
+
+// Scroll progress bar in nav
+function updateScrollProgress() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  document.getElementById('navProgress').style.width = pct + '%';
+}
+
+// Active nav link
+function updateActiveNav() {
+  const mods = document.querySelectorAll('.module');
+  const links = document.querySelectorAll('.nav-links a');
+  let current = '';
+  mods.forEach(m => {
+    const rect = m.getBoundingClientRect();
+    if (rect.top <= 120) current = m.id;
+  });
+  links.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+}
+
+// Hamburger menu
+document.getElementById('hamburger').addEventListener('click', function() {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+// Close mobile nav on link click
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
+
+// Event listeners
+window.addEventListener('scroll', function() {
+  updateScrollProgress();
+  updateActiveNav();
+}, { passive: true });
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  restoreProgress();
+  updateScrollProgress();
+  updateActiveNav();
+});
+</script>
+
+</body>
+</html>
