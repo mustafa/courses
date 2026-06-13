@@ -1,0 +1,1676 @@
+CLAUDE AGENT SDK - INTERACTIVE COURSE
+=====================================
+
+    Interactive Hands-On Course
+
+===========================
+MASTER THE CLAUDE AGENT SDK
+===========================
+
+
+
+        Build intelligent, tool-using AI agents from scratch. Learn to create custom tools,
+        orchestrate multi-agent systems, manage state, and deploy production-ready agentic applications.
+
+    Start Learning ↓
+
+
+            6
+            Modules
+
+
+            15+
+            Code Examples
+
+
+            6
+            Exercises
+
+
+            Python
+            Language
+
+
+
+
+
+
+        Course Modules
+
+              * 1 Setup & Hello World Agent
+
+              * 2 Custom Tools
+
+              * 3 Multi-Agent Systems
+
+              * 4 Memory & State
+
+              * 5 MCP Integration
+
+              * 6 Capstone — Build a Complete Agentic App
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            🎯 Learning Objectives
+
+                  * Install the Claude Agent SDK via pip
+
+                  * Configure your Anthropic API key
+
+                  * Run your first agent and see it use tools
+
+                  * Understand message types: SystemMessage, AssistantMessage, ResultMessage
+
+
+
+
+
+
+
+What is the Claude Agent SDK?
+-----------------------------
+
+
+
+                The Claude Agent SDK is a Python library that lets you build agentic applications powered by Claude.
+                Unlike simple API calls where you send a prompt and get a response, the Agent SDK enables Claude to
+                use tools, make decisions, and take actions in an autonomous loop.
+
+
+                At its core, the SDK implements an agent loop: Claude receives a prompt, decides which tools to call,
+                executes those tools, observes the results, and continues until the task is complete. You don't need to
+                manually orchestrate this — the SDK handles it for you.
+
+
+
+The Agent Loop
+--------------
+
+
+
+                When you call query(), the SDK starts an asynchronous iteration. Each iteration yields a
+                message that represents one step in the agent's reasoning or action cycle. The three
+                primary message types are:
+
+
+                SystemMessage — Internal SDK messages such as initialization events. The init
+                subtype includes the session_id you can use to resume conversations later.
+
+
+                AssistantMessage — Claude's thoughts, tool calls, and intermediate reasoning. You can
+                inspect these to see what Claude is doing at each step.
+
+
+                ResultMessage — The final result when the agent loop completes. Check message.subtype
+                for "success" or "error" and read message.result for the output.
+
+
+
+
+
+
+
+
+Step 1: Install the SDK
+-----------------------
+
+
+
+
+
+
+                Bash
+
+
+
+---code---
+pip install claude-agent-sdk httpx
+---/code---
+
+
+
+
+
+
+Step 2: Set Your API Key
+------------------------
+
+
+
+                The SDK reads your API key from the ANTHROPIC_API_KEY environment variable.
+                Set it in your terminal before running any agent code.
+
+
+
+
+
+                Bash
+
+
+
+---code---
+export ANTHROPIC_API_KEY="sk-ant-your-key-here"
+---/code---
+
+
+
+
+
+
+Step 3: Hello World Agent
+-------------------------
+
+
+
+                This is the simplest possible agent. It uses the Bash and Glob tools
+                to list files in the current directory. Notice how you iterate over messages asynchronously.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions
+
+async def main():
+    async for message in query(
+        prompt="What files are in this directory?",
+        options=ClaudeAgentOptions(allowed_tools=["Bash", "Glob"]),
+    ):
+        if hasattr(message, "result"):
+            print(message.result)
+
+asyncio.run(main())
+---/code---
+
+
+
+
+
+
+Step 4: Inspecting Message Types
+--------------------------------
+
+
+
+                To understand what the agent is doing under the hood, inspect each message type as it
+                comes through the async iterator.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from claude_agent_sdk import (
+    query, ClaudeAgentOptions,
+    SystemMessage, AssistantMessage, ResultMessage
+)
+
+async def main():
+    async for message in query(
+        prompt="List all Python files in this directory",
+        options=ClaudeAgentOptions(allowed_tools=["Bash", "Glob"]),
+    ):
+        if isinstance(message, SystemMessage):
+            print(f"[SYSTEM] subtype={message.subtype}")
+            if message.subtype == "init":
+                print(f"  Session ID: {message.data['session_id']}")
+
+        elif isinstance(message, AssistantMessage):
+            print(f"[ASSISTANT] {message.content[:100]}...")
+
+        elif isinstance(message, ResultMessage):
+            print(f"[RESULT] status={message.subtype}")
+            print(message.result)
+
+asyncio.run(main())
+---/code---
+
+
+
+
+
+            Note
+            The SDK uses Python's asyncio throughout. All agent interactions are async generators,
+            so you must use async for to iterate over messages.
+
+
+
+
+
+
+            🛠 Exercise: Code Summarizer Agent
+
+                Build an agent that reads a Python file and prints a concise summary of its contents —
+                including classes, functions, and top-level logic.
+
+
+                  1. Create a new file called summarizer.py
+
+                  2. Import query, ClaudeAgentOptions, and ResultMessage
+
+                  3. Call query() with a prompt like: "Read the file example.py and provide a summary of its classes, functions, and purpose"
+
+                  4. Allow the tools ["Read", "Glob"] so Claude can find and read files
+
+                  5. Print only the final ResultMessage where subtype == "success"
+
+                  6. Test it on any Python file in your project
+
+
+
+
+
+
+            📚 Key Takeaways
+
+                  * The SDK manages the entire agent loop automatically — tool calls, results, and follow-ups
+
+                  * Use async for to iterate over messages from query()
+
+                  * Three message types: SystemMessage (init), AssistantMessage (reasoning), ResultMessage (final output)
+
+                  * The allowed_tools option controls which tools the agent can use
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            🎯 Learning Objectives
+
+                  * Define custom tools using the @tool decorator
+
+                  * Create in-process MCP servers with create_sdk_mcp_server
+
+                  * Handle tool errors gracefully with is_error
+
+                  * Understand the tool naming convention: mcp__{server}__{tool}
+
+
+
+
+
+
+Tool Anatomy
+------------
+
+
+
+                A custom tool in the Agent SDK has four parts: a name, a description
+                (used by Claude to decide when to call it), an input schema (defines the parameters),
+                and a handler function (the async function that runs when the tool is called).
+
+
+                Tools are grouped into MCP servers. Even for a single tool, you create an MCP server
+                to host it. This server runs in-process — no separate server process needed. When
+                Claude wants to call your tool, it references it as mcp__{server_name}__{tool_name}.
+
+
+
+In-Process MCP Servers
+----------------------
+
+
+
+                The create_sdk_mcp_server() function creates a lightweight MCP server that runs inside
+                your Python process. You register tools with the @tool decorator, group them into a server,
+                and pass the server to your query() call via the mcp_servers option.
+
+
+
+Error Handling
+--------------
+
+
+
+                When a tool encounters an error, return a response with is_error=True. This tells Claude
+                that the tool failed, so it can try a different approach or report the error to the user — rather
+                than crashing the agent loop entirely.
+
+
+
+
+
+
+
+Example: Weather Temperature Tool
+---------------------------------
+
+
+
+                This example defines a tool that fetches the current temperature from the Open-Meteo API.
+                It demonstrates the full lifecycle: decorator, schema, async handler, and MCP server creation.
+
+
+
+
+
+                Python
+
+
+
+---code---
+from claude_agent_sdk import tool, create_sdk_mcp_server
+
+@tool(
+    "get_temperature",
+    "Get the current temperature at a location",
+    {"latitude": float, "longitude": float},
+)
+async def get_temperature(args):
+    import httpx
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": args["latitude"],
+                "longitude": args["longitude"],
+                "current": "temperature_2m",
+                "temperature_unit": "fahrenheit",
+            },
+        )
+        data = response.json()
+    return {
+        "content": [
+            {
+                "type": "text",
+                "text": f"Temperature: {data['current']['temperature_2m']}°F",
+            }
+        ]
+    }
+
+# Create the MCP server
+weather_server = create_sdk_mcp_server(
+    name="weather",
+    version="1.0.0",
+    tools=[get_temperature],
+)
+---/code---
+
+
+
+
+
+
+Using the Tool in a Query
+-------------------------
+
+
+
+                Pass the MCP server to query() and allow the tool by its full name:
+                mcp__weather__get_temperature. The naming convention is always
+                mcp__{server_name}__{tool_name}.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage
+
+async def main():
+    options = ClaudeAgentOptions(
+        mcp_servers={"weather": weather_server},
+        allowed_tools=["mcp__weather__get_temperature"],
+    )
+    async for message in query(
+        prompt="What's the temperature in San Francisco?",
+        options=options,
+    ):
+        if isinstance(message, ResultMessage) and message.subtype == "success":
+            print(message.result)
+
+asyncio.run(main())
+---/code---
+
+
+
+
+
+
+Error Handling Pattern
+----------------------
+
+
+
+                Return an error response so Claude knows the tool failed and can adapt.
+
+
+
+
+
+                Python
+
+
+
+---code---
+@tool(
+    "fetch_stock_price",
+    "Look up a stock price by ticker symbol",
+    {"ticker": str},
+)
+async def fetch_stock_price(args):
+    try:
+        # ... fetch stock price logic ...
+        price = 182.63
+        return {
+            "content": [{"type": "text", "text": f"{args['ticker']}: ${price}"}]
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "is_error": True,
+        }
+---/code---
+
+
+
+
+
+            Tip
+            You can use wildcard patterns in allowed_tools. For example,
+            "mcp__weather__*" allows all tools on the weather server.
+
+
+
+
+
+            🛠 Exercise: Database Lookup Tool
+
+                Build a custom tool that queries a SQLite database and returns results.
+
+
+                  7. Create a SQLite database with a users table (columns: id, name, email)
+
+                  8. Define a tool called query_users that accepts a search_term parameter
+
+                  9. The handler should query the database with a LIKE clause on the name column
+
+                  10. Return matching rows as a formatted text response
+
+                  11. Add error handling for database connection failures
+
+                  12. Create an MCP server named "database" and test with a query like "Find all users named Alice"
+
+
+
+
+
+            📚 Key Takeaways
+
+                  * Tools extend Claude's abilities beyond text — to APIs, databases, file systems, and more
+
+                  * The @tool decorator defines name, description, and input schema in one place
+
+                  * Use create_sdk_mcp_server() to group tools into in-process MCP servers
+
+                  * Return is_error: True to let Claude recover gracefully from tool failures
+
+                  * Tool names follow the convention mcp__{server}__{tool}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            🎯 Learning Objectives
+
+                  * Create subagents with AgentDefinition
+
+                  * Coordinate multiple agents with delegation patterns
+
+                  * Understand parallelization, specialization, and escalation
+
+                  * Track agent hierarchy with parent_tool_use_id
+
+
+
+
+
+
+Subagents as Focused Specialists
+--------------------------------
+
+
+
+                A single agent with many tools and a broad prompt can get confused about priorities. The solution is
+                subagents — smaller agents with focused prompts and limited tool sets. A
+                coordinator agent decides which subagent to delegate to based on the task.
+
+
+                You define subagents using AgentDefinition, which specifies the agent's description
+                (used by the coordinator to decide when to delegate), its system prompt, and the tools it can access.
+
+
+
+Coordination Patterns
+---------------------
+
+
+
+                There are three main patterns for multi-agent coordination:
+
+
+                Specialization — Each subagent is an expert in a specific domain. A security
+                reviewer focuses only on vulnerabilities; a code quality reviewer only evaluates maintainability.
+
+
+                Parallelization — The coordinator delegates to multiple subagents simultaneously
+                to gather diverse perspectives, then synthesizes the results.
+
+
+                Escalation — Simple tasks are handled directly; complex or ambiguous tasks get
+                escalated to a more capable or specialized subagent.
+
+
+
+Tracking Agent Hierarchy
+------------------------
+
+
+
+                Each subagent call is tracked via a parent_tool_use_id, which lets you trace
+                which coordinator spawned which subagent. This is useful for logging and debugging
+                complex multi-agent interactions.
+
+
+
+
+
+
+
+Example: Code Review with Specialist Subagents
+----------------------------------------
+
+
+
+                This example creates two specialist subagents — a security reviewer and a quality reviewer —
+                and lets the coordinator delegate to each one as appropriate.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions, AgentDefinition
+
+async def main():
+    async for message in query(
+        prompt="Review this codebase for security issues and code quality",
+        options=ClaudeAgentOptions(
+            allowed_tools=["Read", "Glob", "Grep", "Agent"],
+            agents={
+                "security-reviewer": AgentDefinition(
+                    description="Security expert that finds vulnerabilities.",
+                    prompt=(
+                        "Analyze code for security issues: "
+                        "injection, auth flaws, data exposure. "
+                        "Report each finding with severity and recommendation."
+                    ),
+                    tools=["Read", "Glob", "Grep"],
+                ),
+                "quality-reviewer": AgentDefinition(
+                    description="Code quality expert for maintainability reviews.",
+                    prompt=(
+                        "Review code for readability, DRY, SOLID principles. "
+                        "Identify code smells, complex functions, and "
+                        "suggest improvements."
+                    ),
+                    tools=["Read", "Glob", "Grep"],
+                ),
+            },
+        ),
+    ):
+        if hasattr(message, "result"):
+            print(message.result)
+
+asyncio.run(main())
+---/code---
+
+
+
+
+
+
+How It Works
+------------
+
+
+
+                The coordinator agent receives the prompt and has access to the Agent tool, which lets
+                it spawn subagents. It sees the agent definitions you provided and decides which subagent(s) to
+                call. Each subagent gets its own conversation context with its specialized prompt and limited tool set.
+
+
+                The Agent tool must be included in the coordinator's allowed_tools for
+                delegation to work. Subagents don't need the Agent tool unless you want them to
+                further delegate (nested agents).
+
+
+
+
+            Design Tip
+            Keep subagent prompts focused and specific. A prompt like "Find security issues" is better than
+            "Review the code" for a security specialist. Focused prompts lead to better, more actionable results.
+
+
+
+
+
+            🛠 Exercise: Documentation Pipeline
+
+                Build a multi-agent system for generating project documentation with a coordinator
+                and two specialist agents.
+
+
+                  13. Create a coordinator agent with the prompt: "Generate comprehensive documentation for this project"
+
+                  14. Define an "api-documenter" subagent that extracts function signatures, parameters, and return types
+
+                  15. Define a "readme-writer" subagent that creates a project overview with setup instructions
+
+                  16. Give both subagents access to ["Read", "Glob", "Grep"] tools
+
+                  17. Run the coordinator on a real project directory and observe how it delegates
+
+                  18. Print both the intermediate AssistantMessage events and the final ResultMessage
+
+
+
+
+
+            📚 Key Takeaways
+
+                  * Subagents are defined with AgentDefinition containing description, prompt, and tools
+
+                  * The coordinator uses the Agent tool to delegate tasks to specialists
+
+                  * Focused prompts per agent produce better results than one agent doing everything
+
+                  * Three coordination patterns: specialization, parallelization, and escalation
+
+                  * You can nest agents (subagents delegating to sub-subagents) but keep hierarchies shallow
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            🎯 Learning Objectives
+
+                  * Capture and use session IDs from SystemMessage events
+
+                  * Resume previous sessions to maintain conversational context
+
+                  * Understand session forking for branching conversations
+
+                  * Use CLAUDE.md files for persistent project-level context
+
+
+
+
+
+
+Session IDs & Continuity
+------------------------
+
+
+
+                Every time you call query(), the SDK emits a SystemMessage with subtype
+                "init" containing a session_id. This ID uniquely identifies the
+                conversation context — all the messages, tool calls, and results accumulated during that query.
+
+
+                To continue a conversation where you left off, pass the session ID to the resume option
+                in a subsequent query() call. The agent will have access to everything from the
+                previous session, as if you never stopped.
+
+
+
+Resuming Sessions
+-----------------
+
+
+
+                Session resume is essential for multi-turn interactions. For example, you might ask an agent to
+                read and analyze a codebase in one query, then ask follow-up questions in a second query —
+                without the agent needing to re-read all the files.
+
+
+
+CLAUDE.md for Project Context
+-----------------------------
+
+
+
+                The CLAUDE.md file is a special convention for providing persistent project-level
+                context to agents. Place it in your project root, and agents will automatically read it for
+                background information about coding conventions, architecture decisions, and project-specific
+                instructions. It acts as long-term memory that persists across all sessions.
+
+
+
+Managed Agents & Memory Stores
+------------------------------
+
+
+
+                For production deployments, Managed Agents support memory stores — persistent
+                key-value stores that survive across sessions. This lets agents remember user preferences,
+                learned patterns, and accumulated knowledge over time, without relying solely on session continuity.
+
+
+
+
+
+
+
+Example: Session Resume
+-----------------------
+
+
+
+                This example shows how to capture a session ID from the first query and resume it
+                in a second query. The second query has full context from the first.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from claude_agent_sdk import (
+    query, ClaudeAgentOptions,
+    SystemMessage, ResultMessage
+)
+
+async def main():
+    session_id = None
+
+    # First query: read and analyze
+    print("--- Query 1: Analyzing auth module ---")
+    async for message in query(
+        prompt="Read and analyze the auth module in this project",
+        options=ClaudeAgentOptions(allowed_tools=["Read", "Glob"]),
+    ):
+        if isinstance(message, SystemMessage) and message.subtype == "init":
+            session_id = message.data["session_id"]
+            print(f"Session ID: {session_id}")
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+    # Second query: follow up with full context
+    print("\n--- Query 2: Follow-up with context ---")
+    async for message in query(
+        prompt="Now find all security issues in what you just read",
+        options=ClaudeAgentOptions(resume=session_id),
+    ):
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+asyncio.run(main())
+---/code---
+
+
+
+
+
+
+Example: CLAUDE.md File
+-----------------------
+
+
+
+                Place this file in your project root. Agents will pick it up automatically.
+
+
+
+
+
+                Bash
+
+
+
+---code---
+# CLAUDE.md - Project context for agents
+
+## Project: MyApp API Server
+- Framework: FastAPI
+- Database: PostgreSQL with SQLAlchemy ORM
+- Auth: JWT tokens with bcrypt password hashing
+- Python version: 3.12
+
+## Coding Conventions
+- Use type hints on all function signatures
+- Prefer async/await for I/O operations
+- Tests go in tests/ directory, mirroring src/ structure
+- Use pydantic models for request/response validation
+
+## Important Notes
+- Never modify migration files directly
+- The auth module in src/auth/ is security-critical
+- Environment variables are in .env (not committed)
+---/code---
+
+
+
+
+
+
+Managed Agents: Memory Stores (Conceptual)
+----------------------------------------
+
+
+
+                In a managed deployment, memory stores allow persistent data across sessions.
+                The agent can save and retrieve key-value pairs that survive between conversations.
+
+
+
+
+
+                Python
+
+
+
+---code---
+# Conceptual example - Managed Agents API
+# Memory stores persist data across sessions
+
+# Agent saves a learned preference
+await memory.set("user_preference_language", "python")
+await memory.set("last_reviewed_file", "src/auth/middleware.py")
+
+# In a later session, the agent retrieves it
+lang = await memory.get("user_preference_language")
+# Returns: "python"
+---/code---
+
+
+
+
+
+
+
+            🛠 Exercise: Multi-Turn Code Analyzer
+
+                Build an agent that performs iterative code analysis across multiple turns,
+                remembering what it has already read.
+
+
+                  19. Create the first query: "Read all Python files in the src/ directory and catalog them"
+
+                  20. Capture the session ID from the SystemMessage init event
+
+                  21. Resume with a second query: "Which of those files have the most complex functions?"
+
+                  22. Resume again with a third query: "Generate a refactoring plan for the most complex file"
+
+                  23. Print the result from each query to see how context builds up
+
+                  24. Observe that the agent does not re-read files in subsequent queries — it remembers them
+
+
+
+
+
+            📚 Key Takeaways
+
+                  * Session IDs are captured from SystemMessage events with subtype "init"
+
+                  * Pass resume=session_id to continue where you left off
+
+                  * CLAUDE.md provides persistent project-level context without session management
+
+                  * Memory stores (Managed Agents) allow cross-session persistence at scale
+
+                  * Multi-turn patterns avoid redundant tool calls by maintaining conversation context
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            🎯 Learning Objectives
+
+                  * Connect external MCP servers using stdio transport
+
+                  * Combine built-in tools, custom tools, and external MCP tools
+
+                  * Understand how the MCP protocol bridges the SDK to external systems
+
+                  * Configure multiple MCP servers in a single agent
+
+
+
+
+
+
+MCP Servers as Tool Providers
+-----------------------------
+
+
+
+                The Model Context Protocol (MCP) is an open standard for connecting AI agents
+                to external tool providers. MCP servers expose tools over a standardized interface, and the
+                Agent SDK can connect to them seamlessly.
+
+
+                There are two types of MCP servers you can use with the SDK:
+
+
+                In-process servers — Created with create_sdk_mcp_server() as
+                we saw in Module 2. These run inside your Python process with zero latency overhead.
+
+
+                External servers — Separate processes that communicate via stdio transport.
+                You specify a command to launch them (e.g., npx for Node.js servers), and the SDK
+                manages the subprocess lifecycle automatically.
+
+
+
+Stdio Transport
+---------------
+
+
+
+                External MCP servers use stdio (standard input/output) for communication. You provide
+                the command and args to launch the server process. The SDK starts
+                the process, sends tool calls via stdin, and reads results from stdout. This is the most
+                common transport for MCP servers.
+
+
+
+Combining Tool Sources
+----------------------
+
+
+
+                A powerful pattern is combining built-in tools (like Read, Glob, Bash),
+                custom in-process tools (your @tool definitions), and external MCP
+                tools in a single agent. This gives Claude access to a wide range of capabilities
+                while keeping each tool provider focused and maintainable.
+
+
+
+
+
+
+
+Example: Playwright Browser Automation
+--------------------------------------
+
+
+
+                Connect the Playwright MCP server for browser automation. This lets Claude navigate
+                web pages, fill forms, click buttons, and extract content.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage
+
+async def main():
+    options = ClaudeAgentOptions(
+        mcp_servers={
+            "playwright": {
+                "command": "npx",
+                "args": ["@playwright/mcp@latest"],
+            }
+        },
+    )
+
+    async for message in query(
+        prompt="Go to https://example.com and tell me the page title",
+        options=options,
+    ):
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+asyncio.run(main())
+---/code---
+
+
+
+
+
+
+Example: Filesystem MCP Server
+------------------------------
+
+
+
+                The filesystem MCP server provides sandboxed file operations with configurable
+                permissions. Useful when you want more control than the built-in tools provide.
+
+
+
+
+
+                Python
+
+
+
+---code---
+options = ClaudeAgentOptions(
+    mcp_servers={
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "/path/to/allowed/directory",
+            ],
+        }
+    },
+)
+---/code---
+
+
+
+
+
+
+Example: Combining Multiple MCP Servers
+---------------------------------------
+
+
+
+                You can register multiple MCP servers and mix them with built-in and custom tools.
+                This gives your agent maximum capability.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from claude_agent_sdk import (
+    query, ClaudeAgentOptions, ResultMessage,
+    tool, create_sdk_mcp_server,
+)
+
+# Custom in-process tool
+@tool("analyze_sentiment", "Analyze text sentiment", {"text": str})
+async def analyze_sentiment(args):
+    # Simplified example
+    text = args["text"].lower()
+    if any(w in text for w in ["great", "love", "excellent"]):
+        sentiment = "positive"
+    elif any(w in text for w in ["bad", "hate", "terrible"]):
+        sentiment = "negative"
+    else:
+        sentiment = "neutral"
+    return {"content": [{"type": "text", "text": f"Sentiment: {sentiment}"}]}
+
+custom_server = create_sdk_mcp_server(
+    name="analysis", version="1.0.0", tools=[analyze_sentiment]
+)
+
+async def main():
+    options = ClaudeAgentOptions(
+        # Built-in tools
+        allowed_tools=[
+            "Read", "Glob", "Grep",
+            "mcp__analysis__*",      # Custom tools
+            "mcp__playwright__*",     # External MCP tools
+        ],
+        mcp_servers={
+            # In-process custom server
+            "analysis": custom_server,
+            # External MCP server (Playwright)
+            "playwright": {
+                "command": "npx",
+                "args": ["@playwright/mcp@latest"],
+            },
+        },
+    )
+
+    async for message in query(
+        prompt="Visit example.com and analyze the sentiment of the page text",
+        options=options,
+    ):
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+asyncio.run(main())
+---/code---
+
+
+
+
+
+            MCP Ecosystem
+            There is a growing ecosystem of pre-built MCP servers for databases (PostgreSQL, SQLite),
+            APIs (GitHub, Slack, Google Drive), cloud services (AWS, GCP), and more. Check the
+            MCP server registry for available integrations.
+
+
+
+
+
+            🛠 Exercise: Combined MCP Agent
+
+                Build an agent that uses both an external MCP server and a custom tool together.
+
+
+                  25. Create a custom tool called summarize_data that formats data into a report
+
+                  26. Connect the filesystem MCP server to a specific directory
+
+                  27. Configure the agent with both the custom server and the filesystem server
+
+                  28. Prompt the agent: "List all JSON files in the data directory, read them, and summarize the contents"
+
+                  29. The agent should use the filesystem MCP server to read files and your custom tool to format results
+
+                  30. Observe how Claude seamlessly switches between tool sources
+
+
+
+
+
+            📚 Key Takeaways
+
+                  * External MCP servers use stdio transport — specify command and args
+
+                  * The SDK manages the MCP server subprocess lifecycle for you
+
+                  * Combine built-in, custom, and external tools using the allowed_tools wildcard patterns
+
+                  * MCP is an open ecosystem with many pre-built servers for popular services
+
+                  * In-process servers have zero latency; external servers add subprocess overhead but unlock any language/runtime
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            🎯 Learning Objectives
+
+                  * Combine all concepts into a production-grade agent application
+
+                  * Use hooks for observability, logging, and auditing
+
+                  * Configure permission modes for safety
+
+                  * Design agents for real-world deployment
+
+
+
+
+
+
+Putting It All Together
+-----------------------
+
+
+
+                A production-grade agent application combines multiple concepts: custom tools for
+                domain-specific functionality, subagents for delegating specialized tasks,
+                hooks for observability and auditing, sessions for multi-turn
+                interactions, and MCP servers for external integrations.
+
+
+
+Hooks for Observability
+-----------------------
+
+
+
+                Hooks let you intercept agent events for logging, auditing, rate limiting, or
+                custom logic. The most common hook is PostToolUse, which fires after every tool
+                call. You can match specific tools using regex patterns with HookMatcher.
+
+
+                Hooks receive the tool input data, the tool use ID, and a context object. They are async
+                functions that return a dictionary (which can be empty for pure logging hooks).
+
+
+
+Permission Modes
+----------------
+
+
+
+                The permission_mode option controls how the agent handles potentially destructive
+                operations:
+
+
+                "default" — The agent asks for confirmation before writing files or
+                running commands. Good for interactive use.
+
+
+                "acceptEdits" — The agent can write files without asking but still
+                confirms before running shell commands. Good for automated code generation tasks.
+
+
+                "full" — The agent runs everything without confirmation. Only use this
+                in sandboxed or trusted environments.
+
+
+
+Deployment Considerations
+-------------------------
+
+
+
+                When deploying agents to production, consider: rate limiting (use hooks to
+                throttle tool calls), error recovery (sessions let you resume after failures),
+                cost control (limit max turns and token usage), and security
+                (restrict tools to the minimum necessary set).
+
+
+
+
+
+
+
+Capstone Project: Codebase Health Checker
+----------------------------------------
+
+
+
+                This complete application demonstrates every concept from the course. It uses subagents for
+                different analysis types, custom tools for metrics, hooks for audit logging, and session
+                management for iterative improvement.
+
+
+
+
+
+                Python
+
+
+
+---code---
+import asyncio
+from datetime import datetime
+from claude_agent_sdk import (
+    query,
+    ClaudeAgentOptions,
+    AgentDefinition,
+    tool,
+    create_sdk_mcp_server,
+    HookMatcher,
+    SystemMessage,
+    ResultMessage,
+)
+
+
+# ── Custom Metrics Tool ──────────────────────────────────────
+@tool(
+    "calculate_complexity",
+    "Calculate cyclomatic complexity of a Python file",
+    {"file_path": str},
+)
+async def calculate_complexity(args):
+    """Analyze a Python file and return a complexity score."""
+    try:
+        with open(args["file_path"], "r") as f:
+            code = f.read()
+
+        # Count complexity indicators
+        branches = sum(
+            code.count(kw)
+            for kw in ["if ", "elif ", "for ", "while ", "except ", "with "]
+        )
+        functions = code.count("def ")
+        classes = code.count("class ")
+
+        score = branches + functions
+        level = (
+            "low" if score < 10
+            else "moderate" if score < 25
+            else "high"
+        )
+
+        return {
+            "content": [{
+                "type": "text",
+                "text": (
+                    f"File: {args['file_path']}\n"
+                    f"Complexity score: {score} ({level})\n"
+                    f"Branches: {branches}, Functions: {functions}, "
+                    f"Classes: {classes}"
+                ),
+            }]
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "is_error": True,
+        }
+
+
+@tool(
+    "count_lines",
+    "Count lines of code, comments, and blanks in a file",
+    {"file_path": str},
+)
+async def count_lines(args):
+    """Count different types of lines in a source file."""
+    try:
+        with open(args["file_path"], "r") as f:
+            lines = f.readlines()
+
+        total = len(lines)
+        blank = sum(1 for ln in lines if ln.strip() == "")
+        comments = sum(1 for ln in lines if ln.strip().startswith("#"))
+        code = total - blank - comments
+
+        return {
+            "content": [{
+                "type": "text",
+                "text": (
+                    f"File: {args['file_path']}\n"
+                    f"Total: {total}, Code: {code}, "
+                    f"Comments: {comments}, Blank: {blank}"
+                ),
+            }]
+        }
+    except Exception as e:
+        return {
+            "content": [{"type": "text", "text": f"Error: {str(e)}"}],
+            "is_error": True,
+        }
+
+
+# Create the metrics MCP server
+metrics_server = create_sdk_mcp_server(
+    name="metrics",
+    version="1.0.0",
+    tools=[calculate_complexity, count_lines],
+)
+
+
+# ── Audit Hook ────────────────────────────────────────────────
+async def audit_hook(input_data, tool_use_id, context):
+    """Log every tool call for auditing purposes."""
+    timestamp = datetime.now().isoformat()
+    tool_name = input_data.get("tool_name", "unknown")
+    with open("./agent_audit.log", "a") as f:
+        f.write(
+            f"{timestamp} | tool={tool_name} | "
+            f"id={tool_use_id}\n"
+        )
+    return {}
+
+
+# ── Main Application ─────────────────────────────────────────
+async def main():
+    session_id = None
+
+    print("=" * 60)
+    print("  Codebase Health Checker")
+    print("=" * 60)
+
+    # Phase 1: Initial comprehensive analysis
+    print("\n[Phase 1] Running comprehensive health check...\n")
+
+    async for message in query(
+        prompt=(
+            "Perform a comprehensive health check on this codebase. "
+            "Use the security auditor to find vulnerabilities, "
+            "the test coverage analyzer to review tests, and "
+            "the metrics tools to measure complexity. "
+            "Provide a detailed health report."
+        ),
+        options=ClaudeAgentOptions(
+            allowed_tools=[
+                "Read", "Glob", "Grep", "Bash", "Agent",
+                "mcp__metrics__*",
+            ],
+            mcp_servers={"metrics": metrics_server},
+            agents={
+                "security-auditor": AgentDefinition(
+                    description=(
+                        "Finds security vulnerabilities in code."
+                    ),
+                    prompt=(
+                        "Scan for common security issues: "
+                        "SQL injection, XSS, hardcoded secrets, "
+                        "insecure dependencies, auth flaws. "
+                        "Rate each finding as critical/high/medium/low."
+                    ),
+                    tools=["Read", "Glob", "Grep"],
+                ),
+                "test-coverage-analyzer": AgentDefinition(
+                    description=(
+                        "Analyzes test coverage and suggests "
+                        "improvements."
+                    ),
+                    prompt=(
+                        "Review test files and identify gaps. "
+                        "Check for missing edge cases, untested "
+                        "functions, and suggest new test cases."
+                    ),
+                    tools=["Read", "Glob", "Grep", "Bash"],
+                ),
+            },
+            hooks={
+                "PostToolUse": [
+                    HookMatcher(
+                        matcher=".*",
+                        hooks=[audit_hook],
+                    )
+                ]
+            },
+            permission_mode="acceptEdits",
+        ),
+    ):
+        if isinstance(message, SystemMessage):
+            if message.subtype == "init":
+                session_id = message.data["session_id"]
+        if isinstance(message, ResultMessage):
+            print(message.result)
+
+    # Phase 2: Follow-up with session context
+    if session_id:
+        print("\n" + "=" * 60)
+        print("[Phase 2] Generating improvement plan...\n")
+
+        async for message in query(
+            prompt=(
+                "Based on the health check you just performed, "
+                "create a prioritized improvement plan. "
+                "List the top 5 actions ranked by impact."
+            ),
+            options=ClaudeAgentOptions(resume=session_id),
+        ):
+            if isinstance(message, ResultMessage):
+                print(message.result)
+
+    print("\n" + "=" * 60)
+    print("  Health check complete. See agent_audit.log for details.")
+    print("=" * 60)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+---/code---
+
+
+
+
+
+
+Architecture Breakdown
+----------------------
+
+
+
+                Let's trace through the key design decisions in this capstone project:
+
+
+                Custom Tools — calculate_complexity and count_lines
+                provide domain-specific metrics that Claude can't compute on its own. They're registered on
+                the metrics MCP server using the pattern from Module 2.
+
+
+                Subagents — The security-auditor and test-coverage-analyzer
+                are specialists with focused prompts. The coordinator delegates to them automatically based
+                on the task decomposition (Module 3 patterns).
+
+
+                Hooks — The audit_hook logs every tool call with a timestamp,
+                creating an audit trail. The HookMatcher with ".*" matches all tools.
+                In production, you could add rate limiting or cost tracking here.
+
+
+                Sessions — Phase 1 captures the session ID, and Phase 2 resumes with full
+                context. The improvement plan in Phase 2 references findings from Phase 1 without re-reading
+                any files (Module 4 pattern).
+
+
+                Permission Mode — "acceptEdits" lets the agent write files
+                (like the audit log) without manual confirmation, appropriate for automated CI/CD use.
+
+
+
+
+            Production Tip
+            In a real deployment, add max_turns to ClaudeAgentOptions to prevent
+            runaway agent loops, and use hooks to track token consumption for cost management.
+
+
+
+
+
+            🛠 Exercise: Extend the Capstone
+
+                Take the Codebase Health Checker and extend it with new capabilities.
+
+
+                  31. Add a new subagent: "dependency-checker" that reviews requirements.txt or pyproject.toml for outdated or vulnerable packages
+
+                  32. Create a new custom tool: check_type_coverage that counts how many functions have type hints vs. those that don't
+
+                  33. Add a second hook that tracks the total number of tool calls and prints a summary at the end
+
+                  34. Add a Phase 3 that resumes the session and asks the agent to generate a markdown report file
+
+                  35. Test the full pipeline on a real Python project
+
+                  36. Review the agent_audit.log to understand the agent's decision-making process
+
+
+
+
+
+            📚 Key Takeaways
+
+                  * Production agents combine tools, subagents, hooks, and sessions into a cohesive system
+
+                  * Hooks provide observability without modifying agent logic — perfect for logging and auditing
+
+                  * Permission modes control safety boundaries: default, acceptEdits, or full
+
+                  * Session resume enables multi-phase workflows where each phase builds on previous results
+
+                  * The Agent SDK handles orchestration complexity so you can focus on domain logic
+
+                  * Always set resource limits (max turns, rate limiting) for production deployments
+
+
+
+
+
+
+
+        Official SDK Docs
+        Claude Code GitHub
+        MCP Documentation
+        Anthropic Research
+
+
+        Claude Agent SDK Interactive Course — Built for hands-on learning.
+        Content is for educational purposes. Always refer to the official documentation for the latest API details.

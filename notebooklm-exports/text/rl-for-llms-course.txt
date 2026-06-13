@@ -1,0 +1,2580 @@
+RL FOR LLMS: BUILDING COURSERA'S AI MOAT
+========================================
+
+=============================================================================
+REINFORCEMENT LEARNING FOR LARGE LANGUAGE MODELS: BUILDING COURSERA'S AI MOAT
+=============================================================================
+
+
+A hands-on course for engineering leaders — from zero to deploying RL-tuned open-source LLMs optimized for conversational learning.
+
+ 4–6 weeks part-time
+ 8–10 hrs/week
+ 10 modules
+ ~$200 compute
+
+
+This course takes you from zero to deploying RL-tuned open-source LLMs optimized for conversational learning. By the end, you'll have the technical depth to architect Coursera's next-generation agentic learning system — one that improves with every student interaction, creating a compounding data flywheel that competitors cannot replicate.
+
+
+💡 Strategic Thesis
+Coursera's moat isn't content (that's commoditized). It's a proprietary model that learns how to teach better from millions of student interactions — something no competitor can bootstrap without the student base.
+
+
+Prerequisites: Python fluency, basic ML/DL knowledge, familiarity with transformer architecture.
+
+
+--------------
+Course Modules
+--------------
+
+
+-----------------------------------------------------
+Module 1: Foundations — The Open Source LLM Landscape
+-----------------------------------------------------
+
+
+Learning Objectives
+
+
+  * Evaluate open-source model families by capability, size, and license for commercial use
+
+  * Determine when fine-tuning beats prompt engineering or RAG
+
+  * Set up a reproducible GPU development environment
+
+  * Navigate the Hugging Face ecosystem confidently
+
+
+The Model Landscape (as of 2025–2026)
+-------------------------------------
+
+
+Model Family	|	Key Sizes	|	License	|	Strengths	|	Best For
+Llama 3.x (Meta)	|	8B, 70B, 405B	|	Llama 3 Community	|	Broad capability, huge community	|	General fine-tuning, production
+Mistral / Mixtral	|	7B, 8x7B, 8x22B	|	Apache 2.0	|	Efficiency, MoE architecture	|	Cost-sensitive deployment
+Qwen 2.5 (Alibaba)	|	7B, 14B, 72B	|	Apache 2.0	|	Multilingual, strong reasoning	|	Global education platform
+Gemma 2 (Google)	|	2B, 9B, 27B	|	Gemma license	|	Small but capable, research-friendly	|	Edge/mobile, experimentation
+Phi-3/4 (Microsoft)	|	3.8B, 14B	|	MIT	|	Punches above weight class	|	Rapid prototyping, cost control
+
+
+ℹ️ Recommendation
+For Coursera's use case, start with Llama 3.1 8B or Qwen 2.5 7B. They're large enough to be capable tutors, small enough to iterate quickly, and have permissive enough licenses for commercial deployment.
+
+
+Decision Framework: Fine-tune vs. Prompt-Engineer vs. RAG
+----------------------------------------
+
+
+Is the behavior change about KNOWLEDGE (facts, course content)?
+  → RAG (retrieve course materials, lecture transcripts)
+
+Is it about STYLE/FORMAT (how the model responds)?
+  → Prompt engineering first, then SFT if prompts get unwieldy
+
+Is it about JUDGMENT (what makes a good teaching interaction)?
+  → RL fine-tuning — this is where the moat lives
+
+Is it about following complex multi-step PROCEDURES?
+  → SFT + RL combined
+
+For Coursera, you'll likely use all three in combination: RAG for course-specific content, SFT for teaching style and format, RL for optimizing learning outcomes (the unique value).
+
+
+Compute Requirements
+--------------------
+
+
+Task	|	Minimum GPU	|	Recommended	|	Cloud Cost (approx)
+Inference (8B model)	|	1x A10G (24GB)	|	1x A100 (40GB)	|	$1–2/hr
+QLoRA fine-tuning (8B)	|	1x A100 (40GB)	|	1x A100 (80GB)	|	$2–4/hr
+Full RLHF pipeline (8B)	|	2x A100 (80GB)	|	4x A100 (80GB)	|	$8–16/hr
+Full fine-tune (70B)	|	8x A100 (80GB)	|	8x H100 (80GB)	|	$30–80/hr
+
+
+Setting Up the Environment
+--------------------------
+
+
+python — environment setup
+
+---code---
+# environment.yaml — use conda or pip
+# Core dependencies for this entire course
+
+# Option 1: pip install
+"""
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install transformers>=4.45.0
+pip install datasets>=3.0.0
+pip install accelerate>=0.34.0
+pip install peft>=0.13.0
+pip install trl>=0.12.0
+pip install bitsandbytes>=0.44.0
+pip install wandb
+pip install vllm>=0.6.0
+pip install flash-attn --no-build-isolation
+pip install sentencepiece protobuf
+"""
+
+# Verify GPU setup
+import torch
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+print(f"GPU: {torch.cuda.get_device_name(0)}")
+print(f"VRAM: {torch.cuda.get_device_properties(0).total_mem / 1e9:.1f} GB")
+---/code---
+
+
+python — quick sanity check
+
+---code---
+# Quick sanity check: load a model and generate
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+model_id = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForCausalLM.from_pretrained(
+    model_id,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+messages = [
+    {"role": "system", "content": "You are a helpful tutor."},
+    {"role": "user", "content": "Explain gradient descent like I'm 15."},
+]
+
+input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+output = model.generate(input_ids, max_new_tokens=256, temperature=0.7)
+print(tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True))
+---/code---
+
+
+GPU Platform Options
+--------------------
+
+
+For this course (experimentation + training):
+
+  1. Lambda Cloud — Best price/performance for multi-GPU. $1.10/hr for A10G, $2.49/hr for A100 80GB.
+
+  2. RunPod — Flexible spot instances. Good for short training runs. ~$1.64/hr A100 40GB.
+
+  3. Google Colab Pro+ — $50/mo, A100 access (limited hours). Good for Modules 1–3.
+
+  4. Local M-series Mac — Good for inference and tiny experiments (MLX framework), not for serious training.
+
+  5. Modal — Serverless GPUs, pay per second. Great for CI/CD of model training.
+
+
+Hands-On Exercise 1.1: Model Exploration
+----------------------------------------
+
+
+python — exercise 1.1: compare models (~30 min)
+
+---code---
+"""
+Exercise: Compare base vs. instruct models on a teaching task.
+Time: ~30 minutes
+Compute: 1x GPU with 24GB+ VRAM (or Colab)
+"""
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+def compare_models(prompt: str, model_ids: list[str]):
+    """Generate responses from multiple models for comparison."""
+    results = {}
+
+    for model_id in model_ids:
+        print(f"\n{'='*60}")
+        print(f"Model: {model_id}")
+        print(f"{'='*60}")
+
+        tokenizer = AutoTokenizer.from_pretrained(model_id)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_id,
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+            load_in_4bit=True,  # Save VRAM for comparison
+        )
+
+        if tokenizer.chat_template:
+            messages = [{"role": "user", "content": prompt}]
+            input_ids = tokenizer.apply_chat_template(
+                messages, return_tensors="pt"
+            ).to("cuda")
+        else:
+            input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to("cuda")
+
+        output = model.generate(
+            input_ids, max_new_tokens=512, temperature=0.7, do_sample=True
+        )
+        response = tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True)
+        results[model_id] = response
+        print(response[:500])
+
+        del model
+        torch.cuda.empty_cache()
+
+    return results
+
+# Teaching prompt to evaluate
+teaching_prompt = """A student just got this wrong on a quiz:
+
+Question: What is the time complexity of binary search?
+Student's answer: O(n)
+Correct answer: O(log n)
+
+Help them understand why it's O(log n), not O(n). Adapt to their level."""
+
+models_to_compare = [
+    "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    "Qwen/Qwen2.5-7B-Instruct",
+    "microsoft/Phi-3.5-mini-instruct",
+]
+
+results = compare_models(teaching_prompt, models_to_compare)
+---/code---
+
+
+Recommended Readings
+
+
+  * Llama 3 paper — Meta's training methodology
+
+  * Hugging Face Transformers documentation — Your daily reference
+
+  * Chip Huyen, "Designing Machine Learning Systems" — Chapter on model selection
+
+  * The Bitter Lesson (Rich Sutton) — Why scale matters
+
+
+-------------------------------------------------------
+Module 2: Supervised Fine-Tuning (SFT) — The Foundation
+-------------------------------------------------------
+
+
+Learning Objectives
+
+
+  * Understand why SFT is the prerequisite for RL-based training
+
+  * Design and create instruction-tuning datasets for educational use cases
+
+  * Implement QLoRA fine-tuning efficiently
+
+  * Evaluate fine-tuned models with appropriate metrics
+
+  * Avoid common pitfalls (catastrophic forgetting, overfitting)
+
+
+Why SFT Before RL
+-----------------
+
+
+Think of it as teaching someone to play chess:
+
+  6. SFT = Teaching the rules and common patterns (how to move pieces, basic openings)
+
+  7. RL = Playing thousands of games to develop strategy and intuition
+
+
+If you skip SFT and go straight to RL, the model doesn't have a coherent foundation to optimize. RLHF/DPO works by making small adjustments to an already-capable model — it sharpens judgment, not basic competence.
+
+
+💡 Key Insight
+For Coursera: SFT teaches the model how to be a tutor (format, tone, Socratic questioning). RL teaches it how to be a great tutor (adapting to the student, knowing when to give hints vs. explanations).
+
+
+LoRA and QLoRA
+--------------
+
+
+LoRA (Low-Rank Adaptation): Instead of updating all model weights (billions of parameters), inject small trainable matrices into attention layers. A rank-16 LoRA on Llama 3 8B trains ~0.1% of parameters.
+QLoRA: Load the base model in 4-bit quantized format, apply LoRA on top. This lets you fine-tune an 8B model on a single 24GB GPU.
+
+
+💻 Compute Savings
+Full fine-tune of 8B model: ~60GB VRAM needed
+QLoRA fine-tune of 8B model: ~12GB VRAM needed (6x reduction!)
+
+
+Creating Educational Datasets
+-----------------------------
+
+
+Your SFT dataset should capture how you want the model to teach. Format: instruction/input/output triplets or multi-turn conversations.
+
+python — educational dataset schema
+
+---code---
+"""
+Dataset schema for educational SFT.
+Each example is a teaching interaction you want the model to emulate.
+"""
+
+# Example dataset entries (JSON Lines format)
+examples = [
+    {
+        "conversations": [
+            {
+                "role": "system",
+                "content": "You are a Coursera learning assistant. You use Socratic questioning, "
+                           "adapt explanations to the student's level, and check understanding "
+                           "before moving on. You are encouraging but accurate."
+            },
+            {
+                "role": "user",
+                "content": "I don't understand recursion at all. It seems like magic."
+            },
+            {
+                "role": "assistant",
+                "content": "That's a really common feeling — recursion does feel like a trick "
+                           "until it clicks! Let me ask you something first: have you ever "
+                           "looked up a word in the dictionary, and the definition used another "
+                           "word you didn't know, so you had to look THAT up too?\n\n"
+                           "That's actually the core idea behind recursion. A function that "
+                           "\"looks itself up\" to solve a smaller version of the same problem.\n\n"
+                           "Can you think of a real-world task that works this way — where solving "
+                           "the big version requires solving a smaller version of the same thing?"
+            },
+            {
+                "role": "user",
+                "content": "Um, maybe like Russian nesting dolls? Each one has a smaller one inside?"
+            },
+            {
+                "role": "assistant",
+                "content": "That's a great analogy! And here's the key part that maps perfectly to "
+                           "code: at some point, you reach the tiniest doll that doesn't open — "
+                           "there's nothing smaller inside. In recursion, we call that the "
+                           "**base case**. It's what stops the function from calling itself forever.\n\n"
+                           "So recursion always has two parts:\n"
+                           "1. **Base case**: The smallest, simplest version you can solve directly\n"
+                           "2. **Recursive case**: Break the problem down and call yourself on the "
+                           "smaller piece\n\n"
+                           "Want to try writing a recursive function together? We could start with "
+                           "something simple like calculating a factorial (5! = 5 × 4 × 3 × 2 × 1)."
+            }
+        ]
+    },
+]
+---/code---
+
+
+Hands-On Exercise 2.1: Fine-Tune Llama 3 8B with QLoRA
+----------------------------------------
+
+
+💻 Compute Requirements
+1x A100 40GB (or 1x A10G 24GB with smaller batch size) · ~2-4 hours for 1 epoch on 10k examples · Cost: ~$5-15
+
+
+python — full QLoRA fine-tuning script
+
+---code---
+"""
+Full QLoRA fine-tuning script for educational tutoring.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    TrainingArguments,
+)
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from trl import SFTTrainer, SFTConfig
+import json
+
+# === 1. Configuration ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-tutor-sft"
+WANDB_PROJECT = "coursera-rl-course"
+
+# QLoRA quantization config
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True,
+)
+
+# LoRA config — targeting attention layers
+lora_config = LoraConfig(
+    r=16,                        # Rank — higher = more capacity, more VRAM
+    lora_alpha=32,               # Scaling factor (alpha/r = effective learning rate scale)
+    target_modules=[             # Which layers to adapt
+        "q_proj", "k_proj", "v_proj", "o_proj",  # Attention
+        "gate_proj", "up_proj", "down_proj",      # MLP
+    ],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# === 2. Load Model and Tokenizer ===
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_ID,
+    quantization_config=bnb_config,
+    device_map="auto",
+    attn_implementation="flash_attention_2",  # Faster training
+)
+
+model = prepare_model_for_kbit_training(model)
+model = get_peft_model(model, lora_config)
+
+# Print trainable parameters
+trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Trainable: {trainable_params:,} / {total_params:,} "
+      f"({100 * trainable_params / total_params:.2f}%)")
+
+# === 3. Prepare Dataset ===
+
+dataset = load_dataset("HuggingFaceH4/ultrachat_200k", split="train_sft[:10000]")
+
+# Format with chat template
+dataset = dataset.map(
+    lambda x: {"text": tokenizer.apply_chat_template(
+        x["messages"], tokenize=False, add_generation_prompt=False
+    )},
+    remove_columns=dataset.column_names,
+)
+
+# Train/eval split
+dataset = dataset.train_test_split(test_size=0.05, seed=42)
+
+# === 4. Training ===
+
+training_args = SFTConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,       # Effective batch size = 16
+    learning_rate=2e-4,
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.05,
+    weight_decay=0.01,
+    bf16=True,
+    logging_steps=10,
+    save_strategy="steps",
+    save_steps=200,
+    eval_strategy="steps",
+    eval_steps=200,
+    max_seq_length=2048,
+    packing=True,                        # Pack short examples together
+    dataset_text_field="text",
+    report_to="wandb",
+    run_name="coursera-tutor-sft-v1",
+)
+
+trainer = SFTTrainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+)
+
+# Train!
+trainer.train()
+
+# Save the LoRA adapter
+trainer.save_model(OUTPUT_DIR)
+tokenizer.save_pretrained(OUTPUT_DIR)
+
+print(f"\nModel saved to {OUTPUT_DIR}")
+print("To merge LoRA weights with base model, see merge_and_push.py")
+---/code---
+
+
+python — merge LoRA weights and test
+
+---code---
+"""
+Merge LoRA weights and test the fine-tuned model.
+"""
+
+from peft import PeftModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+# Load base model (full precision for merging)
+base_model = AutoModelForCausalLM.from_pretrained(
+    "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+# Load and merge LoRA adapter
+model = PeftModel.from_pretrained(base_model, "./coursera-tutor-sft")
+model = model.merge_and_unload()
+
+# Save merged model
+model.save_pretrained("./coursera-tutor-merged")
+
+# Test it
+tokenizer = AutoTokenizer.from_pretrained("./coursera-tutor-sft")
+messages = [
+    {"role": "system", "content": "You are a Coursera learning assistant."},
+    {"role": "user", "content": "I keep getting confused between == and === in JavaScript. What's the difference?"},
+]
+
+input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+output = model.generate(input_ids, max_new_tokens=512, temperature=0.7)
+print(tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True))
+---/code---
+
+
+Evaluation
+----------
+
+
+python — evaluation framework
+
+---code---
+"""
+Evaluation framework for educational fine-tuning.
+"""
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import json
+import torch
+
+def evaluate_teaching_quality(model, tokenizer, test_cases: list[dict]) -> dict:
+    """
+    Evaluate model on teaching-specific criteria.
+
+    Metrics:
+    1. Format compliance: Does it follow the teaching format?
+    2. Socratic ratio: Does it ask questions rather than just lecturing?
+    3. Adaptation: Does it respond differently to different student levels?
+    4. Accuracy: Is the content factually correct?
+    """
+    results = {
+        "asks_questions": 0,
+        "uses_examples": 0,
+        "checks_understanding": 0,
+        "appropriate_length": 0,
+        "total": len(test_cases),
+    }
+
+    for case in test_cases:
+        messages = case["messages"]
+        input_ids = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+
+        with torch.no_grad():
+            output = model.generate(input_ids, max_new_tokens=512, temperature=0.1)
+
+        response = tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True)
+
+        # Simple heuristic checks (in practice, use an LLM-as-judge)
+        if "?" in response:
+            results["asks_questions"] += 1
+        if any(w in response.lower() for w in ["for example", "imagine", "think of", "like when"]):
+            results["uses_examples"] += 1
+        if any(w in response.lower() for w in ["does that make sense", "try", "what do you think"]):
+            results["checks_understanding"] += 1
+        if 100 < len(response.split()) < 400:
+            results["appropriate_length"] += 1
+
+    # Convert to percentages
+    for key in results:
+        if key != "total":
+            results[key] = results[key] / results["total"]
+
+    return results
+
+
+# More rigorous: LLM-as-judge evaluation
+def llm_judge_evaluation(response: str, context: str, judge_model="claude-3-5-sonnet") -> dict:
+    """
+    Use a frontier model to evaluate teaching quality.
+    This is the gold standard for evaluation.
+    """
+    judge_prompt = f"""Rate this tutoring response on a 1-5 scale for each criterion:
+
+Student context: {context}
+Tutor response: {response}
+
+Criteria:
+1. Pedagogical quality (uses good teaching techniques)
+2. Clarity (explanation is clear and well-structured)
+3. Engagement (response is motivating and encouraging)
+4. Accuracy (content is factually correct)
+5. Adaptation (response matches apparent student level)
+
+Return JSON: {{"pedagogy": X, "clarity": X, "engagement": X, "accuracy": X, "adaptation": X}}"""
+
+    # Call your judge model here
+    # scores = call_anthropic_api(judge_prompt)
+    # return json.loads(scores)
+    pass
+---/code---
+
+
+Common Pitfalls
+---------------
+
+
+Catastrophic forgetting: The model loses general capabilities after fine-tuning on narrow data.
+Solution: Mix 10-20% general instruction data with your educational data
+Solution: Keep LoRA rank moderate (16-64), don't overtrain
+
+
+Overfitting on small datasets: Model memorizes instead of generalizing.
+Solution: Need at minimum 5,000 diverse examples for SFT
+Solution: Use data augmentation (rephrase questions, vary student levels)
+Solution: Monitor eval loss — stop when it starts increasing
+
+
+Format collapse: Model produces repetitive structures.
+Solution: Diverse examples in training data (different subjects, different interaction types)
+Solution: Lower learning rate, fewer epochs
+
+
+Recommended Readings
+
+
+  * LoRA: Low-Rank Adaptation of Large Language Models (Hu et al., 2021)
+
+  * QLoRA: Efficient Finetuning of Quantized LLMs (Dettmers et al., 2023)
+
+  * LIMA: Less Is More for Alignment — Shows 1000 high-quality examples can go far
+
+  * TRL documentation — Your main library reference
+
+
+-------------------------------------------------------------------------
+Module 3: Reward Modeling — Teaching the Model What "Good Teaching" Means
+-------------------------------------------------------------------------
+
+
+Learning Objectives
+
+
+  * Design reward signals that capture educational quality
+
+  * Collect and structure preference data for education
+
+  * Train a reward model from pairwise comparisons
+
+  * Evaluate reward model accuracy and calibration
+
+  * Understand failure modes (reward hacking, distribution shift)
+
+
+What is a Reward Model?
+-----------------------
+
+
+A reward model is a separate neural network that takes a (prompt, response) pair and outputs a scalar score indicating quality. It's trained on human preferences: "Given this student question, Response A is better than Response B for learning."
+For Coursera, the reward model encodes what makes a good teaching interaction — something you define through your pedagogical expertise and student outcome data.
+
+
+Preference Data Collection
+--------------------------
+
+
+You need pairs of responses where annotators indicate which is better for learning. This is fundamentally different from general helpfulness — a response can be helpful but pedagogically poor (e.g., just giving the answer without building understanding).
+
+python — preference data schema
+
+---code---
+"""
+Preference data schema for educational reward modeling.
+"""
+
+preference_example = {
+    "prompt": [
+        {"role": "system", "content": "You are a Coursera learning assistant."},
+        {"role": "user", "content": "What's a pointer in C? I'm so confused."}
+    ],
+    "chosen": (  # Better for learning
+        "I get it — pointers are one of those things that seems abstract until it clicks. "
+        "Let me try a concrete analogy:\n\n"
+        "Think of computer memory like a giant hotel. Each room has a number (the memory address) "
+        "and something stored inside (the value). A pointer is just a piece of paper with a room "
+        "number written on it.\n\n"
+        "```c\n"
+        "int x = 42;       // Room 1000 contains the value 42\n"
+        "int *p = &x;      // 'p' is a piece of paper that says '1000'\n"
+        "printf(\"%d\", *p); // Go to room 1000, tell me what's inside → 42\n"
+        "```\n\n"
+        "The `&` means 'what room number is this in?' and `*` means 'go to that room number "
+        "and look inside.'\n\n"
+        "What trips you up most — the syntax (`*` and `&`) or the concept of why you'd want "
+        "to reference a room number instead of just using the value directly?"
+    ),
+    "rejected": (  # Correct but pedagogically weaker
+        "A pointer is a variable that stores the memory address of another variable. "
+        "In C, you declare a pointer using the * operator, like `int *p`. You can get the "
+        "address of a variable using the & operator, like `p = &x`. To dereference a pointer "
+        "(access the value it points to), you use * again, like `*p`. Pointers are used for "
+        "dynamic memory allocation, passing by reference, and data structures like linked lists."
+    ),
+    "preference_reason": "Chosen uses analogy, builds intuition, asks follow-up question. "
+                         "Rejected is accurate but lectures without checking understanding."
+}
+---/code---
+
+
+The Bradley-Terry Model
+-----------------------
+
+
+The mathematical foundation: given two responses y₁ and y₂ to prompt x, the probability that y₁ is preferred is:
+P(y₁ ≻ y₂ | x) = σ(r(x, y₁) - r(x, y₂))
+where r is the reward model and σ is the sigmoid function. Training minimizes:
+L = -E[log σ(r(x, y_w) - r(x, y_l))]
+where y_w is the chosen (winning) response and y_l is the rejected (losing) response.
+
+
+Hands-On Exercise 3.1: Train a Reward Model
+----------------------------------------
+
+
+💻 Compute Requirements
+1x A100 40GB · ~1-2 hours on 10k preference pairs · Cost: ~$3-8
+
+
+python — train a reward model
+
+---code---
+"""
+Train a reward model for educational quality.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from trl import RewardTrainer, RewardConfig
+import json
+
+# === 1. Load base model as reward model ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-reward-model"
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+
+# Load as sequence classification model (outputs scalar reward)
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_ID,
+    num_labels=1,           # Single scalar output
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+    load_in_4bit=True,      # Save VRAM
+)
+
+# === 2. Prepare preference dataset ===
+
+dataset = load_dataset(
+    "argilla/ultrafeedback-binarized-preferences-cleaned",
+    split="train[:10000]"
+)
+
+dataset = dataset.train_test_split(test_size=0.1, seed=42)
+
+# === 3. Train the reward model ===
+
+training_args = RewardConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=1,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=1e-5,            # Lower LR for reward models
+    bf16=True,
+    logging_steps=10,
+    eval_strategy="steps",
+    eval_steps=100,
+    save_steps=200,
+    max_length=2048,
+    report_to="wandb",
+    run_name="coursera-reward-model-v1",
+)
+
+trainer = RewardTrainer(
+    model=model,
+    args=training_args,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+)
+
+trainer.train()
+trainer.save_model(OUTPUT_DIR)
+
+# === 4. Evaluate: Accuracy on held-out preferences ===
+metrics = trainer.evaluate()
+print(f"Reward model accuracy: {metrics['eval_accuracy']:.2%}")
+# Target: >70% accuracy (random = 50%)
+---/code---
+
+
+python — use the reward model to score responses
+
+---code---
+"""
+Use the trained reward model to score teaching responses.
+"""
+
+import torch
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+# Load trained reward model
+rm_model = AutoModelForSequenceClassification.from_pretrained(
+    "./coursera-reward-model",
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+tokenizer = AutoTokenizer.from_pretrained("./coursera-reward-model")
+
+def score_response(conversation: list[dict]) -> float:
+    """Score a teaching interaction using the reward model."""
+    text = tokenizer.apply_chat_template(conversation, tokenize=False)
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=2048).to("cuda")
+
+    with torch.no_grad():
+        reward = rm_model(**inputs).logits[0].item()
+
+    return reward
+
+
+# Compare two teaching approaches
+question = "Why do we use try/except in Python?"
+
+# Approach A: Socratic
+socratic_response = [
+    {"role": "user", "content": question},
+    {"role": "assistant", "content": (
+        "Good question! Before I explain, let me ask: what happens right now in your "
+        "code when something goes wrong — like dividing by zero or opening a file that "
+        "doesn't exist? What does Python do?"
+    )},
+]
+
+# Approach B: Direct lecture
+lecture_response = [
+    {"role": "user", "content": question},
+    {"role": "assistant", "content": (
+        "Try/except is Python's exception handling mechanism. The try block contains code "
+        "that might raise an exception, and the except block contains code that runs if an "
+        "exception occurs. This prevents your program from crashing."
+    )},
+]
+
+score_a = score_response(socratic_response)
+score_b = score_response(lecture_response)
+print(f"Socratic approach score: {score_a:.3f}")
+print(f"Lecture approach score: {score_b:.3f}")
+print(f"Preferred: {'Socratic' if score_a > score_b else 'Lecture'}")
+---/code---
+
+
+Multi-Dimensional Reward Signals for Education
+----------------------------------------
+
+
+python — multi-dimensional reward framework
+
+---code---
+"""
+Multi-dimensional reward framework for educational interactions.
+"""
+
+from dataclasses import dataclass
+
+@dataclass
+class EducationalRewardSignals:
+    """
+    Decomposed reward for educational interactions.
+    Final reward = weighted combination of these signals.
+    """
+    comprehension: float    # Did the response build understanding?
+    clarity: float          # Was it clear and well-structured?
+    personalization: float  # Did it adapt to the student's level?
+    engagement: float       # Was it motivating and interesting?
+    accuracy: float         # Was the content factually correct?
+    socratic: float         # Did it promote active thinking?
+
+    def combined_reward(self, weights: dict = None) -> float:
+        """Weighted combination of signals."""
+        if weights is None:
+            weights = {
+                "comprehension": 0.25,
+                "clarity": 0.20,
+                "personalization": 0.20,
+                "engagement": 0.15,
+                "accuracy": 0.15,
+                "socratic": 0.05,
+            }
+
+        return sum(
+            weights[field] * getattr(self, field)
+            for field in weights
+        )
+
+# In practice, you can approximate these signals from:
+# 1. Human annotations (expensive, gold standard)
+# 2. LLM-as-judge (cheaper, good for bootstrapping)
+# 3. Student behavior signals (implicit, scalable):
+#    - comprehension: quiz score after interaction
+#    - clarity: did student ask follow-up clarification?
+#    - personalization: time spent reading (too fast = too easy, too slow = too hard)
+#    - engagement: did student continue or bounce?
+#    - accuracy: verified against course content
+#    - socratic: did student attempt before getting answer?
+---/code---
+
+
+Recommended Readings
+
+
+  * Training language models to follow instructions with human feedback (InstructGPT, Ouyang et al., 2022) — The original RLHF paper
+
+  * Scaling Laws for Reward Model Overoptimization — Why bigger isn't always better for reward models
+
+  * RLAIF: Reinforcement Learning from AI Feedback — Using AI to generate preferences at scale
+
+
+-----------------------------------------------------------
+Module 4: RLHF — Reinforcement Learning from Human Feedback
+-----------------------------------------------------------
+
+
+Learning Objectives
+
+
+  * Understand PPO's role in the RLHF pipeline
+
+  * Implement the full RLHF loop: SFT model → Reward Model → PPO training
+
+  * Tune the KL divergence penalty to prevent reward hacking
+
+  * Diagnose common RLHF failures
+
+  * Make informed decisions about when RLHF is worth the complexity
+
+
+The RLHF Pipeline
+-----------------
+
+
+┌─────────┐     ┌──────────────┐     ┌─────────────┐
+│ SFT Model│ ──▶ │ Reward Model │ ──▶ │ PPO Training │ ──▶ Final Model
+│ (Policy) │     │ (Critic)     │     │              │
+└─────────┘     └──────────────┘     └─────────────┘
+     │                   │                    │
+     │                   │                    ▼
+     │                   │          ┌──────────────────┐
+     │                   └────────▶ │ Score generations │
+     │                              │ from current policy│
+     └────────────────────────────▶ │ KL penalty vs.   │
+                                    │ original SFT model │
+                                    └──────────────────┘
+
+PPO for LLMs, simplified:
+
+  8. The model (policy) generates responses to prompts
+
+  9. The reward model scores each response
+
+  10. PPO updates the model to produce higher-scoring responses
+
+  11. A KL penalty prevents the model from drifting too far from the SFT base (this prevents reward hacking)
+
+
+Why KL Divergence Matters
+-------------------------
+
+
+⚠️ Warning: Without KL Penalty
+Without the KL penalty, the model will find degenerate ways to maximize reward: repeating phrases the reward model likes, generating extremely long responses, or producing outputs that "game" the reward model's weaknesses.
+
+
+The KL term says: "Improve, but don't become unrecognizable from where you started."
+objective = E[r(x, y)] - β · D_KL(π_θ ‖ π_ref)
+where β controls the strength of the constraint. Typical values: 0.01–0.2.
+
+
+Hands-On Exercise 4.1: Full RLHF Training Loop
+----------------------------------------
+
+
+💻 Compute Requirements
+2x A100 80GB (or 4x A100 40GB) · 4-8 hours · Cost: ~$30-60
+Note: For most educational use cases, DPO (Module 5) achieves 80-90% of RLHF's quality at 10% of the compute cost. This module is for understanding the full pipeline.
+
+
+python — complete RLHF training with PPO
+
+---code---
+"""
+Complete RLHF training using TRL's PPOTrainer.
+"""
+
+import torch
+from datasets import load_dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer, AutoModelForSequenceClassification
+from trl import PPOConfig, PPOTrainer, AutoModelForCausalLMWithValueHead
+from trl.core import LengthSampler
+from peft import LoraConfig
+import wandb
+
+# === 1. Configuration ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"  # Or your SFT checkpoint
+REWARD_MODEL_ID = "./coursera-reward-model"           # From Module 3
+
+ppo_config = PPOConfig(
+    model_name=MODEL_ID,
+    learning_rate=1e-5,
+    batch_size=16,
+    mini_batch_size=4,
+    gradient_accumulation_steps=4,
+    ppo_epochs=4,                    # PPO inner epochs per batch
+
+    # KL penalty — critical hyperparameter
+    init_kl_coef=0.2,               # Starting KL coefficient
+    target_kl=6.0,                   # Adaptive KL target
+    kl_penalty="kl",                 # "kl" or "abs" or "mse"
+
+    # Generation parameters
+    temperature=0.7,
+    top_p=0.9,
+    max_new_tokens=512,
+
+    # Logging
+    log_with="wandb",
+    project_name="coursera-rlhf",
+)
+
+# LoRA for memory efficiency during PPO
+lora_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# === 2. Load Models ===
+
+# Policy model (the one we're training)
+model = AutoModelForCausalLMWithValueHead.from_pretrained(
+    MODEL_ID,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+    peft_config=lora_config,
+)
+
+# Reference model (frozen SFT model for KL computation)
+ref_model = AutoModelForCausalLMWithValueHead.from_pretrained(
+    MODEL_ID,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+# Reward model
+reward_model = AutoModelForSequenceClassification.from_pretrained(
+    REWARD_MODEL_ID,
+    torch_dtype=torch.bfloat16,
+    device_map="auto",
+)
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+
+# === 3-5. Training Loop (abbreviated for space) ===
+
+ppo_trainer = PPOTrainer(
+    config=ppo_config,
+    model=model,
+    ref_model=ref_model,
+    tokenizer=tokenizer,
+    dataset=prompts_dataset,
+)
+
+for epoch in range(ppo_config.ppo_epochs):
+    for batch in ppo_trainer.dataloader:
+        query_tensors = batch["input_ids"]
+
+        # Generate responses from current policy
+        response_tensors = ppo_trainer.generate(
+            query_tensors, max_new_tokens=512, temperature=0.7, do_sample=True,
+        )
+
+        # Decode for reward computation
+        response_texts = tokenizer.batch_decode(response_tensors, skip_special_tokens=True)
+        query_texts = tokenizer.batch_decode(query_tensors, skip_special_tokens=True)
+
+        # Compute rewards
+        rewards = compute_reward(response_texts, query_texts)
+
+        # PPO step
+        stats = ppo_trainer.step(query_tensors, response_tensors, rewards)
+        ppo_trainer.log_stats(stats, batch, rewards)
+
+# Save final model
+ppo_trainer.save_pretrained("./coursera-rlhf-model")
+print("RLHF training complete!")
+---/code---
+
+
+Diagnosing RLHF Issues
+----------------------
+
+
+Symptom	|	Likely Cause	|	Fix
+Reward increases but quality decreases	|	Reward hacking	|	Increase KL coefficient, improve reward model
+KL divergence explodes	|	Learning rate too high	|	Reduce LR, increase init_kl_coef
+No improvement in reward	|	KL penalty too strong	|	Reduce beta, or reward model isn't discriminative enough
+Repetitive outputs	|	Mode collapse	|	Increase temperature, add entropy bonus
+Training is unstable (reward oscillates)	|	Batch size too small	|	Increase batch size, reduce LR
+
+
+When RLHF Is Worth It
+---------------------
+
+
+💡 Use RLHF when:
+You have a strong reward model (>75% agreement with humans), you need nuanced behavioral changes that SFT can't capture, you're optimizing for multi-dimensional quality, and you have the compute budget ($100-1000+ per training run).
+
+
+ℹ️ Skip RLHF (use DPO instead) when:
+You have good preference data but limited compute, the behavior change is relatively straightforward, you want faster iteration cycles, or you're still in the experimentation phase.
+
+
+Recommended Readings
+
+
+  * Proximal Policy Optimization Algorithms (Schulman et al., 2017)
+
+  * InstructGPT paper — The canonical RLHF implementation
+
+  * Secrets of RLHF in Large Language Models Part I — Practical tricks
+
+  * TRL PPO documentation
+
+
+-------------------------------------------
+Module 5: DPO & Modern Alternatives to RLHF
+-------------------------------------------
+
+
+Learning Objectives
+
+
+  * Understand DPO's mathematical relationship to RLHF
+
+  * Implement DPO training on educational preference data
+
+  * Compare DPO, ORPO, SimPO, and KTO
+
+  * Choose the right alignment technique for your use case
+
+  * Achieve RLHF-quality results at a fraction of the compute cost
+
+
+Direct Preference Optimization (DPO)
+------------------------------------
+
+
+DPO's key insight: you can skip the reward model entirely. Instead of training a reward model and then doing RL, DPO directly optimizes the language model using preference data.
+The math: DPO shows that the optimal policy under the RLHF objective has a closed-form solution. You can reparameterize the reward in terms of the policy itself, leading to a simple classification loss:
+L_DPO = -E[log σ(β log π_θ(y_w|x)/π_ref(y_w|x) - β log π_θ(y_l|x)/π_ref(y_l|x))]
+In plain English: Increase the probability of chosen responses relative to rejected ones, but don't drift too far from the reference model.
+
+
+Why DPO is Often Better for Practitioners
+----------------------------------------
+
+
+Aspect	|	RLHF (PPO)	|	DPO
+Compute cost	|	4-8x SFT	|	1.5-2x SFT
+GPU memory	|	Need 3+ models in memory	|	Need 2 models
+Stability	|	Finicky, many hyperparameters	|	Stable, few hyperparameters
+Quality ceiling	|	Slightly higher (in theory)	|	90-95% of RLHF quality
+Iteration speed	|	Days per experiment	|	Hours per experiment
+
+
+Other Modern Alternatives
+
+
+ORPO (Odds Ratio Preference Optimization): Combines SFT and preference optimization in a single step. No reference model needed.
+SimPO (Simple Preference Optimization): Uses average log probability as implicit reward. Simpler than DPO, competitive results.
+KTO (Kahneman-Tversky Optimization): Works with binary feedback (good/bad) rather than pairwise preferences. Useful when you can't get preference pairs.
+
+
+Hands-On Exercise 5.1: DPO Fine-Tuning
+--------------------------------------
+
+
+💻 Compute Requirements
+1x A100 80GB (or 2x A100 40GB) · 2-4 hours · Cost: ~$8-15
+
+
+python — DPO training on educational preference data
+
+---code---
+"""
+DPO training on educational preference data.
+This is likely your go-to method for Coursera's use case.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from trl import DPOConfig, DPOTrainer
+from peft import LoraConfig
+import json
+
+# === Configuration ===
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-dpo-model"
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.bfloat16,
+)
+
+lora_config = LoraConfig(
+    r=32,                           # Slightly higher rank for DPO
+    lora_alpha=64,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM",
+)
+
+# === Load Model ===
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
+tokenizer.pad_token = tokenizer.eos_token
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_ID,
+    quantization_config=bnb_config,
+    device_map="auto",
+    attn_implementation="flash_attention_2",
+)
+
+# === DPO Training ===
+
+dpo_config = DPOConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=3,
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=8,
+    learning_rate=5e-6,              # DPO uses lower LR than SFT
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.1,
+    bf16=True,
+
+    # DPO-specific parameters
+    beta=0.1,                        # KL penalty strength (0.05-0.5 typical)
+    loss_type="sigmoid",             # "sigmoid" (standard DPO) or "hinge" or "ipo"
+
+    max_length=2048,
+    max_prompt_length=1024,
+
+    logging_steps=10,
+    save_strategy="steps",
+    save_steps=200,
+    eval_strategy="steps",
+    eval_steps=100,
+    report_to="wandb",
+    run_name="coursera-dpo-v1",
+)
+
+trainer = DPOTrainer(
+    model=model,
+    args=dpo_config,
+    train_dataset=dataset["train"],
+    eval_dataset=dataset["test"],
+    tokenizer=tokenizer,
+    peft_config=lora_config,
+)
+
+# Train!
+trainer.train()
+trainer.save_model(OUTPUT_DIR)
+
+# === Key metrics to monitor ===
+# - train/rewards/chosen: reward of chosen examples (should increase)
+# - train/rewards/rejected: reward of rejected examples (should decrease)
+# - train/rewards/margins: chosen - rejected (should increase)
+# - train/logps/rejected: log probs of rejected (should decrease)
+---/code---
+
+
+Decision Guide: Which Technique to Use
+--------------------------------------
+
+
+Do you have PAIRWISE preference data (A is better than B)?
+├── YES → How much compute do you have?
+│   ├── Limited (1-2 GPUs) → DPO (best effort/quality tradeoff)
+│   ├── Moderate (2-4 GPUs) → DPO or ORPO (skip SFT step)
+│   └── Large (4-8 GPUs) → RLHF/PPO (maximum quality ceiling)
+│
+└── NO → What kind of feedback do you have?
+    ├── Binary (good/bad per response) → KTO
+    ├── Scalar ratings → Convert to pairs, use DPO
+    └── Implicit signals only → GRPO with verifiable rewards (Module 6)
+
+
+💡 Recommendation
+For Coursera's starting point: DPO with educational preference data. It's the best balance of quality, compute cost, and iteration speed. Move to RLHF/PPO only when you've exhausted DPO's ceiling and have the infrastructure for it.
+
+
+Recommended Readings
+
+
+  * Direct Preference Optimization: Your Language Model is Secretly a Reward Model (Rafailov et al., 2023)
+
+  * ORPO: Monolithic Preference Optimization without Reference Model
+
+  * SimPO: Simple Preference Optimization with a Reference-Free Reward
+
+  * KTO: Model Alignment as Prospect Theoretic Optimization
+
+
+-----------------------------------------------------
+Module 6: GRPO & Reasoning (The DeepSeek-R1 Approach)
+-----------------------------------------------------
+
+
+Learning Objectives
+
+
+  * Understand Group Relative Policy Optimization (GRPO) and how it differs from PPO
+
+  * Implement verifiable reward functions for educational tasks
+
+  * Use RL to improve model reasoning (chain-of-thought emergence)
+
+  * Apply the DeepSeek-R1 approach to math and science tutoring
+
+  * Design reward functions that don't require human annotation
+
+
+Why GRPO Matters for Education
+------------------------------
+
+
+The DeepSeek-R1 breakthrough showed that RL can teach models to reason better — not just produce prettier outputs, but actually think more carefully. For education, this is transformative: a model that reasons step-by-step can show its work, catch its own errors, and teach problem-solving processes.
+
+
+GRPO vs. PPO
+------------
+
+
+PPO uses a separate value model (critic) to estimate advantages. This adds memory cost and training complexity.
+GRPO (Group Relative Policy Optimization) eliminates the value model by computing advantages within a group of samples:
+
+For prompt x, generate G responses: y₁, y₂, ..., yG
+Score each: r₁, r₂, ..., rG
+Normalize scores within group: advantage_i = (r_i - mean(r)) / std(r)
+Update policy to increase probability of high-advantage responses
+
+This is cheaper (no value model), more stable, and works especially well with verifiable rewards.
+
+
+Verifiable Rewards for Education
+--------------------------------
+
+
+💡 The Magic of GRPO for Educational AI
+Many learning tasks have verifiable outcomes — math answers that can be checked, code that can be executed, logical statements that can be validated. This means you can train without human annotators.
+
+
+python — verifiable reward functions
+
+---code---
+"""
+Verifiable reward functions for educational tasks.
+These don't require human annotation — they're programmatic.
+"""
+
+import re
+import subprocess
+import json
+from typing import Optional
+
+def math_reward(response: str, correct_answer: float, tolerance: float = 0.01) -> float:
+    """
+    Reward for math problem solving.
+    Extracts the final numerical answer and checks correctness.
+    """
+    patterns = [
+        r'\\boxed\{([^}]+)\}',
+        r'(?:answer|result|=)\s*([+-]?\d+\.?\d*)',
+        r'(?:^|\n)\s*([+-]?\d+\.?\d*)\s*$',
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, response, re.IGNORECASE | re.MULTILINE)
+        if match:
+            try:
+                extracted = float(match.group(1))
+                if abs(extracted - correct_answer) < tolerance:
+                    return 1.0  # Correct
+                else:
+                    return -0.5  # Wrong answer
+            except ValueError:
+                continue
+
+    return -0.1  # Couldn't extract an answer
+
+
+def code_execution_reward(response: str, test_cases: list[dict]) -> float:
+    """
+    Reward for code generation tasks.
+    Actually runs the code and checks against test cases.
+    """
+    code_match = re.search(r'```python\n(.*?)```', response, re.DOTALL)
+    if not code_match:
+        return -0.1
+
+    code = code_match.group(1)
+    passed = 0
+    total = len(test_cases)
+
+    for test in test_cases:
+        test_code = code + "\n" + test["test"]
+        try:
+            result = subprocess.run(
+                ["python", "-c", test_code],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.returncode == 0:
+                passed += 1
+        except (subprocess.TimeoutExpired, Exception):
+            continue
+
+    return (passed / total) * 2 - 1  # Scale to [-1, 1]
+
+
+def combined_educational_reward(
+    response: str, task_type: str,
+    ground_truth: Optional[str] = None, **kwargs
+) -> float:
+    """Combined reward function that dispatches based on task type."""
+    if task_type == "math":
+        correctness = math_reward(response, float(ground_truth))
+        explanation = explanation_quality_reward(response, kwargs.get("concept", ""))
+        return 0.7 * correctness + 0.3 * explanation
+    elif task_type == "code":
+        correctness = code_execution_reward(response, kwargs.get("test_cases", []))
+        explanation = explanation_quality_reward(response, kwargs.get("concept", ""))
+        return 0.6 * correctness + 0.4 * explanation
+    else:
+        return explanation_quality_reward(response, "")
+---/code---
+
+
+Hands-On Exercise 6.1: GRPO Training for Math Tutoring
+----------------------------------------
+
+
+💻 Compute Requirements
+2x A100 80GB · 4-8 hours · Cost: ~$20-40
+
+
+python — GRPO training for math tutoring
+
+---code---
+"""
+GRPO training for math/science tutoring.
+The model learns to reason step-by-step through RL with verifiable rewards.
+"""
+
+import torch
+from datasets import load_dataset, Dataset
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from trl import GRPOConfig, GRPOTrainer
+from peft import LoraConfig
+import re
+
+MODEL_ID = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+OUTPUT_DIR = "./coursera-grpo-math"
+
+lora_config = LoraConfig(
+    r=32, lora_alpha=64,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+    lora_dropout=0.05, bias="none", task_type="CAUSAL_LM",
+)
+
+# Prepare math tutoring dataset from GSM8K
+def create_math_tutoring_dataset():
+    gsm8k = load_dataset("openai/gsm8k", "main", split="train")
+    formatted = []
+    for example in gsm8k:
+        answer_text = example["answer"]
+        final_answer = answer_text.split("####")[-1].strip()
+        formatted.append({
+            "prompt": (
+                f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n"
+                f"You are a math tutor. Solve the problem step by step, showing your "
+                f"reasoning clearly. End with your final answer on a new line as: "
+                f"Answer: <|eot_id|>"
+                f"<|start_header_id|>user<|end_header_id|>\n\n"
+                f"{example['question']}<|eot_id|>"
+                f"<|start_header_id|>assistant<|end_header_id|>\n\n"
+            ),
+            "ground_truth": final_answer,
+        })
+    return Dataset.from_list(formatted)
+
+dataset = create_math_tutoring_dataset()
+
+# GRPO config
+grpo_config = GRPOConfig(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=2,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=1e-5,
+    num_generations=8,          # Generate 8 responses per prompt (the "group")
+    max_new_tokens=512,
+    temperature=0.8,            # Higher temp for diversity in the group
+    beta=0.04,                  # Lower than DPO since rewards are more informative
+    bf16=True,
+    logging_steps=5,
+    save_steps=100,
+    report_to="wandb",
+    run_name="coursera-grpo-math-v1",
+)
+
+trainer = GRPOTrainer(
+    model=model, args=grpo_config,
+    train_dataset=dataset, tokenizer=tokenizer,
+    reward_funcs=reward_fn, peft_config=lora_config,
+)
+
+trainer.train()
+trainer.save_model(OUTPUT_DIR)
+---/code---
+
+
+Chain-of-Thought Emergence Through RL
+-------------------------------------
+
+
+💡 Remarkable Finding from DeepSeek-R1
+When you reward models for correct answers (not for showing work), they spontaneously develop chain-of-thought reasoning. The RL process discovers that "thinking step by step" leads to higher rewards. For Coursera, this means you can train models that naturally explain their reasoning to students — not because you told them to, but because reasoning out loud helps them arrive at correct answers.
+
+
+Recommended Readings
+
+
+  * DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning
+
+  * Let's Verify Step by Step (Lightman et al., 2023) — Process reward models
+
+  * Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations
+
+  * GRPO in TRL
+
+
+-------------------------------------------------------
+Module 7: Building the Coursera Moat — Agentic Learning
+-------------------------------------------------------
+
+
+Learning Objectives
+
+
+  * Design an agentic tutoring system with tool use
+
+  * Implement multi-turn conversation optimization
+
+  * Build student state tracking for personalization
+
+  * Combine RL-tuned models with tool calling for adaptive learning
+
+  * Apply Constitutional AI principles to educational agents
+
+
+The Agentic Tutor Architecture
+------------------------------
+
+
+┌─────────────────────────────────────────────────────────────┐
+│                    AGENTIC TUTOR SYSTEM                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────┐    ┌───────────────┐    ┌──────────────┐ │
+│  │ RL-Tuned LLM │◀──▶│ Student State │◀──▶│ Tool Router  │ │
+│  │ (Core Brain) │    │   Tracker     │    │              │  │
+│  └──────┬───────┘    └───────────────┘    └──────┬───────┘ │
+│         │                                         │          │
+│         ▼                                         ▼          │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │                    TOOL SUITE                          │   │
+│  ├──────────┬──────────┬──────────┬──────────┬──────────┤   │
+│  │ Quiz Gen │ Code     │ Diagram  │ Video    │ Concept  │   │
+│  │          │ Sandbox  │ Creator  │ Finder   │ Map      │   │
+│  └──────────┴──────────┴──────────┴──────────┴──────────┘   │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+
+
+Student State Tracking
+----------------------
+
+
+python — student state model for personalization
+
+---code---
+"""
+Student state model for personalization.
+The RL-tuned model uses this context to adapt its teaching.
+"""
+
+from dataclasses import dataclass, field
+from typing import Optional
+import json
+
+@dataclass
+class StudentState:
+    """Tracks a student's learning state across a session."""
+    # Knowledge state
+    topic: str = ""
+    subtopics_mastered: list[str] = field(default_factory=list)
+    subtopics_struggling: list[str] = field(default_factory=list)
+    current_difficulty: float = 0.5  # 0=beginner, 1=expert
+
+    # Engagement state
+    turns_in_session: int = 0
+    consecutive_correct: int = 0
+    consecutive_wrong: int = 0
+    last_engagement_signal: str = "neutral"
+
+    # Learning preferences
+    prefers_examples: bool = True
+    prefers_formal_definitions: bool = False
+    prefers_visual: bool = False
+    response_length_preference: str = "medium"
+
+    # History
+    recent_interactions: list[dict] = field(default_factory=list)
+    quiz_scores: list[float] = field(default_factory=list)
+
+    def to_system_context(self) -> str:
+        """Convert state to natural language context for the model."""
+        context_parts = [
+            f"Student is studying: {self.topic}",
+            f"Current level: {'beginner' if self.current_difficulty < 0.3 else 'intermediate' if self.current_difficulty < 0.7 else 'advanced'}",
+        ]
+
+        if self.subtopics_struggling:
+            context_parts.append(f"Struggling with: {', '.join(self.subtopics_struggling)}")
+
+        if self.consecutive_wrong >= 2:
+            context_parts.append("Student has gotten several questions wrong. Simplify and encourage.")
+        elif self.consecutive_correct >= 3:
+            context_parts.append("Student is on a streak. Consider increasing difficulty.")
+
+        return "\n".join(context_parts)
+
+    def update_from_interaction(self, user_msg: str, assistant_msg: str, quiz_result: Optional[float] = None):
+        """Update state based on the latest interaction."""
+        self.turns_in_session += 1
+
+        if quiz_result is not None:
+            self.quiz_scores.append(quiz_result)
+            if quiz_result >= 0.8:
+                self.consecutive_correct += 1
+                self.consecutive_wrong = 0
+            else:
+                self.consecutive_wrong += 1
+                self.consecutive_correct = 0
+
+            if self.consecutive_correct >= 3:
+                self.current_difficulty = min(1.0, self.current_difficulty + 0.1)
+            elif self.consecutive_wrong >= 2:
+                self.current_difficulty = max(0.0, self.current_difficulty - 0.15)
+---/code---
+
+
+Hands-On Exercise 7.1: Build an Agentic Tutor
+----------------------------------------
+
+
+python — agentic tutor with tool use
+
+---code---
+"""
+Agentic tutor with tool use and RL-tuned base model.
+Combines everything from Modules 1-6 into a working system.
+"""
+
+import json
+import re
+from dataclasses import dataclass
+from typing import Callable
+
+TOOLS = [
+    {"name": "generate_quiz", "description": "Generate a quiz question to test understanding."},
+    {"name": "run_code", "description": "Execute Python code in a sandbox."},
+    {"name": "create_diagram", "description": "Generate a visual diagram explaining a concept."},
+    {"name": "search_course_content", "description": "Search Coursera course materials."},
+    {"name": "adjust_difficulty", "description": "Change the difficulty level."},
+]
+
+class AgenticTutor:
+    """
+    An agentic tutor that combines:
+    1. RL-tuned base model for core teaching ability
+    2. Student state tracking for personalization
+    3. Tool use for interactive learning experiences
+    """
+
+    def __init__(self, model, tokenizer, tools: dict[str, Callable]):
+        self.model = model
+        self.tokenizer = tokenizer
+        self.tools = tools
+        self.student_state = StudentState()
+        self.conversation_history = []
+
+    def build_system_prompt(self) -> str:
+        """Dynamic system prompt incorporating student state and available tools."""
+        base_prompt = (
+            "You are a Coursera AI tutor. Your goal is to help the student truly "
+            "understand concepts, not just give them answers.\n\n"
+            "TEACHING PRINCIPLES:\n"
+            "- Use Socratic questioning: guide students to discover answers\n"
+            "- Adapt to the student's level and learning state\n"
+            "- Use tools when they would enhance learning\n"
+            "- Check understanding before moving to new topics\n"
+            "- Be encouraging but honest about mistakes\n\n"
+        )
+
+        state_context = self.student_state.to_system_context()
+        if state_context:
+            base_prompt += f"CURRENT STUDENT STATE:\n{state_context}\n\n"
+
+        return base_prompt
+
+    def generate_response(self, user_message: str) -> str:
+        """Generate a tutoring response, potentially with tool calls."""
+        messages = [{"role": "system", "content": self.build_system_prompt()}]
+
+        for turn in self.conversation_history[-10:]:
+            messages.append(turn)
+
+        messages.append({"role": "user", "content": user_message})
+
+        input_ids = self.tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+
+        with torch.no_grad():
+            output = self.model.generate(input_ids, max_new_tokens=1024, temperature=0.7)
+
+        response = self.tokenizer.decode(output[0][input_ids.shape[-1]:], skip_special_tokens=True)
+        response = self.execute_tool_calls(response)
+        self.student_state.update_from_interaction(user_message, response)
+
+        return response
+---/code---
+
+
+Constitutional AI for Education
+-------------------------------
+
+
+python — educational AI constitution
+
+---code---
+"""
+Constitutional AI principles for educational agents.
+"""
+
+EDUCATIONAL_CONSTITUTION = [
+    # Accuracy
+    "If you are unsure about a factual claim, say so explicitly rather than stating it confidently.",
+    "Never make up citations, formulas, or code that you haven't verified.",
+
+    # Pedagogy
+    "Prefer helping the student arrive at the answer over giving the answer directly.",
+    "When a student is wrong, identify the specific misconception rather than just saying 'that's wrong.'",
+    "Celebrate genuine effort and progress, not just correct answers.",
+
+    # Safety
+    "Never generate content that could be used to cheat on graded assessments.",
+    "If a student asks you to write an entire assignment for them, offer to help them "
+    "understand the concepts instead.",
+    "Maintain academic integrity — help students learn, not bypass learning.",
+
+    # Engagement
+    "If the student seems disengaged after 3+ turns, change your approach significantly.",
+    "Use concrete examples from the student's likely experience before abstract definitions.",
+    "Keep explanations concise — if you can say it in 3 sentences, don't use 10.",
+
+    # Boundaries
+    "You are a tutor, not a therapist. If a student expresses serious distress, "
+    "direct them to appropriate support resources.",
+    "Stay focused on the learning topic. Gently redirect off-topic conversations.",
+]
+
+# These principles can be enforced via:
+# 1. System prompt (weakest but simplest)
+# 2. Constitutional AI training (RL from AI feedback using these principles)
+# 3. Output filtering (check responses against principles before serving)
+---/code---
+
+
+Recommended Readings
+
+
+  * Toolformer: Language Models Can Teach Themselves to Use Tools
+
+  * Constitutional AI: Harmlessness from AI Feedback
+
+  * ReAct: Synergizing Reasoning and Acting in Language Models
+
+  * Generative Agents: Interactive Simulacra of Human Behavior
+
+
+---------------------------------------
+Module 8: Data Flywheel — The Real Moat
+---------------------------------------
+
+
+Learning Objectives
+
+
+  * Design data collection systems for learning interactions
+
+  * Extract implicit reward signals from student behavior
+
+  * Implement online learning from A/B test results
+
+  * Build a continuous improvement pipeline
+
+  * Navigate privacy and ethical considerations in educational AI
+
+  * Understand the competitive dynamics of data flywheels
+
+
+The Data Flywheel
+-----------------
+
+
+                    ┌──────────────────────┐
+                    │   Better Model       │
+                    │   (higher quality    │
+                    │    tutoring)         │
+                    └──────────┬───────────┘
+                               │
+                    Attracts   │   Generates
+                               ▼
+┌──────────────────┐                    ┌──────────────────┐
+│  More Students   │◀───────────────────│  Better Learning │
+│  (network effect)│                    │  Outcomes        │
+└────────┬─────────┘                    └──────────────────┘
+         │                                       ▲
+         │ Generates                             │ Enables
+         ▼                                       │
+┌──────────────────┐                    ┌────────┴─────────┐
+│  More Interaction │──────────────────▶│  More Training   │
+│  Data            │     Feeds into     │  Signal          │
+└──────────────────┘                    └──────────────────┘
+
+
+💡 The True Moat
+No competitor can replicate millions of real student learning interactions. They'd need both the platform (students) and the infrastructure (data pipeline + training loop).
+
+
+Implicit Reward Signals from Student Behavior
+----------------------------------------
+
+
+python — mining reward signals from student behavior
+
+---code---
+"""
+Mining reward signals from student behavior — no explicit feedback needed.
+"""
+
+from dataclasses import dataclass
+from typing import Optional
+import numpy as np
+
+@dataclass
+class InteractionSignals:
+    """Signals collected during a learning interaction."""
+    # Time-based signals
+    time_to_respond_seconds: float
+    time_reading_response_seconds: float
+    session_duration_seconds: float
+
+    # Behavioral signals
+    did_ask_followup: bool
+    did_request_clarification: bool
+    did_abandon_session: bool
+    did_complete_exercise: bool
+    times_re_read_response: int
+
+    # Learning outcome signals
+    quiz_score_before: Optional[float]
+    quiz_score_after: Optional[float]
+    concept_retention_1day: Optional[float]
+    concept_retention_7day: Optional[float]
+
+    # Downstream signals
+    course_completion: bool
+    next_topic_success: bool
+
+
+def compute_implicit_reward(signals: InteractionSignals) -> float:
+    """Compute a reward score from implicit signals."""
+    reward = 0.0
+
+    # Learning outcome (strongest signal, but delayed)
+    if signals.quiz_score_after is not None and signals.quiz_score_before is not None:
+        improvement = signals.quiz_score_after - signals.quiz_score_before
+        reward += improvement * 2.0
+
+    # Engagement (immediate signal)
+    if signals.did_ask_followup:
+        reward += 0.3
+    if signals.did_abandon_session:
+        reward -= 0.5
+    if signals.did_complete_exercise:
+        reward += 0.4
+
+    # Comprehension proxies
+    if signals.did_request_clarification:
+        reward -= 0.2
+
+    # Retention (strongest long-term signal)
+    if signals.concept_retention_7day is not None:
+        if signals.concept_retention_7day > 0.8:
+            reward += 0.5
+        elif signals.concept_retention_7day < 0.4:
+            reward -= 0.3
+
+    return reward
+---/code---
+
+
+A/B Testing Model Versions
+--------------------------
+
+
+python — A/B testing framework
+
+---code---
+"""
+A/B testing framework for model versions.
+Route students to different models, measure learning outcomes.
+"""
+
+import hashlib
+import numpy as np
+from scipy import stats
+
+class ModelABTest:
+    def __init__(self, control_model: str, treatment_model: str, traffic_split: float = 0.1):
+        self.control = control_model
+        self.treatment = treatment_model
+        self.split = traffic_split
+        self.results = {"control": [], "treatment": []}
+
+    def assign_variant(self, student_id: str) -> str:
+        """Deterministically assign a student to a variant."""
+        hash_val = int(hashlib.md5(student_id.encode()).hexdigest(), 16)
+        if (hash_val % 1000) / 1000 < self.split:
+            return "treatment"
+        return "control"
+
+    def analyze(self) -> dict:
+        """Statistical analysis of A/B test results."""
+        control_scores = [r.get("quiz_improvement", 0) for r in self.results["control"]]
+        treatment_scores = [r.get("quiz_improvement", 0) for r in self.results["treatment"]]
+
+        t_stat, p_value = stats.ttest_ind(treatment_scores, control_scores)
+
+        return {
+            "control_mean": np.mean(control_scores),
+            "treatment_mean": np.mean(treatment_scores),
+            "lift": (np.mean(treatment_scores) - np.mean(control_scores)) / max(np.mean(control_scores), 0.01),
+            "p_value": p_value,
+            "significant": p_value < 0.05,
+        }
+---/code---
+
+
+The Continuous Training Pipeline
+--------------------------------
+
+
+python — continuous improvement loop
+
+---code---
+"""
+Continuous improvement loop: deploy → collect → train → deploy
+This system architecture creates an ever-widening moat.
+"""
+
+class ContinuousImprovementPipeline:
+    """Orchestrates the ongoing improvement of the tutoring model."""
+
+    def run_improvement_cycle(self):
+        """
+        One cycle of the improvement loop:
+        1. Collect new interaction data
+        2. Create preference pairs from implicit rewards
+        3. DPO training on new preferences
+        4. Evaluate new model
+        5. A/B test if evaluation passes
+        6. Promote if A/B test passes
+        """
+
+        new_data = self.collect_new_interactions(days=7)
+        print(f"Collected {len(new_data)} new interactions")
+
+        preference_pairs = self.create_preference_pairs(new_data)
+
+        # Quality filter — only high-confidence pairs
+        filtered_pairs = [
+            p for p in preference_pairs
+            if abs(p["chosen_reward"] - p["rejected_reward"]) > 0.3
+        ]
+
+        if len(filtered_pairs) < self.config.min_pairs_for_training:
+            print("Not enough data for training. Waiting for more interactions.")
+            return
+
+        new_model = self.train_dpo(filtered_pairs)
+
+        eval_results = self.evaluate_model(new_model)
+        if eval_results["win_rate_vs_current"] < 0.52:
+            print("New model not significantly better. Discarding.")
+            return
+
+        # Deploy to A/B test (10% traffic)
+        self.deploy_ab_test(new_model, traffic_fraction=0.1)
+        print(f"Model v{self.current_model_version + 1} deployed to 10% traffic")
+---/code---
+
+
+Privacy and Ethics
+------------------
+
+
+⚠️ Key Considerations for Educational AI Data
+
+  12. Student consent: Students must know their interactions are used for model improvement
+
+  13. Anonymization: Remove personally identifiable information before training
+
+  14. Minor protection: Extra safeguards for K-12 interactions (COPPA compliance)
+
+  15. Opt-out: Students must be able to opt out of data collection
+
+  16. Data retention: Define clear retention policies
+
+  17. Bias monitoring: Regular audits for demographic bias in model performance
+
+  18. Transparency: Publish how the model is trained and what data is used
+
+
+Recommended Readings
+
+
+  * Scaling Data-Constrained Language Models — How to maximize limited data
+
+  * RLHF Workflow: From Reward Modeling to Online RLHF — Continuous training
+
+  * Data Flywheels for LLMs — Strategic overview
+
+
+-----------------------------------------
+Module 9: Deployment & Inference at Scale
+-----------------------------------------
+
+
+Learning Objectives
+
+
+  * Deploy fine-tuned models for production inference
+
+  * Apply quantization for cost-efficient serving
+
+  * Optimize latency for real-time tutoring
+
+  * Build a cost model for self-hosted vs. API
+
+  * Implement model versioning and rollback
+
+
+Inference Stack Comparison
+--------------------------
+
+
+Tool	|	Best For	|	Throughput	|	Latency	|	Ease
+vLLM	|	Production at scale	|	Very high (PagedAttention)	|	Low	|	Medium
+TGI (HuggingFace)	|	Quick deployment	|	High	|	Low	|	Easy
+Ollama	|	Local dev/testing	|	Medium	|	Medium	|	Very easy
+SGLang	|	Complex pipelines	|	Very high	|	Very low	|	Medium
+
+
+Quantization for Production
+---------------------------
+
+
+python — quantization options
+
+---code---
+"""
+Quantization reduces model size and inference cost.
+Key trade-off: smaller = faster + cheaper, but slightly lower quality.
+"""
+
+# === Option 1: GPTQ (GPU inference) ===
+# Best for: production GPU serving
+# Compression: 4-bit, ~4x smaller
+# Quality loss: minimal for 8B+ models
+
+from transformers import AutoModelForCausalLM, GPTQConfig
+
+quantization_config = GPTQConfig(
+    bits=4,
+    dataset="wikitext2",    # Calibration dataset
+    group_size=128,         # Quantization granularity
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    "./coursera-tutor-merged",
+    quantization_config=quantization_config,
+    device_map="auto",
+)
+model.save_pretrained("./coursera-tutor-gptq-4bit")
+
+
+# === Option 2: AWQ (better for batched inference) ===
+# Best for: vLLM serving with high concurrency
+
+# === Option 3: GGUF (CPU/Mac inference, edge deployment) ===
+# Best for: development, edge cases, fallback
+# Convert using llama.cpp
+---/code---
+
+
+vLLM Deployment
+---------------
+
+
+bash — start vLLM server
+
+---code---
+# Start vLLM server:
+python -m vllm.entrypoints.openai.api_server \
+    --model ./coursera-tutor-awq-4bit \
+    --quantization awq \
+    --dtype float16 \
+    --max-model-len 4096 \
+    --gpu-memory-utilization 0.9 \
+    --tensor-parallel-size 1 \
+    --port 8000 \
+    --api-key your-secret-key
+---/code---
+
+
+python — production client code
+
+---code---
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8000/v1",
+    api_key="your-secret-key",
+)
+
+def tutor_response(student_message: str, conversation_history: list, student_state: dict) -> str:
+    """Production inference call to the tutor model."""
+    system_prompt = build_system_prompt(student_state)
+
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.extend(conversation_history[-10:])
+    messages.append({"role": "user", "content": student_message})
+
+    response = client.chat.completions.create(
+        model="./coursera-tutor-awq-4bit",
+        messages=messages,
+        max_tokens=512,
+        temperature=0.7,
+        stream=True,  # Stream for lower perceived latency
+    )
+
+    full_response = ""
+    for chunk in response:
+        if chunk.choices[0].delta.content:
+            full_response += chunk.choices[0].delta.content
+            yield chunk.choices[0].delta.content
+
+    return full_response
+---/code---
+
+
+Cost Analysis
+-------------
+
+
+python — self-hosted vs. API cost comparison
+
+---code---
+"""
+Cost model: Self-hosted fine-tuned model vs. API calls.
+"""
+
+def monthly_cost_comparison(
+    daily_interactions: int,
+    avg_input_tokens: int = 500,
+    avg_output_tokens: int = 300,
+):
+    monthly_interactions = daily_interactions * 30
+
+    # === Option A: Claude API (Sonnet) ===
+    api_input_cost_per_1k = 0.003
+    api_output_cost_per_1k = 0.015
+
+    api_monthly = monthly_interactions * (
+        avg_input_tokens / 1000 * api_input_cost_per_1k +
+        avg_output_tokens / 1000 * api_output_cost_per_1k
+    )
+
+    # === Option B: Self-hosted (1x A100 80GB with vLLM) ===
+    gpu_monthly = 2.50 * 24 * 30  # $1,800/month
+
+    # === Option C: Self-hosted (smaller instance) ===
+    gpu_monthly_small = 0.60 * 24 * 30  # $432/month
+
+    breakeven_interactions = gpu_monthly_small / (
+        avg_input_tokens / 1000 * api_input_cost_per_1k +
+        avg_output_tokens / 1000 * api_output_cost_per_1k
+    )
+
+    return {
+        "api_monthly_cost": f"${api_monthly:,.0f}",
+        "self_hosted_a100_monthly": f"${gpu_monthly:,.0f}",
+        "self_hosted_a10g_monthly": f"${gpu_monthly_small:,.0f}",
+        "breakeven_daily_interactions": f"{breakeven_interactions/30:,.0f}",
+        "recommendation": (
+            "Self-host" if monthly_interactions > breakeven_interactions
+            else "Use API"
+        ),
+    }
+
+# At 100k daily interactions, self-hosting saves ~10x vs API
+print(monthly_cost_comparison(daily_interactions=100_000))
+
+# At 1k daily interactions, API is simpler and cheaper
+print(monthly_cost_comparison(daily_interactions=1_000))
+---/code---
+
+
+Latency Optimization
+--------------------
+
+
+ℹ️ Latency Targets for Real-Time Tutoring
+First token: <500ms (perceived responsiveness) · Full response: <5s for typical responses · Tool calls: <2s additional per tool
+Techniques: speculative decoding (use a small draft model), prompt caching (reuse KV cache for system prompt), continuous batching (vLLM handles this), streaming (always stream in production).
+
+
+Recommended Readings
+
+
+  * vLLM: Efficient Memory Management for LLM Serving with PagedAttention
+
+  * GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers
+
+  * AWQ: Activation-aware Weight Quantization
+
+
+---------------------------
+Module 10: Capstone Project
+---------------------------
+
+
+Project Objective
+
+
+  * Build an end-to-end RL-tuned educational agent for a specific Coursera course domain
+
+  * This capstone brings together everything from Modules 1–9 into a deployable system
+
+
+Phase 1: Data & SFT (Days 1–3)
+------------------------------
+
+
+python — step 1: dataset and SFT
+
+---code---
+"""
+Step 1: Choose a domain and create your dataset.
+Suggested: Python programming (abundant data, verifiable rewards).
+"""
+
+# 1.1 Collect/create teaching conversations for your domain
+# Target: 5,000-10,000 high-quality examples
+# Sources:
+#   - Convert existing Coursera forum Q&As into teaching dialogues
+#   - Use Claude to generate synthetic teaching conversations (then filter)
+#   - Adapt open educational datasets
+
+# 1.2 Fine-tune with QLoRA (Module 2)
+# Target: Model that follows your teaching format consistently
+
+# 1.3 Evaluate SFT model
+# Does it: ask questions? use examples? check understanding? stay on topic?
+---/code---
+
+
+Phase 2: Preference Data & DPO (Days 4–6)
+----------------------------------------
+
+
+python — step 2: preference data and DPO
+
+---code---
+"""
+Step 2: Create preference data and run DPO.
+"""
+
+# 2.1 Generate preference pairs
+# Method A: Use SFT model to generate pairs, have domain experts rank them
+# Method B: Use Claude as judge to create initial preference pairs
+# Method C: Use verifiable rewards (for coding domain)
+
+def generate_preference_pair(model, tokenizer, prompt, judge_model):
+    """Generate two responses and have a judge pick the better one."""
+    responses = []
+    for _ in range(2):
+        output = model.generate(prompt, temperature=0.9)
+        responses.append(output)
+
+    judgment = judge_model.evaluate(
+        prompt=prompt,
+        response_a=responses[0],
+        response_b=responses[1],
+        criteria="Which response better helps the student understand the concept?"
+    )
+
+    return {
+        "prompt": prompt,
+        "chosen": responses[judgment.preferred],
+        "rejected": responses[1 - judgment.preferred],
+    }
+
+# 2.2 Run DPO training (Module 5)
+# 2.3 Evaluate: does DPO model produce better teaching than SFT model?
+---/code---
+
+
+Phase 3: GRPO for Reasoning (Days 7–9)
+--------------------------------------
+
+
+python — step 3: GRPO with verifiable rewards
+
+---code---
+"""
+Step 3: Apply GRPO for verifiable tasks in your domain.
+"""
+
+# For Python programming domain:
+# - Reward = does the code actually work?
+# - Bonus reward = does the explanation make sense?
+# - Bonus reward = is it pedagogically structured?
+
+# For math domain:
+# - Reward = is the final answer correct?
+# - Bonus reward = are intermediate steps shown?
+# - Bonus reward = is there error checking?
+
+# 3.1 Create verifiable reward function for your domain
+# 3.2 Run GRPO training (Module 6)
+# 3.3 Evaluate: does the model reason better? Show its work more?
+---/code---
+
+
+Phase 4: Agentic System (Days 10–12)
+------------------------------------
+
+
+python — step 4: agentic system with Gradio
+
+---code---
+"""
+Step 4: Wrap the RL-tuned model in an agentic framework.
+"""
+
+# 4.1 Implement student state tracking (Module 7)
+# 4.2 Add tool use (quiz generation, code execution)
+# 4.3 Implement the constitutional AI guardrails
+# 4.4 Build a simple web interface (Gradio or Streamlit)
+
+import gradio as gr
+
+def demo_interface():
+    """Simple demo interface for the capstone."""
+
+    with gr.Blocks(title="Coursera AI Tutor") as demo:
+        gr.Markdown("# Coursera AI Tutor (Capstone Demo)")
+
+        chatbot = gr.Chatbot(height=500)
+        msg = gr.Textbox(placeholder="Ask me anything about Python...")
+
+        with gr.Accordion("Student State (Debug)", open=False):
+            state_display = gr.JSON()
+
+        def respond(message, history):
+            response = tutor.generate_response(message)
+            history.append((message, response))
+            return "", history, tutor.student_state.__dict__
+
+        msg.submit(respond, [msg, chatbot], [msg, chatbot, state_display])
+
+    return demo
+
+# demo = demo_interface()
+# demo.launch()
+---/code---
+
+
+Phase 5: Deploy & Measure (Days 13–14)
+--------------------------------------
+
+
+python — step 5: deployment and evaluation
+
+---code---
+"""
+Step 5: Deploy and measure.
+"""
+
+# 5.1 Quantize model (AWQ or GPTQ)
+# 5.2 Deploy with vLLM
+# 5.3 Run evaluation suite:
+#     - Automated metrics (accuracy on verifiable tasks)
+#     - LLM-as-judge (teaching quality)
+#     - Human eval (if possible, have 5 people interact with it)
+# 5.4 Compare: base model vs. SFT vs. DPO vs. GRPO
+# 5.5 Write up results
+---/code---
+
+
+Phase 6: Strategy Memo
+----------------------
+
+
+Write a 2-3 page memo: "How Coursera Builds an AI Moat Through Reinforcement Learning"
+Cover: The opportunity (why RL-tuned models are the moat), Technical approach (SFT → DPO/GRPO → Data flywheel), Data advantage (how Coursera's scale enables continuous improvement), Competitive analysis (why competitors can't easily replicate this), Roadmap (6-month plan to production), Investment needed (team, compute, timeline, cost estimates), Risks (what could go wrong and how to mitigate).
+
+
+Evaluation Rubric
+-----------------
+
+
+Component	|	Weight	|	Criteria
+SFT model quality	|	20%	|	Follows teaching format, factually accurate
+DPO/GRPO improvement	|	25%	|	Measurable improvement over SFT baseline
+Agentic system design	|	20%	|	Tool use works, student state updates, adapts
+Deployment readiness	|	15%	|	Quantized, served, latency acceptable
+Strategy memo	|	20%	|	Clear, actionable, technically grounded
+
+
+----------
+Appendices
+----------
+
+
+Appendix A: Compute Budget Summary
+----------------------------------
+
+
+Module	|	Exercise	|	Min GPU	|	Time	|	Approx Cost
+1	|	Model exploration	|	1x A10G	|	1 hr	|	$1
+2	|	QLoRA SFT	|	1x A100 40GB	|	3 hrs	|	$8
+3	|	Reward model	|	1x A100 40GB	|	2 hrs	|	$6
+4	|	Full RLHF/PPO	|	2x A100 80GB	|	6 hrs	|	$50
+5	|	DPO training	|	1x A100 80GB	|	3 hrs	|	$10
+6	|	GRPO training	|	2x A100 80GB	|	5 hrs	|	$35
+7	|	Agentic system	|	1x A100 40GB	|	2 hrs	|	$5
+9	|	Deployment	|	1x A10G	|	2 hrs	|	$2
+10	|	Capstone	|	2x A100 80GB	|	10 hrs	|	$80
+Total	|		|		|	~35 hrs	|	~$200
+
+
+ℹ️ Budget Tip
+Skip Module 4 (full RLHF) and use DPO throughout. This reduces total cost to ~$120.
+
+
+Appendix B: Key Papers Reference List
+-------------------------------------
+
+
+  19. InstructGPT — Ouyang et al., 2022. arxiv.org/abs/2203.02155
+
+  20. DPO — Rafailov et al., 2023. arxiv.org/abs/2305.18290
+
+  21. DeepSeek-R1 — DeepSeek, 2025. arxiv.org/abs/2501.12948
+
+  22. Constitutional AI — Bai et al., 2022. arxiv.org/abs/2212.08073
+
+  23. LoRA — Hu et al., 2021. arxiv.org/abs/2106.09685
+
+  24. QLoRA — Dettmers et al., 2023. arxiv.org/abs/2305.14314
+
+  25. PPO — Schulman et al., 2017. arxiv.org/abs/1707.06347
+
+  26. ORPO — Hong et al., 2024. arxiv.org/abs/2403.07691
+
+  27. vLLM — Kwon et al., 2023. arxiv.org/abs/2309.06180
+
+  28. LIMA — Zhou et al., 2023. arxiv.org/abs/2305.11206
+
+
+Appendix C: Glossary
+--------------------
+
+
+SFT — Supervised Fine-Tuning — teaching a model new behaviors through examples
+RLHF — Reinforcement Learning from Human Feedback — optimizing a model using human preferences
+DPO — Direct Preference Optimization — a simpler alternative to RLHF that skips the reward model
+GRPO — Group Relative Policy Optimization — RL method that computes advantages from a group of samples
+LoRA — Low-Rank Adaptation — parameter-efficient fine-tuning using small injected matrices
+QLoRA — Quantized LoRA — combines 4-bit quantization with LoRA for extreme memory efficiency
+PPO — Proximal Policy Optimization — the RL algorithm used in RLHF
+KL divergence — Measures how much the fine-tuned model has drifted from the base model
+Reward hacking — When a model finds exploits in the reward function rather than genuinely improving
+Data flywheel — A self-reinforcing cycle where more usage generates more data, which improves the model, which attracts more users
+
+
+Course created May 2026. Model landscape and library versions evolve rapidly — verify against latest documentation before implementing.

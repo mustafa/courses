@@ -1,0 +1,3007 @@
+BUILDING AN AGENT NETWORK WITH CLAUDE MANAGED AGENTS
+====================================================
+
+===================================================
+BUILDING AN AGENT NETWORKWITH CLAUDE MANAGED AGENTS
+===================================================
+
+
+  A comprehensive, hands-on course for engineers who want to move beyond single-agent automation into a fully orchestrated multi-agent system — built from real production patterns.
+
+    For Mustafa Furniturewala · VP Engineering, Coursera
+    8 Modules · ~6.5 Hours Total
+    Fully Offline · No Dependencies
+
+
+
+
+--------------
+Course Modules
+--------------
+
+
+
+    1Architecture — Designing Your Agent Network45 min
+    2Setting Up the Claude Agent SDK30 min
+    3Building Specialist Agents90 min
+    4The Dispatcher — Orchestrating Everything60 min
+    5Scheduled Tasks & Automation60 min
+    6Memory, State & Learning45 min
+    7MCP — The Integration Layer60 min
+    8Capstone — Deploy Your Agent Network45 min
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Understand why a network of specialist agents outperforms a single monolithic agent
+
+          * Map each Cowork scheduled task to a specific agent role in the network
+
+          * Learn the three communication patterns: parent→child, peer-to-peer, and shared memory
+
+          * Understand how MCP servers function as the integration layer
+
+          * Build a mental model of session management and state persistence
+
+          * Apply the decision framework: when to split work across agents vs. keep it in one
+
+
+
+
+
+-----------------------------
+Why You Need an Agent Network
+-----------------------------
+
+
+    You already run 25+ automated tasks in Claude Cowork. You have a command-dispatcher that parses iMessage commands. You have research agents pulling news for you, your wife Zeesha, your kids Rehaan and Zara. You have trip planners for Iceland and Turkey, a tennis court booker, a Nike deal tracker. Each of these works independently — but they don't know about each other, can't share context, and can't coordinate on complex cross-domain tasks.
+
+    A managed agent network solves this. Instead of 25 isolated scheduled tasks, you build a graph of specialized agents that can delegate to each other, share a memory store, and be orchestrated by a central dispatcher. The result is an autonomous system that behaves more like a team of assistants than a collection of scripts.
+
+    Consider a realistic scenario: it's Tuesday morning, your family-calendar-event-notifier fires and detects that Rehaan has a soccer game Saturday that conflicts with your Fairbrae tennis booking. In the current Cowork setup, these two tasks have no awareness of each other. In an agent network, the calendar agent detects the conflict, signals the dispatcher, which instructs the browser agent to cancel the Fairbrae booking and look for an alternate slot — all before you wake up.
+
+
+---------------------------
+Agent Roles in Your Network
+---------------------------
+
+
+    Every agent in a network should have a single, well-defined responsibility. Here are the canonical roles mapped to your current Cowork tasks:
+
+
+Dispatcher Agent
+----------------
+
+
+    The dispatcher is the entry point for all requests — both from scheduled triggers and from your iMessage commands (the //claude prefix you use). It performs intent classification, routes to the right specialist agent, aggregates results, and handles errors. Think of it as the chief-of-staff who delegates to the right expert. Your current command-dispatcher task is the embryo of this — once you build the full network, that task becomes simply "send this message to the dispatcher."
+
+
+Calendar Agent
+--------------
+
+
+    Manages Google Calendar for the entire Furniturewala family — Mustafa, Zeesha, Rehaan (Stratford school), and Zara (Pinewood school). Detects conflicts, coordinates event timing, sends digest summaries. Replaces your family-calendar-event-notifier and the trip calendar sync agents (iceland-trip-calendar-sync, turkey-trip-calendar-sync).
+
+
+Email Agent
+-----------
+
+
+    Reads Gmail threads, classifies by urgency and topic, drafts responses in your voice, handles the subscription-charge-alert by scanning payment emails. Replaces your hourly-email-drafter and subscription-charge-alert tasks.
+
+
+Research Agent
+--------------
+
+
+    Web search, content summarization, press mention tracking, competitor monitoring. Powers your daily-news-digest, daily-genai-digest, daily-edtech-news-digest, online-presence-monitor, check-press-mentions, and weekly-claude-updates.
+
+
+Notification Agent
+------------------
+
+
+    Rate-limited iMessage sender. Only sends messages when genuinely important (you've already learned this lesson — a good agent doesn't spam). Powers urgent-news-midday, urgent-news-evening, and family text notifications. Enforces a configurable daily message budget per recipient.
+
+
+Kids Learning Agent
+-------------------
+
+
+    Generates age-appropriate content. For Zara (6th grade, Pinewood): personalized math and science problems. For Rehaan (Stratford): age-appropriate news and learning content. Replaces zaras-daily-learning-email and kids-daily-news-digest.
+
+
+Browser Agent
+-------------
+
+
+    Chrome automation for tasks that require navigating real websites: booking Fairbrae tennis Court 2 every Sunday (weekly-fairbrae-tennis), tracking the Nike Pegasus 42 price (nike-pegasus-42-deal-tracker), fetching restaurant recommendations for your trips (iceland-lunch-recs, iceland-dinner-recs).
+
+
+Code / Deploy Agent
+-------------------
+
+
+    Handles GitHub, Vercel deployments, file system operations. Powers your blog update tasks including check-press-mentions (which adds mentions to your blog) and online-presence-monitor.
+
+
+---------------------
+The Full Architecture
+---------------------
+
+
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      MUSTAFA'S AGENT NETWORK                            │
+│                                                                         │
+│  ┌──────────────┐    ┌──────────────────────────────────────────────┐  │
+│  │  iMessage    │    │              SCHEDULED TRIGGERS               │  │
+│  │ //claude cmd │    │  cron · APScheduler · Cowork scheduled tasks  │  │
+│  └──────┬───────┘    └────────────────────┬─────────────────────────┘  │
+│         │                                 │                             │
+│         └──────────────┬──────────────────┘                            │
+│                        ▼                                                │
+│              ┌─────────────────────┐                                   │
+│              │   DISPATCHER AGENT  │  ← Intent classification          │
+│              │  (claude-sonnet-4-6)│    Route · Aggregate · Retry      │
+│              └──────────┬──────────┘                                   │
+│                         │                                               │
+│          ┌──────────────┼──────────────────────┐                       │
+│          │              │                      │                        │
+│          ▼              ▼                      ▼                        │
+│  ┌──────────────┐ ┌──────────────┐  ┌──────────────────┐              │
+│  │ CALENDAR     │ │  EMAIL       │  │   RESEARCH       │              │
+│  │ AGENT        │ │  AGENT       │  │   AGENT          │              │
+│  │ sonnet-4-6   │ │  sonnet-4-6  │  │   haiku-3-5      │              │
+│  └──────┬───────┘ └──────┬───────┘  └────────┬─────────┘              │
+│         │                │                    │                         │
+│         │          ┌─────┼──────────┐         │                        │
+│         │          │     │          │         │                         │
+│         ▼          ▼     ▼          ▼         ▼                        │
+│  ┌──────────────┐ ┌────────────┐ ┌──────────────────┐                 │
+│  │ NOTIFICATION │ │  KIDS      │ │  BROWSER         │                 │
+│  │ AGENT        │ │  LEARNING  │ │  AGENT           │                 │
+│  │ haiku-3-5    │ │  AGENT     │ │  sonnet-4-6      │                 │
+│  └──────┬───────┘ └────────────┘ └────────┬─────────┘                 │
+│         │                                  │                            │
+│         │         ┌────────────────────────┘                           │
+│         │         │                                                     │
+│         ▼         ▼                                                     │
+│  ┌──────────────────────────────────────────────────────┐              │
+│  │                    MCP SERVER LAYER                   │              │
+│  │  Gmail  │  Google Calendar  │  iMessage  │  Chrome   │              │
+│  │  GitHub │  Vercel           │  Web Search│  File Sys │              │
+│  └──────────────────────────────────────────────────────┘              │
+│                                                                         │
+│         ┌──────────────────────────────────────┐                       │
+│         │         SHARED MEMORY STORE           │                       │
+│         │  User profile · Preferences           │                       │
+│         │  Task history · Cross-session context │                       │
+│         └──────────────────────────────────────┘                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+
+
+----------------------
+Communication Patterns
+----------------------
+
+
+
+Pattern 1: Parent → Child (Hierarchical)
+----------------------------------------
+
+
+    The most common pattern. The dispatcher (parent) creates a session with a specialist agent (child), passes context, waits for the result, then aggregates. The child has no knowledge of the dispatcher — it just receives a task and executes it. This is what you'll use for 80% of your workflows. The dispatcher calls the calendar agent, the calendar agent does its work and returns results, the dispatcher decides what to do next.
+
+
+Pattern 2: Peer-to-Peer (Event-Driven)
+--------------------------------------
+
+
+    Two agents at the same level communicate through a shared event bus or message queue. The calendar agent detects a conflict and publishes an event; the browser agent subscribes and handles the rebooking. This is more complex but enables truly autonomous behavior where agents react to each other's outputs without the dispatcher being in the loop for every micro-decision.
+
+
+Pattern 3: Shared Memory
+------------------------
+
+
+    Agents don't communicate directly but all read from and write to a shared memory store. The research agent adds a new press mention to memory; the blog-deploy agent checks memory on its next run and publishes it. The memory store is the coordination mechanism. This is the lowest-coupling pattern and the easiest to reason about — but it requires discipline to keep memory well-structured.
+
+
+----------------------------
+Session Management and State
+----------------------------
+
+
+    Each agent invocation in the Managed Agents SDK creates a session. Sessions are ephemeral by default — they start, run a conversation, and end. State persistence comes from three mechanisms:
+
+        * Memory stores: Workspace-scoped document stores that agents can read and write. Survive across sessions.
+
+        * External state: Your own databases, files, or config that agents access via MCP tools. Always persistent.
+
+        * Conversation context: Within a single session, all prior turns are in context. Across sessions, you need to load state explicitly.
+
+
+
+
+--------------------------------------
+Decision Framework: One Agent vs. Many
+--------------------------------------
+
+
+    A common mistake is over-splitting. Not every task needs its own agent. Use this framework:
+
+        * Use one agent when: the task is simple, sequential, uses 1–2 tools, completes in under 30 seconds, and doesn't need to be reused by other workflows.
+
+        * Use multiple agents when: subtasks are genuinely parallel, different subtasks need different tool access, you want to isolate failures (one agent crashing shouldn't kill everything), or you need different models for cost optimization (Haiku for cheap search, Sonnet for complex reasoning).
+
+        * Cost heuristic: A Haiku agent doing research costs ~10x less than Sonnet. For your daily-news-digest that runs 7 days a week, that difference compounds quickly. Use Haiku for fetch-and-summarize, Sonnet for synthesis and decision-making.
+
+
+
+
+      Mustafa's Current Setup
+      Your Cowork scheduled tasks already embody this architecture implicitly. The command-dispatcher is your dispatcher agent. The hourly-email-drafter is your email agent. The daily-news-digest family are all research agents. What you're missing is the coordination layer — the ability for these agents to talk to each other and share context. That's exactly what the Managed Agents SDK provides. By the end of this course, you'll have replaced 25 isolated tasks with a coherent network where every agent knows about the others.
+
+
+
+      Key Takeaway
+      Design your agent network around roles, not tasks. A role (Email Agent) is stable over time; specific tasks (draft a reply to this thread) are inputs to that role. Keep each agent narrowly focused, use the cheapest model that gets the job done, and let shared memory be the coordination mechanism for loosely-coupled agents. The dispatcher handles tight coupling when you need it.
+
+
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Install and configure the Anthropic Python SDK with managed agents support
+
+          * Understand the beta header requirement for the agents API
+
+          * Create your first agent with tools and configuration
+
+          * Understand the relationship between agents, environments, and sessions
+
+          * Send messages and handle SSE event streams correctly
+
+          * Run a complete "Hello World" managed agent end-to-end
+
+
+
+
+
+-------------------------------
+Installation and Authentication
+-------------------------------
+
+
+    The Managed Agents API is part of the standard Anthropic Python SDK. You need version 0.50.0 or later, which ships with the beta agents client. The API uses a special beta header — managed-agents-2026-04-01 — that activates the agents endpoints. The SDK handles this automatically when you use the client.beta.agents namespace.
+
+
+      bash · Installation
+
+---code---
+# Install the Anthropic SDK with agents support
+pip install anthropic>=0.50.0
+
+# Verify installation
+python -c "import anthropic; print(anthropic.__version__)"
+
+# Set your API key (never hardcode this)
+export ANTHROPIC_API_KEY="sk-ant-..."
+---/code---
+
+
+
+
+
+      python · client_setup.py
+
+---code---
+import anthropic
+import os
+
+# The client automatically reads ANTHROPIC_API_KEY from the environment.
+# The beta header for managed agents is injected automatically when you
+# access client.beta.agents — you don't need to set it manually.
+client = anthropic.Anthropic(
+    api_key=os.environ.get("ANTHROPIC_API_KEY"),
+)
+
+# Verify connectivity
+print(f"SDK version: {anthropic.__version__}")
+print("Client initialized successfully")
+---/code---
+
+
+
+
+
+-------------------------
+Creating Your First Agent
+-------------------------
+
+
+    An agent is a reusable configuration object — it defines the model, system prompt, available tools, MCP server connections, and token limits. Agents persist on Anthropic's infrastructure; you create them once and then instantiate sessions from them many times. Think of an agent as a class definition, and a session as an instance.
+
+
+      python · create_agent.py
+
+---code---
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Create a basic agent with bash and text_editor tools
+agent = client.beta.agents.create(
+    model="claude-sonnet-4-6",
+    name="hello-world-agent",
+    system="You are a helpful assistant. Be concise and precise.",
+    tools=[
+        {"type": "text_editor"},
+        {"type": "bash"},
+    ],
+    max_tokens=4096,
+)
+
+print(f"Agent created: {agent.id}")
+print(f"Agent name: {agent.name}")
+print(f"Model: {agent.model}")
+---/code---
+
+
+
+
+
+-----------------------
+Creating an Environment
+-----------------------
+
+
+    An environment is the execution sandbox for an agent session. It provides isolated compute, a file system, and tool access. Creating separate environments for production and development tasks prevents one runaway agent from affecting another's workspace. For your network, create one environment per logical domain: a comms-env for email/calendar/iMessage agents, a research-env for web search agents, a code-env for deploy agents.
+
+
+      python · create_environment.py
+
+---code---
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Create a named environment for communications agents
+comms_env = client.beta.environments.create(
+    name="comms-env",
+)
+print(f"Comms environment: {comms_env.id}")
+
+# Create a separate environment for research agents
+research_env = client.beta.environments.create(
+    name="research-env",
+)
+print(f"Research environment: {research_env.id}")
+
+# Save these IDs — you'll use them when creating sessions.
+# In production, store them in environment variables or a config file.
+---/code---
+
+
+
+
+
+--------------------------------------
+Creating Sessions and Sending Messages
+--------------------------------------
+
+
+    A session is a single conversation thread between a user and an agent. Sessions are ephemeral — they don't persist state automatically between runs. You create a session from an agent ID + environment ID, then use Server-Sent Events (SSE) to send messages and receive streaming responses.
+
+
+      python · session_basics.py
+
+---code---
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Assume agent and environment already exist
+AGENT_ID = "agt_01..."
+ENV_ID = "env_01..."
+
+# Create a new session
+session = client.beta.sessions.create(
+    agent_id=AGENT_ID,
+    environment_id=ENV_ID,
+)
+print(f"Session: {session.id}")
+
+# Open a streaming connection and send a message
+with client.beta.sessions.events.stream(session.id) as stream:
+    # Send the user message
+    client.beta.sessions.events.send(
+        session_id=session.id,
+        event={"type": "user.message", "text": "What tools do you have available?"},
+    )
+    # Iterate over SSE events
+    for event in stream:
+        if event.type == "agent.message.delta":
+            print(event.delta.text, end="", flush=True)
+        elif event.type == "agent.message.stop":
+            print()  # newline after streamed response
+            break
+---/code---
+
+
+
+
+
+-----------------------------
+Understanding SSE Event Types
+-----------------------------
+
+
+    The managed agents API uses Server-Sent Events for all agent communication. Understanding the event types is critical for building robust handlers:
+
+
+      python · event_handler.py — Full SSE Event Handler
+
+---code---
+import anthropic
+from typing import Optional
+
+def run_agent_session(
+    client: anthropic.Anthropic,
+    session_id: str,
+    message: str,
+    verbose: bool = False,
+) -> Optional[str]:
+    """Run a single turn in an agent session and return the full response."""
+    full_response = []
+
+    with client.beta.sessions.events.stream(session_id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session_id,
+            event={"type": "user.message", "text": message},
+        )
+
+        for event in stream:
+            if verbose:
+                print(f"[EVENT] {event.type}")
+
+            if event.type == "agent.message.delta":
+                # Streaming text chunk from the agent
+                full_response.append(event.delta.text)
+                print(event.delta.text, end="", flush=True)
+
+            elif event.type == "agent.tool.use":
+                # Agent is calling a tool (bash, text_editor, MCP, etc.)
+                if verbose:
+                    print(f"\n[TOOL] {event.tool_name}: {event.tool_input}")
+
+            elif event.type == "agent.tool.result":
+                # Tool returned a result; agent will continue from here
+                if verbose:
+                    print(f"\n[TOOL RESULT] {event.tool_result}")
+
+            elif event.type == "agent.message.stop":
+                # Agent has finished its turn
+                print()
+                break
+
+            elif event.type == "agent.error":
+                # Agent encountered an unrecoverable error
+                print(f"\n[ERROR] {event.error}")
+                return None
+
+    return "".join(full_response)
+---/code---
+
+
+
+
+
+----------------------------
+Complete Hello World Example
+----------------------------
+
+
+    Here is a complete, runnable example that creates an agent, an environment, a session, and runs a multi-turn conversation. This is the foundation for every specialist agent you'll build in Module 3.
+
+
+      python · hello_world_agent.py
+
+---code---
+import anthropic
+
+def main():
+    client = anthropic.Anthropic()
+
+    # 1. Create agent (do this once; reuse the ID)
+    agent = client.beta.agents.create(
+        model="claude-sonnet-4-6",
+        name="hello-world-agent",
+        system="You are a helpful assistant. Be concise and precise.",
+        tools=[{"type": "text_editor"}, {"type": "bash"}],
+        max_tokens=4096,
+    )
+    print(f"✓ Agent: {agent.id}")
+
+    # 2. Create environment
+    env = client.beta.environments.create(name="hello-env")
+    print(f"✓ Environment: {env.id}")
+
+    # 3. Create session
+    session = client.beta.sessions.create(
+        agent_id=agent.id,
+        environment_id=env.id,
+    )
+    print(f"✓ Session: {session.id}\n")
+
+    # 4. Send first message
+    print("User: Hello! What can you do?\n")
+    print("Agent: ", end="")
+    with client.beta.sessions.events.stream(session.id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session.id,
+            event={"type": "user.message", "text": "Hello! What can you do?"},
+        )
+        for event in stream:
+            if event.type == "agent.message.delta":
+                print(event.delta.text, end="", flush=True)
+            elif event.type == "agent.message.stop":
+                print("\n")
+                break
+
+    # 5. Send follow-up (session maintains conversation history)
+    print("User: Run a quick bash command to show today's date.\n")
+    print("Agent: ", end="")
+    with client.beta.sessions.events.stream(session.id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session.id,
+            event={"type": "user.message",
+                   "text": "Run a quick bash command to show today's date."},
+        )
+        for event in stream:
+            if event.type == "agent.message.delta":
+                print(event.delta.text, end="", flush=True)
+            elif event.type == "agent.message.stop":
+                print()
+                break
+
+if __name__ == "__main__":
+    main()
+---/code---
+
+
+
+
+
+      Mustafa's Current Setup
+      In Cowork mode, Anthropic handles all of this infrastructure for you — agent creation, environment management, session lifecycle. When you write a scheduled task in Cowork, Claude is essentially running as an agent internally. This module teaches you to replicate that exact mechanism using the public SDK, giving you full control over agent configuration, model selection, and deployment.
+
+
+
+      Key Takeaway
+      The agent→environment→session hierarchy maps to class→sandbox→instance. Create agents once, create environments per logical domain, and create a new session for each task invocation. Use SSE streaming for all communication — never wait for a blocking response. Always handle agent.error events gracefully so one bad turn doesn't crash your entire network.
+
+
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Build a production-ready Calendar Agent that manages the Furniturewala family calendar
+
+          * Create an Email Agent that reads, classifies, and drafts Gmail responses
+
+          * Implement a rate-limited Notification Agent for iMessage
+
+          * Build a Research Agent for news digests, press mentions, and competitor monitoring
+
+          * Create a Code/Deploy Agent for GitHub and Vercel workflows
+
+          * Implement a Browser Agent for booking Fairbrae courts and tracking deals
+
+          * Understand how MCP server configuration differs per specialist
+
+
+
+
+
+-----------------------
+Agent Design Principles
+-----------------------
+
+
+    Before diving into each specialist, understand the three elements that define a great system prompt for a specialist agent. First, identity and scope: tell the agent exactly who it is, what domain it owns, and what it must never touch. Second, operating constraints: rate limits, cost budgets, message frequency caps, and error behavior. Third, output format: what structured data the agent should return so the dispatcher can aggregate results predictably.
+
+    Every specialist agent you build should be independently testable. Before wiring it into the dispatcher, run it standalone with a representative input and verify the output. This is the same philosophy as unit testing — except your "unit" is a conversational agent that uses tools.
+
+
+----------------------------
+Specialist 1: Calendar Agent
+----------------------------
+
+
+    The Calendar Agent owns all calendar operations for the Furniturewala family. It connects to Google Calendar via MCP, understands family member names and their calendars, detects conflicts, and can create/update/delete events. This agent replaces the family-calendar-event-notifier task and all trip calendar sync agents.
+
+
+      python · agents/calendar_agent.py
+
+---code---
+import anthropic
+
+client = anthropic.Anthropic()
+
+CALENDAR_SYSTEM = """You are the Calendar Agent for the Furniturewala family.
+
+FAMILY MEMBERS:
+- Mustafa Furniturewala (mustafaf@gmail.com) — VP Engineering at Coursera
+- Zeesha Furniturewala — wife
+- Rehaan Furniturewala — son, attends Stratford School
+- Zara Furniturewala — daughter, attends Pinewood School (6th grade)
+Location: Sunnyvale, CA 94087
+
+YOUR RESPONSIBILITIES:
+1. List and summarize upcoming calendar events for any family member
+2. Detect scheduling conflicts and report them clearly
+3. Create, update, or delete events as instructed
+4. Coordinate trip-related calendar blocks (Iceland, Turkey upcoming)
+5. Generate daily digest of newly added events for the family
+
+OPERATING RULES:
+- NEVER delete events without explicit confirmation
+- When detecting conflicts, report both events and their owners
+- For school events: Rehaan → Stratford calendar, Zara → Pinewood calendar
+- Always include timezone (America/Los_Angeles) in event details
+- Return structured output with: event_count, conflicts[], new_events[], summary
+
+CONFLICT DETECTION:
+Check for overlaps within ±30 minutes for travel time. Flag any conflict
+between Mustafa's work events and family events as HIGH priority.
+
+OUTPUT FORMAT (always return valid JSON at the end of your response):
+{
+  "events_found": ,
+  "conflicts": [{"event1": str, "event2": str, "severity": "high|medium|low"}],
+  "new_events": [{"title": str, "date": str, "attendees": [str]}],
+  "summary": str,
+  "action_taken": str
+}"""
+
+calendar_agent = client.beta.agents.create(
+    model="claude-sonnet-4-6",
+    name="calendar-agent",
+    system=CALENDAR_SYSTEM,
+    tools=[
+        {"type": "bash"},
+        {"type": "text_editor"},
+    ],
+    mcp_servers=[{
+        "name": "google-calendar",
+        "url": "https://mcp.googleapis.com/calendar/v1",
+        "auth": {
+            "type": "oauth2",
+            "credentials_env": "GOOGLE_CALENDAR_CREDENTIALS",
+        },
+    }],
+    max_tokens=4096,
+)
+
+print(f"Calendar agent ready: {calendar_agent.id}")
+
+# Save agent ID for reuse
+with open(".agent_ids", "a") as f:
+    f.write(f"CALENDAR_AGENT_ID={calendar_agent.id}\n")
+---/code---
+
+
+
+
+
+      python · agents/calendar_agent.py (continued) — Running a session
+
+---code---
+import anthropic
+import json
+from datetime import datetime, timedelta
+
+def run_calendar_digest(client, agent_id, env_id, days_ahead=7):
+    """Run a daily calendar digest for the Furniturewala family."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    end_date = (datetime.now() + timedelta(days=days_ahead)).strftime("%Y-%m-%d")
+
+    session = client.beta.sessions.create(
+        agent_id=agent_id,
+        environment_id=env_id,
+    )
+
+    prompt = f"""Check all family calendars from {today} to {end_date}.
+    1. List all upcoming events grouped by day
+    2. Flag any scheduling conflicts
+    3. Highlight any new events added in the last 24 hours
+    4. Note any Rehaan (Stratford) or Zara (Pinewood) school events
+    5. Return your structured JSON summary at the end."""
+
+    response_chunks = []
+    with client.beta.sessions.events.stream(session.id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session.id,
+            event={"type": "user.message", "text": prompt},
+        )
+        for event in stream:
+            if event.type == "agent.message.delta":
+                response_chunks.append(event.delta.text)
+            elif event.type == "agent.message.stop":
+                break
+
+    full_response = "".join(response_chunks)
+
+    # Extract JSON from response
+    try:
+        json_start = full_response.rfind("{")
+        json_end = full_response.rfind("}") + 1
+        result = json.loads(full_response[json_start:json_end])
+    except (json.JSONDecodeError, ValueError):
+        result = {"summary": full_response, "error": "Failed to parse JSON"}
+
+    return result
+---/code---
+
+
+
+
+
+-------------------------
+Specialist 2: Email Agent
+-------------------------
+
+
+    The Email Agent handles all Gmail operations: reading threads, classifying by urgency and topic, drafting responses in Mustafa's voice, and scanning for subscription charges. This replaces the hourly-email-drafter and subscription-charge-alert tasks. The key design challenge is ensuring it drafts in Mustafa's voice — the system prompt should include explicit style guidance.
+
+
+      python · agents/email_agent.py
+
+---code---
+import anthropic
+
+client = anthropic.Anthropic()
+
+EMAIL_SYSTEM = """You are the Email Agent for Mustafa Furniturewala (mustafaf@gmail.com).
+VP Engineering at Coursera. Based in Sunnyvale, CA.
+
+YOUR CAPABILITIES:
+- Search Gmail threads by sender, subject, date, labels
+- Read full thread content
+- Create draft responses (NEVER send — only draft)
+- Label and archive threads
+- Scan for subscription/billing emails
+- Extract action items from emails
+
+EMAIL CLASSIFICATION:
+Priority 1 (HIGH) — respond within 2h: Coursera leadership, direct reports, family
+Priority 2 (MED) — respond within 24h: vendors, colleagues, school communications
+Priority 3 (LOW) — respond within 72h: newsletters, digests, cold outreach
+IGNORE: Marketing, spam, automated notifications without action items
+
+MUSTAFA'S EMAIL VOICE:
+- Professional but direct. No fluff.
+- Uses "Thanks," as sign-off for most emails
+- Signs as "Mustafa"
+- Short paragraphs, often just 2-3 sentences
+- Bullet points for lists, not prose
+- Doesn't use exclamation marks in professional contexts
+
+SUBSCRIPTION SCAN:
+When scanning for subscriptions, look for emails from:
+Stripe, PayPal, Apple, Google, Amazon, Netflix, Spotify, Adobe, GitHub,
+Vercel, and any email with subject containing "renewal", "invoice", "charge",
+"subscription", or "billing" from the last 7 days.
+
+OUTPUT FORMAT:
+{
+  "threads_scanned": int,
+  "high_priority": [{"subject": str, "from": str, "suggested_action": str}],
+  "drafts_created": [{"thread_id": str, "subject": str, "preview": str}],
+  "subscriptions_found": [{"service": str, "amount": str, "date": str}],
+  "summary": str
+}"""
+
+email_agent = client.beta.agents.create(
+    model="claude-sonnet-4-6",
+    name="email-agent",
+    system=EMAIL_SYSTEM,
+    tools=[{"type": "bash"}],
+    mcp_servers=[{
+        "name": "gmail",
+        "url": "https://mcp.googleapis.com/gmail/v1",
+        "auth": {
+            "type": "oauth2",
+            "credentials_env": "GOOGLE_GMAIL_CREDENTIALS",
+        },
+    }],
+    max_tokens=8192,  # Higher limit for reading full email threads
+)
+
+def run_email_sweep(client, agent_id, env_id, hours_back=4):
+    """Run a 4-hour email sweep and draft responses."""
+    session = client.beta.sessions.create(
+        agent_id=agent_id,
+        environment_id=env_id,
+    )
+    prompt = f"""Perform a {hours_back}-hour email sweep:
+1. Search Gmail for unread threads from the last {hours_back} hours
+2. Classify each thread by priority
+3. For Priority 1 and 2 threads, create draft responses in my voice
+4. Scan for any subscription or billing emails
+5. Return your structured JSON summary"""
+
+    response_chunks = []
+    with client.beta.sessions.events.stream(session.id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session.id,
+            event={"type": "user.message", "text": prompt},
+        )
+        for event in stream:
+            if event.type == "agent.message.delta":
+                response_chunks.append(event.delta.text)
+            elif event.type == "agent.message.stop":
+                break
+    return "".join(response_chunks)
+---/code---
+
+
+
+
+
+--------------------------------
+Specialist 3: Notification Agent
+--------------------------------
+
+
+    The Notification Agent is the most safety-critical specialist in your network. It is the only agent with permission to send iMessages to your family. Getting this wrong means spamming Zeesha, Rehaan, and Zara with noise — which defeats the entire purpose. The design principle here is conservative by default: when in doubt, don't send. Include explicit daily message budget enforcement in the system prompt.
+
+
+      python · agents/notification_agent.py
+
+---code---
+import anthropic
+from datetime import datetime
+from collections import defaultdict
+
+# In-memory rate limit tracker (use Redis in production)
+_message_counts: dict = defaultdict(lambda: {"count": 0, "date": ""})
+
+NOTIFICATION_SYSTEM = """You are the Notification Agent for Mustafa Furniturewala.
+You manage outbound iMessage communications to family members.
+
+FAMILY CONTACTS:
+- Zeesha (wife): +1-XXX-XXX-XXXX
+- Rehaan (son): +1-XXX-XXX-XXXX
+- Zara (daughter): +1-XXX-XXX-XXXX
+- Mustafa himself: +1-XXX-XXX-XXXX
+
+DAILY MESSAGE BUDGET (STRICT LIMITS — never exceed):
+- Zeesha: max 3 messages/day
+- Rehaan: max 2 messages/day
+- Zara: max 2 messages/day
+- Self (Mustafa): max 5 messages/day
+
+WHAT QUALIFIES AS SEND-WORTHY (must meet at least one):
+- Safety alert: urgent news affecting Sunnyvale 94087
+- Schedule change: conflict or update to a confirmed family event
+- Action required: something time-sensitive a family member must do TODAY
+- Trip update: changes to Iceland or Turkey trip plans
+- New calendar event added affecting the whole family
+
+WHAT DOES NOT QUALIFY (never send these):
+- General news summaries (use email digest instead)
+- Non-urgent reminders (use calendar instead)
+- Duplicate of information already sent today
+- Anything that can wait until the morning digest email
+
+MESSAGE FORMAT:
+Keep messages under 160 characters when possible.
+Prefix urgent safety messages with [ALERT].
+Always include relevant action if one is needed.
+
+BEFORE SENDING: Always check your daily count for the recipient.
+If at limit, escalate to email digest instead of sending iMessage."""
+
+notification_agent = client.beta.agents.create(
+    model="claude-haiku-3-5",  # Haiku is fast and cheap for simple sends
+    name="notification-agent",
+    system=NOTIFICATION_SYSTEM,
+    tools=[{"type": "bash"}],
+    mcp_servers=[{
+        "name": "imessage",
+        "url": "http://localhost:7777",  # Local iMessage MCP server
+    }],
+    max_tokens=1024,  # Short responses — this agent sends messages, not essays
+)
+
+def send_notification(client, agent_id, env_id, recipient, content, urgency="normal"):
+    """Ask the notification agent to evaluate and potentially send a message."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    current_count = _message_counts[recipient]["count"] if _message_counts[recipient]["date"] == today else 0
+
+    session = client.beta.sessions.create(agent_id=agent_id, environment_id=env_id)
+    prompt = f"""Evaluate and send this notification if it qualifies:
+Recipient: {recipient}
+Urgency: {urgency}
+Current message count today: {current_count}
+Content: {content}
+
+Only send if it meets the criteria in your instructions. Report what you decided."""
+
+    chunks = []
+    with client.beta.sessions.events.stream(session.id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session.id,
+            event={"type": "user.message", "text": prompt},
+        )
+        for ev in stream:
+            if ev.type == "agent.message.delta": chunks.append(ev.delta.text)
+            elif ev.type == "agent.message.stop": break
+    return "".join(chunks)
+---/code---
+
+
+
+
+
+----------------------------
+Specialist 4: Research Agent
+----------------------------
+
+
+    The Research Agent is the workhorse of your daily information system. It powers 7 of your 25+ scheduled tasks: daily-news-digest, daily-genai-digest, daily-edtech-news-digest, school-events-digest, online-presence-monitor, check-press-mentions, and weekly-claude-updates. Using Haiku for initial search and fetch operations, then Sonnet for synthesis, is the cost-optimal approach.
+
+
+      python · agents/research_agent.py
+
+---code---
+import anthropic
+
+RESEARCH_SYSTEM = """You are the Research Agent for Mustafa Furniturewala.
+You gather, verify, and synthesize information from the web.
+
+RESEARCH DOMAINS (in priority order):
+1. Generative AI — new models, papers, Anthropic news, Claude updates
+2. EdTech — Coursera strategy, competitors (Udemy, LinkedIn Learning, Pluralsight, edX)
+3. General tech — VP Engineering relevant: platform engineering, LLM infrastructure
+4. Local — Sunnyvale 94087 events, safety, school news for Pinewood and Stratford
+5. Personal brand — mentions of "Mustafa Furniturewala" across web, LinkedIn, GitHub
+
+OUTPUT REQUIREMENTS:
+- Bullet-point summaries, max 3 bullets per story
+- Include source URL for every item
+- Flag as [NEW] if not seen in last 7 days
+- Flag as [URGENT] if time-sensitive (safety, breaking news)
+- Rate importance: ⭐ nice-to-know, ⭐⭐ useful, ⭐⭐⭐ must-read
+
+PRESS MENTION PROTOCOL:
+If you find any mention of "Mustafa Furniturewala" or "mustafaf":
+1. Record the URL, title, publication date, context
+2. Return it in the mentions[] field of your JSON output
+3. If it is positive, suggest a blog post title based on it
+
+EDTECH COMPETITOR TRACKING:
+For Coursera competitors, look for: product launches, pricing changes,
+executive moves, partnership announcements, earnings reports."""
+
+research_agent = client.beta.agents.create(
+    model="claude-haiku-3-5",  # Cost-efficient for search-heavy tasks
+    name="research-agent",
+    system=RESEARCH_SYSTEM,
+    tools=[
+        {"type": "bash"},
+        {"type": "text_editor"},
+    ],
+    mcp_servers=[
+        {"name": "web-search", "url": "http://localhost:8001"},
+        {"name": "web-fetch", "url": "http://localhost:8002"},
+    ],
+    max_tokens=8192,
+)
+
+def run_genai_digest(client, agent_id, env_id):
+    """Daily GenAI digest — replaces daily-genai-digest Cowork task."""
+    session = client.beta.sessions.create(agent_id=agent_id, environment_id=env_id)
+    prompt = """Research today's top generative AI news:
+1. Search for "generative AI news today", "Claude Anthropic", "GPT OpenAI", "Gemini Google"
+2. Identify top 5-7 most significant developments
+3. For each: brief summary, source URL, importance rating
+4. Highlight anything directly relevant to my work at Coursera
+5. Note any model releases, pricing changes, or API updates"""
+
+    chunks = []
+    with client.beta.sessions.events.stream(session.id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session.id,
+            event={"type": "user.message", "text": prompt},
+        )
+        for ev in stream:
+            if ev.type == "agent.message.delta": chunks.append(ev.delta.text)
+            elif ev.type == "agent.message.stop": break
+    return "".join(chunks)
+---/code---
+
+
+
+
+
+---------------------------
+Specialist 5: Browser Agent
+---------------------------
+
+
+    The Browser Agent handles tasks that require real browser interaction — not just API calls. Booking Fairbrae Tennis Court 2 every Sunday requires navigating a reservation portal. Tracking the Nike Pegasus 42 price requires loading a JavaScript-heavy product page. Fetching Iceland restaurant recommendations requires interacting with TripAdvisor or similar. This agent uses Chrome automation via MCP.
+
+
+      python · agents/browser_agent.py
+
+---code---
+import anthropic
+
+BROWSER_SYSTEM = """You are the Browser Agent for Mustafa Furniturewala.
+You navigate real websites using Chrome automation.
+
+KNOWN BOOKMARKED TASKS:
+
+FAIRBRAE TENNIS BOOKING:
+- Target: Fairbrae Recreation Center, Sunnyvale CA
+- Preferred: Court 2, Sundays, early morning if available
+- Fallback: Court 1, any Sunday slot
+- If fully booked: report back, do NOT book an alternative day
+- Booking portal URL: stored in your bash environment as $FAIRBRAE_URL
+
+NIKE PEGASUS 42 DEAL TRACKER:
+- Target price threshold: $100 or below (currently tracking)
+- Check nike.com and runningwarehouse.com
+- Size: 11.5 US men's
+- If price drops below threshold: mark as DEAL_FOUND in output
+- Check frequency: weekly (you'll be called automatically)
+
+TRIP RESEARCH (Iceland, Turkey):
+- When asked for restaurant/activity recs, use TripAdvisor and Google Maps
+- Filter by: highly rated (4.0+), open during trip dates
+- For Iceland: Reykjavik focus unless specific region requested
+- For Turkey: Istanbul focus unless specific region requested
+
+OPERATING RULES:
+- Never enter payment information on any site
+- If a site requires login, check bash environment for stored credentials
+- Screenshot key pages for verification before submitting forms
+- If booking fails 3 times, report failure, don't retry
+- Return confirmation numbers when available"""
+
+browser_agent = client.beta.agents.create(
+    model="claude-sonnet-4-6",  # Sonnet for complex navigation decisions
+    name="browser-agent",
+    system=BROWSER_SYSTEM,
+    tools=[{"type": "bash"}],
+    mcp_servers=[{
+        "name": "chrome",
+        "url": "http://localhost:9222",  # Chrome DevTools Protocol MCP
+    }],
+    max_tokens=4096,
+)
+
+def book_tennis_court(client, agent_id, env_id, target_date: str):
+    """Book Fairbrae Court 2 for the given Sunday date."""
+    session = client.beta.sessions.create(agent_id=agent_id, environment_id=env_id)
+    prompt = f"""Book Fairbrae Tennis Court 2 for {target_date} (Sunday).
+Steps:
+1. Navigate to the Fairbrae booking portal ($FAIRBRAE_URL)
+2. Log in with stored credentials
+3. Find Court 2 availability for {target_date}
+4. Select the earliest available morning slot (before 10am if possible)
+5. Complete the booking (no payment required for residents)
+6. Screenshot the confirmation page
+7. Return the confirmation number and time slot"""
+
+    chunks = []
+    with client.beta.sessions.events.stream(session.id) as stream:
+        client.beta.sessions.events.send(
+            session_id=session.id,
+            event={"type": "user.message", "text": prompt},
+        )
+        for ev in stream:
+            if ev.type == "agent.message.delta": chunks.append(ev.delta.text)
+            elif ev.type == "agent.message.stop": break
+    return "".join(chunks)
+---/code---
+
+
+
+
+
+---------------------------------
+Specialist 6: Code / Deploy Agent
+---------------------------------
+
+
+    The Code Agent handles your technical workflows: reading files, writing code, running git commands, deploying to Vercel. It's particularly useful for the blog automation — when the research agent finds a new press mention, the code agent can draft and publish a corresponding blog post. This agent should have access to bash, text_editor, and your GitHub/Vercel MCP servers.
+
+
+      python · agents/code_agent.py
+
+---code---
+CODE_SYSTEM = """You are the Code and Deploy Agent for Mustafa Furniturewala.
+You manage code, content, and deployments.
+
+REPOSITORIES:
+- Personal blog: github.com/mustafafurniturewala/blog (Vercel-deployed)
+- Home automation scripts: ~/agent-network/ (local)
+- Config files: ~/.config/agent-network/
+
+BLOG WORKFLOW (for press mentions):
+1. Receive press mention details from Research Agent
+2. Draft a short blog post (300-500 words) in Mustafa's voice
+3. Create a new MDX file in blog/content/press/
+4. Include: mention source, date, context, Mustafa's brief comment
+5. Run git add, commit, push
+6. Vercel will auto-deploy on push to main
+7. Return the deployed URL
+
+DEPLOYMENT RULES:
+- Always run tests before deploying: npm test or pytest
+- Never deploy with failing tests
+- Use descriptive commit messages
+- Tag releases for major changes: git tag v{date}-{feature}
+- If deploy fails, roll back immediately: git revert HEAD
+
+FILE MANAGEMENT:
+- Write clean, documented code
+- Use Mustafa's preferred patterns (check existing files for style)
+- Log all file changes to ~/.config/agent-network/file_changes.log"""
+
+code_agent = client.beta.agents.create(
+    model="claude-sonnet-4-6",
+    name="code-agent",
+    system=CODE_SYSTEM,
+    tools=[
+        {"type": "bash"},
+        {"type": "text_editor"},
+    ],
+    mcp_servers=[
+        {"name": "github", "url": "http://localhost:8010"},
+        {"name": "vercel", "url": "http://localhost:8011"},
+    ],
+    max_tokens=8192,
+)
+---/code---
+
+
+
+
+
+      Mustafa's Current Setup
+      Your 25+ Cowork tasks map almost perfectly to these 6 specialists: Calendar Agent handles family-calendar-event-notifier and all trip calendar syncs. Email Agent handles hourly-email-drafter and subscription-charge-alert. Notification Agent handles urgent-news-midday, urgent-news-evening, and family texts. Research Agent handles all 7 news digest and monitoring tasks. Browser Agent handles weekly-fairbrae-tennis and nike-pegasus-42-deal-tracker. Code Agent handles blog deployments and press mentions. The Kids Learning Agent (zaras-daily-learning-email, kids-daily-news-digest, school-events-digest) would be a 7th specialist built on a similar pattern to the Research Agent but with age-appropriate content filters.
+
+
+
+      Key Takeaway
+      Each specialist is defined by three things: its system prompt (the complete behavioral contract), its tool access (what it can do), and its model choice (cost vs. capability tradeoff). Haiku for Notification and simple research tasks saves significant cost at scale. Sonnet for Calendar, Email, Code, and Browser where reasoning quality matters. Always include an explicit output format specification in the system prompt — structured JSON output from specialists is what makes the dispatcher's job tractable.
+
+
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Design and implement the central dispatcher that routes all requests
+
+          * Build an intent classifier using Claude's reasoning capabilities
+
+          * Execute multiple specialist agents concurrently with asyncio
+
+          * Aggregate results from multiple agents into coherent output
+
+          * Implement retry logic and graceful error handling
+
+          * Connect the dispatcher to the iMessage command-dispatcher workflow
+
+          * Handle complex multi-agent workflows like trip planning
+
+
+
+
+
+---------------------
+The Dispatcher's Role
+---------------------
+
+
+    The dispatcher is the brain of the network. It receives all incoming requests — from cron schedules, from iMessage //claude commands, from other agents — and decides which specialists to invoke, in what order, and how to combine their results. A great dispatcher is stateless: it doesn't hold domain knowledge itself, it holds routing knowledge. "This request smells like a calendar conflict — route to Calendar Agent." "This request needs research + email — run them concurrently, then merge."
+
+    Your current Cowork command-dispatcher task already does this for iMessage commands. The difference is that in your network, the dispatcher can invoke real persistent agents rather than just calling Claude once per command. The dispatcher itself runs as an agent, which means it can use tools, call bash for routing logic, and maintain conversational context across a session.
+
+
+-----------------------------------
+Intent Classification System Prompt
+-----------------------------------
+
+
+    The dispatcher's system prompt is the most important configuration in your entire network. It defines the routing table, the priority rules, and the aggregation logic. Here is a production-quality dispatcher system prompt:
+
+
+      python · agents/dispatcher.py — System Prompt
+
+---code---
+DISPATCHER_SYSTEM = """You are the Master Dispatcher for Mustafa Furniturewala's agent network.
+You classify incoming requests and route them to specialist agents.
+
+AVAILABLE SPECIALISTS AND THEIR CAPABILITIES:
+1. calendar-agent: Google Calendar CRUD, conflict detection, family scheduling
+2. email-agent: Gmail search, read, draft (no send), subscription alerts
+3. notification-agent: iMessage send (rate-limited), family alerts
+4. research-agent: Web search, news digest, press mentions, competitor tracking
+5. browser-agent: Chrome automation, Fairbrae booking, deal tracking, trip research
+6. code-agent: File system, git, Vercel deploy, blog posts
+7. kids-learning-agent: Content for Rehaan (Stratford) and Zara (Pinewood, 6th grade)
+
+ROUTING RULES:
+"schedule" / "calendar" / "event" / "conflict" → calendar-agent
+"email" / "gmail" / "draft" / "reply" / "inbox" / "subscription" → email-agent
+"send message" / "text" / "alert" / "urgent" / "notify family" → notification-agent
+"news" / "digest" / "research" / "find" / "search" / "mentions" → research-agent
+"book" / "tennis" / "Fairbrae" / "nike" / "price" / "website" / "browse" → browser-agent
+"deploy" / "blog" / "code" / "github" / "vercel" / "file" → code-agent
+"Rehaan" / "Zara" / "school" / "learning" / "math" / "kids" → kids-learning-agent
+
+PARALLEL EXECUTION TRIGGERS:
+When a request involves multiple domains, run agents concurrently:
+- "Morning digest" → [research-agent, calendar-agent, email-agent] in parallel
+- "Trip planning" → [research-agent, calendar-agent, browser-agent] in parallel
+- "Weekly review" → [email-agent, research-agent, calendar-agent] in parallel
+
+COMMAND DISPATCHER PROTOCOL (from iMessage //claude commands):
+Parse the command after //claude and route accordingly.
+Examples:
+  "//claude book tennis Sunday" → browser-agent (Fairbrae booking)
+  "//claude any emails from Coursera leadership?" → email-agent
+  "//claude what's on the family calendar this week?" → calendar-agent
+  "//claude news on Anthropic today" → research-agent
+
+AGGREGATION RULES:
+- Combine specialist outputs into a single coherent response
+- Lead with the most actionable information
+- Use clear section headers per specialist domain
+- If a specialist failed, note it but don't let it block other results
+- Maximum response length: 2000 characters for iMessage, unlimited for email
+
+ERROR HANDLING:
+If a specialist fails: log the error, continue with others, note the failure in output.
+If all specialists fail: return a brief error with manual fallback instructions.
+Never surface raw stack traces to the user.
+
+OUTPUT FORMAT:
+{
+  "routing_decision": [{"agent": str, "reason": str, "priority": "parallel|sequential"}],
+  "results": {: },
+  "aggregated_summary": str,
+  "errors": [{"agent": str, "error": str}],
+  "actions_taken": [str]
+}"""
+---/code---
+
+
+
+
+
+-------------------------
+Dispatcher Implementation
+-------------------------
+
+
+    The dispatcher coordinates all specialist agents. Here is the full implementation using Python's asyncio for concurrent agent execution:
+
+
+      python · dispatcher/main.py — Full Dispatcher
+
+---code---
+import anthropic
+import asyncio
+import json
+import logging
+from typing import Optional
+from dataclasses import dataclass
+from concurrent.futures import ThreadPoolExecutor
+
+logger = logging.getLogger("dispatcher")
+
+@dataclass
+class AgentConfig:
+    agent_id: str
+    environment_id: str
+    name: str
+    timeout_seconds: int = 120
+
+class AgentDispatcher:
+    """Central dispatcher for the Furniturewala agent network."""
+
+    def __init__(self, config_path: str = "config/agents.json"):
+        self.client = anthropic.Anthropic()
+        self.agents: dict[str, AgentConfig] = {}
+        self.dispatcher_agent_id: Optional[str] = None
+        self.dispatcher_env_id: Optional[str] = None
+        self._load_config(config_path)
+
+    def _load_config(self, config_path: str):
+        with open(config_path) as f:
+            config = json.load(f)
+        self.dispatcher_agent_id = config["dispatcher_agent_id"]
+        self.dispatcher_env_id = config["dispatcher_env_id"]
+        for name, cfg in config["agents"].items():
+            self.agents[name] = AgentConfig(
+                agent_id=cfg["agent_id"],
+                environment_id=cfg["environment_id"],
+                name=name,
+                timeout_seconds=cfg.get("timeout_seconds", 120),
+            )
+
+    def _run_specialist(self, agent_name: str, prompt: str) -> dict:
+        """Run a single specialist agent and return its result."""
+        cfg = self.agents.get(agent_name)
+        if not cfg:
+            return {"error": f"Unknown agent: {agent_name}"}
+
+        try:
+            session = self.client.beta.sessions.create(
+                agent_id=cfg.agent_id,
+                environment_id=cfg.environment_id,
+            )
+            chunks = []
+            with self.client.beta.sessions.events.stream(session.id) as stream:
+                self.client.beta.sessions.events.send(
+                    session_id=session.id,
+                    event={"type": "user.message", "text": prompt},
+                )
+                for event in stream:
+                    if event.type == "agent.message.delta":
+                        chunks.append(event.delta.text)
+                    elif event.type == "agent.message.stop":
+                        break
+            return {"agent": agent_name, "result": "".join(chunks), "status": "ok"}
+
+        except Exception as e:
+            logger.error(f"Specialist {agent_name} failed: {e}")
+            return {"agent": agent_name, "error": str(e), "status": "failed"}
+
+    def run_parallel(self, agent_tasks: list[tuple[str, str]]) -> list[dict]:
+        """Run multiple agents concurrently. agent_tasks = [(agent_name, prompt), ...]"""
+        with ThreadPoolExecutor(max_workers=min(len(agent_tasks), 6)) as executor:
+            futures = [
+                executor.submit(self._run_specialist, name, prompt)
+                for name, prompt in agent_tasks
+            ]
+            return [f.result() for f in futures]
+
+    def dispatch(self, user_request: str, source: str = "scheduler") -> dict:
+        """Main dispatch entry point. Routes request, runs specialists, aggregates."""
+        logger.info(f"Dispatching [{source}]: {user_request[:80]}...")
+
+        # Step 1: Ask dispatcher agent to classify and plan
+        dispatch_session = self.client.beta.sessions.create(
+            agent_id=self.dispatcher_agent_id,
+            environment_id=self.dispatcher_env_id,
+        )
+        plan_prompt = f"""Request from {source}: {user_request}
+
+Classify this request and return a JSON routing plan:
+{{
+  "agents_needed": ["agent1", "agent2"],
+  "execution": "parallel" or "sequential",
+  "prompts": {{"agent1": "specific prompt for agent1", "agent2": "..."}}
+}}"""
+
+        plan_chunks = []
+        with self.client.beta.sessions.events.stream(dispatch_session.id) as stream:
+            self.client.beta.sessions.events.send(
+                session_id=dispatch_session.id,
+                event={"type": "user.message", "text": plan_prompt},
+            )
+            for ev in stream:
+                if ev.type == "agent.message.delta": plan_chunks.append(ev.delta.text)
+                elif ev.type == "agent.message.stop": break
+
+        plan_text = "".join(plan_chunks)
+
+        try:
+            j_start = plan_text.find("{"); j_end = plan_text.rfind("}") + 1
+            plan = json.loads(plan_text[j_start:j_end])
+        except:
+            return {"error": "Dispatcher failed to produce routing plan", "raw": plan_text}
+
+        # Step 2: Execute specialist agents
+        agent_tasks = [
+            (agent, plan["prompts"][agent])
+            for agent in plan["agents_needed"]
+            if agent in self.agents
+        ]
+
+        if plan.get("execution") == "parallel":
+            results = self.run_parallel(agent_tasks)
+        else:
+            results = [self._run_specialist(n, p) for n, p in agent_tasks]
+
+        return {
+            "source": source,
+            "request": user_request,
+            "plan": plan,
+            "results": results,
+            "errors": [r for r in results if r.get("status") == "failed"],
+        }
+---/code---
+
+
+
+
+
+-------------------------------
+Connecting to iMessage Commands
+-------------------------------
+
+
+    Your existing command-dispatcher Cowork task checks for //claude prefixed iMessages every hour. Here is how to wire that into the new dispatcher architecture — the iMessage watcher simply calls dispatcher.dispatch() with the parsed command:
+
+
+      python · dispatcher/imessage_listener.py
+
+---code---
+import re
+from dispatcher.main import AgentDispatcher
+
+COMMAND_PREFIX = "//claude"
+MUSTAFA_NUMBER = "+1XXXXXXXXXX"  # Mustafa's own number for self-commands
+
+def check_imessage_commands(dispatcher: AgentDispatcher):
+    """Called hourly by cron. Reads recent iMessages and processes //claude commands."""
+    # In production, use iMessage MCP to get unread messages
+    # Here we show the pattern
+    recent_messages = get_recent_imessages()  # via iMessage MCP
+
+    for msg in recent_messages:
+        if re.search(rf"^{re.escape(COMMAND_PREFIX)}\s+", msg["text"], re.IGNORECASE):
+            command = msg["text"][len(COMMAND_PREFIX):].strip()
+            sender = msg["sender"]
+
+            # Only process commands from Mustafa himself or immediate family
+            if sender not in [MUSTAFA_NUMBER]:
+                continue
+
+            result = dispatcher.dispatch(command, source="imessage")
+            send_imessage_reply(sender, format_result(result))
+
+def format_result(result: dict) -> str:
+    """Format dispatcher result for iMessage (160-char friendly)."""
+    ok_results = [r for r in result["results"] if r.get("status") == "ok"]
+    if not ok_results:
+        return "⚠️ All agents failed. Check logs."
+    # Take the first successful result's first 300 chars
+    return ok_results[0]["result"][:300]
+---/code---
+
+
+
+
+
+-----------------------------------------------
+Morning Digest — Multi-Agent Parallel Execution
+-----------------------------------------------
+
+
+    The most complex dispatcher workflow is the morning digest, which runs calendar, email, and research agents in parallel and combines their outputs into a single email. This is the flagship use case for your network:
+
+
+      python · dispatcher/morning_digest.py
+
+---code---
+from dispatcher.main import AgentDispatcher
+from datetime import datetime
+
+def run_morning_digest(dispatcher: AgentDispatcher):
+    """Full morning digest: calendar + email + research in parallel."""
+    today = datetime.now().strftime("%A, %B %d, %Y")
+
+    agent_tasks = [
+        ("calendar-agent",
+         f"Generate the family calendar digest for today ({today}) and the next 3 days. "
+         "Highlight any conflicts, school events for Rehaan and Zara, and new events."),
+
+        ("email-agent",
+         "Scan inbox for unread emails since yesterday 6pm. "
+         "Summarize high-priority items only. Flag anything requiring action today."),
+
+        ("research-agent",
+         "Run the morning news digest: top 5 GenAI news, top 3 EdTech/Coursera news, "
+         "any Sunnyvale local alerts, any new press mentions of Mustafa Furniturewala."),
+    ]
+
+    # Run all three in parallel — typically completes in ~30 seconds
+    results = dispatcher.run_parallel(agent_tasks)
+
+    # Assemble the morning email
+    sections = [f"# Good morning, Mustafa! — {today}\n"]
+
+    for r in results:
+        if r["status"] == "ok":
+            sections.append(f"\n## {r['agent'].replace('-', ' ').title()}\n")
+            sections.append(r["result"])
+        else:
+            sections.append(f"\n## {r['agent']} — ⚠️ Failed: {r.get('error','unknown')}\n")
+
+    return "\n".join(sections)
+---/code---
+
+
+
+
+
+      Mustafa's Current Setup
+      Your command-dispatcher Cowork task already does intent classification — it reads the //claude prefix and figures out what to do. What it can't do is call persistent specialist agents that have their own context, tools, and MCP connections. The dispatcher pattern above gives you exactly that: a routing layer that is just as smart as your current Cowork setup, but backed by real agents instead of one-shot Claude calls. The morning digest workflow in particular will consolidate what are currently 5 separate Cowork tasks (daily-news-digest, daily-genai-digest, daily-edtech-news-digest, family-calendar-event-notifier, hourly-email-drafter) into a single coordinated parallel run.
+
+
+
+      Key Takeaway
+      The dispatcher is a meta-agent whose only job is routing. It should be stateless (no domain logic), fault-tolerant (one failed specialist doesn't break the whole request), and predictable (always return structured JSON that downstream systems can parse). Use ThreadPoolExecutor for concurrent specialist runs — it's simpler than asyncio and more than fast enough for I/O-bound agent tasks. For the iMessage integration, keep the routing simple: one command prefix, one dispatcher call, one formatted reply.
+
+
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Choose between crontab, APScheduler, and other scheduling approaches
+
+          * Define scheduled tasks in YAML configuration files for maintainability
+
+          * Build a Python task runner that reads YAML and executes agents on schedule
+
+          * Implement retry logic with exponential backoff for failed tasks
+
+          * Map every one of Mustafa's Cowork tasks to the new system
+
+          * Monitor task execution with structured logging
+
+          * Handle timezone correctly for family-aware scheduling
+
+
+
+
+
+-----------------------
+Choosing Your Scheduler
+-----------------------
+
+
+    Three options exist for scheduling agent tasks outside of Cowork:
+
+        * System crontab: The simplest option. Each cron entry calls a Python script. Reliable, no dependencies, but no built-in retry or monitoring. Best for simple tasks that run once and either succeed or fail.
+
+        * APScheduler: A Python library that runs inside your main process. Supports cron expressions, intervals, and one-off jobs. Has built-in job stores (memory, SQLAlchemy, Redis). Best for complex schedules with many jobs that need coordination.
+
+        * Celery + Redis: Full distributed task queue. Overkill for a personal agent network but appropriate if you're running this on multiple machines. Skip this for now.
+
+
+    The recommended approach for Mustafa's network: APScheduler running as a persistent daemon, with all task definitions in YAML. This gives you the flexibility of programmatic scheduling with the maintainability of config-as-code.
+
+
+-----------------------
+Task Definition in YAML
+-----------------------
+
+
+    Defining tasks in YAML makes them readable, versionable, and easy to modify without touching Python code. Here is the full task config for Mustafa's agent network:
+
+
+      yaml · config/tasks.yaml — Full Task Manifest
+
+---code---
+# Furniturewala Agent Network — Scheduled Task Configuration
+# Timezone: America/Los_Angeles (Sunnyvale, CA)
+# All times in 24h local time unless noted
+
+defaults:
+  timezone: America/Los_Angeles
+  max_retries: 3
+  retry_delay_seconds: 60
+  timeout_seconds: 180
+
+tasks:
+
+  # ─── COMMAND PROCESSING ───────────────────────────────────────────────
+  - id: command-dispatcher
+    agent: dispatcher
+    schedule: {type: interval, minutes: 60}
+    prompt: "Check for new iMessage //claude commands and execute them."
+    output: log
+
+  - id: personal-assistant-check-in
+    agent: dispatcher
+    schedule: {type: interval, minutes: 120}
+    prompt: "Run consolidated sweep: check calendar for new events, check email for urgent items, check any pending notifications."
+    output: log
+
+  # ─── EMAIL ────────────────────────────────────────────────────────────
+  - id: hourly-email-drafter
+    agent: email-agent
+    schedule: {type: interval, hours: 4}
+    prompt: "Run a 4-hour email sweep. Classify unread threads, draft Priority 1 and 2 responses."
+    output: log
+
+  - id: subscription-charge-alert
+    agent: email-agent
+    schedule: {type: cron, day_of_week: mon, hour: 8, minute: 0}
+    prompt: "Scan Gmail for subscription renewal and billing emails from the past 7 days. List all services, amounts, and upcoming renewal dates."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  # ─── NEWS RESEARCH ────────────────────────────────────────────────────
+  - id: daily-news-digest
+    agent: research-agent
+    schedule: {type: cron, hour: 6, minute: 30}
+    prompt: "Gather today's top 10 news stories across tech, business, and world news. Summarize each in 2-3 bullets with source URLs."
+    output: email
+    email_to: [mustafaf@gmail.com, zeesha@gmail.com]
+
+  - id: daily-genai-digest
+    agent: research-agent
+    schedule: {type: cron, hour: 7, minute: 0}
+    prompt: "Research today's top 7 generative AI developments. Focus on model releases, API changes, research papers, and business news. Highlight Coursera-relevant items."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  - id: daily-edtech-news-digest
+    agent: research-agent
+    schedule: {type: cron, hour: 7, minute: 30}
+    prompt: "Search for today's edtech news: Coursera announcements, competitor activity (Udemy, LinkedIn Learning, edX, Pluralsight). Include any executive moves, product launches, or pricing changes."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  - id: weekly-claude-updates
+    agent: research-agent
+    schedule: {type: cron, day_of_week: fri, hour: 17, minute: 0}
+    prompt: "Summarize this week's Claude and Anthropic updates: new model capabilities, API changes, pricing, policy updates, and notable community use cases."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  # ─── FAMILY & KIDS ────────────────────────────────────────────────────
+  - id: school-events-digest
+    agent: research-agent
+    schedule: {type: cron, hour: 6, minute: 45}
+    prompt: "Check for school events and news: Pinewood School (Zara, 6th grade) and Stratford School (Rehaan). Look for upcoming events, school news, sports schedules, and important dates."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  - id: kids-daily-news-digest
+    agent: kids-learning-agent
+    schedule: {type: cron, hour: 7, minute: 15}
+    prompt: "Create a fun, age-appropriate daily news summary for Rehaan and Zara. Focus on science discoveries, sports, interesting world events. Keep it engaging and educational."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  - id: zaras-daily-learning-email
+    agent: kids-learning-agent
+    schedule: {type: cron, hour: 15, minute: 30}
+    prompt: "Generate 3 personalized math problems and 2 science questions for Zara (6th grade, Pinewood). Match California 6th grade Common Core standards. Include hints. Make it engaging."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  - id: family-dinner-conversation
+    agent: research-agent
+    schedule: {type: cron, hour: 16, minute: 0}
+    prompt: "Generate 3 interesting family dinner conversation topics for tonight. Mix: one topic for kids (fun science or history), one for Mustafa and Zeesha (current events), one that involves everyone (thought experiment or hypothetical). Keep it light and engaging."
+    output: imessage
+    imessage_to: self
+
+  # ─── SAFETY & LOCAL ───────────────────────────────────────────────────
+  - id: urgent-news-midday
+    agent: research-agent
+    schedule: {type: cron, hour: 12, minute: 0}
+    prompt: "Check for urgent local news affecting Sunnyvale 94087: safety alerts, traffic incidents, weather warnings, school closures. Only report if there is something genuinely urgent — skip if nothing notable."
+    output: conditional_imessage
+    condition: result_contains_urgent
+    imessage_to: self
+
+  - id: local-events-digest
+    agent: research-agent
+    schedule: {type: cron, day_of_week: fri, hour: 18, minute: 0}
+    prompt: "Find interesting local events near Sunnyvale 94087 for the upcoming weekend: family activities, food events, outdoor activities. Include dates, times, locations."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  # ─── CALENDAR ─────────────────────────────────────────────────────────
+  - id: family-calendar-event-notifier
+    agent: calendar-agent
+    schedule: {type: cron, hour: 8, minute: 0}
+    prompt: "Check family calendar for newly added events since yesterday. Summarize new events, flag conflicts, and notify relevant family members."
+    output: email
+    email_to: mustafaf@gmail.com
+
+  # ─── BROWSER AUTOMATION ───────────────────────────────────────────────
+  - id: weekly-fairbrae-tennis
+    agent: browser-agent
+    schedule: {type: cron, day_of_week: sun, hour: 6, minute: 0}
+    prompt: "Book Fairbrae Tennis Court 2 for next Sunday. If unavailable, try Court 1. Report booking confirmation."
+    output: imessage
+    imessage_to: self
+
+  - id: nike-pegasus-42-deal-tracker
+    agent: browser-agent
+    schedule: {type: cron, day_of_week: wed, hour: 10, minute: 0}
+    prompt: "Check Nike Pegasus 42 price (size 11.5 US men's) on nike.com and runningwarehouse.com. Alert if price is $100 or below."
+    output: conditional_imessage
+    condition: price_below_threshold
+    imessage_to: self
+
+  # ─── ONLINE PRESENCE ──────────────────────────────────────────────────
+  - id: online-presence-monitor
+    agent: research-agent
+    schedule: {type: cron, hour: 9, minute: 0}
+    prompt: "Search for online mentions of 'Mustafa Furniturewala' across web, LinkedIn, GitHub, Twitter/X. Summarize any new mentions found. Also suggest one blog post topic based on current GenAI trends."
+    output: log
+
+  - id: check-press-mentions
+    agent: research-agent
+    schedule: {type: cron, day_of_week: mon, hour: 9, minute: 30}
+    prompt: "Find any new press mentions, podcast appearances, or article quotes featuring Mustafa Furniturewala from the past week. If found, prepare a blog post draft."
+    output: log_and_draft
+---/code---
+
+
+
+
+
+------------------
+Python Task Runner
+------------------
+
+
+
+      python · scheduler/runner.py — APScheduler Task Runner
+
+---code---
+import yaml
+import logging
+import time
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+from dispatcher.main import AgentDispatcher
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("logs/scheduler.log"),
+    ]
+)
+logger = logging.getLogger("scheduler")
+
+class AgentTaskRunner:
+    def __init__(self, config_path: str = "config/tasks.yaml"):
+        self.dispatcher = AgentDispatcher()
+        self.scheduler = BlockingScheduler(timezone="America/Los_Angeles")
+        self.config = self._load_config(config_path)
+
+    def _load_config(self, path: str) -> dict:
+        with open(path) as f:
+            return yaml.safe_load(f)
+
+    def _build_trigger(self, schedule_cfg: dict):
+        stype = schedule_cfg["type"]
+        if stype == "cron":
+            kwargs = {k: v for k, v in schedule_cfg.items() if k != "type"}
+            return CronTrigger(timezone="America/Los_Angeles", **kwargs)
+        elif stype == "interval":
+            kwargs = {k: v for k, v in schedule_cfg.items() if k != "type"}
+            return IntervalTrigger(**kwargs)
+        raise ValueError(f"Unknown schedule type: {stype}")
+
+    def _make_job(self, task: dict):
+        """Create a job function for a task config."""
+        task_id = task["id"]
+        prompt = task["prompt"]
+        max_retries = task.get("max_retries", self.config["defaults"]["max_retries"])
+        retry_delay = task.get("retry_delay_seconds", self.config["defaults"]["retry_delay_seconds"])
+
+        def job():
+            for attempt in range(1, max_retries + 1):
+                try:
+                    logger.info(f"Running task: {task_id} (attempt {attempt})")
+                    result = self.dispatcher.dispatch(prompt, source=task_id)
+                    logger.info(f"Task {task_id} completed: {str(result)[:200]}")
+                    return
+                except Exception as e:
+                    logger.error(f"Task {task_id} attempt {attempt} failed: {e}")
+                    if attempt < max_retries:
+                        wait = retry_delay * (2 ** (attempt - 1))  # Exponential backoff
+                        logger.info(f"Retrying in {wait}s...")
+                        time.sleep(wait)
+            logger.error(f"Task {task_id} FAILED after {max_retries} attempts")
+        return job
+
+    def start(self):
+        """Register all tasks and start the scheduler."""
+        for task in self.config["tasks"]:
+            trigger = self._build_trigger(task["schedule"])
+            job_fn = self._make_job(task)
+            self.scheduler.add_job(job_fn, trigger, id=task["id"], name=task["id"])
+            logger.info(f"Registered task: {task['id']}")
+
+        logger.info(f"Starting scheduler with {len(self.config['tasks'])} tasks")
+        self.scheduler.start()
+
+if __name__ == "__main__":
+    runner = AgentTaskRunner()
+    runner.start()
+---/code---
+
+
+
+
+
+      Mustafa's Current Setup
+      The YAML task manifest above is a direct 1:1 mapping of all your Cowork scheduled tasks. Every task you currently run — from command-dispatcher to family-dinner-conversation to the Iceland trip briefings — has an equivalent entry in this config. The key difference: in Cowork, each task runs as an isolated Claude invocation with no connection to the others. In this system, they all route through the dispatcher, share the memory store, and can trigger each other. The total estimated API cost for all 25 tasks running on this schedule is approximately $15-25/month at current Haiku/Sonnet pricing — significantly cheaper than running premium models for every task.
+
+
+
+      Key Takeaway
+      YAML-as-config is the right abstraction for scheduled tasks. It separates the what (prompts, schedule, output targets) from the how (agent SDK calls, retry logic, logging). When you want to add a new task, you add a YAML entry — no Python changes needed. Use exponential backoff for retries: 60s, 120s, 240s. Always log both successes and failures with enough context to debug without re-running. Set a timezone once in defaults and never repeat it per-task.
+
+
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Understand the Memory Stores API and how it differs from conversation context
+
+          * Create workspace-scoped memory stores for different domains
+
+          * Add and retrieve memories programmatically
+
+          * Build a persistent user profile that agents read at session start
+
+          * Implement cross-session learning for the research agent
+
+          * Use memory to avoid duplicate notifications and redundant actions
+
+          * Design memory schemas that scale across a 25+ task network
+
+
+
+
+
+------------------
+Why Memory Matters
+------------------
+
+
+    Without memory, every agent session starts cold. The research agent doesn't know it already sent you that GenAI news story yesterday. The notification agent doesn't know it already texted Zeesha about the school event. The email agent doesn't know your preferences have evolved. Each new session has no continuity with the previous one.
+
+    The Memory Stores API solves this by providing workspace-scoped document stores that persist across sessions. An agent can write a memory at the end of a session and read it at the start of the next. It's the long-term memory layer that transforms a collection of stateless agents into a network that genuinely learns and improves over time.
+
+
+----------------------
+Creating Memory Stores
+----------------------
+
+
+    You should create one memory store per domain — this keeps memories well-organized and prevents cross-contamination between, say, research memories and calendar memories:
+
+
+      python · memory/setup.py — Create All Memory Stores
+
+---code---
+import anthropic
+import json
+
+client = anthropic.Anthropic()
+
+MEMORY_STORES = [
+    {"name": "user-profile",       "description": "Mustafa's preferences, habits, and identity"},
+    {"name": "research-seen",      "description": "News items already sent to avoid duplicates"},
+    {"name": "calendar-state",     "description": "Last known calendar state for diff detection"},
+    {"name": "email-context",      "description": "Email threads in progress, draft states"},
+    {"name": "notification-log",   "description": "iMessage send history for rate limiting"},
+    {"name": "press-mentions",     "description": "Press mentions found, blog post status"},
+    {"name": "trip-context",       "description": "Iceland and Turkey trip details, preferences"},
+    {"name": "kids-learning",      "description": "Zara progress, topics covered, Rehaan interests"},
+]
+
+store_ids = {}
+for store_cfg in MEMORY_STORES:
+    store = client.beta.memory_stores.create(
+        name=store_cfg["name"],
+        description=store_cfg["description"],
+    )
+    store_ids[store_cfg["name"]] = store.id
+    print(f"Created store '{store_cfg['name']}': {store.id}")
+
+# Save store IDs to config
+with open("config/memory_stores.json", "w") as f:
+    json.dump(store_ids, f, indent=2)
+print("Memory stores configured.")
+---/code---
+
+
+
+
+
+-------------------------
+Building the User Profile
+-------------------------
+
+
+    The user profile memory store is the most important one. Every agent reads it at session start to understand who Mustafa is, what his preferences are, and what context matters. Here is how to populate it with a rich initial profile:
+
+
+      python · memory/profile.py — Initialize User Profile
+
+---code---
+import anthropic
+import json
+from datetime import datetime
+
+client = anthropic.Anthropic()
+
+def initialize_user_profile(store_id: str):
+    """Populate the user profile memory store with Mustafa's details."""
+
+    profile_doc = {
+        "identity": {
+            "name": "Mustafa Furniturewala",
+            "email": "mustafaf@gmail.com",
+            "role": "VP Engineering at Coursera",
+            "location": "Sunnyvale, CA 94087",
+        },
+        "family": {
+            "spouse": "Zeesha",
+            "children": [
+                {"name": "Rehaan", "school": "Stratford"},
+                {"name": "Zara", "school": "Pinewood", "grade": 6},
+            ],
+        },
+        "communication_preferences": {
+            "email_style": "Professional but direct. Short paragraphs. Sign as Mustafa.",
+            "imessage_threshold": "Only genuinely urgent or actionable items",
+            "news_preference": "GenAI and edtech primary. Bullet summaries, max 3 per story.",
+        },
+        "interests": [
+            "Generative AI / LLMs",
+            "Education technology",
+            "Tennis (plays at Fairbrae Recreation Center, Court 2 preferred)",
+            "Running (Nike Pegasus 42, size 11.5 US mens, target price $100)",
+            "Family travel (upcoming: Iceland, Turkey)",
+        ],
+        "active_trips": [
+            {"destination": "Iceland", "status": "planning"},
+            {"destination": "Turkey", "status": "planning"},
+        ],
+        "last_updated": datetime.now().isoformat(),
+    }
+
+    client.beta.memory_stores.documents.create(
+        memory_store_id=store_id,
+        content=json.dumps(profile_doc, indent=2),
+        title="Mustafa Furniturewala — User Profile",
+        metadata={"type": "user_profile", "version": "1.0"},
+    )
+    print("User profile initialized in memory store")
+---/code---
+
+
+
+
+
+----------------------------------
+Deduplication with Research Memory
+----------------------------------
+
+
+    The research agent sees hundreds of news stories per week. Without deduplication, you'd receive the same story about a major AI announcement every day for a week as it propagates through the news cycle. The research-seen memory store solves this:
+
+
+      python · memory/deduplication.py
+
+---code---
+import anthropic
+import hashlib
+import json
+from datetime import datetime, timedelta
+
+class ResearchDeduplicator:
+    """Track seen news items to prevent duplicate delivery."""
+
+    def __init__(self, client: anthropic.Anthropic, store_id: str):
+        self.client = client
+        self.store_id = store_id
+
+    def _make_key(self, url: str) -> str:
+        return hashlib.md5(url.encode()).hexdigest()[:12]
+
+    def is_seen(self, url: str) -> bool:
+        """Check if a URL has been sent in the last 7 days."""
+        key = self._make_key(url)
+        try:
+            results = self.client.beta.memory_stores.documents.list(
+                memory_store_id=self.store_id,
+                query=key,
+            )
+            for doc in results.data:
+                meta = json.loads(doc.metadata or "{}")
+                if meta.get("url_hash") == key:
+                    seen_date = datetime.fromisoformat(meta["seen_at"])
+                    if (datetime.now() - seen_date).days < 7:
+                        return True
+        except Exception:
+            pass  # On error, don't block delivery
+        return False
+
+    def mark_seen(self, url: str, title: str):
+        """Record that a URL was delivered."""
+        key = self._make_key(url)
+        self.client.beta.memory_stores.documents.create(
+            memory_store_id=self.store_id,
+            content=f"Seen: {title} ({url})",
+            title=f"seen-{key}",
+            metadata=json.dumps({
+                "url_hash": key,
+                "url": url,
+                "title": title,
+                "seen_at": datetime.now().isoformat(),
+            }),
+        )
+
+    def filter_new(self, items: list[dict]) -> list[dict]:
+        """Filter a list of {url, title, ...} items to only new ones."""
+        new_items = []
+        for item in items:
+            if not self.is_seen(item["url"]):
+                new_items.append(item)
+                self.mark_seen(item["url"], item.get("title", ""))
+        return new_items
+---/code---
+
+
+
+
+
+      Mustafa's Current Setup
+      Cowork already has a form of memory — your conversations persist and Claude remembers preferences you've expressed in sessions. But this memory is per-conversation and not structured. The Memory Stores API gives you explicit, queryable, structured memory that every agent in the network can access. The most immediate win: the notification-log store will prevent double-texting family members. The research-seen store will eliminate the repetitive news stories. The kids-learning store will track which math topics Zara has already covered so the daily problems always advance rather than repeat.
+
+
+
+      Key Takeaway
+      Memory stores are the connective tissue between sessions. Design your schema upfront: one store per domain, use metadata fields for queryable attributes, and always include a timestamp so you can implement time-based expiry. The user profile is the most universally valuable memory — inject it into every agent's system prompt context at session creation time so every specialist starts with a complete picture of who it's serving and what matters to them.
+
+
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Understand the Model Context Protocol architecture (tools, resources, prompts)
+
+          * Connect existing MCP servers in agent configuration
+
+          * Build a complete custom MCP server in Python using the mcp library
+
+          * Implement authentication and secrets management for MCP servers
+
+          * Understand the difference between local and remote MCP servers
+
+          * Design an iMessage MCP server for the notification agent
+
+          * Apply security best practices: vault integration, credential isolation
+
+
+
+
+
+------------
+What is MCP?
+------------
+
+
+    MCP (Model Context Protocol) is an open standard that defines how AI models connect to external tools, data sources, and services. Instead of baking API clients directly into your agent code, you run MCP servers as separate processes that expose a standardized interface. Your agents declare which MCP servers they need, and the runtime handles the connection.
+
+    Think of MCP servers as plugins. Gmail becomes an MCP server. Google Calendar becomes an MCP server. Your local iMessage database becomes an MCP server. Vercel's deployment API becomes an MCP server. Each exposes a set of tools (callable functions), resources (readable data sources), and optionally prompts (templates for common operations). Agents call these tools the same way they call built-in tools like bash — the MCP protocol handles the translation.
+
+
+┌──────────────────────────────────────────────────────────────────┐
+│                    MCP ARCHITECTURE                              │
+│                                                                  │
+│  ┌─────────────────┐      MCP Protocol (JSON-RPC 2.0)           │
+│  │   Agent Session │ ◄──────────────────────────────────────┐   │
+│  │  (Claude model) │                                         │   │
+│  └────────┬────────┘                                         │   │
+│           │ tool_call                                         │   │
+│           ▼                                                   │   │
+│  ┌─────────────────────────────────────────────────────┐     │   │
+│  │              MCP CLIENT (inside agent runtime)       │     │   │
+│  └──────┬──────────────┬──────────────┬───────────────-┘     │   │
+│         │              │              │                        │   │
+│         ▼              ▼              ▼                        │   │
+│  ┌────────────┐ ┌────────────┐ ┌────────────┐                │   │
+│  │ Gmail MCP  │ │Calendar MCP│ │iMessage MCP│                │   │
+│  │  Server    │ │  Server    │ │  Server    │                │   │
+│  │            │ │            │ │            │                │   │
+│  │ Tools:     │ │ Tools:     │ │ Tools:     │                │   │
+│  │ search()   │ │ list()     │ │ send()     │                │   │
+│  │ read()     │ │ create()   │ │ read()     │                │   │
+│  │ draft()    │ │ update()   │ │ search()   │                │   │
+│  └─────┬──────┘ └─────┬──────┘ └─────┬──────┘               │   │
+│        │              │              │                         │   │
+│        ▼              ▼              ▼                         │   │
+│   Gmail API    Google Cal API    macOS Messages DB             │   │
+└──────────────────────────────────────────────────────────────────┘
+
+
+
+-------------------------------
+Connecting Existing MCP Servers
+-------------------------------
+
+
+    Many MCP servers already exist for common integrations. In your agent configuration, you declare them in the mcp_servers array. The runtime handles discovery, authentication, and tool routing:
+
+
+      python · mcp_connections.py — Connecting Multiple MCP Servers
+
+---code---
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Agent with multiple MCP servers for full comms access
+comms_agent = client.beta.agents.create(
+    model="claude-sonnet-4-6",
+    name="comms-agent",
+    system="You manage communications for Mustafa Furniturewala.",
+    tools=[{"type": "bash"}],
+    mcp_servers=[
+        # Gmail via Google's official MCP endpoint
+        {
+            "name": "gmail",
+            "url": "https://mcp.googleapis.com/gmail/v1",
+            "auth": {
+                "type": "oauth2",
+                "credentials_env": "GOOGLE_GMAIL_CREDENTIALS",
+            },
+        },
+        # Google Calendar
+        {
+            "name": "google-calendar",
+            "url": "https://mcp.googleapis.com/calendar/v1",
+            "auth": {
+                "type": "oauth2",
+                "credentials_env": "GOOGLE_CALENDAR_CREDENTIALS",
+            },
+        },
+        # Local iMessage server (runs on Mustafa's Mac)
+        {
+            "name": "imessage",
+            "url": "http://localhost:7777",
+            "auth": {
+                "type": "bearer",
+                "token_env": "IMESSAGE_MCP_TOKEN",
+            },
+        },
+    ],
+    max_tokens=8192,
+)
+---/code---
+
+
+
+
+
+----------------------------
+Building a Custom MCP Server
+----------------------------
+
+
+    When no existing MCP server exists for your integration, you build your own. The Python mcp library makes this straightforward. Here is a complete custom MCP server that wraps the macOS Messages database for the iMessage integration:
+
+
+      python · mcp_servers/imessage_server.py — Complete Custom MCP Server
+
+---code---
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent
+import sqlite3
+import subprocess
+import json
+import os
+from pathlib import Path
+
+app = Server("imessage-mcp")
+
+MESSAGES_DB = Path(os.path.expanduser("~/Library/Messages/chat.db"))
+
+# ─── TOOL DEFINITIONS ─────────────────────────────────────────────────
+
+@app.list_tools()
+async def list_tools() -> list[Tool]:
+    return [
+        Tool(
+            name="read_messages",
+            description="Read recent iMessages from a contact or all unread",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "contact": {"type": "string", "description": "Phone number or empty for all"},
+                    "limit": {"type": "integer", "description": "Max messages to return", "default": 20},
+                    "unread_only": {"type": "boolean", "default": True},
+                },
+            },
+        ),
+        Tool(
+            name="send_message",
+            description="Send an iMessage to a phone number",
+            inputSchema={
+                "type": "object",
+                "required": ["recipient", "message"],
+                "properties": {
+                    "recipient": {"type": "string", "description": "Phone number in E.164 format"},
+                    "message": {"type": "string", "description": "Message text to send"},
+                },
+            },
+        ),
+        Tool(
+            name="search_messages",
+            description="Search iMessage history for a keyword or command prefix",
+            inputSchema={
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                    "query": {"type": "string"},
+                    "hours_back": {"type": "integer", "default": 2},
+                },
+            },
+        ),
+    ]
+
+# ─── TOOL IMPLEMENTATIONS ──────────────────────────────────────────────
+
+@app.call_tool()
+async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+
+    if name == "read_messages":
+        messages = _read_messages(
+            contact=arguments.get("contact"),
+            limit=arguments.get("limit", 20),
+            unread_only=arguments.get("unread_only", True),
+        )
+        return [TextContent(type="text", text=json.dumps(messages, indent=2))]
+
+    elif name == "send_message":
+        result = _send_imessage(arguments["recipient"], arguments["message"])
+        return [TextContent(type="text", text=json.dumps(result))]
+
+    elif name == "search_messages":
+        results = _search_messages(arguments["query"], arguments.get("hours_back", 2))
+        return [TextContent(type="text", text=json.dumps(results, indent=2))]
+
+    raise ValueError(f"Unknown tool: {name}")
+
+def _read_messages(contact=None, limit=20, unread_only=True) -> list[dict]:
+    """Query the macOS Messages SQLite database."""
+    conn = sqlite3.connect(str(MESSAGES_DB))
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    query = """
+        SELECT m.text, m.date, m.is_from_me,
+               h.id as sender, m.is_read
+        FROM message m
+        JOIN handle h ON m.handle_id = h.ROWID
+        WHERE m.text IS NOT NULL
+    """
+    params = []
+    if contact:
+        query += " AND h.id LIKE ?"; params.append(f"%{contact}%")
+    if unread_only:
+        query += " AND m.is_read = 0"
+    query += f" ORDER BY m.date DESC LIMIT {limit}"
+
+    cursor.execute(query, params)
+    return [dict(row) for row in cursor.fetchall()]
+
+def _send_imessage(recipient: str, message: str) -> dict:
+    """Send via AppleScript — requires macOS Messages app access."""
+    script = f'''
+    tell application "Messages"
+        set targetService to 1st service whose service type = iMessage
+        set targetBuddy to buddy "{recipient}" of targetService
+        send "{message}" to targetBuddy
+    end tell
+    '''
+    try:
+        subprocess.run(["osascript", "-e", script], check=True, capture_output=True)
+        return {"status": "sent", "recipient": recipient}
+    except subprocess.CalledProcessError as e:
+        return {"status": "failed", "error": e.stderr.decode()}
+
+def _search_messages(query: str, hours_back: int = 2) -> list[dict]:
+    """Search messages containing query string in recent hours."""
+    conn = sqlite3.connect(str(MESSAGES_DB))
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    # macOS stores dates as seconds since 2001-01-01
+    cutoff = (datetime.now() - timedelta(hours=hours_back)).timestamp() - 978307200
+    cursor.execute(
+        "SELECT text, date FROM message WHERE text LIKE ? AND date > ? ORDER BY date DESC",
+        (f"%{query}%", cutoff)
+    )
+    return [dict(row) for row in cursor.fetchall()]
+
+async def main():
+    async with stdio_server() as (read_stream, write_stream):
+        await app.run(read_stream, write_stream, app.create_initialization_options())
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+---/code---
+
+
+
+
+
+-------------------------------------------
+Security: Credentials and Vault Integration
+-------------------------------------------
+
+
+    MCP servers often need credentials — OAuth tokens, API keys, database passwords. Never hardcode these. The right approach is to use environment variables loaded from a secrets manager at startup:
+
+
+      bash · Running MCP Servers Securely
+
+---code---
+# Load secrets from macOS Keychain (or 1Password CLI) into env vars
+# 1Password CLI example:
+export GOOGLE_GMAIL_CREDENTIALS=$(op read "op://Personal/gmail-mcp/credentials")
+export GOOGLE_CALENDAR_CREDENTIALS=$(op read "op://Personal/calendar-mcp/credentials")
+export IMESSAGE_MCP_TOKEN=$(op read "op://Personal/imessage-mcp/token")
+export ANTHROPIC_API_KEY=$(op read "op://Personal/anthropic/api-key")
+
+# Then start the MCP servers and agent scheduler
+python mcp_servers/imessage_server.py &
+python mcp_servers/web_search_server.py &
+python scheduler/runner.py
+---/code---
+
+
+
+
+
+      python · mcp_servers/web_search_server.py — Web Search MCP
+
+---code---
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent
+import httpx
+import json
+import os
+
+app = Server("web-search-mcp")
+SERPER_KEY = os.environ["SERPER_API_KEY"]
+
+@app.list_tools()
+async def list_tools():
+    return [
+        Tool(
+            name="web_search",
+            description="Search the web and return top results with titles, snippets, and URLs",
+            inputSchema={
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                    "query": {"type": "string"},
+                    "num_results": {"type": "integer", "default": 10},
+                    "time_range": {
+                        "type": "string",
+                        "enum": ["any", "d", "w", "m"],
+                        "description": "Time range: any, d=day, w=week, m=month",
+                    },
+                },
+            },
+        ),
+    ]
+
+@app.call_tool()
+async def call_tool(name: str, arguments: dict):
+    if name == "web_search":
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                "https://google.serper.dev/search",
+                headers={"X-API-KEY": SERPER_KEY},
+                json={
+                    "q": arguments["query"],
+                    "num": arguments.get("num_results", 10),
+                    "tbs": arguments.get("time_range", "any"),
+                },
+            )
+            data = resp.json()
+            results = [
+                {"title": r["title"], "url": r["link"], "snippet": r.get("snippet", "")}
+                for r in data.get("organic", [])
+            ]
+        return [TextContent(type="text", text=json.dumps(results, indent=2))]
+---/code---
+
+
+
+
+
+      Mustafa's Current Setup
+      In Cowork mode, Anthropic provides MCP servers for all your integrations — Gmail, Google Calendar, iMessage, Chrome, Vercel, GitHub, and web search are all available as pre-configured MCP connectors. When you build your own agent network, you need to either use cloud-hosted MCP endpoints (for Google services) or run local MCP servers on your Mac (for iMessage, Chrome automation). The iMessage MCP server above is a direct replacement for the iMessage connector Cowork provides. Run it as a launchd daemon on your Mac for persistence across reboots.
+
+
+
+      Key Takeaway
+      MCP is what makes your agents composable. Each MCP server is a stable, versioned API that any agent can consume. When you upgrade your Gmail integration (say, to support Google's new AI labels), you update one MCP server and every agent that uses it gets the upgrade automatically — no agent code changes needed. Keep MCP servers small and focused: one server per external service, one set of tools per domain, strict input/output schemas. Never let an MCP server do business logic — that belongs in the agent's system prompt.
+
+
+
+
+
+
+
+
+
+
+Learning Objectives
+
+
+
+          * Containerize the agent network with Docker and docker-compose
+
+          * Design a production configuration management system
+
+          * Implement structured logging and alerting for agent failures
+
+          * Apply cost optimization strategies across the network
+
+          * Harden security with least-privilege MCP server design
+
+          * Create a main entry point that wires everything together
+
+          * Understand the full deployment architecture for local vs. cloud
+
+
+
+
+
+-----------------------
+Deployment Architecture
+-----------------------
+
+
+    For Mustafa's agent network, the primary deployment target is a local Mac mini or always-on Mac setup — this gives you direct access to the macOS Messages database for iMessage and to Chrome for browser automation, without the complexity of cloud I/O routing. The secondary option is a cloud VM (say, an EC2 t3.small) for the pure API-based agents (email, research), with the local Mac handling iMessage and browser tasks.
+
+
+┌────────────────────────────────────────────────────────────────────┐
+│                  DEPLOYMENT ARCHITECTURE                           │
+│                                                                    │
+│  ┌──────────────────────────────────────────────────────────────┐ │
+│  │                  Mac Mini (Sunnyvale)                         │ │
+│  │                                                               │ │
+│  │  ┌─────────────────────┐   ┌──────────────────────────────┐ │ │
+│  │  │   Docker Network     │   │  System Services (launchd)   │ │ │
+│  │  │                      │   │                              │ │ │
+│  │  │  ┌──────────────┐   │   │  imessage-mcp (port 7777)    │ │ │
+│  │  │  │  scheduler   │   │   │  chrome-mcp   (port 9222)    │ │ │
+│  │  │  │  container   │   │   │                              │ │ │
+│  │  │  └──────┬───────┘   │   └──────────────────────────────┘ │ │
+│  │  │         │            │                                     │ │
+│  │  │  ┌──────▼───────┐   │   ┌──────────────────────────────┐ │ │
+│  │  │  │  dispatcher  │   │   │         Secrets              │ │ │
+│  │  │  │  container   │   │   │  macOS Keychain / 1Password  │ │ │
+│  │  │  └──────────────┘   │   └──────────────────────────────┘ │ │
+│  │  │                      │                                     │ │
+│  │  └─────────────────────┘                                      │ │
+│  │                                                               │ │
+│  │  Outbound: Anthropic API · Google APIs · Serper API           │ │
+│  └──────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────┘
+
+
+
+----------------------------
+Docker Compose Configuration
+----------------------------
+
+
+
+      yaml · docker-compose.yml
+
+---code---
+version: "3.9"
+
+networks:
+  agent-net:
+    driver: bridge
+
+services:
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.scheduler
+    container_name: agent-scheduler
+    networks: [agent-net]
+    environment:
+      - ANTHROPIC_API_KEY
+      - GOOGLE_GMAIL_CREDENTIALS
+      - GOOGLE_CALENDAR_CREDENTIALS
+      - SERPER_API_KEY
+      - IMESSAGE_MCP_URL=http://host.docker.internal:7777
+      - CHROME_MCP_URL=http://host.docker.internal:9222
+      - TZ=America/Los_Angeles
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+      - agent-memory:/app/memory
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import scheduler.runner"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  web-search-mcp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mcp
+    container_name: web-search-mcp
+    networks: [agent-net]
+    environment:
+      - SERPER_API_KEY
+    ports:
+      - "8001:8001"
+    command: python mcp_servers/web_search_server.py
+    restart: unless-stopped
+
+volumes:
+  agent-memory:
+---/code---
+
+
+
+
+
+-----------
+Dockerfiles
+-----------
+
+
+
+      dockerfile · docker/Dockerfile.scheduler
+
+---code---
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create log directory
+RUN mkdir -p logs
+
+# Run as non-root for security
+RUN useradd -r -u 1000 agent && chown -R agent:agent /app
+USER agent
+
+CMD ["python", "-m", "scheduler.runner"]
+---/code---
+
+
+
+
+
+      text · requirements.txt
+
+---code---
+anthropic>=0.50.0
+apscheduler>=3.10.0
+pyyaml>=6.0
+httpx>=0.26.0
+mcp>=1.0.0
+python-dotenv>=1.0.0
+structlog>=24.0.0
+---/code---
+
+
+
+
+
+----------------
+Main Entry Point
+----------------
+
+
+
+      python · main.py — Network Bootstrap
+
+---code---
+"""
+Furniturewala Agent Network — Main Entry Point
+Bootstraps all agents, memory stores, and the scheduler.
+Run once to provision, then scheduler takes over.
+"""
+import argparse
+import json
+import logging
+import os
+from pathlib import Path
+import anthropic
+from agents.calendar_agent import calendar_agent
+from agents.email_agent import email_agent
+from agents.notification_agent import notification_agent
+from agents.research_agent import research_agent
+from agents.browser_agent import browser_agent
+from agents.code_agent import code_agent
+from memory.setup import MEMORY_STORES
+from scheduler.runner import AgentTaskRunner
+
+logger = logging.getLogger("main")
+
+def provision():
+    """Create all agents, environments, and memory stores. Run once."""
+    client = anthropic.Anthropic()
+    config = {}
+
+    print("Provisioning Furniturewala Agent Network...")
+
+    # Create environments
+    envs = {}
+    for name in ["comms-env", "research-env", "browser-env", "code-env", "dispatcher-env"]:
+        env = client.beta.environments.create(name=name)
+        envs[name] = env.id
+        print(f"  ✓ Environment: {name}")
+    config["environments"] = envs
+
+    # Register agents and their environments
+    agent_configs = {
+        "calendar-agent": {"agent_id": calendar_agent.id, "environment_id": envs["comms-env"]},
+        "email-agent":    {"agent_id": email_agent.id,    "environment_id": envs["comms-env"]},
+        "notification-agent": {"agent_id": notification_agent.id, "environment_id": envs["comms-env"]},
+        "research-agent": {"agent_id": research_agent.id, "environment_id": envs["research-env"]},
+        "browser-agent":  {"agent_id": browser_agent.id,  "environment_id": envs["browser-env"]},
+        "code-agent":     {"agent_id": code_agent.id,     "environment_id": envs["code-env"]},
+    }
+    config["agents"] = agent_configs
+
+    # Create memory stores
+    store_ids = {}
+    for store_cfg in MEMORY_STORES:
+        store = client.beta.memory_stores.create(name=store_cfg["name"])
+        store_ids[store_cfg["name"]] = store.id
+        print(f"  ✓ Memory store: {store_cfg['name']}")
+    config["memory_stores"] = store_ids
+
+    # Save config for runtime use
+    Path("config").mkdir(exist_ok=True)
+    with open("config/agents.json", "w") as f:
+        json.dump(config, f, indent=2)
+    print("\n✓ Provisioning complete. Config saved to config/agents.json")
+
+def run():
+    """Start the scheduler daemon."""
+    runner = AgentTaskRunner()
+    print("Starting agent scheduler...")
+    runner.start()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=["provision", "run"])
+    args = parser.parse_args()
+
+    if args.command == "provision":
+        provision()
+    elif args.command == "run":
+        run()
+---/code---
+
+
+
+
+
+--------------------------
+Cost Optimization Strategy
+--------------------------
+
+
+    Running 25 tasks per day with Sonnet for everything would cost significantly more than necessary. Here is the tiered model strategy for Mustafa's network:
+
+
+      python · config/model_tiers.py — Cost-Optimized Model Selection
+
+---code---
+# Model selection logic based on task complexity
+
+MODEL_TIERS = {
+    # Haiku: fast, cheap ($0.25/M input, $1.25/M output)
+    # Use for: simple search, notification evaluation, classification
+    "haiku": "claude-haiku-3-5",
+
+    # Sonnet: balanced ($3/M input, $15/M output)
+    # Use for: complex reasoning, drafting, multi-step tasks
+    "sonnet": "claude-sonnet-4-6",
+}
+
+AGENT_MODELS = {
+    "notification-agent": "haiku",   # Just evaluates and sends — simple
+    "research-agent":     "haiku",   # Search + fetch + summarize — repetitive
+    "kids-learning-agent":"sonnet",  # Pedagogical quality matters
+    "calendar-agent":     "sonnet",  # Conflict detection needs reasoning
+    "email-agent":        "sonnet",  # Draft quality must be high
+    "browser-agent":      "sonnet",  # Complex navigation decisions
+    "code-agent":         "sonnet",  # Code quality matters
+    "dispatcher":         "haiku",   # Just routing — simple classification
+}
+
+# Estimated monthly cost at current usage patterns:
+# Haiku tasks (research x365, notification x180, dispatcher x720): ~$8/month
+# Sonnet tasks (email x90, calendar x30, browser x52, code x20): ~$18/month
+# Total estimate: ~$26/month for full network automation
+---/code---
+
+
+
+
+
+-----------------------
+Monitoring and Alerting
+-----------------------
+
+
+
+      python · monitoring/logger.py — Structured Logging
+
+---code---
+import structlog
+import json
+from datetime import datetime
+from pathlib import Path
+
+log = structlog.get_logger()
+
+class AgentRunLogger:
+    """Structured logging for agent task runs."""
+
+    def __init__(self, log_dir: str = "logs"):
+        Path(log_dir).mkdir(exist_ok=True)
+        self.log_dir = log_dir
+        self.runs = []
+
+    def record_run(self, task_id: str, status: str,
+                   duration_ms: int, tokens_used: int = 0, error: str = None):
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "task_id": task_id,
+            "status": status,
+            "duration_ms": duration_ms,
+            "tokens_used": tokens_used,
+            "error": error,
+        }
+        self.runs.append(entry)
+        log.info("agent_run", **entry)
+
+        # Write to daily log file
+        log_file = Path(self.log_dir) / f"{datetime.now().strftime('%Y-%m-%d')}.jsonl"
+        with open(log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+
+    def daily_summary(self) -> dict:
+        """Summarize today's runs for the morning digest."""
+        total = len(self.runs)
+        failed = [r for r in self.runs if r["status"] == "failed"]
+        total_tokens = sum(r["tokens_used"] for r in self.runs)
+        return {
+            "total_runs": total,
+            "successful": total - len(failed),
+            "failed": len(failed),
+            "failed_tasks": [r["task_id"] for r in failed],
+            "total_tokens": total_tokens,
+            "success_rate": f"{((total - len(failed)) / total * 100):.1f}%" if total else "N/A",
+        }
+---/code---
+
+
+
+
+
+----------------------------
+Security Hardening Checklist
+----------------------------
+
+
+    Before running this in production, verify each item in this security checklist:
+
+        * API keys in environment only: No hardcoded credentials anywhere in code. Use macOS Keychain or 1Password CLI at startup.
+
+        * Notification agent access control: Only Mustafa's own number can trigger //claude commands. Family numbers can only receive, not trigger.
+
+        * MCP server network isolation: The iMessage and Chrome MCP servers should only be reachable from localhost. Bind to 127.0.0.1, not 0.0.0.0.
+
+        * Read-only file system mounts: Docker volumes for config should be mounted :ro. Only logs and memory volumes need write access.
+
+        * Rate limiting at MCP layer: Build rate limiting into MCP server middleware, not just in agent system prompts. System prompts can be confused; hard limits cannot.
+
+        * No email sending from agents: Agents create drafts only. Never give an agent permission to send email directly. Gmail MCP should be configured with draft-only OAuth scope.
+
+        * Audit log retention: Keep 90 days of JSONL logs. This lets you audit exactly what every agent did and when.
+
+
+
+
+-----------------
+Project Structure
+-----------------
+
+
+
+      text · Full Project Directory Structure
+
+---code---
+furniturewala-agent-network/
+├── main.py                        # Entry point: provision | run
+├── requirements.txt
+├── docker-compose.yml
+├── docker/
+│   ├── Dockerfile.scheduler
+│   └── Dockerfile.mcp
+├── config/
+│   ├── tasks.yaml                 # All scheduled task definitions
+│   ├── agents.json                # Generated after provision
+│   └── memory_stores.json         # Generated after provision
+├── agents/
+│   ├── __init__.py
+│   ├── calendar_agent.py
+│   ├── email_agent.py
+│   ├── notification_agent.py
+│   ├── research_agent.py
+│   ├── browser_agent.py
+│   ├── code_agent.py
+│   └── kids_learning_agent.py
+├── dispatcher/
+│   ├── __init__.py
+│   ├── main.py                    # AgentDispatcher class
+│   └── imessage_listener.py
+├── scheduler/
+│   ├── __init__.py
+│   └── runner.py                  # AgentTaskRunner + APScheduler
+├── mcp_servers/
+│   ├── imessage_server.py         # Custom iMessage MCP
+│   └── web_search_server.py       # Custom web search MCP
+├── memory/
+│   ├── setup.py                   # Create memory stores
+│   ├── profile.py                 # User profile initialization
+│   └── deduplication.py           # Research dedup logic
+├── monitoring/
+│   └── logger.py                  # Structured logging
+└── logs/                          # Daily JSONL log files
+---/code---
+
+
+
+
+
+---------------------------
+Getting Started — First Run
+---------------------------
+
+
+
+      bash · First-time Setup Commands
+
+---code---
+# 1. Clone and install
+git clone https://github.com/mustafafurniturewala/agent-network
+cd agent-network
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Load secrets (1Password CLI example)
+source scripts/load_secrets.sh
+
+# 3. Provision agents, environments, and memory stores (run once)
+python main.py provision
+
+# 4. Start MCP servers as background processes
+python mcp_servers/imessage_server.py &
+python mcp_servers/web_search_server.py &
+
+# 5. Test with a single task run
+python -c "
+from dispatcher.main import AgentDispatcher
+d = AgentDispatcher()
+result = d.dispatch('What is on the family calendar this week?', source='test')
+print(result)
+"
+
+# 6. Start the full scheduler daemon
+python main.py run
+
+# OR with Docker
+docker-compose up -d
+---/code---
+
+
+
+
+
+      Mustafa's Current Setup
+      You already have all the ingredients. Your Cowork mode provides exactly these capabilities — dispatching, specialist agents, memory, MCP connections, and scheduled tasks. This entire course is the blueprint for replicating that outside of Cowork, with full code-level control. The decision of whether to build this yourself vs. continuing in Cowork depends on what you want to customize. Cowork gives you everything pre-configured and managed. The SDK gives you the ability to modify agent behavior at the code level, run entirely on your own infrastructure, add custom MCP servers Cowork doesn't support, and build your own monitoring and alerting. Most VP-level engineers in your position start with Cowork for the 90% use case, then selectively migrate tasks to the SDK when they need deeper customization. That's the right call here too.
+
+
+
+      Key Takeaway
+      The capstone brings everything together: agents (Module 3) are orchestrated by the dispatcher (Module 4), run on schedule (Module 5), share persistent memory (Module 6), and communicate through MCP servers (Module 7). The Docker deployment gives you a reproducible, restartable, and auditable system. Start with python main.py provision to create all the Anthropic-side resources, then start the scheduler with python main.py run. Your 25+ Cowork tasks become 25+ YAML entries running through a coherent, coordinated agent network. The total estimated monthly cost is $20-30 — significantly less than most SaaS productivity tools, and infinitely more customizable.

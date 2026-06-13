@@ -1,0 +1,1211 @@
+AI INFRASTRUCTURE AT SCALE — PRODUCTION OPERATIONS COURSE
+=========================================================
+
+==========================
+AI INFRASTRUCTURE AT SCALE
+==========================
+
+
+  The ops playbook for running AI in production — from GPU metal to multi-region failover. Built for VP-level engineers managing AI workloads at Coursera-scale platforms.
+
+    ⏱ 2–3 hours
+    📦 8 Modules
+    🎯 VP Engineering / Staff+
+    🔌 Fully Offline
+
+
+
+Understand the model serving landscape and when to use each framework
+
+
+The Serving Landscape in 2025
+-----------------------------
+
+
+Model serving is the single most impactful infrastructure decision you'll make. The wrong choice costs you 3-10x in compute or adds 500ms+ latency. Here's the real landscape:
+
+
+Framework	|	Best For	|	Throughput	|	Latency (P50)	|	Production-Ready	|	Ecosystem
+vLLM	|	High-throughput batch + online	|	★★★★★	|	★★★★	|	★★★★	|	HuggingFace native
+TensorRT-LLM	|	Lowest latency on NVIDIA	|	★★★★★	|	★★★★★	|	★★★	|	NVIDIA only
+TGI	|	HuggingFace ecosystem	|	★★★★	|	★★★★	|	★★★★	|	HF Inference Endpoints
+Ollama	|	Dev/local, CPU+GPU	|	★★	|	★★★	|	★★	|	Easy setup, limited scale
+SGLang	|	Structured generation	|	★★★★★	|	★★★★	|	★★★	|	Constrained decoding
+
+
+vLLM Deep Dive — The Default Choice
+-----------------------------------
+
+
+vLLM dominates production deployments for good reason: PagedAttention gives you 2-4x throughput over naive serving by eliminating KV cache memory waste. It's the PostgreSQL of inference — not always the fastest, but reliable and well-understood.
+
+
+When to use vLLM
+
+
+  * Serving open-weight models (Llama 3.1, Mixtral, Qwen2.5, DeepSeek) in production
+
+  * You need high throughput with reasonable latency (<2s TTFT for 70B models)
+
+  * Multi-model serving from a single GPU pool
+
+  * You want continuous batching (critical for throughput under concurrent load)
+
+
+---code---
+# Production vLLM deployment — Docker Compose
+# This config runs Llama 3.1 70B on 4x A100 80GB
+
+version: "3.8"
+services:
+  vllm:
+    image: vllm/vllm-openai:v0.6.4
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 4
+              capabilities: [gpu]
+    command: >
+      --model meta-llama/Llama-3.1-70B-Instruct
+      --tensor-parallel-size 4
+      --max-model-len 8192
+      --gpu-memory-utilization 0.92
+      --enable-prefix-caching
+      --max-num-batched-tokens 32768
+      --max-num-seqs 256
+      --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - /models:/root/.cache/huggingface
+    shm_size: "16gb"
+---/code---
+
+
+Key Config Decisions:
+--gpu-memory-utilization 0.92 — Leave 8% headroom. Going to 0.95+ causes OOM under burst load. --max-num-seqs 256 — Concurrent sequences. Higher = more throughput but higher P99 latency. Tune for your SLA. --enable-prefix-caching — Free 20-40% throughput boost if requests share system prompts.
+
+
+TensorRT-LLM — When Latency is King
+-----------------------------------
+
+
+If you're on NVIDIA hardware (you probably are) and need the absolute lowest latency, TensorRT-LLM compiles models into optimized CUDA kernels. The tradeoff: complex build process, NVIDIA lock-in, and less community support.
+
+
+When to pick TensorRT-LLM over vLLM
+
+
+  * Latency SLA under 200ms TTFT for interactive use cases
+
+  * You have dedicated SRE capacity for the build pipeline
+
+  * Running on NVIDIA Triton Inference Server already
+
+  * H100/H200 hardware (TRT-LLM extracts more from newer GPUs)
+
+
+Throughput vs Latency — The Fundamental Tradeoff
+----------------------------------------
+
+
+  Throughput (tokens/sec)
+  |
+  |    +--------------------------- TensorRT-LLM (tuned)
+  |    |  +------------------------- vLLM (continuous batching)
+  |    |  |
+4000 |----*--*
+  |    |  |   +---------------------- SGLang (structured gen)
+3000 |----|--|---*
+  |    |  |   |  +------------------- TGI
+2000 |----|--|---|--*
+  |    |  |   |  |
+1000 |----|--|---|--|--+----------------- Ollama
+  |    |  |   |  |  *
+  +----+--+---+--+--+----------------> Latency P50 (ms)
+       50 80 90 120 400
+
+  Benchmark: Llama 3.1 8B, 512 input / 256 output tokens, A100 80GB
+  Higher throughput = more $/GPU, Lower latency = better UX
+
+
+API vs Self-Hosted: The First Decision
+--------------------------------------
+
+
+
+API-Based (Anthropic/OpenAI) API
+
+
+
+      * Zero infrastructure — just HTTP calls
+
+      * Auto-scaling handled by provider
+
+      * Frontier models (Claude Sonnet/Opus, GPT-4o)
+
+      * Cost: $3-15/MTok input, $15-75/MTok output
+
+      * Latency: 200-800ms TTFT typical
+
+      * Rate limits: 4K-10K RPM (enterprise)
+
+      * Best when: <10M queries/month, need frontier quality, small infra team
+
+
+
+
+
+Self-Hosted (vLLM + Open Source) SELF
+
+
+
+      * Full control over latency, throughput, cost
+
+      * No rate limits — scale with hardware
+
+      * Models: Llama 3.1 70B, Mixtral, Qwen2.5
+
+      * Cost: $1.50-3.00/hr per A100 (amortized)
+
+      * Latency: 50-200ms TTFT (tunable)
+
+      * Need: GPU ops team, monitoring, on-call
+
+      * Best when: >50M queries/month, latency-critical, data sovereignty
+
+
+
+
+The Hybrid Approach (Recommended for Coursera-scale):
+Use API (Claude Sonnet) for complex reasoning tasks (essay grading, content generation) and self-hosted (Llama 3.1 8B quantized) for high-volume simple tasks (autocomplete, classification, translation). This cuts costs 60-70% vs all-API while keeping quality where it matters.
+
+
+Module 1 complete — can articulate when to use vLLM vs TRT-LLM vs API
+
+
+Understand quantization formats and their quality/speed tradeoffs
+
+
+Why Quantization Matters
+------------------------
+
+
+A 70B parameter model at FP16 requires ~140GB VRAM — that's 2x A100 80GB just to load. Quantize to INT4 and it fits on a single A100 with room for a 4K context KV cache. Quantization is the single biggest lever for reducing inference cost.
+
+
+Quantization Formats Compared
+-----------------------------
+
+
+Format	|	Bits	|	VRAM (70B)	|	Quality Loss	|	Speed vs FP16	|	Best Framework	|	Notes
+FP16	|	16	|	140 GB	|	Baseline	|	1.0x	|	Any	|	Reference quality
+FP8	|	8	|	70 GB	|	~0%	|	1.5-1.8x	|	TRT-LLM, vLLM	|	H100/H200 native support
+AWQ	|	4	|	35 GB	|	1-2%	|	2.0-2.5x	|	vLLM, TGI	|	Activation-aware, best INT4 quality
+GPTQ	|	4	|	35 GB	|	2-3%	|	2.0-2.3x	|	vLLM, TGI	|	Older but well-tested, large zoo
+GGUF	|	2-8	|	Varies	|	Varies	|	CPU+GPU	|	llama.cpp, Ollama	|	Best for CPU/mixed inference
+INT4 (W4A16)	|	4	|	35 GB	|	1-3%	|	2.0-2.5x	|	TRT-LLM	|	Weights INT4, activations FP16
+
+
+Quality Benchmarks — Real Numbers
+---------------------------------
+
+
+Internal benchmarks on Llama 3.1 70B across standard evals. Your mileage will vary by task — always benchmark on YOUR data.
+
+
+Format	|	MMLU (5-shot)	|	HumanEval	|	MT-Bench	|	Relative Quality
+FP16 (baseline)	|	82.0	|	80.5	|	8.95	|	100%
+FP8	|	81.9	|	80.5	|	8.93	|	~99.8%
+AWQ INT4	|	81.1	|	79.3	|	8.82	|	~98.5%
+GPTQ INT4	|	80.4	|	78.0	|	8.71	|	~97.3%
+GGUF Q4_K_M	|	80.7	|	78.8	|	8.76	|	~97.8%
+GGUF Q2_K	|	74.2	|	68.1	|	7.95	|	~89%
+
+
+The INT4 Cliff:
+For most production tasks, AWQ INT4 is the sweet spot — you get 2x throughput with <2% quality loss. Below INT4 (e.g., GGUF Q2_K), quality degrades significantly. FP8 on H100/H200 is "free" quality — use it if your hardware supports it.
+
+
+When Quantization Is Worth It
+-----------------------------
+
+
+  Decision Tree: Should You Quantize?
+
+  Are you using an API (Anthropic/OpenAI)?
+  +-- YES -> Quantization is handled by the provider. Focus on
+  |         prompt optimization and model selection instead.
+  |
+  +-- NO (self-hosted) -> What's your GPU?
+      +-- H100/H200 -> Use FP8. Free 1.5-1.8x speedup, ~0% quality loss.
+      |                  Native tensor core support. No reason not to.
+      |
+      +-- A100/A10G -> Model fits in VRAM at FP16?
+          +-- YES -> Is throughput sufficient?
+          |   +-- YES -> Stay at FP16. Don't optimize prematurely.
+          |   +-- NO  -> Use AWQ INT4. 2x throughput, ~1.5% quality loss.
+          |
+          +-- NO -> Use AWQ INT4 to fit in VRAM.
+                   70B model: 140GB -> 35GB. Fits on single A100 80GB.
+
+
+Practical: Quantizing with AutoAWQ
+----------------------------------
+
+
+---code---
+# Quantize Llama 3.1 70B to AWQ INT4
+# Requires ~160GB RAM + 80GB GPU for calibration
+
+from awq import AutoAWQForCausalLM
+from transformers import AutoTokenizer
+
+model_path = "meta-llama/Llama-3.1-70B-Instruct"
+quant_path = "llama-3.1-70b-instruct-awq"
+
+# Calibration config
+quant_config = {
+    "zero_point": True,
+    "q_group_size": 128,
+    "w_bit": 4,
+    "version": "GEMM"     # Use GEMM for vLLM compat
+}
+
+model = AutoAWQForCausalLM.from_pretrained(model_path)
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+
+# 128-512 samples of real production prompts
+calib_data = load_calibration_data()
+
+model.quantize(tokenizer, quant_config=quant_config, calib_data=calib_data)
+model.save_quantized(quant_path)
+tokenizer.save_pretrained(quant_path)
+---/code---
+
+
+Cost Impact of Quantization:
+Running Llama 3.1 70B on AWS — FP16 on 2x A100 80GB: $6.52/hr. AWQ INT4 on 1x A100 80GB: $3.26/hr. That's a 50% cost reduction with <2% quality loss. At 10M queries/month, that's ~$2,400/month saved per model instance.
+
+
+Module 2 complete — can choose the right quantization format for a given scenario
+
+
+Understand caching strategies across API and self-hosted deployments
+
+
+The Caching Landscape
+---------------------
+
+
+Caching is the highest-ROI optimization in AI infrastructure. Unlike traditional web caching, LLM caching operates at multiple layers — from exact response dedup to KV cache reuse for shared prefixes.
+
+
+Cache Type	|	Where	|	Savings	|	Complexity	|	Applies To
+Anthropic Prompt Caching	|	API-side	|	90% on cached input tokens	|	Low	|	API
+KV Cache (PagedAttention)	|	GPU VRAM	|	2-4x throughput	|	Built-in	|	SELF
+Prefix Caching	|	GPU/CPU	|	20-60% latency reduction	|	Medium	|	SELF
+Semantic Cache	|	Redis/app layer	|	100% (exact hit)	|	Medium	|	BOTH
+Batch API	|	API-side	|	50% cost	|	Low	|	API
+
+
+Anthropic Prompt Caching — The Biggest Win for API Users
+----------------------------------------
+
+
+If you're using Claude, prompt caching is the single most impactful cost optimization. Cached input tokens cost 90% less. For applications with long system prompts or repeated context (course materials, rubrics, knowledge bases), this is transformative.
+
+
+---code---
+# Python - Anthropic SDK with prompt caching
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-sonnet-4-20250514",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": LONG_RUBRIC_TEXT,   # 4000+ tokens of grading rubric
+            "cache_control": {"type": "ephemeral"}
+        }
+    ],
+    messages=[
+        {"role": "user", "content": student_essay}
+    ]
+)
+
+# Check cache performance
+usage = response.usage
+print(f"Cache read: {usage.cache_read_input_tokens} tokens")
+print(f"Cache miss: {usage.cache_creation_input_tokens} tokens")
+---/code---
+
+
+Cost Math: Prompt Caching at Coursera Scale
+
+
+
+Essay Grading — 500K Essays/Month
+
+
+  System prompt (rubric)4,000 tokens
+  Student essay (avg)1,500 tokens
+  Output (feedback)800 tokens
+  Monthly volume500,000 essays
+
+  Without caching (Claude Sonnet)$16,200/mo
+  With prompt caching (90% saved on rubric)$10,500/mo
+  Monthly savings$5,700/mo (~35%)
+
+
+Prefix Caching — Self-Hosted
+----------------------------
+
+
+vLLM's --enable-prefix-caching reuses KV cache entries when requests share the same prefix (system prompt). This is the self-hosted equivalent of Anthropic's prompt caching.
+
+  Request Flow with Prefix Caching
+
+  Request 1: [System Prompt] + [User Message A]
+              | compute KV      | compute KV
+              CACHE (stored)     decode
+
+  Request 2: [System Prompt] + [User Message B]
+              | CACHE HIT!       | compute KV
+              skip compute      decode
+
+  Result: Request 2 skips ~40% of the compute
+          TTFT drops from 800ms -> 450ms for a 70B model
+
+
+The Batch API — 50% Off for Non-Urgent Work
+----------------------------------------
+
+
+Anthropic's Batch API processes requests asynchronously at 50% cost. For offline tasks — grading backlogs, content generation pipelines, bulk classification — this is pure savings.
+
+
+---code---
+# Batch API usage - process 10K essays overnight
+import anthropic
+
+client = anthropic.Anthropic()
+
+batch = client.messages.batches.create(
+    requests=[
+        {
+            "custom_id": f"essay-{i}",
+            "params": {
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 1024,
+                "messages": [{"role": "user", "content": essay}]
+            }
+        }
+        for i, essay in enumerate(essays[:10000])
+    ]
+)
+# Cost: 50% of standard pricing. Completes in 15min-24hr.
+---/code---
+
+
+Semantic Caching — Application Layer
+------------------------------------
+
+
+For high-volume applications with repetitive queries (FAQ bots, tutoring on popular topics), semantic caching at the application layer can eliminate LLM calls entirely for ~20-40% of queries.
+
+
+---code---
+# Simple semantic cache with Redis
+import hashlib, json, redis
+
+r = redis.Redis()
+
+def cached_completion(prompt, model):
+    cache_key = hashlib.sha256(
+        json.dumps({"prompt": prompt, "model": model}).encode()
+    ).hexdigest()
+
+    cached = r.get(f"llm:{cache_key}")
+    if cached:
+        return json.loads(cached)  # Hit! Zero cost.
+
+    result = call_llm(prompt, model)
+    r.setex(f"llm:{cache_key}", 3600, json.dumps(result))
+    return result
+---/code---
+
+
+Caching Strategy Summary for Coursera-Scale:
+Layer 1: Anthropic prompt caching (always on, 30-40% savings). Layer 2: Semantic cache in Redis for FAQ/tutoring (eliminates 20-40% of calls). Layer 3: Batch API for offline grading (50% on batch work). Combined: 50-65% cost reduction vs naive API usage.
+
+
+Module 3 complete — can implement multi-layer caching strategy
+
+
+Understand GPU hardware options and cloud provider tradeoffs
+
+
+GPU Hardware Landscape (2025)
+-----------------------------
+
+
+GPU	|	VRAM	|	FP16 TFLOPS	|	FP8 TFLOPS	|	Mem BW	|	Interconnect	|	Cloud $/hr	|	Best For
+A100 80GB	|	80 GB	|	312	|	—	|	2.0 TB/s	|	NVLink 600GB/s	|	$1.50-3.26	|	General inference, fine-tuning
+H100 80GB	|	80 GB	|	990	|	1,979	|	3.35 TB/s	|	NVLink 900GB/s	|	$2.50-4.76	|	Large model inference, FP8
+H200 141GB	|	141 GB	|	990	|	1,979	|	4.8 TB/s	|	NVLink 900GB/s	|	$3.50-5.50	|	70B+ without quantization
+B200	|	192 GB	|	2,250	|	4,500	|	8.0 TB/s	|	NVLink 1.8TB/s	|	$5.00-8.00	|	Next-gen, largest models
+A10G	|	24 GB	|	125	|	—	|	600 GB/s	|	PCIe	|	$0.75-1.20	|	Small models (<13B quantized)
+L4	|	24 GB	|	121	|	242	|	300 GB/s	|	PCIe	|	$0.40-0.80	|	Budget inference, FP8
+
+
+Cloud Provider Comparison
+-------------------------
+
+
+Provider	|	A100 80GB	|	H100 80GB	|	Spot Savings	|	Min Commit	|	Strengths
+AWS (p4d/p5)	|	$3.26/hr	|	$4.76/hr	|	50-70%	|	None / 1yr RI	|	Ecosystem, SageMaker
+GCP (a2/a3)	|	$2.95/hr	|	$4.08/hr	|	60-70%	|	None / 1yr CUD	|	TPU option, GKE ML
+Azure (NC/ND)	|	$3.10/hr	|	$4.52/hr	|	40-60%	|	None / 1yr	|	Enterprise, OpenAI integration
+Lambda Labs	|	$1.50/hr	|	$2.49/hr	|	—	|	None	|	Cheapest on-demand, simple
+RunPod	|	$1.64/hr	|	$2.69/hr	|	30-50%	|	None	|	Serverless GPU, pay-per-sec
+
+
+Spot vs Reserved — The Cost Decision
+------------------------------------
+
+
+  Cost Comparison: 8x A100 80GB Cluster, 24/7 for 1 Year
+
+  On-Demand (AWS p4d.24xlarge)
+  +-- $3.26/hr x 8 GPU x 8,760 hrs = $228,518/year
+
+  1-Year Reserved Instance (All Upfront)
+  +-- ~40% discount = $137,111/year
+
+  Spot Instances (avg 65% savings, but interruptions)
+  +-- ~$1.14/hr x 8 GPU x 8,760 hrs = $79,891/year
+  +-- Requires: checkpointing, graceful shutdown, on-demand fallback
+
+  Lambda Labs (on-demand)
+  +-- $1.50/hr x 8 GPU x 8,760 hrs = $105,120/year
+
+  Recommendation for production inference:
+  Reserved for baseline load + Spot for burst + Lambda for dev/staging
+
+
+Multi-GPU Inference — Parallelism Strategies
+----------------------------------------
+
+
+Strategy	|	When to Use	|	Example	|	Overhead
+Tensor Parallel	|	Model doesn't fit on 1 GPU	|	70B FP16 -> 2x A100	|	Low (NVLink)
+Pipeline Parallel	|	Cross-node serving	|	405B -> 8x H100 across 2 nodes	|	Medium (network)
+Data Parallel	|	Scale throughput, model fits 1 GPU	|	8B INT4 -> 4x replicas on 4x A100	|	None (independent)
+
+
+---code---
+# Terraform - Provision GPU cluster on AWS
+
+resource "aws_instance" "inference_gpu" {
+  count         = 4
+  ami           = "ami-0abcdef1234567890"  # NVIDIA Deep Learning AMI
+  instance_type = "p4d.24xlarge"           # 8x A100 80GB
+
+  root_block_device {
+    volume_size = 500
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name        = "inference-node-${count.index}"
+    Environment = "production"
+    Team        = "ai-platform"
+  }
+
+  # Placement group for low-latency NVLink/EFA
+  placement_group = aws_placement_group.inference.id
+}
+
+resource "aws_placement_group" "inference" {
+  name     = "inference-cluster"
+  strategy = "cluster"
+}
+
+# Auto Scaling Group for spot-based burst capacity
+resource "aws_autoscaling_group" "inference_spot" {
+  desired_capacity = 0
+  max_size         = 8
+  min_size         = 0
+
+  mixed_instances_policy {
+    instances_distribution {
+      on_demand_percentage_above_base_capacity = 0
+      spot_allocation_strategy = "capacity-optimized"
+    }
+    launch_template {
+      launch_template_specification {
+        launch_template_id = aws_launch_template.gpu_spot.id
+      }
+      override { instance_type = "p4d.24xlarge" }
+      override { instance_type = "p4de.24xlarge" }
+    }
+  }
+}
+---/code---
+
+
+GPU Sizing for Coursera:
+Baseline: 4x A100 80GB (reserved) running Llama 3.1 70B AWQ for high-volume tasks. Burst: Auto-scaling spot group 0-8x A100 for peak hours. API: Claude Sonnet for complex grading (no GPUs needed). Total steady-state cost: ~$15K-20K/month for self-hosted + $10-15K/month for API.
+
+
+Module 4 complete — can spec a GPU cluster and justify the hardware choice
+
+
+Understand production scaling strategies for AI workloads
+
+
+Reference Architecture — Load Balancing AI Inference
+----------------------------------------
+
+
+                          Clients
+                            |
+                     +------+------+
+                     |  API Gateway |  Rate limiting, auth, routing
+                     |  (Kong/Envoy)|
+                     +------+------+
+                            |
+                   +--------+--------+
+                   |  Model Router   |  Complexity-based routing
+                   |  (custom logic) |  Simple -> Haiku/8B, Complex -> Sonnet/70B
+                   +---+--------+---+
+                       |        |
+            +----------+        +----------+
+            v                              v
+  +-----------------+          +-----------------+
+  | Simple Tasks     |          | Complex Tasks    |
+  | Claude Haiku /  |          | Claude Sonnet /  |
+  | Llama 8B (self) |          | Llama 70B (self) |
+  | 4x replicas     |          | 2x replicas      |
+  +-----------------+          +-----------------+
+            |                              |
+            +----------+-------------------+
+                       v
+             +------------------+
+             |  Response Queue  |  Async responses, streaming
+             |  (Redis/Kafka)   |
+             +------------------+
+
+
+Multi-Model Routing — The Smart Scaling Pattern
+----------------------------------------
+
+
+Not every request needs your most powerful (and expensive) model. A routing layer that classifies request complexity can cut costs 40-60% by sending simple tasks to cheap models.
+
+
+---code---
+# Model router - classify and route requests
+
+from enum import Enum
+
+class ModelTier(Enum):
+    FAST   = "fast"     # Haiku / Llama 8B  - $0.25/MTok
+    SMART  = "smart"    # Sonnet / Llama 70B - $3/MTok
+    BEST   = "best"     # Opus - $15/MTok
+
+def route_request(request) -> ModelTier:
+    task = request.task_type
+
+    # Classification, translation, autocomplete -> cheap model
+    if task in ["classify", "translate", "autocomplete", "summarize_short"]:
+        return ModelTier.FAST
+
+    # Essay grading, content generation -> capable model
+    if task in ["grade_essay", "generate_content", "explain_concept"]:
+        return ModelTier.SMART
+
+    # Curriculum design, complex reasoning -> best model
+    if task in ["curriculum_design", "research_synthesis"]:
+        return ModelTier.BEST
+
+    return ModelTier.SMART  # default
+---/code---
+
+
+Auto-Scaling Configuration
+--------------------------
+
+
+---code---
+# Kubernetes HPA for vLLM inference pods
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vllm-inference-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vllm-llama-70b
+  minReplicas: 2          # Always-on baseline
+  maxReplicas: 8          # Peak capacity
+  metrics:
+    - type: Pods
+      pods:
+        metric:
+          name: vllm_pending_requests   # Custom metric from vLLM
+        target:
+          type: AverageValue
+          averageValue: 50             # Scale up when queue > 50
+    - type: Pods
+      pods:
+        metric:
+          name: gpu_utilization
+        target:
+          type: AverageValue
+          averageValue: 80             # Scale at 80% GPU util
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 120
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 300
+---/code---
+
+
+Request Queuing & Rate Limiting
+-------------------------------
+
+
+  Rate Limiting Strategy (Layered)
+
+  Layer 1: API Gateway (Kong/Envoy)
+  +-- Global rate limit: 10,000 RPM
+  +-- Per-user rate limit: 100 RPM
+  +-- Burst allowance: 2x for 10 seconds
+
+  Layer 2: Request Queue (Redis + Bull/Celery)
+  +-- Priority queue: premium users -> high priority
+  +-- Queue depth limit: 5,000 (reject with 429 beyond)
+  +-- Request timeout: 30 seconds (drop stale requests)
+
+  Layer 3: Inference Server (vLLM)
+  +-- Max concurrent sequences: 256
+  +-- Max batch tokens: 32,768
+  +-- Backpressure: return 503 when overloaded
+
+  Key insight: GPU-backed services MUST have backpressure.
+  Unlike CPU services, you can't just add more threads.
+  An overloaded GPU gives worse latency to everyone.
+
+
+The GPU Scaling Trap:
+GPUs don't scale like CPU services. Adding requests to an overloaded GPU doesn't linearly increase latency — it causes catastrophic P99 blowup. A vLLM server handling 200 concurrent requests at 100ms P50 might have 5s P99 at 300 concurrent. Always use backpressure (queue limits + 503 rejection) rather than unbounded request acceptance.
+
+
+Module 5 complete — can design a multi-model scaling architecture
+
+
+Understand LLM-specific observability requirements
+
+
+What to Measure
+---------------
+
+
+LLM observability is different from traditional service monitoring. Latency percentiles matter more than averages, cost is a first-class metric, and "quality" is something you need to track but can't directly measure from metrics alone.
+
+
+Metric	|	What	|	Target (Coursera-scale)	|	Alert Threshold
+TTFT	|	Time to first token	|	P50 < 500ms, P99 < 2s	|	P99 > 3s for 5 min
+TPS	|	Tokens per second (output)	|	> 40 tok/s per request	|	< 20 tok/s for 5 min
+E2E Latency	|	Total request time	|	P50 < 3s, P99 < 10s	|	P99 > 15s for 5 min
+Error Rate	|	5xx + timeouts	|	< 0.1%	|	> 1% for 5 min
+Cost/Query	|	Dollar cost per request	|	< $0.005 avg	|	> $0.02 avg (spike)
+GPU Util	|	Compute utilization	|	60-85%	|	< 30% or > 95%
+Queue Depth	|	Pending requests	|	< 100	|	> 500 for 2 min
+Cache Hit	|	Prompt + semantic cache	|	> 40%	|	< 20% (misconfigured)
+
+
+Tracing LLM Calls
+-----------------
+
+
+---code---
+# Structured logging for LLM calls
+import json, logging
+
+logger = logging.getLogger("llm_trace")
+
+class LLMTracer:
+    def trace_call(self, request, response, timing):
+        trace = {
+            "trace_id":       request.trace_id,
+            "model":          response.model,
+            "task_type":      request.task_type,
+            # Token counts
+            "input_tokens":   response.usage.input_tokens,
+            "output_tokens":  response.usage.output_tokens,
+            "cached_tokens":  response.usage.cache_read_input_tokens,
+            # Timing
+            "queue_time_ms":  timing.queue_ms,
+            "ttft_ms":        timing.ttft_ms,
+            "generation_ms":  timing.generation_ms,
+            "total_ms":       timing.total_ms,
+            # Cost
+            "cost_usd":       self.calc_cost(response),
+            "cache_hit":      response.usage.cache_read_input_tokens > 0,
+        }
+        logger.info(json.dumps(trace))
+
+    def calc_cost(self, response):
+        # Claude Sonnet pricing
+        P = {"input": 3.0/1e6, "output": 15.0/1e6, "cache": 0.3/1e6}
+        u = response.usage
+        return (
+            (u.input_tokens - u.cache_read_input_tokens) * P["input"] +
+            u.cache_read_input_tokens * P["cache"] +
+            u.output_tokens * P["output"]
+        )
+---/code---
+
+
+Observability Stack
+-------------------
+
+
+  Production Observability Pipeline
+
+  LLM Service --> Structured Logs --> Vector/Fluentd --> Datadog/Grafana
+       |                                                      |
+       +--> Metrics (Prometheus) --> Grafana Dashboards      |
+       |    * ttft_seconds (histogram)                        |
+       |    * tokens_per_second (gauge)                       |
+       |    * cost_per_request_usd (histogram)                |
+       |    * gpu_utilization (gauge)                         |
+       |                                                      |
+       +--> Traces (OpenTelemetry) --> Langsmith/Braintrust  |
+       |    * Full request/response pairs                     |
+       |    * Latency waterfall                               |
+       |    * Human feedback signals                          |
+       |                                                      |
+       +--> Alerts --> PagerDuty/OpsGenie                    |
+            * Error rate > 1%                                 |
+            * P99 latency > 15s                               |
+            * Cost anomaly > 2x daily average                 |
+            * GPU util < 30% (cost waste alert)               |
+
+
+Error Budgets for LLM Services
+------------------------------
+
+
+SLI	|	SLO	|	Error Budget (30d)	|	Burn Rate Alert
+Availability	|	99.9%	|	43.2 min downtime	|	14.4x in 1hr
+Latency (TTFT P99)	|	< 3s	|	0.1% requests over 3s	|	3x in 6hr
+Quality (human eval)	|	> 90% "good"	|	10% poor responses	|	Weekly review
+Cost per query	|	< $0.01 avg	|	10% budget overrun	|	2x daily average
+
+
+Module 6 complete — can set up LLM-specific observability and SLOs
+
+
+Understand the full cost picture and optimization levers
+
+
+The Real Math: Cost Per Query
+-----------------------------
+
+
+The most important number in AI infrastructure is cost per query. Everything else (GPU utilization, throughput, model selection) is a lever to move this number. Let's build the cost model ground-up.
+
+
+API-Based Cost Model (Claude Sonnet)
+
+
+
+Scenario: AI Tutor — 10M Queries/Month
+
+
+  Avg input tokens per query2,000
+  Avg output tokens per query500
+  Claude Sonnet input price$3.00 / MTok
+  Claude Sonnet output price$15.00 / MTok
+
+  Monthly input cost (10M x 2K x $3/MTok)$60,000
+  Monthly output cost (10M x 500 x $15/MTok)$75,000
+  Gross monthly cost$135,000
+  With prompt caching (-35% input)$114,000
+  With semantic cache (-25% of queries)$85,500
+  Optimized cost per query$0.00855
+
+
+Self-Hosted Cost Model (vLLM + Llama 70B AWQ)
+
+
+
+Same AI Tutor — 10M Queries/Month, Self-Hosted
+
+
+  Model: Llama 3.1 70B AWQ (INT4)1x A100 80GB / replica
+  Throughput per replica (cont. batching)~15 req/sec sustained
+  Requests/month per replica~39M
+  Replicas needed for 10M/month2 (with headroom)
+  A100 80GB cost (Lambda Labs)$1.50/hr
+
+  GPU cost (2 x $1.50 x 730 hrs)$2,190
+  Networking, storage, monitoring$500
+  Engineering overhead (0.5 FTE SRE)$8,000
+  Total monthly cost$10,690
+  Cost per query (self-hosted)$0.00107
+
+
+API vs Self-Hosted Breakeven Analysis
+-------------------------------------
+
+
+  Monthly Cost ($) vs Query Volume
+
+  $150K |                                           / API (Claude Sonnet)
+        |                                        /
+  $120K |                                     /
+        |                                  /
+   $90K |                               /
+        |                            /
+   $60K |                         /
+        |                      /       +------ Breakeven: ~2M queries/mo
+   $30K |                   /  --------+       (including eng overhead)
+        |                /             +------
+   $15K |-------------/------------------- Self-hosted (fixed + marginal)
+   $10K |---------------------------------------------------
+        |       /
+        +-------+---+---+---+---+---+---+---+---+---
+             1M  2M  3M  5M  7M  10M 15M 20M 30M
+                        Queries / Month
+
+  Assumptions: Self-hosted = Llama 70B AWQ on A100, including 0.5 FTE SRE
+  API cost with caching + semantic cache optimizations applied
+  Self-hosted quality ~5-10% lower on complex reasoning tasks
+
+
+The Quality Factor:
+The breakeven chart above only shows cost. Claude Sonnet typically outperforms Llama 70B on complex tasks (essay grading, nuanced feedback) by 10-20% on quality benchmarks. The right answer is usually hybrid: self-hosted for volume/simple tasks, API for quality-critical tasks. At Coursera scale, a 70/30 split (70% self-hosted, 30% API) often minimizes cost while maintaining quality where it matters.
+
+
+Cost Optimization Levers — Ranked by Impact
+----------------------------------------
+
+
+#	|	Lever	|	Savings	|	Effort	|	Risk
+1	|	Model routing (Haiku for simple)	|	40-60%	|	Medium	|	Low
+2	|	Prompt caching (API) / Prefix (self)	|	30-40%	|	Low	|	None
+3	|	Batch API for offline workloads	|	50% on batch	|	Low	|	None
+4	|	Quantization (AWQ INT4 / FP8)	|	50% compute	|	Medium	|	Low
+5	|	Semantic caching	|	20-40% of calls	|	Medium	|	Stale responses
+6	|	Prompt optimization (shorter)	|	10-30%	|	Medium	|	Quality impact
+7	|	Spot instances	|	50-70% compute	|	High	|	Interruptions
+8	|	Self-hosting (at scale)	|	60-90%	|	Very High	|	Ops burden
+
+
+Cost Per Student — The Business Metric
+
+
+
+Coursera-Scale: 100M Registered, 10M MAU
+
+
+  AI queries per active student/month~50
+  Total queries/month500M
+
+  All-API (optimized Claude Sonnet)$4.28M/mo = $0.43/student
+  Hybrid (70% self-hosted, 30% API)$1.34M/mo = $0.13/student
+  All self-hosted (Llama 70B AWQ)$0.54M/mo = $0.05/student
+  Recommended hybrid with routing$0.85M/mo = $0.085/student
+
+
+Module 7 complete — can model cost per query and choose optimization strategy
+
+
+Understand how to architect a production AI platform at Coursera-scale
+
+
+Reference Architecture: AI-Powered EdTech Platform
+----------------------------------------
+
+
+  ===============================================================
+      Coursera-Scale AI Platform Architecture
+  ===============================================================
+
+  +--- CDN (CloudFront) -----------------------------------------------+
+  |  Static content: course pages, videos, images                      |
+  |  Pre-rendered AI content: generated quizzes, summaries             |
+  |  Edge caching: 90%+ cache hit rate for static assets               |
+  +--------------------------+----------------------------------------+
+                             |
+  +--- Application Layer ----+----------------------------------------+
+  |                                                                    |
+  |  Web App (Next.js) --> API Gateway (Kong) --> Auth / Rate Limit     |
+  |                            |                                      |
+  |                     +------+------+                                |
+  |                     | AI Router   |  Task classification           |
+  |                     | (service)   |  Model selection                |
+  |                     +--+---+---+--+  Cost-aware routing            |
+  |                        |   |   |                                   |
+  +------------------------+---+---+-----------------------------------+
+                           |   |   |
+          +----------------+   |   +----------------+
+          v                    v                     v
+  +---------------+  +----------------+   +------------------+
+  | Self-Hosted    |  | API: Claude    |   | Batch Pipeline   |
+  | vLLM Cluster  |  | Sonnet / Haiku |   | (Async workers)  |
+  |               |  |                |   |                  |
+  | Llama 70B AWQ |  | Essay grading  |   | Bulk grading     |
+  | 4x A100 (TP=1)|  | Complex Q&A    |   | Content gen      |
+  |               |  | Content review |   | Analytics        |
+  | Autocomplete  |  |                |   |                  |
+  | Classification|  | Prompt caching |   | Batch API (50%)  |
+  | Translation   |  | enabled        |   |                  |
+  +-------+-------+  +-------+--------+   +--------+---------+
+          |                  |                      |
+          +----------+-------+----------------------+
+                     |
+  +--- Data Layer ----+--------------------------------------------+
+  |                                                                |
+  |  Redis              PostgreSQL          S3                   |
+  |  +- Semantic cache   +- User data          +- Model artifacts   |
+  |  +- Session state    +- Course content     +- Generated content |
+  |  +- Rate limit state +- AI interaction log +- Training data     |
+  |  +- Request queue    +- Cost tracking      +- Backup/archive    |
+  |                                                                |
+  +----------------------------------------------------------------+
+
+
+Streaming Responses — Critical for UX
+-------------------------------------
+
+
+For interactive AI features (tutoring, Q&A), streaming is mandatory. Users perceive 200ms TTFT with streaming as "instant" but 3s wait-then-dump as "slow" — even if total time is identical.
+
+
+---code---
+# Server-Sent Events (SSE) streaming endpoint
+
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
+import anthropic, json
+
+app = FastAPI()
+
+async def stream_response(prompt: str):
+    client = anthropic.Anthropic()
+    with client.messages.stream(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}]
+    ) as stream:
+        for text in stream.text_stream:
+            yield f"data: {json.dumps({'text': text})}\n\n"
+    yield "data: [DONE]\n\n"
+
+@app.post("/api/ai/stream")
+async def ai_stream(request: Request):
+    body = await request.json()
+    return StreamingResponse(
+        stream_response(body["prompt"]),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        }
+    )
+---/code---
+
+
+Failover Strategy
+-----------------
+
+
+  Failover Chain (automatic, per-request)
+
+  Request --> Primary: Claude Sonnet
+              |
+              +- Success -> Return response
+              |
+              +- Rate limited (429) --> Fallback 1: Self-hosted Llama 70B
+              |                          |
+              |                          +- Success -> Return (slightly lower quality)
+              |                          |
+              |                          +- Overloaded (503) --> Fallback 2: Claude Haiku
+              |                                                    |
+              |                                                    +- Return (faster, simpler)
+              |
+              +- Timeout (30s) --> Fallback 2: Claude Haiku
+                                   |
+                                   +- All failed --> Graceful degradation
+                                                      (cached response or error message)
+
+  Key: Each failover logs the event for SRE review.
+  Failover rate > 5% triggers an alert.
+
+
+---code---
+# Failover implementation with retries
+
+class AIService:
+    FAILOVER_CHAIN = [
+        {"provider": "anthropic", "model": "claude-sonnet-4-20250514"},
+        {"provider": "self_hosted", "model": "llama-70b-awq"},
+        {"provider": "anthropic", "model": "claude-haiku-4-5-20251001"},
+    ]
+
+    async def complete(self, request):
+        for i, target in enumerate(self.FAILOVER_CHAIN):
+            try:
+                response = await self._call_model(target, request)
+                if i > 0:  # Log failover event
+                    self.metrics.increment("failover_count",
+                        tags={"from": self.FAILOVER_CHAIN[0]["model"],
+                              "to": target["model"]})
+                return response
+            except (RateLimitError, TimeoutError, ServiceUnavailable):
+                continue
+
+        # All providers failed
+        return await self.graceful_degradation(request)
+---/code---
+
+
+Multi-Region Deployment
+-----------------------
+
+
+  Multi-Region Architecture
+
+  US-EAST-1 (Primary)                    EU-WEST-1 (Secondary)
+  +----------------------+              +----------------------+
+  | API Gateway          |              | API Gateway          |
+  | AI Router            |              | AI Router            |
+  | vLLM (4x A100)      |<--- sync --->| vLLM (2x A100)      |
+  | Redis (semantic $)   |              | Redis (semantic $)   |
+  | PostgreSQL (primary) |--- repl ---> | PostgreSQL (replica) |
+  +----------+-----------+              +----------+-----------+
+             |                                     |
+             +----------+---------------------------+
+                        |
+                 Route 53 / Global LB
+                 Latency-based routing
+                 Health checks: /health/ai
+                 Failover: 30s detection
+
+  API calls (Anthropic/OpenAI) are region-agnostic.
+  Self-hosted models need per-region GPU capacity.
+
+
+Docker Compose — Full Local Dev Stack
+-------------------------------------
+
+
+---code---
+# docker-compose.yml - Development AI platform stack
+
+version: "3.8"
+services:
+  ai-router:
+    build: ./services/ai-router
+    ports: ["8080:8080"]
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - VLLM_ENDPOINT=http://vllm:8000
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://ai:ai@postgres:5432/ai_platform
+    depends_on: [redis, postgres]
+
+  vllm:
+    image: vllm/vllm-openai:v0.6.4
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: >
+      --model meta-llama/Llama-3.1-8B-Instruct
+      --max-model-len 4096
+      --gpu-memory-utilization 0.90
+      --enable-prefix-caching
+    ports: ["8000:8000"]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    volumes: [redis-data:/data]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ai_platform
+      POSTGRES_USER: ai
+      POSTGRES_PASSWORD: ai
+    ports: ["5432:5432"]
+    volumes: [pg-data:/var/lib/postgresql/data]
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports: ["9090:9090"]
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    volumes:
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
+
+volumes:
+  redis-data:
+  pg-data:
+---/code---
+
+
+Production Checklist
+--------------------
+
+
+Model serving: vLLM or TRT-LLM deployed with appropriate GPU hardware
+Quantization: FP8 (H100+) or AWQ INT4 (A100) applied to self-hosted models
+Caching: Prompt caching (API), prefix caching (self-hosted), semantic cache (app)
+Model routing: Complexity-based routing to appropriate model tier
+Auto-scaling: HPA configured with GPU utilization + queue depth metrics
+Rate limiting: Per-user + global limits at API gateway
+Backpressure: Request queues with depth limits, 503 rejection under overload
+Streaming: SSE for all interactive AI responses
+Failover: Multi-provider chain with automatic fallback
+Observability: TTFT, TPS, cost/query, GPU util dashboards with alerts
+SLOs: Error budgets defined for availability, latency, quality, cost
+Multi-region: Primary + secondary with latency-based routing
+Cost tracking: Real-time cost per query, per student, per feature
+Batch pipeline: Async workers for offline processing at 50% cost
+
+
+Course Complete.
+You now have a comprehensive understanding of AI infrastructure at production scale — from GPU metal to multi-region failover. The key takeaway: AI infrastructure is a continuous optimization problem across cost, quality, and latency. Start with API-based serving, add self-hosted when volume justifies it, and always measure cost per query as your north star metric.
+
+
+Module 8 complete — can architect a production AI platform
