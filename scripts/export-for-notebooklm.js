@@ -209,6 +209,28 @@ function extractContent($) {
   // Clone the document so we don't mutate the original
   const $doc = cheerio.load($.html());
 
+  // Process module headers FIRST — before chrome removal — because some courses
+  // put an onclick handler on the header div itself (toggleModule), which would
+  // otherwise be swept away by the '[onclick]' removal below, taking the module
+  // title <h2> with it. Replace the header structure with a clean heading.
+  $doc('.module-header').each((_, el) => {
+    const $el = $doc(el);
+    const h2Text = $el.find('h2').text().trim();
+    const subtitle = $el.find('p').text().trim();
+    // Module number lives in .module-number ("Module 1") or a bare .mod-num/.num
+    const modRaw = $el.find('.module-number, .mod-num, .num').first().text().trim();
+    const modNum = modRaw.replace(/^module\s*/i, '').trim();
+
+    let replacement = '';
+    if (h2Text) {
+      replacement = `<h2>${modNum ? 'Module ' + modNum + ': ' : ''}${h2Text}</h2>`;
+      if (subtitle) {
+        replacement += `<p><em>${subtitle}</em></p>`;
+      }
+    }
+    $el.replaceWith(replacement);
+  });
+
   // Remove all UI chrome elements
   const removeSelectors = [
     'script',
@@ -237,24 +259,6 @@ function extractContent($) {
 
   removeSelectors.forEach(sel => {
     $doc(sel).remove();
-  });
-
-  // For module headers, unwrap the decorative elements but keep the text
-  // Replace module-header structure with clean headings
-  $doc('.module-header').each((_, el) => {
-    const $el = $doc(el);
-    const h2Text = $el.find('h2').text().trim();
-    const subtitle = $el.find('p').text().trim();
-    const modNum = $el.find('.mod-num, .num').text().trim();
-
-    let replacement = '';
-    if (h2Text) {
-      replacement = `<h2>${modNum ? 'Module ' + modNum + ': ' : ''}${h2Text}</h2>`;
-      if (subtitle) {
-        replacement += `<p><em>${subtitle}</em></p>`;
-      }
-    }
-    $el.replaceWith(replacement);
   });
 
   // Make all module bodies visible (they may be display:none by default)
@@ -397,13 +401,15 @@ function htmlToPlainText(htmlContent) {
 
 /**
  * Finds all HTML course files in public/, excluding skip list.
+ * An optional filter (substring, case-insensitive) limits which files match —
+ * pass one or more on the command line to export a single course, e.g.
+ *   node scripts/export-for-notebooklm.js fanatics
  */
-function findCourseFiles() {
+function findCourseFiles(filters = []) {
   const files = fs.readdirSync(PUBLIC_DIR).filter(f => {
-    return (
-      f.endsWith('.html') &&
-      !SKIP_FILES.includes(f.toLowerCase())
-    );
+    if (!f.endsWith('.html') || SKIP_FILES.includes(f.toLowerCase())) return false;
+    if (filters.length === 0) return true;
+    return filters.some(sub => f.toLowerCase().includes(sub.toLowerCase()));
   });
   return files.sort();
 }
@@ -420,8 +426,10 @@ async function main() {
     fs.mkdirSync(dir, { recursive: true });
   });
 
-  // Find course files
-  const courseFiles = findCourseFiles();
+  // Find course files (optional CLI filter, e.g. `... fanatics`)
+  const filters = process.argv.slice(2);
+  const courseFiles = findCourseFiles(filters);
+  if (filters.length) console.log(`Filter: ${filters.join(', ')}`);
   console.log(`Found ${courseFiles.length} course files in public/:\n`);
   courseFiles.forEach(f => console.log(`  • ${f}`));
   console.log('');
