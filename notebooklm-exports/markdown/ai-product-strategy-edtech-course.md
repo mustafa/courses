@@ -1,5 +1,7 @@
 # AI Product Strategy for Edtech Leaders
 
+## Module 1: The AI Landscape for Edtech
+
 ### Where AI Creates Real Value in Education
 
 After years of incremental improvements in edtech, AI represents a genuine platform shift — but only if leaders can distinguish signal from noise. The education sector is uniquely positioned to benefit from AI because it is fundamentally an **information-dense, interaction-heavy, and deeply personalized** domain. No two learners are alike, yet most educational products still deliver one-size-fits-all experiences.
@@ -60,6 +62,8 @@ The companies that win in AI-powered education won't be the ones with the best m
 -   The "2 Sigma Problem" is now solvable at scale — this is the once-in-a-generation platform shift.
 -   Distinguish between what's deployable now (content Q&A, summarization) vs. what needs 12–24 months (adaptive paths, autonomous tutoring).
 -   The strategic moat is not the model — it's the data flywheel your platform generates.
+
+## Module 2: Build vs. Buy vs. Partner
 
 ### The Decision Framework
 
@@ -149,6 +153,8 @@ Recommended: API + selective fine-tuning$1.2M
 -   Chegg's stock collapse is the cautionary tale: AI can disrupt your own business model. Move first or be disrupted.
 -   Cost model everything at scale before committing — API costs grow linearly with users.
 
+## Module 3: Data Moats in Education
+
 ### Why Data Is the Only Durable Moat
 
 In an era where every edtech company can access the same foundation models, the sustainable competitive advantage shifts decisively to **proprietary data**. Coursera sits on one of the richest educational datasets ever assembled — and most of the organization doesn't fully appreciate what it has.
@@ -225,6 +231,8 @@ Duolingo processes over 8 billion exercises daily. Each exercise attempt feeds t
 -   Coursera's data asset (130M+ learner journeys, billions of interaction events) is world-class but underutilized.
 -   The data flywheel is self-reinforcing: more learners → more data → better AI → better outcomes → more learners.
 -   Privacy compliance is a trust multiplier, not just a cost. Enterprises pay premiums for platforms they can trust with their employees' data.
+
+## Module 4: Product Frameworks for AI Features
 
 ### The Impact × Feasibility Prioritization Matrix
 
@@ -338,6 +346,8 @@ When the AI is uncertain, it should say so. When it can't answer, it should esca
 -   Roll out AI progressively: assistant → co-pilot → autopilot → strategist.
 -   Trust is the bottleneck. Build it through transparency, user control, feedback loops, and graceful degradation.
 
+## Module 5: Competitive Analysis
+
 ### The AI Arms Race in Edtech
 
 Every major edtech player is investing in AI. The question isn't whether to invest — it's where to invest to build a defensible position. Here's what each competitor is doing and where the gaps are.
@@ -398,6 +408,8 @@ Invest your engineering resources in the **top three rows** of the defensibility
 -   Chegg's decline is a warning: AI can disrupt your own core business. Cannibalize yourself before competitors do.
 -   Coursera's defensible advantages are data-based (learner interactions, enterprise skill gaps, career outcomes) and relationship-based (university partnerships).
 -   Don't compete on AI feature parity — compete on the data that makes your AI features uniquely effective.
+
+## Module 6: Pricing AI Features
 
 ### The Pricing Trilemma
 
@@ -500,6 +512,8 @@ Enterprise AI features should be priced against the alternative: hiring L&D staf
 -   Manage costs with rate limiting, model tiering, caching, and batch pre-computation.
 -   Never meter individual AI interactions in education — flat subscription tiers preserve the learning experience.
 
+## Module 7: Go-to-Market for AI Features
+
 ### The AI GTM Playbook
 
 Launching AI features in education requires a different playbook than launching traditional software features. The stakes are higher (learners' careers depend on accuracy), the trust bar is higher (education carries institutional weight), and the stakeholder map is more complex (learners, instructors, university partners, enterprise buyers).
@@ -596,6 +610,8 @@ When Duolingo launched Roleplay and Explain (GPT-4 powered features) in their Su
 -   Beta test rigorously — 12+ weeks, with instructor preview before learner access.
 -   In enterprise sales, lead with data privacy and ROI, not AI technology.
 -   Always position AI as instructor-amplifying, never instructor-replacing.
+
+## Module 8: The 3-Year AI Roadmap
 
 ### From Foundation to Moat: A Board-Level Narrative
 

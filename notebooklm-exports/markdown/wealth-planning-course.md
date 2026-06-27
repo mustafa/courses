@@ -2,6 +2,10 @@
 
 **Important Disclaimer:** This course is for educational purposes only and does not constitute financial, legal, or tax advice. Tax laws change frequently; the numbers cited reflect 2024–2025 law with notes on the 2026 sunset provisions. Consult a qualified CPA, tax attorney, and/or financial advisor before implementing any strategy. The author is not a licensed financial professional.
 
+## Module 1: Foundations of Wealth Planning
+
+*Net worth optimization, income vs. wealth, and the account hierarchy*
+
 ### The Net Worth Optimization Framework
 
 Wealth planning is fundamentally different from financial planning. Financial planning asks "can I retire?" Wealth planning asks "how do I maximize the after-tax, after-inflation, after-fee value of every dollar I earn across my lifetime and beyond?" For a tech executive earning $500K–$2M+ annually, the difference between a naive approach and an optimized one can easily exceed $5–10 million over a career.
@@ -69,6 +73,10 @@ Every strategy in this course falls into one of three pillars:
 **Pillar 2 — Tax Timing:** Controlling when you recognize income. Deferring income to lower-bracket years, accelerating deductions into high-bracket years, and using Roth conversions strategically during income dips (sabbatical, job transition, early retirement).
 
 **Pillar 3 — Tax Elimination:** Some income is simply never taxed. Stepped-up cost basis at death eliminates unrealized capital gains. Roth accounts grow and distribute tax-free forever. QSBS `§1202` can exclude $10M or 10x basis of startup gains. Charitable strategies can convert taxable gains into deductions.
+
+## Module 2: Tax-Efficient Investing
+
+*Tax-loss harvesting, asset location, and holding period strategies*
 
 ### Tax-Loss Harvesting: Mechanics and Strategy
 
@@ -154,6 +162,10 @@ Beyond the basic one-year threshold, consider these timing optimizations:
 -   **Bunch gains in low-income years:** If taking a sabbatical, transitioning jobs, or in between roles, realize gains during the lower-income year
 -   **Offset with RSU income:** Coordinate RSU sales with loss harvesting to reduce the tax bite on equity compensation
 
+## Module 3: Retirement Account Strategies
+
+*Backdoor Roth, mega backdoor, conversion ladders, and RMD planning*
+
 ### Mega Backdoor Roth: The Most Powerful Retirement Strategy for High Earners
 
 The total `§415(c)` limit on 401(k) contributions in 2024 is $69,000 ($76,500 if 50+). This includes employee deferrals ($23,000), employer match, and — critically — after-tax contributions. If your employer plan permits after-tax contributions AND in-service Roth conversions (or in-plan Roth rollovers), you can contribute up to the gap between your total contributions and the $69,000 limit as after-tax dollars, then immediately convert them to Roth.
@@ -224,6 +236,10 @@ Planning strategies to minimize RMD impact:
 -   **Roth conversions before RMD age:** Reduce Traditional IRA balances before RMDs begin, ideally during lower-income years (ages 55–72)
 -   **Qualified Charitable Distributions (QCD):** At age 70½+, donate up to $105,000/year directly from IRA to charity. Satisfies RMD, not included in taxable income, and the charity receives 100% (better than taking the RMD, paying tax, and donating after-tax dollars)
 -   **Coordinate with Social Security timing:** Delaying Social Security to 70 maximizes the benefit but adds income on top of RMDs. Model both scenarios
+
+## Module 4: Charitable Giving & CRUTs
+
+*Deep dive: CRUTs, CRATs, DAFs, QCDs, CLTs, and private foundations*
 
 ### Charitable Remainder Unitrust (CRUT) — Deep Dive
 
@@ -355,6 +371,10 @@ Available at age 70½ and older, a QCD allows you to transfer up to $105,000 per
 
 A CLT is the inverse of a CRT: the charity receives income for a term of years, and then the remainder passes to your heirs (often children or a dynasty trust). CLTs are primarily estate and gift tax planning tools. If the trust assets grow faster than the `§7520 rate`, the excess growth passes to heirs free of gift/estate tax. A Grantor CLT also provides an upfront income tax deduction to the grantor. CLTs are most attractive in low interest rate environments (low §7520 rate → higher gift tax discount), though they remain useful for very large estates.
 
+## Module 5: Estate Planning & Trusts
+
+*Irrevocable trusts, gift tax, dynasty trusts, and the 2026 sunset*
+
 ### The 2026 Estate Tax Exemption Sunset — Critical Planning Window
 
 The Tax Cuts and Jobs Act of 2017 roughly doubled the federal estate and gift tax exemption to $13.61 million per individual ($27.22 million per married couple) in 2024. **This provision sunsets on January 1, 2026,** reverting the exemption to approximately $7 million per person (adjusted for inflation from the pre-TCJA $5.49M base). The IRS has issued a "no-clawback" rule (Treasury Regulation §20.2010-1(c)), confirming that gifts made under the higher exemption will not be clawed back if the exemption drops.
@@ -411,6 +431,10 @@ A dynasty trust is designed to last for many generations (or perpetually, in sta
 A Family LLC or FLP holds family assets (investments, real estate, a business). You gift minority limited partnership/membership interests to children or trusts. Because these interests are non-controlling and non-marketable, they can be appraised at a discount (typically 25–40% combined discount for lack of control and lack of marketability). A $10M FLP interest might be valued at $6.5M for gift tax purposes after a 35% discount, allowing you to transfer more wealth within your exemption.
 
 > **Warning:** **IRS Scrutiny:** The IRS aggressively challenges FLP discounts, particularly "deathbed" FLPs (formed shortly before death), FLPs holding only marketable securities (no business purpose), and FLPs where the grantor retained too much control or access. The Tax Court has disallowed discounts in cases like *Estate of Powell v. Commissioner* (2021) where formalities were not respected. Proper structuring, independent appraisals, and legitimate business purposes are essential.
+
+## Module 6: Equity Compensation Tax Optimization
+
+*ISOs, NSOs, RSUs, ESPPs, 83(b) elections, and concentrated stock strategies*
 
 ### RSU Tax Planning — The Core Equity Comp for Big Tech
 
@@ -502,6 +526,10 @@ If you hold Qualified Small Business Stock — stock in a C-corporation with gro
 
 California partially conforms to QSBS: the exclusion is reduced to 50% of the gain (vs. 100% federally for stock acquired after September 27, 2010). Some taxpayers change state residency before selling QSBS to avoid California tax entirely.
 
+## Module 7: Real Estate Tax Strategies
+
+*1031 exchanges, cost segregation, REPS, STR loophole, Opportunity Zones, DSTs*
+
 ### 1031 Like-Kind Exchanges (`§1031`)
 
 A 1031 exchange allows you to defer capital gains tax indefinitely by exchanging one investment property for another "like-kind" property. Since 2018, 1031 exchanges apply only to real property (not personal property, artwork, or equipment). Key rules:
@@ -559,6 +587,10 @@ A DST is a legal entity that holds title to real estate and allows multiple inve
 ### Real Estate in Self-Directed IRAs
 
 You can hold real estate inside a self-directed IRA (SDIRA) — either Traditional or Roth. Rental income and appreciation grow tax-deferred (Traditional) or tax-free (Roth). However, the rules are strict: you cannot use the property personally, cannot perform maintenance yourself (sweat equity), must pay all expenses from the IRA, and cannot use recourse financing (only non-recourse loans, which trigger UBTI under `§514` on the leveraged portion). This is an advanced strategy best suited for investors who want Roth-sheltered real estate appreciation and are willing to navigate the complexity.
+
+## Module 8: Advanced Tax Strategies
+
+*Installment sales, NUA, defined benefit plans, state tax, and income smoothing*
 
 ### State Tax Considerations: California vs. No-Income-Tax States
 
@@ -646,6 +678,10 @@ A captive insurance company is a wholly-owned subsidiary that insures risks of t
 
 Oil and gas working interests offer unique tax benefits: intangible drilling costs (IDCs) — typically 60–80% of the investment — are fully deductible in the year incurred against ordinary income. A $200,000 investment might generate $140,000 in Year 1 deductions, saving $70,000 at a 50% rate. Additionally, working interests (not limited partnership interests) are not subject to passive activity limitations. The economics of the underlying oil/gas play must justify the investment independent of tax benefits — many promoters sell tax shelter economics that do not produce actual returns.
 
+## Module 9: Insurance & Risk Management
+
+*Life insurance, ILITs, umbrella policies, LTC, and disability*
+
 ### Life Insurance as a Wealth Transfer Tool
 
 Life insurance proceeds are income-tax-free to beneficiaries under `§101`, making life insurance one of the most efficient wealth transfer mechanisms. However, life insurance owned by the insured is included in the taxable estate. For a dual-income household with $5M+ annual income and a growing estate approaching the exemption threshold, an Irrevocable Life Insurance Trust (ILIT) is essential.
@@ -690,6 +726,10 @@ Key features to insure:
 -   **Non-cancellable and guaranteed renewable:** The insurer cannot raise premiums or cancel the policy as long as you pay
 -   **Future increase option:** Allows you to increase coverage as your income grows without medical underwriting
 -   **Residual/partial disability benefit:** Pays proportionally if you can work but at reduced capacity/income
+
+## Module 10: The Wealth Planning Playbook
+
+*Decision trees, sample scenarios, advisor selection, annual calendar, and checklists*
 
 ### Decision Tree: Which Strategies Apply to a ~$5M Dual-Income Tech Household?
 
@@ -811,6 +851,10 @@ If you hold financial accounts outside the United States (bank accounts, brokera
 > **Warning:** **Penalties for non-compliance are severe:** FBAR penalties can reach $10,000 per account per year for non-willful violations, and the greater of $100,000 or 50% of account balance for willful violations. If you hold accounts at foreign banks (including accounts in India with institutions like ICICI Bank, SBI, HDFC, etc.), ensure you are filing both FBAR and Form 8938. Also review whether foreign account interest income is being reported on Schedule B, and whether you are claiming the foreign tax credit for any taxes paid to foreign governments.
 
 ### Strategy Evaluation Checklist
+
+## Module ⚙: Interactive Calculators
+
+*CRUT savings, Roth conversion, DAF benefit, and tax-loss harvesting estimators*
 
 #### CRUT Tax Savings Calculator
 

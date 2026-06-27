@@ -6,6 +6,8 @@ The ops playbook for running AI in production — from GPU metal to multi-region
 
 ⏱ 2–3 hours 📦 8 Modules 🎯 VP Engineering / Staff+ 🔌 Fully Offline
 
+## The AI Inference Stack
+
 Understand the model serving landscape and when to use each framework
 
 ### The Serving Landscape in 2025
@@ -109,6 +111,8 @@ Use API (Claude Sonnet) for complex reasoning tasks (essay grading, content gene
 
 Module 1 complete — can articulate when to use vLLM vs TRT-LLM vs API
 
+## Quantization — Trading Precision for Speed
+
 Understand quantization formats and their quality/speed tradeoffs
 
 ### Why Quantization Matters
@@ -183,6 +187,8 @@ tokenizer.save_pretrained(quant_path)
 Running Llama 3.1 70B on AWS — FP16 on 2x A100 80GB: $6.52/hr. AWQ INT4 on 1x A100 80GB: $3.26/hr. That's a 50% cost reduction with <2% quality loss. At 10M queries/month, that's ~$2,400/month saved per model instance.
 
 Module 2 complete — can choose the right quantization format for a given scenario
+
+## Prompt Caching & Optimization
 
 Understand caching strategies across API and self-hosted deployments
 
@@ -309,6 +315,8 @@ Layer 1: Anthropic prompt caching (always on, 30-40% savings). Layer 2: Semantic
 
 Module 3 complete — can implement multi-layer caching strategy
 
+## GPU Provisioning
+
 Understand GPU hardware options and cloud provider tradeoffs
 
 ### GPU Hardware Landscape (2025)
@@ -399,6 +407,8 @@ resource "aws_autoscaling_group" "inference_spot" {
 Baseline: 4x A100 80GB (reserved) running Llama 3.1 70B AWQ for high-volume tasks. Burst: Auto-scaling spot group 0-8x A100 for peak hours. API: Claude Sonnet for complex grading (no GPUs needed). Total steady-state cost: ~$15K-20K/month for self-hosted + $10-15K/month for API.
 
 Module 4 complete — can spec a GPU cluster and justify the hardware choice
+
+## Scaling Patterns
 
 Understand production scaling strategies for AI workloads
 
@@ -494,6 +504,8 @@ GPUs don't scale like CPU services. Adding requests to an overloaded GPU doesn't
 
 Module 5 complete — can design a multi-model scaling architecture
 
+## Observability
+
 Understand LLM-specific observability requirements
 
 ### What to Measure
@@ -565,6 +577,8 @@ Production Observability Pipeline LLM Service --> Structured Logs --> Vector/Flu
 | Cost per query | < $0.01 avg | 10% budget overrun | 2x daily average |
 
 Module 6 complete — can set up LLM-specific observability and SLOs
+
+## Cost Optimization
 
 Understand the full cost picture and optimization levers
 
@@ -658,6 +672,8 @@ All self-hosted (Llama 70B AWQ)$0.54M/mo = $0.05/student
 Recommended hybrid with routing$0.85M/mo = $0.085/student
 
 Module 7 complete — can model cost per query and choose optimization strategy
+
+## Production Architecture
 
 Understand how to architect a production AI platform at Coursera-scale
 

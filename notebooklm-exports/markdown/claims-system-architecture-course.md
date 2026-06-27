@@ -1,5 +1,7 @@
 # Health Insurance Claims Systems Architecture — CTO Course
 
+## Module 1: Claims 101 — The Lifecycle of a Health Claim
+
 Every health insurance claim represents a financial and clinical transaction that touches a half-dozen systems, three or more legal entities, and a regulatory framework spanning federal ERISA statute, state insurance law, and CMS standards. Before you can architect a claims system, you need to understand what a claim actually *is* — not abstractly, but mechanistically. This module walks through the full lifecycle, the key players, the wire formats, and the structural distinctions between carrier models that every CTO in health-tech needs to internalize.
 
 ### The Full Claim Lifecycle: From Doctor Visit to Payment
@@ -127,6 +129,8 @@ These four acronyms describe fundamentally different business and risk structure
 The practical implication for system architects: if you're building for a self-funded TPA model (Gravie's core business), the employer is your true customer, and your data model must accommodate employer-level configuration, employer-level reporting, and employer ownership of claims data. If you're building for a fully-insured carrier, the data model is simpler but regulatory compliance requirements are substantially higher. ASO arrangements add complexity because the carrier's systems may be the system of record for some functions while your platform handles others.
 
 Level-funded plans — a hybrid gaining significant market share among small employers — act like self-funded plans administratively but include an embedded stop-loss layer that looks more like fully-insured to the employer. Level-funded is where Gravie and competitors like Sana Benefits compete heavily, and it requires hybrid system capabilities: TPA-style adjudication with carrier-style reporting and a stop-loss reconciliation layer.
+
+## Module 2: The Anatomy of a Claims System
 
 A claims processing system is not one system — it's a constellation of highly coupled subsystems, each with distinct data models, performance requirements, and failure modes. Legacy platforms (think: FACETS, TriZetto, QicLink) were built as monolithic mainframe applications in the 1980s and 1990s, optimized for batch throughput on expensive hardware. Modern platforms — Collective Health's purpose-built stack, Oscar Health's in-house system, Clover Health's data-first approach — have rebuilt these capabilities as microservices or modular platforms, but the functional decomposition is strikingly similar across generations. This module maps the full system architecture, the data model, the adjudication engine, and the medical coding universe that every engineer in this space must understand.
 
@@ -343,6 +347,8 @@ The financial stakes of COB errors are significant in both directions: incorrect
 
 From a data model perspective, COB requires tracking "other insurance" records on the member, storing primary EOB data when adjudicating as secondary, and maintaining COB decision history for audit. The cross-system complexity of COB — coordination with an external payer that may use entirely different systems and data standards — is a reminder that a claims system is never truly standalone. It is always a node in a larger ecosystem of payers, providers, clearinghouses, and regulatory systems, each with their own data formats and processing timelines.
 
+## Module 3: Gravie's Model — Self-Funded Plans & TPAs
+
 ### How Self-Funded Plans Work: Employer as Risk-Bearer
 
 In a fully-insured plan, an employer pays a fixed monthly premium to a carrier — UnitedHealth, Aetna, BCBS — and the carrier absorbs all claim risk. The employer's liability is capped and predictable. In a self-funded (self-insured) plan, the employer retains claim risk entirely: when an employee needs a $180,000 NICU stay, the employer's bank account pays it. The monthly premium stream disappears; instead, the employer funds a claims account and draws from it as adjudicated claims are paid. The structural shift is enormous — the employer moves from insurance customer to quasi-insurer.
@@ -465,6 +471,8 @@ Gravie's differentiation strategy operates on two layers. The first is plan desi
 The competitive implication for the tech organization is significant. Member experience investment — mobile app, portal, cost transparency tools — must be treated as product engineering, not IT operations. The claims adjudication engine is infrastructure; the member-facing layer is product. Most legacy TPAs have only infrastructure. Gravie's bet is that the product layer is where employer retention and employee satisfaction are won, and that the infrastructure (adjudication, EDI, stop-loss tracking) must be reliable enough that it never creates surface area for the product to fail.
 
 💡 **CTO Talking Point:** ERISA's audit and appeals requirements are not just compliance overhead — they are a forcing function for good engineering. A system that cannot produce an immutable, timestamped audit trail of every adjudication decision with the exact rule version applied is not just legally exposed, it is operationally blind. When an employer asks "why was this claim denied?" you need to replay the exact state of the adjudication engine at the moment the decision was made — not today's rule set applied retroactively. Immutable event sourcing or an append-only audit log is the architectural pattern that satisfies both ERISA and good engineering simultaneously.
+
+## Module 4: Build vs Buy — The CTO's Decision Framework
 
 ### The Vendor Landscape: A Taxonomy of Claims System Suppliers
 
@@ -609,6 +617,8 @@ Interpreting the matrix for Gravie's specific context: the high weights on Plan 
 
 💡 **CTO Talking Point:** The most important build-vs-buy decision at Gravie is not "adjudication engine or not" — it is "what is the data architecture that enables the products we want to build in years 3 through 7?" If the answer requires real-time claim event streaming, sub-second accumulator queries for member-facing cost transparency, and configurable benefit matrices that ops can change without engineering, then the selection criteria for any vendor system is essentially: does this vendor provide an event-streaming API or am I committing to nightly batch exports forever? A vendor system purchased today on the basis of implementation speed that structurally prevents the data architecture you need in three years is not a $6M purchase — it is a $6M migration-in-waiting. Evaluate vendors on their data access model as aggressively as on their functional coverage.
 
+## Module 5: Regulatory & Compliance: What You're Actually Liable For
+
 Compliance is not a checkbox exercise for health insurance claims systems — it is structural. The regulatory surface area spans federal privacy law, ERISA preemption, ACA mandates, state-level prompt pay obligations, CMS requirements for government programs, and SOC 2 attestation for enterprise sales. Every engineer who touches claims data is touching regulated data. Every decision made by the claims adjudication engine must be auditable. If your system cannot produce a complete, timestamped, decision-by-decision audit trail for a claim adjudicated three years ago, you are already non-compliant. This module will make you dangerous in a room with your compliance counsel — and dangerous enough to push back on bad architectural decisions made in the name of speed.
 
 ### HIPAA: The Floor, Not the Ceiling
@@ -738,6 +748,8 @@ Data retention requirements for claims data are driven by multiple overlapping o
 This layered model reflects the principle that compliance is not a feature — it is a cross-cutting concern that must be present at every tier of the architecture. The regulatory surface layer changes over time (new rules, new enforcement priorities) and requirements flow down through policy into application logic and ultimately into data. The immutable audit layer is the one layer that can never be optional or deferred. A claims system that is processing correctly but leaving no traceable audit record is a liability waiting to materialize.
 
 For Gravie specifically, the compliance architecture must accommodate a hybrid model: fully-insured plans (subject to state insurance regulation), self-funded plans (ERISA-governed, state insurance law largely preempted), and potentially individual market or marketplace plans (full ACA applicability). The adjudication configuration system must support plan-level regulatory tagging so that the correct rules are applied based on plan type, not based on a single uniform configuration. This is one of the more complex multi-tenancy problems in health insurance claims: the same underlying claims processing logic must produce different regulatory outcomes depending on which employer's plan the member belongs to.
+
+## Module 6: Integration Architecture: The Claims System Is a Hub, Not an Island
 
 One of the most common architectural mistakes made by engineers entering the health insurance space is treating the claims system as the primary system — the thing everything else connects to. The reality is more chaotic: the claims system is one critical node in a web of bilateral integrations with clearinghouses, pharmacy benefit managers, enrollment systems, banking infrastructure, stop-loss carriers, provider networks, and a growing constellation of analytics and member-facing products. The integrations are not a secondary concern to be handled after the core claims logic is built. They are the claims system. The adjudication engine is worthless if it cannot reliably receive claims, verify eligibility, route to the correct benefit configuration, and generate remittances — all of which require working integrations. This module maps that full integration surface and explains the architectural choices that determine whether your system can evolve or will calcify.
 
@@ -930,6 +942,8 @@ This architecture has three compounding benefits. First, compliance: FHIR EOBs a
 
 The migration from legacy EDI-centric architecture to FHIR-native is a multi-year effort for any established claims system. The practical strategy is to introduce FHIR as the internal canonical model for new development — all new services consume and produce FHIR resources — while maintaining the EDI processing pipeline as a translation layer that feeds the FHIR model. Over time, the EDI layer becomes thinner as more integrations move to FHIR-native. Gravie, as a relatively modern TPA, has an architectural advantage over legacy carriers in this migration: the absence of decades of COBOL-based batch processing infrastructure means the migration path is shorter and the cultural resistance to change is lower.
 
+## Module 7: Analytics, AI, and Fraud
+
 The claims data asset is one of the most underexploited moats in health insurance. Every adjudicated claim is a structured event: who received care, from whom, at what cost, under what diagnosis. At scale, this data enables predictive modeling, fraud detection, network optimization, and population health management. Most legacy payers treat their data warehouse as a reporting afterthought. Companies like Oscar Health and Clover Health have built their competitive advantage almost entirely on treating claims data as a first-class product. This module covers how to build that capability — and where to buy versus build.
 
 ### Claims Analytics: The Core Metrics
@@ -1057,6 +1071,8 @@ Undifferentiated AI — buy: Clinical NLP for ICD-10/CPT extraction from clinica
 Proprietary models on your data — build: Risk stratification models trained on your specific member population. FWA detection models trained on your specific provider network graph. Member engagement propensity models for care management outreach. Auto-adjudication confidence scoring calibrated to your specific plan design rules. These models depend on your longitudinal claims history, your member demographics, your provider network topology. A third-party vendor cannot build them for you with the same fidelity, because they don't have your data. This is where Gravie, Justworks, and Gusto's data assets become compounding advantages — every additional year of claims history makes the models better, and competitors cannot buy their way to equivalent training data.
 
 The operational implication: structure your data platform to enable both. Your proprietary models need clean feature stores, reproducible training pipelines, model registries, and drift monitoring. Your purchased AI tools need clean API integration, audit logging, and override mechanisms. The architecture that supports both is a unified data platform with a model serving layer — not two separate systems bolted together.
+
+## Module 8: Modernization Playbook for a CTO
 
 Most health-tech CTOs inherit a system, they don't greenfield one. Whether you're joining a benefits administration platform like Gusto or Justworks that's building claims capability, or taking over engineering at a TPA that's been running mainframe-based adjudication since 1997, the challenge is the same: modernize without breaking a system that processes payroll-critical healthcare claims for real members. This module is an opinionated, sequenced playbook for that challenge.
 

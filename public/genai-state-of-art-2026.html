@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>State of Generative AI — May 2026 | A Technical Deep Dive</title>
+<title>State of Generative AI — June 2026 | A Technical Deep Dive</title>
 <style>
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -308,6 +308,7 @@ p code, li code {
     <a href="#mod8">Safety</a>
     <a href="#mod9">Business</a>
     <a href="#mod10">What's Next</a>
+    <a href="#mod11">Open-Weight</a>
   </div>
   <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
   <div class="nav-progress" id="navProgress"></div>
@@ -317,13 +318,13 @@ p code, li code {
 <section class="hero">
   <div class="container">
     <h1>The State of Generative AI</h1>
-    <p class="subtitle">A dense, opinionated technical survey for senior engineers. Everything that matters as of May 2026 — models, APIs, agents, reasoning, and the business war underneath.</p>
+    <p class="subtitle">A dense, opinionated technical survey for senior engineers. Everything that matters as of June 2026 — models, APIs, agents, reasoning, open-weight revolution, and the business war underneath.</p>
     <p class="meta">
-      <span>Last updated: May 2026</span>
+      <span>Last updated: June 2026</span>
       <span>•</span>
-      <span>~2–3 hours reading</span>
+      <span>~2.5–3.5 hours reading</span>
       <span>•</span>
-      <span>10 Modules</span>
+      <span>11 Modules</span>
     </p>
   </div>
 </section>
@@ -332,7 +333,7 @@ p code, li code {
 
 <!-- PROGRESS -->
 <div class="progress-bar-wrap">
-  <span class="progress-text" id="progressText">0 / 10 complete</span>
+  <span class="progress-text" id="progressText">0 / 11 complete</span>
   <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
 </div>
 
@@ -348,6 +349,7 @@ p code, li code {
   <a class="toc-item" href="#mod8"><span class="toc-num">8</span><span class="toc-label">Safety & Governance</span></a>
   <a class="toc-item" href="#mod9"><span class="toc-num">9</span><span class="toc-label">Business Landscape</span></a>
   <a class="toc-item" href="#mod10"><span class="toc-num">10</span><span class="toc-label">What's Next</span></a>
+  <a class="toc-item" href="#mod11"><span class="toc-num">11</span><span class="toc-label">Open-Weight Revolution</span></a>
 </div>
 
 
@@ -509,7 +511,7 @@ p code, li code {
     <h3>Open Weight Models Have Crossed the Threshold</h3>
     <p>The narrative that open-weight models are "always behind" is now false. DeepSeek-R1 matches or exceeds GPT-4o on math and code benchmarks. Llama 4 Maverick is competitive with Claude Sonnet 4.6 on many tasks. The gap is real but narrowing — and for many production use cases, the gap doesn't matter.</p>
 
-    <p>The strategic question is no longer "are open models good enough?" but "when does self-hosting save money?" The crossover happens around <strong>100M tokens/month</strong> for a Llama-class model on 8×H100s. Below that, API providers win on convenience and burst capacity.</p>
+    <p>The strategic question is no longer "are open models good enough?" but "when does self-hosting save money?" The crossover happens around <strong>100M tokens/month</strong> for a Llama-class model on 8×H100s. Below that, API providers win on convenience and burst capacity. <em>(For a comprehensive deep dive into GLM-5.2, the full 2026 open-weight roster, licensing, local runtimes, and self-hosting economics, see <a href="#mod11">Module 11: The Open-Weight Revolution</a>.)</em></p>
 
     <h3>The Benchmark Problem</h3>
     <p>By mid-2026, every major benchmark has been effectively saturated or gamed. MMLU, HumanEval, GSM-8K — frontier models score 90%+ on all of them. The industry has shifted to harder evals: SWE-bench Verified (real GitHub issues), GPQA Diamond (PhD-level science), and private company-specific benchmarks.</p>
@@ -1640,11 +1642,565 @@ server.<span class="fn">resource</span>(
 </div>
 
 
+
+<!-- ============================================================ -->
+<!-- MODULE 11: OPEN-WEIGHT MODELS REVOLUTION                     -->
+<!-- ============================================================ -->
+<div class="module" id="mod11">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">11</span>
+    <h2>The Open-Weight Revolution: GLM-5.2 &amp; the 2026 Landscape</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check11" onchange="updateProgress()">
+      <label for="check11">Done</label>
+    </div>
+    <span class="chevron">&#9660;</span>
+  </div>
+  <div class="module-body">
+
+    <!-- ======================================================== -->
+    <!-- SECTION 1: The Landscape Has Fundamentally Shifted        -->
+    <!-- ======================================================== -->
+    <h3>The Open-Weight Landscape Has Fundamentally Shifted</h3>
+
+    <p>Let's dispense with the polite framing: the narrative that open-weight models are perpetually six months behind frontier closed models is <strong>dead</strong>. Not dying. Dead. By mid-2026, open-weight models are leading on multiple benchmarks that matter to production engineering teams, and the gap on the rest has collapsed to noise.</p>
+
+    <p>The numbers tell the story clearly. GLM-5.2 from Z.ai scored <strong>62.1 on SWE-bench Pro</strong> &mdash; a benchmark that measures real-world software engineering capability &mdash; versus GPT-5.5's 58.6. DeepSeek V4 Pro, a 1.6 trillion parameter MoE model with 49B active parameters, ships under an <strong>MIT license</strong> with a 1 million token context window. Meta's Llama 4 Scout claims 10 million tokens of context. These aren't research previews or limited betas. They're production-ready, commercially licensable, and you can download the weights right now.</p>
+
+    <p>The strategic context matters here. US export controls on advanced AI chips (the October 2022 and subsequent rounds of restrictions) were intended to slow China's AI progress. The unintended consequence has been to <em>accelerate</em> China's open-source AI strategy. If you can't buy the best chips, you optimize your software ruthlessly and give it away &mdash; building ecosystem lock-in through ubiquity rather than API margins. Z.ai (formerly Zhipu AI), DeepSeek, and Alibaba's Qwen team have all embraced this playbook. The result is that the most permissively licensed, most competitive open-weight models are now disproportionately coming from Chinese labs.</p>
+
+    <p>For engineering leaders, this shift demands a strategic reassessment. If your 2025 AI strategy was "use the best API, fine-tune open models for non-critical paths," your 2026 strategy needs to account for the possibility that the best model for your use case is open-weight, self-hostable, and costs a fraction of the API alternative.</p>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 2: GLM-5.2 Deep Dive                             -->
+    <!-- ======================================================== -->
+    <h3>GLM-5.2: The Breakout Model</h3>
+
+    <p>GLM-5.2 was released on June 13, 2026, by Zhipu AI (rebranded as Z.ai) under the <strong>MIT license</strong>. It is, by several important measures, the most capable open-weight model ever released &mdash; and its architecture contains genuinely novel ideas worth understanding.</p>
+
+    <h4>Architecture &amp; Specifications</h4>
+
+    <ul>
+      <li><strong>Total parameters:</strong> 753 billion (sparse Mixture of Experts)</li>
+      <li><strong>Active parameters per token:</strong> ~40 billion</li>
+      <li><strong>Context window:</strong> 1 million tokens (quadrupled from GLM-5.1's 200K)</li>
+      <li><strong>Maximum single-turn output:</strong> 128K tokens</li>
+      <li><strong>License:</strong> MIT &mdash; no usage restrictions, no MAU caps, fully commercial</li>
+      <li><strong>Availability:</strong> Full weights on Hugging Face, no regional restrictions</li>
+    </ul>
+
+    <p>The headline architectural innovation is <strong>IndexShare sparse attention</strong>. The core problem with long-context models is that standard attention scales quadratically with sequence length. GLM-5.2's approach: run a full indexer pass once every 4 layers to identify the most relevant token indices, then reuse those selected indices for the following 3 layers before re-indexing. This yields a <strong>2.9&times; FLOP reduction</strong> at 1M context length compared to standard sparse attention, without the quality degradation you'd see from simpler fixed-pattern sparsity. It's an elegant solution &mdash; you pay the full attention cost periodically to maintain quality, but amortize it across multiple layers.</p>
+
+    <h4>Benchmark Performance</h4>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Benchmark</th>
+            <th>GLM-5.2</th>
+            <th>GPT-5.5</th>
+            <th>Claude Opus 4.8</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SWE-bench Pro</td>
+            <td><strong>62.1</strong></td>
+            <td>58.6</td>
+            <td>&mdash;</td>
+            <td>Real-world SWE tasks; GLM leads</td>
+          </tr>
+          <tr>
+            <td>Terminal-Bench 2.1</td>
+            <td><strong>81.0</strong></td>
+            <td>&mdash;</td>
+            <td>&mdash;</td>
+            <td>Command-line / agentic operation</td>
+          </tr>
+          <tr>
+            <td>Artificial Analysis Coding Index</td>
+            <td><strong>68.8</strong></td>
+            <td>&mdash;</td>
+            <td>56.7</td>
+            <td>Composite coding capability</td>
+          </tr>
+          <tr>
+            <td>Intelligence Index v4.1</td>
+            <td>51</td>
+            <td>&mdash;</td>
+            <td>&mdash;</td>
+            <td>General intelligence composite</td>
+          </tr>
+          <tr>
+            <td>Design Arena HTML</td>
+            <td>~1360 Elo</td>
+            <td>&mdash;</td>
+            <td>&mdash;</td>
+            <td>Top of leaderboard</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>These aren't cherry-picked numbers. GLM-5.2 is leading on coding, agentic, and design benchmarks &mdash; the categories that matter most for engineering teams evaluating models for developer tooling, code generation, and autonomous agent workflows.</p>
+
+    <h4>Pricing &amp; Economics</h4>
+
+    <p>Even if you choose to use GLM-5.2 via API rather than self-hosting, the economics are striking:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Input (per 1M tokens)</th>
+            <th>Output (per 1M tokens)</th>
+            <th>Relative Cost</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GLM-5.2</td>
+            <td>~$1.40</td>
+            <td>~$4.40</td>
+            <td><strong>1&times;</strong></td>
+          </tr>
+          <tr>
+            <td>GPT-5.5</td>
+            <td>$5.00</td>
+            <td>$30.00</td>
+            <td>~6&times;</td>
+          </tr>
+          <tr>
+            <td>Claude Opus 4</td>
+            <td>$5.00</td>
+            <td>$25.00</td>
+            <td>~5&times;</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>At roughly <strong>one-sixth the cost</strong> of frontier closed-model APIs &mdash; while <em>outperforming</em> them on coding benchmarks &mdash; GLM-5.2 fundamentally changes the cost-benefit analysis for any team doing significant LLM inference.</p>
+
+    <h4>Strategic Significance</h4>
+
+    <p>GLM-5.2 is China's answer to US AI export controls, and it's a remarkably effective one. The strategy is straightforward: if you can't buy the best chips, make the best software and give it away. An MIT-licensed model with no regional restrictions, no MAU caps, and no competitive-use clauses is a direct play for global ecosystem adoption. Every developer who builds on GLM-5.2 is a developer who <em>isn't</em> locked into an American API provider. The geopolitical implications are significant, but for engineering teams, the practical implication is simpler: you now have a world-class model you can run anywhere, modify freely, and deploy without legal uncertainty.</p>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Opinionated Take</div>
+      <p>GLM-5.2's release is the "Linux moment" for large language models. Not because it's a perfect analogy &mdash; the dynamics are different &mdash; but because it marks the point where the open alternative became genuinely superior for important use cases. Just as Linux didn't immediately replace proprietary Unix everywhere, GLM-5.2 won't replace closed APIs overnight. But it shifts the burden of proof: closed providers now need to justify their premium, not just assert it.</p>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 3: Full Open-Weight Roster                        -->
+    <!-- ======================================================== -->
+    <h3>The Full Open-Weight Roster: Mid-2026</h3>
+
+    <p>GLM-5.2 is the headline, but the open-weight ecosystem in mid-2026 is remarkably deep. Here's the complete competitive landscape:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Lab</th>
+            <th>Total Params</th>
+            <th>Active Params</th>
+            <th>Context Window</th>
+            <th>License</th>
+            <th>Key Strength</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GLM-5.2</td>
+            <td>Z.ai</td>
+            <td>753B</td>
+            <td>~40B</td>
+            <td>1M</td>
+            <td>MIT</td>
+            <td>Coding / agentic</td>
+          </tr>
+          <tr>
+            <td>DeepSeek V4 Pro</td>
+            <td>DeepSeek</td>
+            <td>1.6T</td>
+            <td>49B</td>
+            <td>1M</td>
+            <td>MIT</td>
+            <td>Reasoning / long-context</td>
+          </tr>
+          <tr>
+            <td>DeepSeek V4 Flash</td>
+            <td>DeepSeek</td>
+            <td>284B</td>
+            <td>13B</td>
+            <td>1M</td>
+            <td>MIT</td>
+            <td>Speed / cost</td>
+          </tr>
+          <tr>
+            <td>Llama 4 Maverick</td>
+            <td>Meta</td>
+            <td>400B</td>
+            <td>17B</td>
+            <td>128K (1M reported)</td>
+            <td>Llama Community</td>
+            <td>Multilingual / general</td>
+          </tr>
+          <tr>
+            <td>Llama 4 Scout</td>
+            <td>Meta</td>
+            <td>109B</td>
+            <td>17B</td>
+            <td>10M (reported)</td>
+            <td>Llama Community</td>
+            <td>Fits single H100</td>
+          </tr>
+          <tr>
+            <td>Qwen 3 235B</td>
+            <td>Alibaba</td>
+            <td>235B</td>
+            <td>22B</td>
+            <td>128K</td>
+            <td>Apache 2.0</td>
+            <td>Multilingual / reasoning</td>
+          </tr>
+          <tr>
+            <td>Qwen 3.6 27B</td>
+            <td>Alibaba</td>
+            <td>27B (dense)</td>
+            <td>27B</td>
+            <td>128K</td>
+            <td>Apache 2.0</td>
+            <td>Compact powerhouse</td>
+          </tr>
+          <tr>
+            <td>Gemma 4</td>
+            <td>Google</td>
+            <td>26B (MoE)</td>
+            <td>~4B</td>
+            <td>128K</td>
+            <td>Apache 2.0</td>
+            <td>On-device / efficient</td>
+          </tr>
+          <tr>
+            <td>Mistral Large 3</td>
+            <td>Mistral</td>
+            <td>675B</td>
+            <td>~41B</td>
+            <td>128K</td>
+            <td>Apache 2.0</td>
+            <td>EU sovereignty</td>
+          </tr>
+          <tr>
+            <td>Mistral Small 4</td>
+            <td>Mistral</td>
+            <td>119B (MoE)</td>
+            <td>~6B</td>
+            <td>256K</td>
+            <td>Apache 2.0</td>
+            <td>Unified capabilities</td>
+          </tr>
+          <tr>
+            <td>Phi-4 14B</td>
+            <td>Microsoft</td>
+            <td>14B (dense)</td>
+            <td>14B</td>
+            <td>128K</td>
+            <td>MIT</td>
+            <td>Math/logic per-param champion</td>
+          </tr>
+          <tr>
+            <td>Phi-4 Mini</td>
+            <td>Microsoft</td>
+            <td>3.8B (dense)</td>
+            <td>3.8B</td>
+            <td>128K</td>
+            <td>MIT</td>
+            <td>Edge deployment</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Qwen 3.x: The Steady Climb</h4>
+
+    <p>Alibaba's Qwen team has executed one of the most consistent improvement trajectories in open-weight AI. The Qwen 3 series introduced "thinking mode" &mdash; a hybrid reasoning approach where the model can toggle between fast generation and extended chain-of-thought within a single conversation. The 235B MoE variant (22B active) delivers strong multilingual performance across 100+ languages, making it the go-to choice for teams with significant non-English workloads. The evolution through Qwen 3.5 and into 3.6 has steadily improved instruction following, tool use, and coding quality. The 27B dense model in Qwen 3.6 is particularly noteworthy: it's small enough to run on a single consumer GPU while delivering performance competitive with models 5&ndash;10&times; its size. Apache 2.0 licensing throughout means no surprises for commercial deployment.</p>
+
+    <h4>DeepSeek V4: Hybrid Attention at Scale</h4>
+
+    <p>DeepSeek V4 Pro's 1.6 trillion parameters make it the largest open-weight model available, but the interesting engineering is in the attention mechanism. V4 uses a hybrid approach: traditional multi-head attention for layers that need maximum expressiveness, combined with multi-latent attention (MLA) &mdash; DeepSeek's innovation from V2 &mdash; for layers where compressed KV representations suffice. This hybrid design allows V4 Pro to maintain quality at 1M context without the memory explosion that would make pure MHA impractical at this scale. The Flash variant at 284B total / 13B active is the sleeper hit: it delivers 80&ndash;90% of V4 Pro's quality at a fraction of the compute cost, making it ideal for high-throughput production workloads where you're doing millions of inference calls per day.</p>
+
+    <h4>Gemma 4: Google's On-Device Play</h4>
+
+    <p>Gemma 4 is Google's clearest statement yet on the on-device AI future. At 26B total parameters with only ~4B active (MoE architecture), it's designed to run on mobile SoCs and edge hardware. The Apache 2.0 license is strategic &mdash; Google wants Gemma embedded in as many Android apps and IoT devices as possible. Performance per active parameter is exceptional: Gemma 4 at 4B active competes with dense models at 7&ndash;10B on standard benchmarks. For teams building mobile-first AI features or deploying to resource-constrained environments (retail kiosks, automotive, industrial IoT), Gemma 4 is currently the strongest option.</p>
+
+    <h4>Mistral: The EU Sovereignty Card</h4>
+
+    <p>Mistral's positioning is increasingly about European digital sovereignty. Mistral Large 3 at 675B parameters is competitive with the best open-weight models, but its real value proposition is regulatory: it's a European company, subject to EU data protection law, with weights you can host on European infrastructure. For organizations navigating GDPR, the EU AI Act, and data residency requirements, Mistral offers a compliance story that Chinese and American models can't match. Mistral Small 4 (119B MoE, ~6B active) is their unified model play &mdash; combining text, code, vision, and function calling in a single model small enough for cost-effective deployment, with 256K context that exceeds most competitors in its class.</p>
+
+    <h4>Phi-4: Small Model, Outsized Performance</h4>
+
+    <p>Microsoft's Phi-4 family continues to push the "small but mighty" thesis. Phi-4 14B is a dense model that punches absurdly above its weight on math and logic benchmarks &mdash; it consistently outperforms models 5&ndash;10&times; its size on tasks requiring structured reasoning. The secret is aggressive data curation: Microsoft uses synthetic data generation pipelines that produce training examples specifically designed to teach mathematical reasoning patterns. Phi-4 Mini at 3.8B is purpose-built for edge deployment scenarios where even 7B models are too large. Both ship under MIT license, making them ideal for embedding in commercial products. If your use case is primarily math-heavy (financial modeling, scientific computing, engineering simulation) and you're constrained on compute, Phi-4 14B should be your first evaluation target.</p>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 4: Open Weight vs Open Source                     -->
+    <!-- ======================================================== -->
+    <h3>Open Weight vs Open Source: The Distinction That Matters</h3>
+
+    <p>The industry has been sloppy with terminology, and it's causing real confusion. "Open source" and "open weight" are not the same thing, and the difference has material implications for your engineering and legal teams.</p>
+
+    <h4>The OSI Definition</h4>
+
+    <p>In October 2024, the Open Source Initiative (OSI) published the <strong>Open Source AI Definition (OSAID) 1.0</strong>, establishing formal criteria for what qualifies as "open source AI." The requirements are stringent:</p>
+
+    <ol>
+      <li><strong>Model weights</strong> released under a permissive license</li>
+      <li><strong>Training code</strong> (the full training pipeline) made available</li>
+      <li><strong>Training data</strong> &mdash; either the actual dataset or a sufficiently detailed description to reproduce it &mdash; made available</li>
+      <li>All components under licenses that permit free use, modification, and redistribution</li>
+    </ol>
+
+    <p>By this definition, <strong>almost none of the models discussed in this module qualify as open source</strong>. Llama 4, Qwen 3, DeepSeek V4, GLM-5.2 &mdash; they all release weights but <em>not</em> their training data. What we have is overwhelmingly <strong>open weight</strong>: you get the trained model, but not the recipe to reproduce it from scratch.</p>
+
+    <h4>License Comparison</h4>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>License</th>
+            <th>Models Using It</th>
+            <th>Commercial Use</th>
+            <th>Fine-Tuning</th>
+            <th>Redistribution</th>
+            <th>Key Restrictions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>MIT</strong></td>
+            <td>GLM-5.2, DeepSeek V4, Phi-4</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>None (attribution only)</td>
+          </tr>
+          <tr>
+            <td><strong>Apache 2.0</strong></td>
+            <td>Qwen 3.x, Gemma 4, Mistral</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Patent grant; attribution; state changes</td>
+          </tr>
+          <tr>
+            <td><strong>Llama Community</strong></td>
+            <td>Llama 4 Maverick, Scout</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>Yes</td>
+            <td>700M MAU limit; custom license terms</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Practical Implications</h4>
+
+    <p>For production deployments, focus on these concrete questions rather than the "open source" label:</p>
+
+    <ul>
+      <li><strong>Can you fine-tune?</strong> All models listed above: yes.</li>
+      <li><strong>Can you redistribute?</strong> MIT and Apache 2.0: yes, with attribution. Llama Community: yes, but derivative models inherit the license terms including the MAU cap.</li>
+      <li><strong>Can you use commercially without restriction?</strong> MIT: yes. Apache 2.0: yes (with patent grant provisions). Llama Community: yes below 700M MAU &mdash; above that, you need a separate agreement with Meta.</li>
+      <li><strong>What's the attribution requirement?</strong> MIT: include the license. Apache 2.0: include the license, state changes, include NOTICE file if present. Llama Community: include Meta's license text.</li>
+      <li><strong>Can you use it to train competing models?</strong> MIT and Apache 2.0: yes, no restrictions. Llama 4 removed the explicit anti-competition clause from Llama 3, but the custom license still gives Meta's legal team more latitude than standard OSS licenses.</li>
+    </ul>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Opinionated Take</div>
+      <p>MIT-licensed models (GLM-5.2, DeepSeek V4, Phi-4) are the safest choice for commercial deployment, full stop. Apache 2.0 is a close second &mdash; it's battle-tested in enterprise software and well understood by legal teams. The Llama Community License is fine for most use cases, but its custom nature means your legal team needs to actually read it rather than relying on established precedent. If licensing simplicity is a priority, the 2026 landscape gives you excellent MIT-licensed options at every scale from 3.8B to 1.6T parameters.</p>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 5: Running Open Models Locally                    -->
+    <!-- ======================================================== -->
+    <h3>Running Open Models Locally: The 2026 Toolkit</h3>
+
+    <p>The inference runtime landscape has matured significantly. In 2024, running a model locally meant fighting with dependencies and reading GitHub issues. In 2026, it's a solved problem &mdash; the question is which runtime matches your deployment scenario.</p>
+
+    <h4>Ollama (v0.30+)</h4>
+
+    <p>Ollama remains the lowest-friction path to running models locally. A single-command install (<code>curl -fsSL https://ollama.com/install.sh | sh</code>) gets you running, and since v0.19 it automatically detects Apple Silicon and uses the MLX backend for optimal performance. The v0.30 release added native agentic tool integration, meaning tools like Claude Code and Codex CLI can use local Ollama models as backends. Model management is trivial: <code>ollama pull glm5.2</code> downloads the quantized weights and handles configuration automatically.</p>
+
+    <p><strong>Best for:</strong> Developer prototyping, single-user workloads, getting started with any model in under 5 minutes. <strong>Not ideal for:</strong> Multi-user production serving &mdash; Ollama's request handling is sequential by default, and while it supports concurrent requests in newer versions, it lacks the sophisticated batching and scheduling of production runtimes.</p>
+
+    <h4>vLLM</h4>
+
+    <p>vLLM is the production serving standard for GPU-based deployments. Its PagedAttention implementation delivers <strong>16&ndash;20&times; higher concurrent throughput</strong> compared to naive serving (and 3&ndash;5&times; vs Ollama in multi-user scenarios) by treating KV cache memory like virtual memory pages &mdash; allocating on demand, sharing across requests, and eliminating the fragmentation that kills throughput in other servers. Continuous batching means new requests are absorbed into running batches without waiting, keeping GPU utilization consistently above 80%.</p>
+
+    <p>The caveat: vLLM is <strong>not production-ready on Apple Silicon</strong> as of mid-2026. It's designed for NVIDIA (CUDA) and AMD (ROCm) datacenter GPUs. If you're deploying on Mac hardware, look elsewhere.</p>
+
+    <p><strong>Best for:</strong> Multi-user production serving on NVIDIA/AMD GPUs, high-throughput API endpoints, teams that need OpenAI-compatible API interfaces. <strong>Not ideal for:</strong> Apple Silicon deployments, edge/embedded scenarios, teams without GPU ops expertise.</p>
+
+    <h4>llama.cpp</h4>
+
+    <p>The C/C++ reference implementation remains the most portable inference engine available. It runs on essentially everything: CUDA, ROCm, Metal, Vulkan, SYCL, and CPU-only. If your target hardware exists, llama.cpp probably supports it. The project pioneered practical quantization formats (GGUF) and provides the most granular control over quantization levels, memory layout, and inference parameters.</p>
+
+    <p><strong>Best for:</strong> Edge deployment, custom quantization experiments, maximum hardware compatibility, scenarios where you need to run on unusual or constrained hardware. <strong>Not ideal for:</strong> Teams that want a batteries-included experience &mdash; llama.cpp gives you maximum control at the cost of more configuration.</p>
+
+    <h4>MLX (Apple)</h4>
+
+    <p>Apple's MLX framework has matured from research curiosity to production-grade runtime since 2025. On M5 silicon, MLX is <strong>30&ndash;60% faster</strong> than llama.cpp's Metal backend for token generation. The standout feature is Neural Accelerator integration: prompt processing (the "prefill" phase) is <strong>3&ndash;4&times; faster</strong> when MLX offloads to Apple's dedicated neural engine, which is otherwise idle during LLM inference. This matters enormously for long-context workloads where prefill dominates latency.</p>
+
+    <p><strong>Best for:</strong> Apple Silicon production workloads, teams already in the Apple ecosystem, applications where prefill latency matters (long documents, RAG with large retrieval sets). <strong>Not ideal for:</strong> Cross-platform deployments, teams targeting NVIDIA/AMD GPUs, scenarios requiring maximum community support and tooling breadth.</p>
+
+    <h4>Runtime Quick Reference</h4>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Runtime</th>
+            <th>Best For</th>
+            <th>GPU Support</th>
+            <th>Apple Silicon</th>
+            <th>Ease of Use</th>
+            <th>Throughput</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ollama</strong></td>
+            <td>Dev prototyping, single-user</td>
+            <td>CUDA, ROCm, Metal</td>
+            <td>Excellent (MLX backend)</td>
+            <td>Easiest</td>
+            <td>Moderate</td>
+          </tr>
+          <tr>
+            <td><strong>vLLM</strong></td>
+            <td>Multi-user production serving</td>
+            <td>CUDA, ROCm</td>
+            <td>Not production-ready</td>
+            <td>Moderate</td>
+            <td>Highest (GPU)</td>
+          </tr>
+          <tr>
+            <td><strong>llama.cpp</strong></td>
+            <td>Edge, portability, custom quant</td>
+            <td>CUDA, ROCm, Metal, Vulkan, CPU</td>
+            <td>Good (Metal)</td>
+            <td>Moderate</td>
+            <td>Good</td>
+          </tr>
+          <tr>
+            <td><strong>MLX</strong></td>
+            <td>Apple Silicon production</td>
+            <td>Apple Metal + Neural Engine</td>
+            <td>Best-in-class</td>
+            <td>Good</td>
+            <td>Highest (Apple)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Hardware Guidance</h4>
+
+    <p>What can you actually run on what hardware? Here's a practical breakdown:</p>
+
+    <ul>
+      <li><strong>M2/M3 Ultra with 192GB unified memory:</strong> Full 70B-class dense models (Qwen 3 72B, Llama 3.3 70B) at Q6 or higher quantization with room for large KV caches. Excellent for development and light production workloads.</li>
+      <li><strong>Single H100 (80GB VRAM):</strong> Llama 4 Scout (109B total, 17B active) at int4 quantization. Most 7&ndash;14B dense models (Phi-4 14B, Gemma 4, Qwen 3.6 27B with quantization) at full or near-full precision. The sweet spot for single-GPU production serving.</li>
+      <li><strong>8&times;H100 cluster (640GB total VRAM):</strong> GLM-5.2 (753B MoE), DeepSeek V4 Flash (284B), full Llama 4 Maverick (400B) at reasonable quantization. This is the minimum hardware for serving the largest open-weight MoE models.</li>
+      <li><strong>Consumer: M3 Max 96GB unified memory:</strong> Qwen 3.6 27B dense at Q8, Phi-4 14B at full precision, Gemma 4 (26B MoE) comfortably. Surprisingly capable for individual developer use &mdash; you can run genuinely useful models on a laptop.</li>
+      <li><strong>Consumer: RTX 4090 (24GB VRAM):</strong> Phi-4 14B at Q4, smaller Qwen/Gemma models. Limited but functional for experimentation.</li>
+    </ul>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Opinionated Take</div>
+      <p>If you're buying hardware specifically for local inference in 2026, the M-series Ultra machines offer the best value for models up to ~70B parameters thanks to unified memory eliminating the GPU VRAM bottleneck. For larger models, you're in datacenter GPU territory &mdash; and at that point, you should seriously evaluate whether self-hosting makes economic sense versus using the (now very cheap) GLM-5.2 or DeepSeek V4 APIs. The "run it yourself" premium only pays off at scale.</p>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SECTION 6: When to Self-Host vs API                       -->
+    <!-- ======================================================== -->
+    <h3>Practical Guidance: When to Self-Host vs API</h3>
+
+    <p>The existence of excellent open-weight models doesn't mean you should self-host everything. The decision framework is more nuanced than "open = self-host, closed = API." Here are the factors that actually determine the right choice:</p>
+
+    <h4>Cost Crossover Analysis</h4>
+
+    <p>Self-hosting has fixed costs (hardware, ops, engineering time) and low marginal costs per token. APIs have zero fixed costs and constant marginal costs. The crossover point depends on your volume:</p>
+
+    <ul>
+      <li><strong>Llama-class models (70B-400B) on 8&times;H100:</strong> Cost crossover at approximately <strong>100M tokens/month</strong>. Below that, the API is cheaper when you factor in ops burden. Above that, self-hosting saves 40&ndash;70% depending on utilization.</li>
+      <li><strong>GLM-5.2 via API:</strong> At ~$1.40/$4.40 per million tokens, the crossover point is <em>much</em> higher because the API is already so cheap. You'd need to be doing <strong>500M+ tokens/month</strong> before self-hosting on an 8&times;H100 cluster makes economic sense. For most teams, the GLM-5.2 API is the right answer.</li>
+      <li><strong>Small models (7B-14B) on single GPU:</strong> Crossover at approximately <strong>20&ndash;30M tokens/month</strong>. Small models on modest hardware are cheap to self-host, so the crossover comes quickly.</li>
+    </ul>
+
+    <h4>Data Sovereignty</h4>
+
+    <p>This is the strongest non-economic argument for self-hosting. If you're in healthcare (HIPAA), finance (SOC 2, PCI-DSS), or operating under GDPR with strict data residency requirements, self-hosting may be a <em>requirement</em>, not a choice. Key considerations:</p>
+
+    <ul>
+      <li>Can your data leave your infrastructure at all? If not, self-hosting is mandatory.</li>
+      <li>Does the API provider offer data processing agreements (DPAs) and data residency guarantees? Many do, but the terms vary.</li>
+      <li>What are the audit and logging requirements? Self-hosted gives you complete control over logging. API providers may not give you the granularity your compliance team needs.</li>
+    </ul>
+
+    <h4>Latency</h4>
+
+    <p>Self-hosted inference can be <em>faster</em> than API-based inference for streaming workloads, because you eliminate the network round-trip and don't contend with other users for GPU time. If your application is latency-sensitive (real-time coding assistance, interactive chat, robotics), and you have adequate hardware, self-hosting can reduce time-to-first-token by 50&ndash;200ms compared to API calls.</p>
+
+    <p>Conversely, API providers maintain warm model caches and handle cold-start automatically. Self-hosted solutions require you to manage model loading, which on large MoE models can take 30&ndash;60 seconds.</p>
+
+    <h4>Maintenance Cost</h4>
+
+    <p>This is where teams consistently underestimate self-hosting costs:</p>
+
+    <ul>
+      <li><strong>Model updates:</strong> When GLM-5.3 drops, someone needs to evaluate it, validate it against your test suite, handle the weight download (hundreds of GB), and manage the rollout. API providers do this for you.</li>
+      <li><strong>Infrastructure ops:</strong> GPU driver updates, CUDA version compatibility, cooling/power management in datacenters, monitoring and alerting. This requires dedicated ML infrastructure engineers.</li>
+      <li><strong>Reliability:</strong> What's your uptime target? 99.9% on self-hosted GPU infrastructure is hard. API providers (with SLAs) give you this for free.</li>
+      <li><strong>Scaling:</strong> Traffic spikes require either over-provisioned hardware (expensive) or auto-scaling infrastructure (complex). APIs handle this natively.</li>
+    </ul>
+
+    <h4>The Hybrid Approach</h4>
+
+    <p>The most sophisticated teams in 2026 are running hybrid architectures:</p>
+
+    <ul>
+      <li><strong>Self-hosted for steady-state:</strong> Run a right-sized GPU cluster for your baseline inference volume. Optimize for cost and latency on predictable workloads.</li>
+      <li><strong>API for burst and experimentation:</strong> Route overflow traffic to API providers during spikes. Use APIs to evaluate new models before committing to self-hosting them.</li>
+      <li><strong>Model routing:</strong> Use a lightweight router (based on task complexity, latency requirements, or cost constraints) to direct requests to the optimal backend. Simple classification tasks go to a self-hosted Phi-4 Mini. Complex coding tasks go to GLM-5.2 API. Long-context analysis goes to self-hosted DeepSeek V4 if you have the hardware, API if you don't.</li>
+    </ul>
+
+    <p>This hybrid approach captures most of the cost savings of self-hosting while maintaining the flexibility and reliability of API access. The key enabler is that open-weight models give you the <em>option</em> to self-host &mdash; even if you don't exercise it today, having that option is strategically valuable as a hedge against API price changes, service disruptions, or policy shifts.</p>
+
+    <!-- ======================================================== -->
+    <!-- FINAL CALLOUT                                             -->
+    <!-- ======================================================== -->
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      <p>GLM-5.2 is the most important open-weight release of 2026. It proves that open models can lead on coding and agentic benchmarks, not just follow. For engineering teams: evaluate it seriously alongside your API providers. For the industry: the era of closed-model dominance is ending &mdash; the question is how fast.</p>
+    </div>
+
+  </div>
+</div>
+
+
 <!-- ===== FOOTER ===== -->
 <div class="footer">
-  <p>State of Generative AI — May 2026</p>
+  <p>State of Generative AI — June 2026</p>
   <p style="margin-top:8px;">A technical deep dive for senior engineering leaders. Written for offline reading.</p>
-  <p style="margin-top:8px;">This document reflects the state of the art as of May 2026. The field moves fast — revisit quarterly.</p>
+  <p style="margin-top:8px;">This document reflects the state of the art as of June 2026. Updated with GLM-5.2 and the open-weight revolution. The field moves fast — revisit quarterly.</p>
 </div>
 
 </div><!-- /container -->
