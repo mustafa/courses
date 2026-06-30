@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Design at Scale — Mustafa Furniturewala</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0f1a; --bg-secondary: #0d1117; --bg-tertiary: #131a2b; --bg-code: #1a1a2e;
+  --text: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+  --accent: #f97316; --accent-dim: #c2410c; --accent-glow: rgba(249, 115, 22, 0.15);
+  --border: #1e293b; --border-light: #334155;
+  --success: #22c55e; --error: #ef4444; --warning: #eab308;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 17px; min-height: 100vh; }
+#progress-bar-container { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: var(--bg-secondary); z-index: 1001; }
+#progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #fb923c); width: 0%; transition: width 0.4s ease; }
+.top-nav { position: fixed; top: 4px; left: 0; right: 0; background: rgba(10,15,26,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 1000; padding: 0; }
+.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; padding: 0 1.5rem; height: 52px; }
+.nav-brand { font-weight: 700; color: var(--accent); margin-right: 1.5rem; font-size: 0.95rem; white-space: nowrap; }
+.nav-modules { display: flex; gap: 0.25rem; flex: 1; justify-content: center; }
+.nav-module-link { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; position: relative; border: 1px solid transparent; }
+.nav-module-link:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-light); }
+.nav-module-link.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.nav-module-link.completed::after { content: ''; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--success); border-radius: 50%; border: 2px solid var(--bg); }
+.hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; padding: 0.25rem; }
+.nav-completion { font-size: 0.8rem; color: var(--text-muted); margin-left: 1rem; white-space: nowrap; }
+.hero { padding: 8rem 1.5rem 4rem; text-align: center; max-width: 900px; margin: 0 auto; border-bottom: 1px solid var(--border); }
+.hero-eyebrow { text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 1rem; }
+.hero h1 { font-size: clamp(2rem,5vw,3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-subtitle { font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2rem; font-style: italic; }
+.hero-meta { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+.hero-meta-item { font-size: 0.9rem; color: var(--text-muted); }
+.hero-meta-item strong { color: var(--text-secondary); }
+.hero-description { font-size: 1.05rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto; line-height: 1.8; }
+.content-wrapper { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.module { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-secondary); }
+.module-header { display: flex; align-items: center; padding: 1rem 1.25rem; cursor: pointer; user-select: none; background: var(--bg-secondary); transition: background 0.2s; gap: 0.75rem; }
+.module-header:hover { background: var(--bg-tertiary); }
+.module-checkbox { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border: 2px solid var(--border-light); border-radius: 6px; cursor: pointer; flex-shrink: 0; position: relative; transition: all 0.2s; background: transparent; }
+.module-checkbox:checked { background: var(--accent); border-color: var(--accent); }
+.module-checkbox:checked::after { content: '\2713'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-size: 14px; font-weight: 700; }
+.module-number { background: var(--accent); color: #fff; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+.module-title-text { flex: 1; font-weight: 700; font-size: 1.1rem; }
+.module-chevron { font-size: 1rem; color: var(--text-muted); transition: transform 0.3s ease; flex-shrink: 0; }
+.module.expanded .module-chevron { transform: rotate(180deg); }
+.module-body { display: none; padding: 0.5rem 1.5rem 2rem; border-top: 1px solid var(--border); }
+.module.expanded .module-body { display: block; }
+.module-body h3 { font-size: 1.3rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--text); }
+.module-body h4 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; color: var(--accent); }
+.module-body p { margin-bottom: 1rem; color: var(--text-secondary); }
+.module-body ul, .module-body ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-secondary); }
+.module-body li { margin-bottom: 0.4rem; }
+.module-body strong { color: var(--text); }
+.module-body em { color: var(--accent); font-style: italic; }
+.code-block-wrapper { position: relative; margin: 1.25rem 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); border-left: 3px solid var(--accent); }
+.code-block-header { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.75rem; background: #12122a; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); }
+.copy-btn { background: var(--bg-tertiary); color: var(--text-muted); border: 1px solid var(--border-light); padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.72rem; font-family: var(--font-sans); transition: all 0.2s; }
+.copy-btn:hover { color: var(--text); border-color: var(--accent); }
+.code-block { background: var(--bg-code); padding: 1rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; color: #c9d1d9; }
+.code-block code { font-family: inherit; }
+.kw { color: #ff79c6; } .fn { color: #50fa7b; } .st { color: #f1fa8c; } .cm { color: #6272a4; font-style: italic; } .nb { color: #8be9fd; } .op { color: #ff79c6; } .dc { color: #bd93f9; } .nr { color: #bd93f9; } .im { color: #ff79c6; } .se { color: #8be9fd; } .at { color: #50fa7b; }
+.module-body code { background: var(--bg-code); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: #fb923c; }
+.table-wrapper { overflow-x: auto; margin: 1.25rem 0; border-radius: 8px; border: 1px solid var(--border); }
+.table-wrapper table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 600px; }
+.table-wrapper th { background: var(--accent); color: #fff; padding: 0.7rem 0.75rem; text-align: left; font-weight: 600; white-space: nowrap; }
+.table-wrapper td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.table-wrapper tr:nth-child(even) td { background: var(--bg-secondary); }
+.table-wrapper tr:nth-child(odd) td { background: var(--bg-tertiary); }
+.callout { padding: 1.25rem 1.5rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid var(--accent); background: var(--accent-glow); }
+.callout-title { font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; font-size: 0.95rem; }
+.callout p { color: var(--text-secondary); margin-bottom: 0.5rem; }
+.callout p:last-child { margin-bottom: 0; }
+.callout-warning { border-left-color: var(--warning); background: rgba(234,179,8,0.08); }
+.callout-warning .callout-title { color: var(--warning); }
+.callout-error { border-left-color: var(--error); background: rgba(239,68,68,0.08); }
+.callout-error .callout-title { color: var(--error); }
+.callout-success { border-left-color: var(--success); background: rgba(34,197,94,0.08); }
+.callout-success .callout-title { color: var(--success); }
+.ascii-diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.4; color: var(--accent); margin: 1.25rem 0; white-space: pre; }
+.footer { border-top: 1px solid var(--border); padding: 3rem 1.5rem; text-align: center; max-width: 900px; margin: 0 auto; }
+.footer-stats { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; }
+.footer-celebration { display: none; font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+.footer-celebration.visible { display: block; }
+.footer-sub { color: var(--text-muted); font-size: 0.8rem; }
+.search-container { position: relative; margin-bottom: 2rem; }
+.search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; font-family: var(--font-sans); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--accent); }
+.search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem; pointer-events: none; }
+.search-results { margin-top: 0.5rem; }
+.search-result-item { padding: 0.5rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.25rem; cursor: pointer; font-size: 0.85rem; color: var(--text-secondary); transition: all 0.2s; }
+.search-result-item:hover { border-color: var(--accent); color: var(--text); }
+.search-result-item mark { background: var(--accent); color: #fff; padding: 0 2px; border-radius: 2px; }
+.no-results { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem; }
+.checklist { list-style: none; margin: 0.5rem 0; padding: 0; }
+.checklist li { padding: 0.3rem 0; padding-left: 1.5rem; position: relative; }
+.checklist li::before { content: '\25A1'; position: absolute; left: 0; color: var(--accent); font-size: 1rem; }
+@media (max-width: 768px) {
+  .nav-modules { display: none; }
+  .nav-modules.open { display: flex; flex-wrap: wrap; position: absolute; top: 52px; left: 0; right: 0; background: var(--bg-secondary); padding: 1rem; border-bottom: 1px solid var(--border); gap: 0.5rem; justify-content: center; }
+  .hamburger { display: block; margin-left: auto; }
+  .nav-completion { display: none; }
+  .nav-brand { font-size: 0.85rem; }
+  .hero { padding: 6rem 1rem 2.5rem; }
+  .hero h1 { font-size: 1.8rem; }
+  .hero-meta { gap: 1rem; }
+  .content-wrapper { padding: 1rem; }
+  .module-body { padding: 0.5rem 1rem 1.5rem; }
+  .module-title-text { font-size: 0.95rem; }
+  body { font-size: 16px; }
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::selection { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-brand">System Design</span>
+    <div class="nav-modules" id="nav-modules">
+      <a href="#module-1" class="nav-module-link" data-module="1">1</a>
+      <a href="#module-2" class="nav-module-link" data-module="2">2</a>
+      <a href="#module-3" class="nav-module-link" data-module="3">3</a>
+      <a href="#module-4" class="nav-module-link" data-module="4">4</a>
+      <a href="#module-5" class="nav-module-link" data-module="5">5</a>
+      <a href="#module-6" class="nav-module-link" data-module="6">6</a>
+      <a href="#module-7" class="nav-module-link" data-module="7">7</a>
+      <a href="#module-8" class="nav-module-link" data-module="8">8</a>
+      <a href="#module-9" class="nav-module-link" data-module="9">9</a>
+      <a href="#module-10" class="nav-module-link" data-module="10">10</a>
+    </div>
+    <span class="nav-completion" id="nav-completion">0/10</span>
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation">&#9776;</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Comprehensive Course</div>
+  <h1>System Design at Scale</h1>
+  <p class="hero-subtitle">From Whiteboard to Production: Building Systems That Serve Billions</p>
+  <div class="hero-meta">
+    <span class="hero-meta-item"><strong>Author:</strong> Mustafa Furniturewala</span>
+    <span class="hero-meta-item"><strong>Level:</strong> VP / Staff+ Engineering</span>
+    <span class="hero-meta-item"><strong>Reading Time:</strong> ~3 hours</span>
+    <span class="hero-meta-item"><strong>Updated:</strong> June 2026</span>
+  </div>
+  <p class="hero-description">A deep-dive into the architecture patterns, trade-offs, and battle-tested strategies used by engineers at Google, Netflix, Uber, and other tech giants to build systems serving billions of users. This is not a surface-level overview — it is a practitioner's guide with real configs, production numbers, and hard-won lessons.</p>
+</section>
+
+<main class="content-wrapper">
+  <div class="search-container">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" class="search-input" id="search-input" placeholder="Search this course..." oninput="handleSearch(this.value)">
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <!-- MODULE 1 -->
+  <div class="module expanded" id="module-1" data-module="1">
+    <div class="module-header" onclick="toggleModule(1)">
+      <input type="checkbox" class="module-checkbox" data-module="1" onclick="event.stopPropagation(); toggleCheckbox(1)">
+      <div class="module-number">1</div>
+      <span class="module-title-text">Foundations of Distributed Systems</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Why Distribution Matters</h3>
+      <p>Let's start with the uncomfortable truth: <strong>you don't want a distributed system</strong>. Distribution is complexity you accept reluctantly when a single machine can no longer handle your load, your fault-tolerance requirements, or your latency SLAs. Every time you add a network hop between two components, you introduce a failure mode that didn't exist before. The best distributed system is the one you don't need yet.</p>
+      <p>That said, when you do cross the threshold — and most systems at scale do — you need to understand what you're really signing up for. Distribution gives you horizontal scalability, geographic redundancy, and the ability to deploy components independently. What it takes from you is consistency guarantees, simple reasoning, and predictable failure modes. The entire field of distributed systems is essentially the study of how to claw back those properties as cheaply as possible.</p>
+      <p>A single server can process roughly 100K–500K requests per second for simple key-value reads (Redis on beefy hardware). But what happens when you need 10M requests per second, or when your data no longer fits in 1TB of RAM, or when a single datacenter outage would take down your entire product? That's the moment distribution becomes necessary rather than optional.</p>
+
+      <h4>The Eight Fallacies of Distributed Computing</h4>
+      <p>Peter Deutsch and James Gosling articulated these fallacies in the 1990s, and they remain devastatingly relevant. Every engineer who has spent time debugging production incidents at scale has personally been burned by most of these:</p>
+      <ol>
+        <li><strong>The network is reliable.</strong> Networks drop packets, routers reboot, cables get cut by backhoes. TCP retransmits help but add latency. Plan for packet loss at every layer.</li>
+        <li><strong>Latency is zero.</strong> Cross-datacenter calls at Google average 30–50ms. Cross-continent: 80–150ms. If your RPC call touches 10 services serially, you've already burned 300–500ms before doing any real work.</li>
+        <li><strong>Bandwidth is infinite.</strong> Sending 10MB payloads between services seems fine until you have 1,000 concurrent calls and saturate your NIC or inter-datacenter link.</li>
+        <li><strong>The network is secure.</strong> Service-to-service calls inside a datacenter can be intercepted. mTLS and service mesh solve this but add overhead.</li>
+        <li><strong>Topology doesn't change.</strong> Kubernetes reschedules pods. Instances get replaced. Spot instances die. Your service discovery must handle this dynamically.</li>
+        <li><strong>There is one administrator.</strong> In a microservices world, different teams own different services. No single person can coordinate changes across all of them simultaneously.</li>
+        <li><strong>Transport cost is zero.</strong> Serialization/deserialization (JSON, Protobuf, Avro) consumes CPU cycles. At 100K RPS, this becomes non-trivial.</li>
+        <li><strong>The network is homogeneous.</strong> Your traffic may traverse IPv4, IPv6, different MTU sizes, proxies with different timeout behaviors, and NAT gateways that kill long-lived connections.</li>
+      </ol>
+
+      <div class="callout">
+        <div class="callout-title">Production Reality Check</div>
+        <p>At Amazon, the internal SLA for inter-service calls is 99.9% under 10ms for same-AZ traffic. But the P99.9 latency — the number that actually matters for tail latency at scale — is often 5–10x the median. When you're serving 1M requests per second, 0.1% means 1,000 requests per second hitting that tail. This is why tail latency optimization is a first-class concern at any system serving significant scale.</p>
+      </div>
+
+      <h3>Network Partitions in Practice</h3>
+      <p>A network partition occurs when a subset of nodes in your distributed system can no longer communicate with another subset. Contrary to popular belief, partitions are not rare catastrophic events — they happen constantly at small scale in large deployments. AWS re:Invent post-mortems reveal that most major outages involve some form of partial partition: a switch losing connectivity to a rack, a misconfigured firewall rule blocking inter-AZ traffic, or a DNS resolution failure affecting a specific service.</p>
+
+      <div class="ascii-diagram">
+Normal Operation:
+┌──────────┐    ┌──────────┐    ┌──────────┐
+│  Node A  │◄──►│  Node B  │◄──►│  Node C  │
+│ Leader   │    │ Follower │    │ Follower │
+└──────────┘    └──────────┘    └──────────┘
+
+Network Partition (A isolated from B, C):
+┌──────────┐  ✗  ┌──────────┐    ┌──────────┐
+│  Node A  │     │  Node B  │◄──►│  Node C  │
+│ (thinks  │     │ (elects  │    │ (votes   │
+│  leader) │     │  itself) │    │  for B)  │
+└──────────┘     └──────────┘    └──────────┘
+     ▲ Split-Brain Scenario: Two leaders simultaneously!</div>
+
+      <p>The classic split-brain scenario above is exactly what Raft and Paxos are designed to prevent. Without a consensus algorithm, both A and B might accept writes, creating divergent state that is expensive or impossible to reconcile. In a relational database, this might mean two users both being assigned the same user ID — a primary key collision that requires manual intervention to resolve.</p>
+      <p>Real-world mitigation strategies include fencing tokens (each leader gets a monotonically increasing token; clients reject writes from lower-token leaders), STONITH (Shoot The Other Node In The Head — literally sending a power-off command to the potentially-rogue node), and quorum-based writes that require acknowledgment from a majority before committing.</p>
+
+      <h3>Lamport Clocks and Vector Clocks</h3>
+      <p>In a distributed system, there is no global clock. Each machine has its own clock, and NTP synchronization keeps them within ~1–10ms of each other — but that's an eternity at microsecond-level operation speeds. How do you reason about the ordering of events when you can't trust timestamps?</p>
+      <p>Leslie Lamport's 1978 paper introduced logical clocks. The intuition is simple: if event A causally affects event B (A sends a message that B receives), then A happened before B. Lamport clocks assign each event a monotonically increasing integer, with the rule: when you send a message, include your current counter; when you receive a message, set your counter to max(local, received) + 1.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">class</span> <span class="fn">LamportClock</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>):
+        <span class="nb">self</span>.time = <span class="nr">0</span>
+
+    <span class="kw">def</span> <span class="fn">tick</span>(<span class="nb">self</span>):
+        <span class="cm"># Local event — just increment</span>
+        <span class="nb">self</span>.time += <span class="nr">1</span>
+        <span class="kw">return</span> <span class="nb">self</span>.time
+
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="nb">self</span>):
+        <span class="cm"># Attach timestamp to outgoing message</span>
+        <span class="nb">self</span>.time += <span class="nr">1</span>
+        <span class="kw">return</span> <span class="nb">self</span>.time
+
+    <span class="kw">def</span> <span class="fn">receive</span>(<span class="nb">self</span>, msg_timestamp):
+        <span class="cm"># Advance clock past received timestamp</span>
+        <span class="nb">self</span>.time = <span class="fn">max</span>(<span class="nb">self</span>.time, msg_timestamp) + <span class="nr">1</span>
+        <span class="kw">return</span> <span class="nb">self</span>.time
+
+
+<span class="kw">class</span> <span class="fn">VectorClock</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, node_id: <span class="nb">str</span>, all_nodes: <span class="nb">list</span>):
+        <span class="nb">self</span>.node_id = node_id
+        <span class="nb">self</span>.clock = {n: <span class="nr">0</span> <span class="kw">for</span> n <span class="kw">in</span> all_nodes}
+
+    <span class="kw">def</span> <span class="fn">tick</span>(<span class="nb">self</span>):
+        <span class="nb">self</span>.clock[<span class="nb">self</span>.node_id] += <span class="nr">1</span>
+
+    <span class="kw">def</span> <span class="fn">send</span>(<span class="nb">self</span>):
+        <span class="nb">self</span>.tick()
+        <span class="kw">return</span> <span class="nb">dict</span>(<span class="nb">self</span>.clock)
+
+    <span class="kw">def</span> <span class="fn">receive</span>(<span class="nb">self</span>, recv_clock: <span class="nb">dict</span>):
+        <span class="cm"># Merge: take max of each component, then tick</span>
+        <span class="kw">for</span> node, ts <span class="kw">in</span> recv_clock.<span class="fn">items</span>():
+            <span class="nb">self</span>.clock[node] = <span class="fn">max</span>(<span class="nb">self</span>.clock.<span class="fn">get</span>(node, <span class="nr">0</span>), ts)
+        <span class="nb">self</span>.tick()
+
+    <span class="kw">def</span> <span class="fn">happened_before</span>(<span class="nb">self</span>, a: <span class="nb">dict</span>, b: <span class="nb">dict</span>) -> <span class="nb">bool</span>:
+        <span class="cm"># a happened-before b if every component of a <= b</span>
+        <span class="cm"># and at least one component is strictly less</span>
+        <span class="kw">return</span> (<span class="fn">all</span>(a[n] &lt;= b[n] <span class="kw">for</span> n <span class="kw">in</span> a) <span class="kw">and</span>
+                <span class="fn">any</span>(a[n] &lt;  b[n] <span class="kw">for</span> n <span class="kw">in</span> a))</code></pre>
+      </div>
+
+      <p>The limitation of Lamport clocks is that they only capture "happened-before" in one direction: if A happened-before B, then A's timestamp < B's. But the converse is not true — a lower timestamp does not mean an event happened earlier. Vector clocks solve this by maintaining a counter per node. With vector clocks, you can determine whether two events are concurrent (neither happened-before the other) — a crucial distinction for conflict detection in eventually-consistent systems like DynamoDB or Cassandra.</p>
+      <p>Amazon Dynamo famously uses vector clocks for its version tracking, allowing it to detect write conflicts and surface them to the application layer. Riak, a key-value store inspired by Dynamo, later moved to dotted version vectors to avoid the "sibling explosion" problem where vector clocks grow unboundedly large as nodes join and leave the cluster.</p>
+
+      <h3>Distributed Consensus Fundamentals</h3>
+      <p>Consensus — getting multiple nodes to agree on a single value — is the fundamental problem in distributed systems. Paxos (Lamport, 1989) was the first practical algorithm, but it's notoriously difficult to understand and implement correctly. Raft (Ongaro, 2014) was designed explicitly for understandability and is now the go-to choice for production systems.</p>
+      <p>Raft decomposes consensus into three sub-problems: leader election, log replication, and safety. At any given time, one node is the leader. All writes go through the leader, which appends the entry to its log and replicates it to followers in parallel. Once a majority of nodes (quorum) acknowledge the entry, it is committed and can be applied to the state machine. If the leader fails, followers time out and start a new election — but only a node with an up-to-date log can win.</p>
+
+      <div class="ascii-diagram">
+Raft Log Replication:
+
+Client ──► Leader (N1)
+              │  AppendEntries(term=3, entry="SET x=5")
+              ├──────────────────► Follower (N2) ──► ACK
+              ├──────────────────► Follower (N3) ──► ACK
+              └──────────────────► Follower (N4) ──► [slow/partitioned]
+
+Quorum = (5/2)+1 = 3 nodes. Got 3 ACKs (leader + N2 + N3).
+Entry is COMMITTED. Leader replies to client. N4 catches up later.</div>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">Raft in Production: The Gotchas</div>
+        <p>etcd (used by Kubernetes) runs Raft. The default heartbeat interval is 100ms and election timeout is 1000ms. Under heavy load or high network jitter, you can get spurious elections that cause brief leadership gaps. Production etcd clusters at large companies tune heartbeat to 250ms and election timeout to 1250ms to reduce this. Always monitor your Raft election frequency — more than 1-2 per day is a signal of instability.</p>
+      </div>
+
+      <h4>Byzantine Fault Tolerance</h4>
+      <p>Standard Raft/Paxos assumes crash-fault tolerance (CFT): nodes either work correctly or crash. Byzantine fault tolerance (BFT) handles nodes that behave maliciously or incorrectly — returning wrong values, selectively dropping messages, etc. BFT requires 3f+1 nodes to tolerate f Byzantine faults, versus 2f+1 for CFT. This makes BFT impractical for most datacenter deployments (too many nodes needed) but essential for blockchain systems where nodes are operated by untrusted parties.</p>
+      <p>The practical takeaway: in a corporate datacenter with access controls, you use Raft/Paxos. In a permissioned blockchain across organizations, you might use PBFT or HotStuff. In a public blockchain with anonymous participants, you use Proof of Work or Proof of Stake as a Sybil-resistant alternative to classical BFT.</p>
+
+      <h3>Two Generals and the Impossibility Results</h3>
+      <p>The Two Generals Problem proves that you cannot achieve consensus over an unreliable channel in finite time — you can only increase confidence with more message exchanges, never achieve certainty. This theoretical result has a practical implication: TCP's three-way handshake and TLS negotiation are not actually solving the Two Generals Problem; they're just reducing the probability of failure to a level acceptable for commercial use.</p>
+      <p>The FLP impossibility result (Fischer, Lynch, Paterson, 1985) proves that in a purely asynchronous system where even one node can fail, no deterministic consensus algorithm can always terminate. The practical escape hatch is that real systems are not purely asynchronous — they have timeouts, partial synchrony assumptions, and probabilistic termination. Raft, for example, uses randomized election timeouts to avoid the livelock scenarios FLP describes.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 1</div>
+        <p>Distribution is a tax you pay for scale. Accept the fallacies as axioms: networks will fail, latency exists, topology changes. Use Raft for consensus (it's what etcd, CockroachDB, and TiKV all use). Vector clocks for causality tracking. And remember: a network partition is not an exceptional event — it's a normal operating condition you must design for from day one.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 2 -->
+  <div class="module" id="module-2" data-module="2">
+    <div class="module-header" onclick="toggleModule(2)">
+      <input type="checkbox" class="module-checkbox" data-module="2" onclick="event.stopPropagation(); toggleCheckbox(2)">
+      <div class="module-number">2</div>
+      <span class="module-title-text">Microservices vs Monolith: The Real Trade-offs</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>The Pendulum Has Swung Back</h3>
+      <p>In 2015, every engineering blog post was about how your monolith was holding you back and microservices were the path to salvation. By 2023, those same companies were quietly publishing post-mortems about how microservices made their systems 10x harder to operate, debug, and deploy. The truth, as always, is that the right architecture depends on your context: team size, deployment maturity, traffic patterns, and organizational structure.</p>
+      <p>The core insight, articulated by Melvin Conway in 1967 as Conway's Law, is that <strong>systems tend to mirror the communication structure of the organizations that build them</strong>. Amazon famously restructured into small, autonomous "two-pizza teams" before decomposing their system into services. The organizational change came first. Companies that try to adopt microservices without first restructuring their organization end up with a distributed monolith — the worst of both worlds.</p>
+
+      <h4>When Monoliths Win</h4>
+      <p>Shopify ran on a Rails monolith for 15 years and scaled to $6B in GMV before undertaking their current modularization effort. Stack Overflow serves millions of developers from a surprisingly small cluster of servers with a monolith. Basecamp, Stack Exchange, and many other highly successful companies have consciously chosen monoliths and are thriving. The reasons monoliths win in many scenarios:</p>
+      <ul>
+        <li><strong>Developer velocity:</strong> A single codebase means you can refactor across module boundaries in one commit. In a microservices world, cross-service changes require coordinating deployments across multiple repos, sometimes with API versioning gymnastics.</li>
+        <li><strong>Debugging:</strong> A stack trace in a monolith tells you exactly what happened. In a microservices world, you need distributed tracing (Jaeger, Zipkin, OpenTelemetry), and even then, reconstructing the call chain across 12 services is painful.</li>
+        <li><strong>Transactions:</strong> ACID transactions within a monolith are trivially easy. Distributed transactions across microservices require saga patterns, 2PC (with all its failure modes), or accepting eventual consistency — none of which are trivial.</li>
+        <li><strong>Operational overhead:</strong> A monolith needs one deployment pipeline, one monitoring dashboard, one alerting setup. Microservices multiply each of these by the number of services.</li>
+      </ul>
+
+      <div class="callout">
+        <div class="callout-title">The Shopify Modular Monolith</div>
+        <p>Shopify's "component-based Rails monolith" is the best modern example of having your cake and eating it too. They use Ruby packages (gems) to enforce boundaries between domains like Orders, Payments, and Inventory. Each component has a public API surface — other components cannot access its internal classes or database tables directly. This gives them microservice-like modularity with monolith-like operational simplicity. They've been running this architecture for years while processing billions in daily transactions.</p>
+      </div>
+
+      <h3>The Modular Monolith Pattern</h3>
+      <p>A modular monolith is a single deployable unit where code is organized into well-isolated modules with explicit public interfaces and no direct cross-module database access. The key discipline is treating module boundaries as if they were service boundaries — even though at runtime it's all one process.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>directory structure</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code>ecommerce-monolith/
+├── modules/
+│   ├── orders/
+│   │   ├── public/          <span class="cm"># The ONLY interface other modules may use</span>
+│   │   │   ├── orders_api.rb
+│   │   │   └── order_placed_event.rb
+│   │   ├── internal/        <span class="cm"># Private — no cross-module imports allowed</span>
+│   │   │   ├── order_repository.rb
+│   │   │   ├── payment_processor.rb
+│   │   │   └── fraud_checker.rb
+│   │   └── db/
+│   │       └── migrations/  <span class="cm"># Only orders module touches orders_* tables</span>
+│   ├── inventory/
+│   │   ├── public/
+│   │   │   ├── inventory_api.rb
+│   │   │   └── stock_reserved_event.rb
+│   │   └── internal/
+│   └── customers/
+│       └── public/
+├── shared/
+│   ├── event_bus.rb         <span class="cm"># In-process pub/sub for inter-module comms</span>
+│   └── domain_event.rb
+└── config/
+    └── module_boundaries.rb <span class="cm"># Zeitwerk + custom loader enforces isolation</span></code></pre>
+      </div>
+
+      <p>The crucial enforcement mechanism is build-time isolation checking. In Ruby, tools like Packwerk from Shopify analyze constant references and flag violations. In Java, modules via Project Jigsaw or ArchUnit tests can enforce that <code>com.acme.orders.internal</code> is never imported by any class outside the orders package. In Go, internal packages provide this natively.</p>
+
+      <h3>The Strangler Fig Pattern</h3>
+      <p>Martin Fowler named this after the strangler fig tree, which grows around an existing tree, eventually replacing it. The pattern describes how to incrementally migrate from a monolith to microservices (or from one system to another) without a big-bang rewrite.</p>
+
+      <div class="ascii-diagram">
+Phase 1: All traffic through monolith
+Client ──► Proxy/Facade ──► Monolith (all features)
+
+Phase 2: New service handles subset of traffic
+                          ┌──► New Orders Service
+Client ──► Proxy/Facade ──┤
+                          └──► Monolith (everything else)
+
+Phase 3: Monolith gradually hollowed out
+                          ┌──► Orders Service
+                          ├──► Payments Service
+Client ──► Proxy/Facade ──┤
+                          └──► Monolith (legacy features only)
+
+Phase 4: Monolith retired
+                          ┌──► Orders Service
+Client ──► API Gateway    ├──► Payments Service
+                          ├──► Inventory Service
+                          └──► Customers Service</div>
+
+      <p>The key to a successful strangler fig migration is the proxy/facade layer. In practice, this is often an API gateway (Kong, Nginx, or a thin custom service) that routes traffic based on URL path or request attributes. You never have to make a big-bang cutover — you can migrate one endpoint at a time, verify with feature flags, and roll back if something goes wrong.</p>
+
+      <h3>Service Boundaries: Domain-Driven Design</h3>
+      <p>The hardest part of microservices is figuring out where to draw the boundaries. Chop too fine and you get hundreds of nanoservices with massive operational overhead. Chop too coarse and services become coupled "distributed monoliths." Domain-Driven Design (DDD) gives us the tool: <strong>bounded contexts</strong>.</p>
+      <p>A bounded context is a subsystem where a particular domain model applies consistently. The word "order" means something specific in the context of an e-commerce system: it's a cluster of order lines, shipping details, and payment information. But to the warehouse management system, an "order" is a pick list. These two uses of the word "order" represent different bounded contexts, and trying to share one "Order" model across both leads to a God Object that satisfies neither.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Bounded Context</th><th>Core Entities</th><th>Database</th><th>Owns</th></tr></thead>
+          <tbody>
+            <tr><td>Order Management</td><td>Order, LineItem, Cart</td><td>PostgreSQL</td><td>Order lifecycle, pricing</td></tr>
+            <tr><td>Inventory</td><td>SKU, Warehouse, Stock</td><td>PostgreSQL</td><td>Stock levels, reservations</td></tr>
+            <tr><td>Payments</td><td>Transaction, Refund, PaymentMethod</td><td>PostgreSQL (separate)</td><td>Money movement, reconciliation</td></tr>
+            <tr><td>Shipping</td><td>Shipment, Carrier, TrackingEvent</td><td>PostgreSQL</td><td>Carrier integrations, tracking</td></tr>
+            <tr><td>Customers</td><td>Customer, Address, Preferences</td><td>PostgreSQL</td><td>Identity, preferences, history</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Data Ownership: The Hardest Problem</h3>
+      <p>If there is one single rule for microservices that teams violate most often, it is this: <strong>each service owns its data exclusively</strong>. No service may directly read from or write to another service's database. All access goes through the service's API or event stream. Violate this and you've built a distributed monolith — all the operational complexity of microservices with the coupling of a monolith.</p>
+      <p>Why is this so hard? Because it removes the ability to do multi-table JOINs. The Customer Service owns customer data. The Order Service owns order data. To show an order with customer details, the Order Service must either: (1) call the Customer Service via API and join in application code, (2) subscribe to customer events and maintain a local read model with relevant customer fields, or (3) accept denormalization and store customer name/email in the order at creation time.</p>
+      <p>Option 3 — denormalization at write time — is what most high-scale systems actually do. When you place an order on Amazon, your shipping address is copied into the order record. This means the order record remains accurate even if you later change your address. It also means the Order Service never needs to call the Customer Service to display an order's shipping address.</p>
+
+      <h3>The Distributed Monolith Anti-Pattern</h3>
+      <p>You've deployed 50 microservices. They all share the same database (or each service's code directly queries another service's database tables). Deployments require a specific order because Service A depends on Schema version 4.2 of Service B's tables. You've achieved the latency of microservices, the operational overhead of microservices, but none of the independence or scalability benefits. Congratulations, you've built a distributed monolith.</p>
+
+      <div class="callout callout-error">
+        <div class="callout-title">Red Flags: You Might Have a Distributed Monolith</div>
+        <p>Services share a database and directly read each other's tables. Deployments must be coordinated in a specific sequence. A change in Service A requires simultaneous changes in Services B, C, and D. Your integration tests span multiple services because you can't test any service in isolation. Teams can't deploy independently — there's a "deployment window" that requires all teams to coordinate.</p>
+      </div>
+
+      <h3>Netflix: The Microservices Benchmark</h3>
+      <p>Netflix is the canonical microservices success story — but the full context is usually omitted. Netflix made the transition to microservices starting around 2009, running the migration over nearly 7 years. By 2016, they had over 700 microservices. The key enablers were: a world-class platform engineering team that built Hystrix (circuit breaker), Eureka (service discovery), Ribbon (load balancing), and Zuul (API gateway) — all open-sourced; a chaos engineering practice (Chaos Monkey, Chaos Kong) that continuously validated resilience; and a strong culture of operational ownership where service teams were on-call for their own services 24/7.</p>
+      <p>Netflix runs roughly 150,000 instances in AWS. Their edge traffic goes through Open Connect CDN nodes, then into their API gateway, then fans out to dozens of microservices per request. The device team might call 20 microservices to render a single home screen, with aggressive parallelism and graceful degradation (if the personalization service is slow, show popular titles instead). This architecture works for Netflix because they have the platform engineering depth to support it. Most companies don't.</p>
+    </div>
+  </div>
+
+  <!-- MODULE 3 -->
+  <div class="module" id="module-3" data-module="3">
+    <div class="module-header" onclick="toggleModule(3)">
+      <input type="checkbox" class="module-checkbox" data-module="3" onclick="event.stopPropagation(); toggleCheckbox(3)">
+      <div class="module-number">3</div>
+      <span class="module-title-text">Database Sharding &amp; Partitioning</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>When Your Database Becomes the Bottleneck</h3>
+      <p>A well-tuned PostgreSQL instance on modern hardware (64 cores, 256GB RAM, NVMe SSDs) can handle roughly 50,000–100,000 transactions per second for mixed OLTP workloads, with a dataset size limited to what fits within your storage tier. For the majority of applications, this is more than enough. Instagram served 300 million daily users for years on a relatively small PostgreSQL cluster with aggressive read replicas and caching.</p>
+      <p>But when you cross certain thresholds — write throughput that saturates a single master, dataset sizes that no longer fit on one server, or regulatory requirements for data locality across geographies — sharding becomes necessary. Sharding is the practice of partitioning data across multiple database instances, where each instance owns a distinct subset of the data. It is complex, operationally demanding, and introduces fundamental limitations on the queries you can efficiently run. You should delay sharding as long as architecturally possible.</p>
+
+      <h4>Vertical vs Horizontal Partitioning</h4>
+      <p><strong>Vertical partitioning</strong> splits a table by columns — moving less-frequently-accessed columns to a separate table or storage tier. For example, separating a user's large <code>bio</code> text blob from their core profile fields (id, email, name) means the hot-path query that loads a user profile doesn't waste I/O reading the bio every time. This is essentially normalization taken to an operational extreme.</p>
+      <p><strong>Horizontal partitioning</strong> (sharding) splits a table by rows, distributing subsets of rows across multiple servers. This is what most people mean when they say "sharding." All shards have the same schema; they just hold different rows. The challenge is choosing the partition key and partition strategy wisely — a bad choice here is extremely painful to fix later.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Strategy</th><th>How It Works</th><th>Pros</th><th>Cons</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Hash-based</strong></td><td>shard = hash(partition_key) % num_shards</td><td>Even data distribution, simple</td><td>Rebalancing requires moving all data; range scans expensive</td></tr>
+            <tr><td><strong>Range-based</strong></td><td>Rows 1-1M go to shard 1, 1M-2M to shard 2</td><td>Efficient range scans, easy rebalancing at boundaries</td><td>Hotspots if data is skewed (new users all on latest shard)</td></tr>
+            <tr><td><strong>Directory-based</strong></td><td>Lookup table maps key → shard</td><td>Maximum flexibility, easy to migrate individual records</td><td>Lookup table becomes a bottleneck and single point of failure</td></tr>
+            <tr><td><strong>Geo-based</strong></td><td>US users → US shards, EU users → EU shards</td><td>Data locality, regulatory compliance</td><td>Uneven load if user distribution is skewed</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Consistent Hashing</h3>
+      <p>The classic hash-based sharding formula <code>shard = hash(key) % N</code> has a fatal flaw: when N changes (you add or remove a shard), almost every key remaps to a different shard, requiring a massive data migration. Consistent hashing solves this by placing both keys and nodes on a conceptual ring, so adding or removing a node only remaps the keys that were assigned to that node — approximately 1/N of the total keys.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> hashlib
+<span class="kw">from</span> sortedcontainers <span class="kw">import</span> SortedDict
+
+<span class="kw">class</span> <span class="fn">ConsistentHashRing</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, virtual_nodes=<span class="nr">150</span>):
+        <span class="cm"># virtual_nodes: how many points per physical node on the ring</span>
+        <span class="cm"># Higher = more even distribution, more memory</span>
+        <span class="nb">self</span>.virtual_nodes = virtual_nodes
+        <span class="nb">self</span>.ring = SortedDict()  <span class="cm"># hash_position -> node_id</span>
+        <span class="nb">self</span>.nodes = <span class="fn">set</span>()
+
+    <span class="kw">def</span> <span class="fn">_hash</span>(<span class="nb">self</span>, key: <span class="nb">str</span>) -> <span class="nb">int</span>:
+        <span class="kw">return</span> <span class="nb">int</span>(hashlib.<span class="fn">md5</span>(key.<span class="fn">encode</span>()).<span class="fn">hexdigest</span>(), <span class="nr">16</span>)
+
+    <span class="kw">def</span> <span class="fn">add_node</span>(<span class="nb">self</span>, node_id: <span class="nb">str</span>):
+        <span class="nb">self</span>.nodes.<span class="fn">add</span>(node_id)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">self</span>.virtual_nodes):
+            vnode_key = <span class="st">f"</span>{node_id}<span class="st">-vnode-</span>{i}<span class="st">"</span>
+            pos = <span class="nb">self</span>.<span class="fn">_hash</span>(vnode_key)
+            <span class="nb">self</span>.ring[pos] = node_id
+
+    <span class="kw">def</span> <span class="fn">remove_node</span>(<span class="nb">self</span>, node_id: <span class="nb">str</span>):
+        <span class="nb">self</span>.nodes.<span class="fn">discard</span>(node_id)
+        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="nb">self</span>.virtual_nodes):
+            vnode_key = <span class="st">f"</span>{node_id}<span class="st">-vnode-</span>{i}<span class="st">"</span>
+            pos = <span class="nb">self</span>.<span class="fn">_hash</span>(vnode_key)
+            <span class="nb">self</span>.ring.<span class="fn">pop</span>(pos, <span class="kw">None</span>)
+
+    <span class="kw">def</span> <span class="fn">get_node</span>(<span class="nb">self</span>, key: <span class="nb">str</span>) -> <span class="nb">str</span>:
+        <span class="kw">if not</span> <span class="nb">self</span>.ring:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="st">"No nodes in ring"</span>)
+        pos = <span class="nb">self</span>.<span class="fn">_hash</span>(key)
+        <span class="cm"># Find the first node clockwise from this position</span>
+        idx = <span class="nb">self</span>.ring.<span class="fn">bisect_left</span>(pos)
+        <span class="kw">if</span> idx == <span class="fn">len</span>(<span class="nb">self</span>.ring):
+            idx = <span class="nr">0</span>  <span class="cm"># Wrap around the ring</span>
+        <span class="kw">return</span> <span class="nb">self</span>.ring.<span class="fn">values</span>()[idx]
+
+<span class="cm"># Usage: add 3 nodes, each with 150 virtual nodes = 450 ring positions</span>
+ring = <span class="fn">ConsistentHashRing</span>(virtual_nodes=<span class="nr">150</span>)
+ring.<span class="fn">add_node</span>(<span class="st">"db-shard-1"</span>)
+ring.<span class="fn">add_node</span>(<span class="st">"db-shard-2"</span>)
+ring.<span class="fn">add_node</span>(<span class="st">"db-shard-3"</span>)
+<span class="cm"># Adding db-shard-4 only remaps ~25% of keys, not 75%</span></code></pre>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">Virtual Nodes: Why 150?</div>
+        <p>With just 3 physical nodes and no virtual nodes, the ring has 3 points and data distribution depends entirely on where those 3 hashes land. You might end up with one node holding 70% of the data. With 150 virtual nodes per physical node (450 ring positions), the law of large numbers kicks in and each physical node holds approximately 33% of the data. Cassandra uses 256 virtual tokens per node by default. Redis Cluster uses 16,384 hash slots distributed across nodes.</p>
+      </div>
+
+      <h3>Rebalancing Strategies</h3>
+      <p>When you add capacity to a sharded cluster, you need to move data from existing shards to the new one. This process — rebalancing — must happen without taking the cluster offline and without causing read/write errors for clients. The practical approaches:</p>
+      <p><strong>Fixed number of partitions:</strong> Kafka and Redis Cluster use a fixed number of logical partitions (16,384 for Redis). Nodes are assigned ownership of partitions. Adding a node means reassigning some partitions to it — no key remapping needed, just partition ownership changes. The data moves, but the partition key assignment is stable.</p>
+      <p><strong>Dynamic partitioning:</strong> HBase and MongoDB automatically split a partition when it grows beyond a configured size (default 256MB in HBase). A single large partition becomes two smaller ones. This is transparent to clients but requires coordination to avoid split storms.</p>
+      <p><strong>Manual rebalancing with hot key awareness:</strong> In many real production scenarios, you identify hot keys (shards with disproportionate traffic) and manually move them to dedicated shards. Instagram identified that celebrity accounts represented a small number of users but an enormous fraction of reads, and gave them dedicated infrastructure.</p>
+
+      <h3>Cross-Shard Queries: The Achilles' Heel</h3>
+      <p>Sharding's greatest weakness becomes apparent the moment you need to query across shard boundaries. If users are sharded by user_id and you need to find all users who signed up in the last 7 days, you must query ALL shards in parallel and merge the results in your application. This is called a scatter-gather query and it's expensive both in latency and load on your database tier.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> asyncio
+<span class="kw">from</span> typing <span class="kw">import</span> List
+
+<span class="kw">async def</span> <span class="fn">scatter_gather_query</span>(shards: List, query: <span class="nb">str</span>, params: <span class="nb">dict</span>):
+    <span class="cm"># Fan out to all shards in parallel</span>
+    tasks = [shard.<span class="fn">execute</span>(query, params) <span class="kw">for</span> shard <span class="kw">in</span> shards]
+    results = <span class="kw">await</span> asyncio.<span class="fn">gather</span>(*tasks, return_exceptions=<span class="kw">True</span>)
+
+    merged = []
+    <span class="kw">for</span> i, result <span class="kw">in</span> <span class="fn">enumerate</span>(results):
+        <span class="kw">if</span> <span class="fn">isinstance</span>(result, Exception):
+            <span class="cm"># Log but don't fail the entire request on one shard outage</span>
+            <span class="fn">log_shard_error</span>(shards[i], result)
+            <span class="kw">continue</span>
+        merged.<span class="fn">extend</span>(result)
+
+    <span class="cm"># Re-sort if query has ORDER BY (each shard sorted independently)</span>
+    merged.<span class="fn">sort</span>(key=<span class="kw">lambda</span> r: r[<span class="st">'created_at'</span>], reverse=<span class="kw">True</span>)
+    <span class="kw">return</span> merged[:<span class="nr">100</span>]  <span class="cm"># Apply global LIMIT after merge</span>
+
+<span class="cm"># The problem: if you LIMIT 20 per shard across 10 shards,</span>
+<span class="cm"># you fetch 200 rows to return 20. Deep pagination is catastrophic:</span>
+<span class="cm"># OFFSET 10000 LIMIT 20 across 10 shards = 100,020 rows fetched.</span></code></pre>
+      </div>
+
+      <p>The standard mitigation is to maintain a separate search index (Elasticsearch, Solr) for cross-shard queries. Your application writes to the shard for writes and reads, but complex search queries go to Elasticsearch which has its own index across all data. This is exactly how Instagram handles search — Postgres shards for user data, Elasticsearch for username/bio search.</p>
+
+      <h3>Vitess: MySQL Sharding at YouTube Scale</h3>
+      <p>Vitess was built at YouTube in 2010 to solve their MySQL scaling problems and is now a CNCF graduated project used by Slack, GitHub, Pinterest, and many others. Vitess sits between your application and MySQL, providing connection pooling, query routing, and transparent sharding with a MySQL-compatible wire protocol. Your application thinks it's talking to one MySQL instance; Vitess handles the sharding complexity.</p>
+
+      <div class="ascii-diagram">
+Application (MySQL driver) 
+        │
+        ▼
+  VTGate (SQL routing layer — stateless, horizontally scalable)
+        │
+   ┌────┴────┐
+   ▼         ▼
+VTTablet   VTTablet   ←─ Manages MySQL instances, handles failover
+(Shard 1)  (Shard 2)
+   │         │
+MySQL-1   MySQL-2     ←─ Actual data storage
+  R1  R2    R1  R2    ←─ Read replicas per shard</div>
+
+      <p>Vitess handles resharding transparently: it can double the number of shards by splitting each shard in half, using a VReplication mechanism that streams changes from the old shard to the new ones. The cutover window is typically under 5 seconds. YouTube went from 1 to 4 to 8 to 16 shards over several years, each time using Vitess's online resharding.</p>
+
+      <h3>When NOT to Shard</h3>
+      <p>Before sharding, exhaust every other option: connection pooling (PgBouncer can 10x your effective connection capacity), read replicas (offload 80%+ of traffic which is typically reads), caching (eliminate database round-trips entirely for hot data), query optimization (a missing index can make a query 100x slower), and vertical scaling (a 128-core machine with 2TB RAM can run PostgreSQL in a surprising number of use cases).</p>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">The Instagram Story</div>
+        <p>Instagram delayed sharding PostgreSQL until they had 25 million users and 1.6 billion photos. They used a combination of read replicas, connection pooling (PgBouncer), and aggressive caching (Redis, Memcached) to defer sharding for years. When they finally sharded, they used a logical sharding approach — keeping PostgreSQL's MVCC guarantees but using a custom sharding layer to distribute data. Their partitioning key was user_id, chosen because the vast majority of queries are in the context of a single user's data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 4 -->
+  <div class="module" id="module-4" data-module="4">
+    <div class="module-header" onclick="toggleModule(4)">
+      <input type="checkbox" class="module-checkbox" data-module="4" onclick="event.stopPropagation(); toggleCheckbox(4)">
+      <div class="module-number">4</div>
+      <span class="module-title-text">Caching Strategies at Scale</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>The Numbers That Make Caching Non-Negotiable</h3>
+      <p>RAM latency: ~100 nanoseconds. NVMe SSD latency: ~100 microseconds. Network round-trip to a Redis node in the same datacenter: ~200 microseconds. Disk-backed database query (uncached): ~10 milliseconds. These numbers represent 100x differences between tiers. When you're serving 100,000 requests per second and each request needs 10 data lookups, the difference between a 60% cache hit rate and a 99% cache hit rate is the difference between needing 10 database servers and needing 1.</p>
+      <p>Facebook reported that their Memcached tier handles over 1 billion requests per second across their fleet, with cache hit rates above 99% for most access patterns. This is not an optimization — it's a foundational architectural requirement. Without caching, their database infrastructure would need to be orders of magnitude larger and still couldn't keep up with the read load.</p>
+
+      <h4>Cache-Aside (Lazy Loading)</h4>
+      <p>The most common caching pattern. The application checks the cache first; on a miss, it reads from the database and populates the cache. The cache is only populated with data that's actually requested, so you don't waste memory on cold data.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> redis
+<span class="kw">import</span> json
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+
+redis_client = redis.<span class="fn">Redis</span>(host=<span class="st">'localhost'</span>, port=<span class="nr">6379</span>, decode_responses=<span class="kw">True</span>)
+
+<span class="kw">def</span> <span class="fn">get_user</span>(user_id: <span class="nb">int</span>) -> Optional[<span class="nb">dict</span>]:
+    cache_key = <span class="st">f"user:</span>{user_id}<span class="st">"</span>
+
+    <span class="cm"># 1. Check cache</span>
+    cached = redis_client.<span class="fn">get</span>(cache_key)
+    <span class="kw">if</span> cached:
+        <span class="kw">return</span> json.<span class="fn">loads</span>(cached)  <span class="cm"># Cache HIT — fast path</span>
+
+    <span class="cm"># 2. Cache MISS — go to database</span>
+    user = db.<span class="fn">query</span>(<span class="st">"SELECT * FROM users WHERE id = %s"</span>, [user_id])
+    <span class="kw">if</span> user <span class="kw">is None</span>:
+        <span class="cm"># Cache negative results too! Prevents cache bypass attacks.</span>
+        <span class="cm"># TTL of 60s so legitimate creates eventually show up.</span>
+        redis_client.<span class="fn">setex</span>(cache_key, <span class="nr">60</span>, <span class="st">"__NULL__"</span>)
+        <span class="kw">return</span> <span class="kw">None</span>
+
+    <span class="cm"># 3. Populate cache with TTL of 3600s (1 hour)</span>
+    redis_client.<span class="fn">setex</span>(cache_key, <span class="nr">3600</span>, json.<span class="fn">dumps</span>(user))
+    <span class="kw">return</span> user
+
+<span class="kw">def</span> <span class="fn">update_user</span>(user_id: <span class="nb">int</span>, updates: <span class="nb">dict</span>):
+    <span class="cm"># Write to database first</span>
+    db.<span class="fn">update</span>(<span class="st">"UPDATE users SET ... WHERE id = %s"</span>, [user_id])
+    <span class="cm"># Invalidate cache — don't update it (avoids race conditions)</span>
+    redis_client.<span class="fn">delete</span>(<span class="st">f"user:</span>{user_id}<span class="st">"</span>)</code></pre>
+      </div>
+
+      <p>Cache-aside is simple but has two failure modes worth knowing: <strong>cache stampede</strong> (many requests simultaneously hit a cold key and all go to the database) and <strong>stale data</strong> (the cache holds a value that the database has since updated). Cache stampede is addressed with probabilistic early expiration or a mutex lock on the first miss.</p>
+
+      <h4>Read-Through and Write-Through</h4>
+      <p>In read-through caching, the cache itself is responsible for fetching from the database on a miss — the application always talks to the cache, never directly to the database for reads. This simplifies application code and ensures the cache is always warm, but requires the cache to understand your data model.</p>
+      <p>Write-through caching updates both the cache and the database on every write, synchronously. This ensures the cache is always consistent but doubles write latency. Write-behind (or write-back) caching updates the cache immediately and writes to the database asynchronously, improving write latency but risking data loss if the cache node dies before the write is flushed.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Pattern</th><th>Read Latency</th><th>Write Latency</th><th>Consistency</th><th>Data Loss Risk</th></tr></thead>
+          <tbody>
+            <tr><td>Cache-Aside</td><td>Slow on miss</td><td>DB only</td><td>TTL-based</td><td>None</td></tr>
+            <tr><td>Read-Through</td><td>Slow on miss</td><td>DB only</td><td>TTL-based</td><td>None</td></tr>
+            <tr><td>Write-Through</td><td>Fast (always warm)</td><td>2x (cache + DB)</td><td>Strong</td><td>None</td></tr>
+            <tr><td>Write-Behind</td><td>Fast</td><td>Fast (cache only)</td><td>Eventual</td><td>Yes, on cache failure</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Redis Architecture Deep Dive</h3>
+      <p>Redis is single-threaded for command processing (by design) which eliminates locking overhead and makes its performance extremely predictable. Modern Redis (7.x) uses I/O threading for network reads/writes while keeping command execution single-threaded. On a single Redis node, you can expect 100,000–500,000 operations per second for simple get/set commands, with sub-millisecond P99 latency under normal conditions.</p>
+      <p>Redis Cluster (added in Redis 3.0) provides horizontal scaling via hash slots. The keyspace is divided into 16,384 slots. Each cluster node is responsible for a subset of slots. When a client sends a command for a key, the cluster topology (returned during initial CLUSTER NODES handshake) tells the client which node holds that key's slot. Smart clients (redis-py, Jedis, ioredis) cache this topology and route directly, avoiding an extra hop.</p>
+
+      <div class="ascii-diagram">
+Redis Cluster — 6 nodes (3 masters + 3 replicas):
+
+┌────────────────────────────────────────────────────────┐
+│                   16,384 hash slots                    │
+├──────────────┬──────────────┬──────────────────────────┤
+│ Slots 0-5460 │ 5461-10922   │    10923-16383            │
+│  Master-1    │   Master-2   │      Master-3            │
+│  (Primary)   │  (Primary)   │     (Primary)            │
+│      │       │      │       │         │                │
+│  Replica-1   │  Replica-2   │      Replica-3           │
+└──────────────┴──────────────┴──────────────────────────┘
+
+CLUSTER KEYSLOT user:12345 → slot 7638 → Master-2</div>
+
+      <p>Redis persistence options matter for your durability/performance trade-off. <strong>RDB (Redis Database) snapshots</strong> fork the process and write a point-in-time snapshot to disk. Fast to restore but you can lose up to <code>save 900 1</code> seconds of data. <strong>AOF (Append Only File)</strong> logs every write command. With <code>appendfsync everysec</code>, you risk losing at most 1 second of data. With <code>appendfsync always</code>, you're fully durable but cut throughput by roughly 10x. Most production setups use both: AOF for durability, RDB for fast restores after a complete failure.</p>
+
+      <h3>Memcached vs Redis: The Honest Comparison</h3>
+      <p>Memcached was the dominant caching solution before Redis. It's simpler, faster in some benchmarks for pure key-value workloads, and natively multi-threaded. But Redis has won the practical battle for most use cases due to its richer data structures (lists, sorted sets, hyperloglog, streams), persistence, pub/sub, Lua scripting, and cluster mode. The only scenario where Memcached still wins clearly is when you need multi-threaded cache performance at extreme scale and have only simple key-value needs — LinkedIn's cali team still uses Memcached for some hot tiers where Redis's single-threaded nature becomes a bottleneck.</p>
+
+      <h3>Cache Stampede Prevention</h3>
+      <p>Cache stampede (also called thundering herd or dog-pile effect) occurs when a popular cache key expires and hundreds or thousands of concurrent requests simultaneously go to the database to recompute the value. The database gets slammed with N identical queries when it would have been fine serving 1.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> random
+<span class="kw">import</span> time
+
+<span class="kw">def</span> <span class="fn">get_with_probabilistic_early_expiry</span>(key: <span class="nb">str</span>, ttl: <span class="nb">int</span>, beta: <span class="nb">float</span> = <span class="nr">1.0</span>):
+    <span class="cm">"""
+    XFetch algorithm (Vattani et al., 2015).
+    Probabilistically recompute the cache before it expires,
+    so we always have a warm value ready.
+    beta: higher = recompute sooner. Default 1.0.
+    """</span>
+    cached_value, expiry_time, compute_time = redis_client.<span class="fn">hmget</span>(
+        key, <span class="st">'value'</span>, <span class="st">'expiry'</span>, <span class="st">'delta'</span>
+    )
+
+    <span class="kw">if</span> cached_value:
+        <span class="cm"># time_to_expire is negative when already expired</span>
+        time_to_expire = <span class="nb">float</span>(expiry_time) - time.<span class="fn">time</span>()
+        <span class="cm"># early_recompute probability increases as expiry approaches</span>
+        early_recompute = (-<span class="nb">float</span>(compute_time) * beta *
+                           random.<span class="fn">uniform</span>(<span class="nr">0</span>, <span class="nb">float</span>(compute_time)))
+        <span class="kw">if</span> time_to_expire > early_recompute:
+            <span class="kw">return</span> cached_value  <span class="cm"># Use cached value</span>
+
+    <span class="cm"># Recompute (one request at a time via distributed lock)</span>
+    lock_key = <span class="st">f"lock:</span>{key}<span class="st">"</span>
+    <span class="kw">if</span> redis_client.<span class="fn">set</span>(lock_key, <span class="nr">1</span>, nx=<span class="kw">True</span>, ex=<span class="nr">30</span>):
+        start = time.<span class="fn">time</span>()
+        new_value = <span class="fn">expensive_computation</span>()
+        delta = time.<span class="fn">time</span>() - start
+        expiry = time.<span class="fn">time</span>() + ttl
+        redis_client.<span class="fn">hset</span>(key, <span class="fn">mapping</span>={
+            <span class="st">'value'</span>: new_value, <span class="st">'expiry'</span>: expiry, <span class="st">'delta'</span>: delta
+        })
+        redis_client.<span class="fn">expire</span>(key, ttl + <span class="nr">30</span>)
+        redis_client.<span class="fn">delete</span>(lock_key)
+        <span class="kw">return</span> new_value
+    <span class="kw">else</span>:
+        <span class="cm"># Another request is recomputing — return stale value</span>
+        <span class="kw">return</span> cached_value <span class="kw">or</span> <span class="fn">wait_and_retry</span>(key)</code></pre>
+      </div>
+
+      <h3>CDN Caching and Multi-Tier Architecture</h3>
+      <p>A production caching architecture is not a single Redis cluster — it's a hierarchy of caches, each serving a different purpose and trading off cost vs. freshness vs. capacity.</p>
+
+      <div class="ascii-diagram">
+Multi-Tier Caching Architecture:
+
+User Browser
+    │  L1: Browser cache (Cache-Control headers)
+    │      Latency: 0ms, Capacity: ~100MB
+    ▼
+CDN Edge Node (Cloudflare, Fastly, Akamai)
+    │  L2: CDN cache (static assets, cacheable API responses)
+    │      Latency: 5-20ms, Capacity: enormous
+    ▼
+API Gateway / Reverse Proxy (Nginx, Envoy)
+    │  L3: In-process memory cache (TinyLFU, Caffeine in JVM)
+    │      Latency: <1ms, Capacity: ~1GB per node
+    ▼
+Application Server
+    │  L4: Redis/Memcached cluster (shared cache)
+    │      Latency: 0.5-2ms, Capacity: TBs
+    ▼
+Database (PostgreSQL, MySQL)
+       Latency: 5-50ms, Capacity: unlimited</div>
+
+      <p>Cloudflare's CDN handles over 100 million requests per second globally, serving from 285+ edge locations. When a user in Tokyo requests a cacheable resource, Cloudflare's Tokyo PoP serves it directly — no round trip to your origin server in Virginia. Cache hit rates for static assets commonly exceed 95%. For API responses, you need careful cache key design (include user auth tier, locale, A/B test bucket in the cache key) to avoid serving wrong content.</p>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">Cache Invalidation: The Hard Problem</div>
+        <p>Phil Karlton famously said there are only two hard problems in computer science: cache invalidation and naming things. He wasn't joking. When a user updates their profile, you need to invalidate: their profile cache in Redis, any CDN-cached API responses that include their data, any in-process memory caches on your 50 application servers, and any search index documents that include their name. Tools like Redis pub/sub, cache tags (Fastly's Surrogate-Control header), and event-driven invalidation via Kafka can help, but there is no silver bullet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 5 -->
+  <div class="module" id="module-5" data-module="5">
+    <div class="module-header" onclick="toggleModule(5)">
+      <input type="checkbox" class="module-checkbox" data-module="5" onclick="event.stopPropagation(); toggleCheckbox(5)">
+      <div class="module-number">5</div>
+      <span class="module-title-text">Load Balancing &amp; Traffic Management</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>L4 vs L7 Load Balancing</h3>
+      <p>Load balancers operate at different layers of the network stack, and the choice fundamentally changes what they can do with your traffic. Understanding this distinction is critical because the wrong choice can either leave performance on the table or add unnecessary latency.</p>
+      <p><strong>L4 (Transport Layer) load balancers</strong> work at the TCP/UDP level. They see IP addresses and port numbers, but not the content of the packets. They forward TCP connections to backend servers based on connection state. This makes them extremely fast — they can handle millions of connections per second with microsecond-level overhead. AWS Network Load Balancer (NLB) is L4. HAProxy in TCP mode is L4. F5 BIG-IP operating in NAT mode is L4. Use L4 when you need minimal latency overhead and don't need to inspect request content.</p>
+      <p><strong>L7 (Application Layer) load balancers</strong> terminate the TCP connection, parse the HTTP request, and make routing decisions based on URL paths, headers, cookies, or request body content. This allows URL-based routing, header injection, A/B testing, SSL termination, and authentication. AWS Application Load Balancer (ALB), Nginx in proxy mode, and Envoy are L7. The overhead versus L4 is typically 1-3ms of additional latency but the routing flexibility is usually worth it for HTTP workloads.</p>
+
+      <div class="ascii-diagram">
+L4 Load Balancer (TCP passthrough):
+Client ──TCP──► L4 LB ──TCP──► Backend
+                 (just forwards bytes, no HTTP parsing)
+
+L7 Load Balancer (HTTP-aware):
+Client ──TCP──► L7 LB ──TCP──► Backend
+                  │
+                  ├── Reads HTTP headers
+                  ├── Routes /api/* to API servers
+                  ├── Routes /static/* to CDN origin
+                  ├── Injects X-Request-ID header
+                  ├── Terminates TLS (decrypts)
+                  └── Applies rate limiting per user</div>
+
+      <h4>Load Balancing Algorithms</h4>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Algorithm</th><th>How It Works</th><th>Best For</th><th>Weakness</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Round Robin</strong></td><td>Rotate through backends in order</td><td>Homogeneous backends, uniform request cost</td><td>Ignores server load; slow requests pile up</td></tr>
+            <tr><td><strong>Weighted Round Robin</strong></td><td>Same but larger servers get more requests</td><td>Heterogeneous hardware</td><td>Still ignores real-time load</td></tr>
+            <tr><td><strong>Least Connections</strong></td><td>Send to server with fewest active connections</td><td>Varying request duration (long-polling, uploads)</td><td>Connection count != CPU load</td></tr>
+            <tr><td><strong>Least Response Time</strong></td><td>Send to fastest-responding server</td><td>General HTTP traffic with latency SLAs</td><td>Requires active health probing</td></tr>
+            <tr><td><strong>Power of Two Choices</strong></td><td>Pick 2 random, send to better one</td><td>High-scale distributed LBs (Nginx Plus, Envoy)</td><td>Slightly more complex implementation</td></tr>
+            <tr><td><strong>IP Hash</strong></td><td>hash(client_ip) determines backend</td><td>Session affinity without session storage</td><td>Breaks if backends change; uneven with NAT</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The Power of Two Choices algorithm is worth understanding in depth because it elegantly solves the "join the shortest queue" problem in a distributed way. Instead of maintaining a global view of all backend loads (expensive), you pick two backends at random and route to whichever has fewer connections. This achieves near-optimal load distribution with O(1) complexity per routing decision. It's the algorithm used by Nginx Plus's <code>least_conn</code> in its upstream load balancing and by Envoy's LEAST_REQUEST policy.</p>
+
+      <h3>Health Checks and Graceful Degradation</h3>
+      <p>A load balancer without good health checks is worse than no load balancer at all — it will happily route traffic to dead backends. Health checks come in three tiers, each catching different failure modes:</p>
+      <ul>
+        <li><strong>TCP health check:</strong> Can I open a TCP connection to port 8080? This catches total node failures but misses application-level errors (the process is running but returning 503s).</li>
+        <li><strong>HTTP health check:</strong> Does GET /health return 200 within 2 seconds? This catches application crashes and startup issues. Your <code>/health</code> endpoint should check critical dependencies (database connection pool health, not just "is the HTTP server up").</li>
+        <li><strong>Deep health check:</strong> Does the application successfully complete a representative operation? Write a test record to the database, read it back, delete it. This catches cases where the app is running but can't actually serve traffic.</li>
+      </ul>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python (FastAPI)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, HTTPException
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">import</span> asyncio
+
+app = <span class="fn">FastAPI</span>()
+
+<span class="kw">class</span> <span class="fn">HealthStatus</span>(BaseModel):
+    status: <span class="nb">str</span>
+    database: <span class="nb">str</span>
+    cache: <span class="nb">str</span>
+    version: <span class="nb">str</span>
+
+<span class="at">@app.get</span>(<span class="st">"/health"</span>)
+<span class="kw">async def</span> <span class="fn">health_check</span>() -> HealthStatus:
+    <span class="cm"># Run checks in parallel with timeout</span>
+    <span class="kw">try</span>:
+        db_ok, cache_ok = <span class="kw">await</span> asyncio.<span class="fn">gather</span>(
+            asyncio.<span class="fn">wait_for</span>(<span class="fn">check_database</span>(), timeout=<span class="nr">2.0</span>),
+            asyncio.<span class="fn">wait_for</span>(<span class="fn">check_redis</span>(), timeout=<span class="nr">1.0</span>),
+        )
+    <span class="kw">except</span> asyncio.TimeoutError:
+        <span class="cm"># Don't let health check block indefinitely</span>
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="nr">503</span>, detail=<span class="st">"Health check timeout"</span>)
+
+    <span class="kw">if not</span> db_ok:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="nr">503</span>, detail=<span class="st">"Database unhealthy"</span>)
+
+    <span class="kw">return</span> <span class="fn">HealthStatus</span>(
+        status=<span class="st">"healthy"</span>,
+        database=<span class="st">"ok"</span> <span class="kw">if</span> db_ok <span class="kw">else</span> <span class="st">"degraded"</span>,
+        cache=<span class="st">"ok"</span> <span class="kw">if</span> cache_ok <span class="kw">else</span> <span class="st">"degraded"</span>,
+        version=<span class="st">"2.4.1"</span>
+    )
+
+<span class="at">@app.get</span>(<span class="st">"/health/live"</span>)
+<span class="kw">async def</span> <span class="fn">liveness</span>():
+    <span class="cm"># Kubernetes liveness: just "is the process alive?"</span>
+    <span class="cm"># Never check external dependencies here — causes cascading restarts</span>
+    <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"alive"</span>}</code></pre>
+      </div>
+
+      <h3>Global Server Load Balancing (GSLB)</h3>
+      <p>When you have datacenters in multiple regions, GSLB is the mechanism that routes users to the nearest (or healthiest) datacenter. It typically operates via DNS: a user's DNS lookup returns different IP addresses depending on their location, the health of each datacenter, and your traffic routing policy.</p>
+      <p>Cloudflare's Anycast routing is a more sophisticated approach: the same IP address is announced from multiple physical locations. BGP routing naturally directs users to the nearest Cloudflare PoP. This is how Cloudflare achieves 30ms average time-to-first-byte from most global locations — the DNS resolution itself points you close to where you are.</p>
+
+      <h3>Envoy Proxy Deep Dive</h3>
+      <p>Envoy is the backbone of modern service mesh architectures. Originally built at Lyft, it's now the data plane for Istio, AWS App Mesh, and many custom service meshes. What makes Envoy special is its xDS API — a standardized, dynamic configuration protocol that allows a control plane (like Istio's Pilot) to push new configuration to all Envoy instances simultaneously without a restart.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>yaml (envoy config)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Envoy: Circuit breaker + retry policy for an upstream cluster</span>
+static_resources:
+  clusters:
+  - name: order_service
+    type: STRICT_DNS
+    lb_policy: LEAST_REQUEST
+    circuit_breakers:
+      thresholds:
+      - priority: DEFAULT
+        max_connections: <span class="nr">1000</span>       <span class="cm"># Max concurrent TCP connections</span>
+        max_pending_requests: <span class="nr">100</span>   <span class="cm"># Max requests waiting for conn</span>
+        max_requests: <span class="nr">1000</span>          <span class="cm"># Max active requests</span>
+        max_retries: <span class="nr">3</span>
+    upstream_http_filters:
+    - name: retry_policy
+      typed_config:
+        retry_on: <span class="st">"5xx,connect-failure,reset"</span>
+        num_retries: <span class="nr">3</span>
+        retry_back_off:
+          base_interval: <span class="nr">0.025</span>s    <span class="cm"># 25ms initial backoff</span>
+          max_interval: <span class="nr">0.250</span>s     <span class="cm"># 250ms max backoff</span>
+        per_try_timeout: <span class="nr">0.5</span>s</code></pre>
+      </div>
+
+      <h3>Rate Limiting Implementations</h3>
+      <p>Rate limiting protects your system from abuse and ensures fair resource allocation. The four main algorithms:</p>
+      <p><strong>Fixed window:</strong> Count requests in a fixed time window (e.g., 100 requests per minute). Simple but has a boundary problem: if a user sends 100 requests at 12:00:59 and 100 at 12:01:01, they've made 200 requests in a 2-second window while the counter thinks they're within limits.</p>
+      <p><strong>Sliding window log:</strong> Store a timestamp log of each request. Count only requests within the last N seconds. Precise but memory-intensive (stores one entry per request per user).</p>
+      <p><strong>Token bucket:</strong> Each user has a bucket with a capacity of N tokens. Tokens are added at a rate of R per second. Each request consumes 1 token. Allows bursting up to bucket capacity. This is what AWS API Gateway uses.</p>
+      <p><strong>Leaky bucket:</strong> Requests enter a queue; they're processed at a fixed rate regardless of arrival pattern. Smooths burst traffic but introduces queuing latency.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python (Redis token bucket)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> time
+
+<span class="cm"># Redis Lua script for atomic token bucket rate limiting</span>
+RATE_LIMIT_SCRIPT = <span class="st">"""
+local key = KEYS[1]
+local rate = tonumber(ARGV[1])      -- tokens per second
+local capacity = tonumber(ARGV[2])  -- bucket capacity
+local now = tonumber(ARGV[3])       -- current timestamp in ms
+local requested = tonumber(ARGV[4]) -- tokens requested (usually 1)
+
+local last_tokens = tonumber(redis.call('hget', key, 'tokens') or capacity)
+local last_refill = tonumber(redis.call('hget', key, 'last_refill') or now)
+
+-- Refill tokens based on time elapsed
+local elapsed = math.max(0, now - last_refill)
+local new_tokens = math.min(capacity, last_tokens + (elapsed * rate / 1000))
+
+if new_tokens >= requested then
+    -- Allow the request
+    redis.call('hset', key, 'tokens', new_tokens - requested, 'last_refill', now)
+    redis.call('expire', key, math.ceil(capacity / rate) + 1)
+    return {1, math.floor(new_tokens - requested)}
+else
+    -- Reject — return wait time in ms
+    local wait_ms = math.ceil((requested - new_tokens) * 1000 / rate)
+    return {0, wait_ms}
+end
+"""</span>
+
+<span class="kw">def</span> <span class="fn">check_rate_limit</span>(user_id: <span class="nb">str</span>, rate: <span class="nb">int</span> = <span class="nr">100</span>, capacity: <span class="nb">int</span> = <span class="nr">200</span>) -> <span class="nb">tuple</span>:
+    <span class="kw">return</span> redis_client.<span class="fn">eval</span>(
+        RATE_LIMIT_SCRIPT, <span class="nr">1</span>,
+        <span class="st">f"ratelimit:</span>{user_id}<span class="st">"</span>,
+        rate, capacity,
+        <span class="nb">int</span>(time.<span class="fn">time</span>() * <span class="nr">1000</span>), <span class="nr">1</span>
+    )</code></pre>
+      </div>
+
+      <h3>Backpressure: When to Say No</h3>
+      <p>Backpressure is the mechanism by which an overwhelmed service signals to its callers to slow down, rather than accepting requests it can't handle and failing them. Without backpressure, an overloaded service degrades gracefully into a spiral: it accepts more requests than it can handle, latency climbs, timeouts cascade upstream, callers retry (making things worse), and eventually the service becomes completely unresponsive.</p>
+      <p>Envoy's circuit breaker (shown above) implements backpressure at the proxy level. When <code>max_pending_requests</code> is exceeded, Envoy returns 503 immediately rather than queuing more work. This is the correct behavior — failing fast is better than failing slow. The caller sees the 503, applies its own circuit breaker or retry-with-backoff, and the overall system stabilizes.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Production Tip: The Load Shedding Hierarchy</div>
+        <p>When you're under extreme load, shed traffic in this priority order: (1) reject requests from already-known-bad clients (rate-limited, blocked IPs); (2) reject requests for non-critical features first (disable feed personalization before disabling login); (3) serve degraded responses (cached stale data, simplified UI) before rejecting entirely; (4) reject lowest-priority request classes (batch processing before real-time user requests). This hierarchy should be defined in your runbook and tested during chaos engineering exercises, not discovered during an incident.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 6 -->
+  <div class="module" id="module-6" data-module="6">
+    <div class="module-header" onclick="toggleModule(6)">
+      <input type="checkbox" class="module-checkbox" data-module="6" onclick="event.stopPropagation(); toggleCheckbox(6)">
+      <div class="module-number">6</div>
+      <span class="module-title-text">Message Queues &amp; Event-Driven Architecture</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Why Async Is Not Optional at Scale</h3>
+      <p>When a user places an order on an e-commerce platform, the following things need to happen: inventory must be reserved, a payment must be charged, a confirmation email must be sent, fraud scoring must run, the warehouse must receive a pick list, and analytics must record the event. If you do all of this synchronously in the HTTP request handler, you are coupling the response time to your slowest dependency, creating a system that fails entirely if any one step is unavailable, and preventing independent scaling of each concern.</p>
+      <p>Message queues and event streams decouple producers from consumers. The order service publishes an <code>OrderPlaced</code> event and immediately responds to the user. Downstream services — inventory, payments, email, fraud, analytics — each subscribe to this event and process it independently, at their own pace, in their own infrastructure. If the email service is slow, it doesn't affect the user's checkout experience. If the fraud scoring service goes down, you can replay events when it comes back up.</p>
+
+      <h3>Kafka Architecture</h3>
+      <p>Apache Kafka is the dominant event streaming platform at scale, used by LinkedIn (where it was created), Uber, Netflix, Airbnb, and thousands of other companies. Understanding Kafka's architecture is essential because its design choices — log-based storage, consumer groups, partitions — are what make it capable of sustained throughput that simple message queues cannot match.</p>
+
+      <div class="ascii-diagram">
+Kafka Architecture:
+
+Producers                    Kafka Cluster                    Consumers
+                        ┌──────────────────────┐
+Order Service ──────►  │ Topic: order.events   │  ──────► Inventory Service
+                        │  Partition 0: [1,4,7] │
+Payment Svc   ──────►  │  Partition 1: [2,5,8] │  ──────► Email Service
+                        │  Partition 2: [3,6,9] │
+Mobile App    ──────►  └──────────────────────┘  ──────► Analytics
+                                │
+                          ZooKeeper / KRaft
+                         (broker coordination)</div>
+
+      <p>The key insight in Kafka's design is that it stores messages durably on disk in an ordered, immutable log. Consumers track their own position (offset) in the log. This means: multiple consumer groups can read the same topic independently, consumers can replay historical messages by seeking to an earlier offset, and the broker doesn't need to track which messages have been "consumed" for each consumer (that's each consumer group's responsibility). Traditional message queues like RabbitMQ delete messages after successful consumption — Kafka retains them for a configurable period (default 7 days).</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python (confluent-kafka)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">from</span> confluent_kafka <span class="kw">import</span> Producer, Consumer, KafkaError
+<span class="kw">import</span> json
+
+<span class="cm"># Producer: publish order events</span>
+producer = <span class="fn">Producer</span>({
+    <span class="st">'bootstrap.servers'</span>: <span class="st">'kafka-1:9092,kafka-2:9092,kafka-3:9092'</span>,
+    <span class="st">'acks'</span>: <span class="st">'all'</span>,          <span class="cm"># Wait for all ISR replicas to confirm</span>
+    <span class="st">'retries'</span>: <span class="nr">5</span>,
+    <span class="st">'enable.idempotence'</span>: <span class="kw">True</span>,  <span class="cm"># Exactly-once delivery</span>
+    <span class="st">'compression.type'</span>: <span class="st">'snappy'</span>,  <span class="cm"># 4-5x compression on JSON</span>
+    <span class="st">'batch.size'</span>: <span class="nr">65536</span>,   <span class="cm"># 64KB batch size</span>
+    <span class="st">'linger.ms'</span>: <span class="nr">5</span>,        <span class="cm"># Wait 5ms to batch messages</span>
+})
+
+<span class="kw">def</span> <span class="fn">publish_order_event</span>(order: <span class="nb">dict</span>):
+    event = {
+        <span class="st">'event_type'</span>: <span class="st">'OrderPlaced'</span>,
+        <span class="st">'order_id'</span>: order[<span class="st">'id'</span>],
+        <span class="st">'user_id'</span>: order[<span class="st">'user_id'</span>],
+        <span class="st">'total'</span>: order[<span class="st">'total'</span>],
+        <span class="st">'timestamp'</span>: order[<span class="st">'created_at'</span>],
+    }
+    producer.<span class="fn">produce</span>(
+        topic=<span class="st">'order.events'</span>,
+        key=<span class="nb">str</span>(order[<span class="st">'user_id'</span>]),  <span class="cm"># Key determines partition</span>
+        value=json.<span class="fn">dumps</span>(event).<span class="fn">encode</span>(),
+        callback=<span class="fn">delivery_report</span>
+    )
+    producer.<span class="fn">poll</span>(<span class="nr">0</span>)  <span class="cm"># Trigger callbacks, non-blocking</span>
+
+<span class="cm"># Consumer: inventory service subscribes</span>
+consumer = <span class="fn">Consumer</span>({
+    <span class="st">'bootstrap.servers'</span>: <span class="st">'kafka-1:9092,kafka-2:9092,kafka-3:9092'</span>,
+    <span class="st">'group.id'</span>: <span class="st">'inventory-service-v2'</span>,  <span class="cm"># Consumer group</span>
+    <span class="st">'auto.offset.reset'</span>: <span class="st">'earliest'</span>,     <span class="cm"># Read from start if new group</span>
+    <span class="st">'enable.auto.commit'</span>: <span class="kw">False</span>,          <span class="cm"># Manual commit for at-least-once</span>
+})
+consumer.<span class="fn">subscribe</span>([<span class="st">'order.events'</span>])
+
+<span class="kw">while</span> <span class="kw">True</span>:
+    msg = consumer.<span class="fn">poll</span>(timeout=<span class="nr">1.0</span>)
+    <span class="kw">if</span> msg <span class="kw">is None</span>: <span class="kw">continue</span>
+    <span class="kw">if</span> msg.<span class="fn">error</span>(): <span class="kw">continue</span>
+    event = json.<span class="fn">loads</span>(msg.<span class="fn">value</span>())
+    <span class="kw">try</span>:
+        <span class="fn">reserve_inventory</span>(event[<span class="st">'order_id'</span>])
+        consumer.<span class="fn">commit</span>(asynchronous=<span class="kw">False</span>)  <span class="cm"># Commit only after success</span>
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        <span class="cm"># Don't commit — message will be redelivered</span>
+        <span class="fn">log_error</span>(e)</code></pre>
+      </div>
+
+      <h3>Kafka vs RabbitMQ: The Honest Comparison</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Dimension</th><th>Kafka</th><th>RabbitMQ</th></tr></thead>
+          <tbody>
+            <tr><td>Throughput</td><td>1M+ messages/sec per broker</td><td>~50K messages/sec</td></tr>
+            <tr><td>Retention</td><td>Days/weeks (configurable)</td><td>Until consumed</td></tr>
+            <tr><td>Replay</td><td>Yes — seek to any offset</td><td>No — once consumed, gone</td></tr>
+            <tr><td>Ordering</td><td>Per-partition ordering guaranteed</td><td>Per-queue ordering</td></tr>
+            <tr><td>Routing</td><td>Topic/partition (simple)</td><td>Exchange bindings (flexible)</td></tr>
+            <tr><td>Consumer model</td><td>Pull-based (consumers poll)</td><td>Push-based (broker pushes)</td></tr>
+            <tr><td>Operational complexity</td><td>High (ZooKeeper/KRaft, replication)</td><td>Low (single binary)</td></tr>
+            <tr><td>Best for</td><td>Event streaming, audit logs, analytics</td><td>Task queues, work distribution</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Event Sourcing and CQRS</h3>
+      <p><strong>Event sourcing</strong> stores the history of state changes as an ordered sequence of events, rather than the current state. Instead of storing "User John's balance is $500", you store "AccountOpened($1000), Withdrawal($200), Withdrawal($100), Deposit($300) → derived balance: $500". The current state is derived by replaying events. This gives you a complete audit log, the ability to time-travel to any historical state, and a natural foundation for event-driven architectures.</p>
+      <p><strong>CQRS (Command Query Responsibility Segregation)</strong> separates the write model (commands that change state) from the read model (queries that read state). In a traditional CRUD app, the same data model serves both writes and reads. In CQRS, you might write order events to an event store and maintain multiple read models optimized for different query patterns — a denormalized "order summary" table optimized for the order list page, a separate "order analytics" table for reporting, and a search index for order search.</p>
+
+      <div class="ascii-diagram">
+CQRS + Event Sourcing:
+
+Write Side:                        Read Side:
+                                   ┌─────────────────┐
+User                               │  Order Summary  │◄─┐
+  │                                │  (for list UI)  │  │
+  ▼ Command                        └─────────────────┘  │
+Order Service                      ┌─────────────────┐  │ Project
+  │                                │  Analytics DB   │◄─┤ Events
+  ▼ Append event                   │  (for reports)  │  │
+Event Store ──► Kafka ─────────────┤                 │  │
+(source of   Topic:                └─────────────────┘  │
+ truth)      order.events          ┌─────────────────┐  │
+                                   │  Search Index   │◄─┘
+                                   │  (Elasticsearch)│
+                                   └─────────────────┘</div>
+
+      <h3>The Saga Pattern for Distributed Transactions</h3>
+      <p>In a microservices world, you cannot use a single database transaction to span multiple services. The saga pattern implements distributed transactions as a sequence of local transactions, each publishing events that trigger the next step. If any step fails, compensating transactions undo the previous steps.</p>
+      <p>Consider an order placement flow: Create Order → Reserve Inventory → Charge Payment → Send Confirmation. If Payment fails, you need to release the inventory reservation (compensating transaction) and mark the order as failed. There are two saga implementations:</p>
+      <ul>
+        <li><strong>Choreography-based:</strong> Each service listens for events and reacts. No central coordinator. Simple for small sagas but debugging event chains becomes complex at scale.</li>
+        <li><strong>Orchestration-based:</strong> A central saga orchestrator (often implemented with Temporal or Conductor) explicitly tells each service what to do next. Easier to reason about and debug, but the orchestrator becomes a bottleneck and single point of failure if not designed carefully.</li>
+      </ul>
+
+      <h3>Idempotency: The Key to Reliable Messaging</h3>
+      <p>In at-least-once delivery systems (which includes most Kafka consumer setups), you will receive duplicate messages. A consumer might process a message, commit the result to its database, then crash before committing its offset to Kafka. On restart, it reprocesses the message. Your message handlers must be idempotent — processing the same message twice produces the same result as processing it once.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">def</span> <span class="fn">handle_order_placed</span>(event: <span class="nb">dict</span>):
+    order_id = event[<span class="st">'order_id'</span>]
+
+    <span class="cm"># Idempotency check: have we already processed this?</span>
+    <span class="cm"># Use the event's unique ID, not just order_id</span>
+    event_id = event[<span class="st">'event_id'</span>]  <span class="cm"># Must be included in every event</span>
+
+    <span class="kw">with</span> db.<span class="fn">transaction</span>():
+        <span class="cm"># INSERT ... ON CONFLICT DO NOTHING</span>
+        inserted = db.<span class="fn">execute</span>(<span class="st">"""
+            INSERT INTO processed_events (event_id, processed_at)
+            VALUES (%s, NOW())
+            ON CONFLICT (event_id) DO NOTHING
+            RETURNING event_id
+        """</span>, [event_id])
+
+        <span class="kw">if not</span> inserted:
+            <span class="cm"># Already processed — this is a duplicate. Skip safely.</span>
+            <span class="kw">return</span>
+
+        <span class="cm"># Process the event — safe because we hold the idempotency record</span>
+        db.<span class="fn">execute</span>(<span class="st">"""
+            UPDATE inventory SET reserved = reserved + %s
+            WHERE sku_id = %s
+        """</span>, [event[<span class="st">'quantity'</span>], event[<span class="st">'sku_id'</span>]])
+
+<span class="cm"># LinkedIn processes 7 trillion messages per day through Kafka.</span>
+<span class="cm"># Uber's Kafka cluster handles 1 trillion+ messages per day across 4000+ brokers.</span></code></pre>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">Dead Letter Queues: Your Safety Net</div>
+        <p>A dead letter queue (DLQ) is where messages go when they've failed processing beyond the maximum retry count. Without a DLQ, a poison pill message — one that always causes your consumer to throw an exception — will block your consumer forever. With a DLQ, the message is moved aside after N failures, your consumer moves on, and you can inspect and replay DLQ messages later. In AWS SQS, configure <code>maxReceiveCount: 3</code> on your main queue and point the DLQ redrive policy to a separate queue. Alert on DLQ depth &gt; 0 — it means events are being lost.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 7 -->
+  <div class="module" id="module-7" data-module="7">
+    <div class="module-header" onclick="toggleModule(7)">
+      <input type="checkbox" class="module-checkbox" data-module="7" onclick="event.stopPropagation(); toggleCheckbox(7)">
+      <div class="module-number">7</div>
+      <span class="module-title-text">API Design &amp; Gateway Patterns</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>REST Maturity Model</h3>
+      <p>Leonard Richardson's REST Maturity Model describes four levels of REST API design. Most APIs that claim to be "RESTful" are actually at Level 2. True Level 3 (HATEOAS) is rarely implemented in practice but worth understanding to know what you're trading away.</p>
+      <ul>
+        <li><strong>Level 0 (RPC over HTTP):</strong> Single endpoint, verbs in the URL. <code>POST /getUser</code>, <code>POST /updateUser</code>. This is what SOAP-based systems and many early APIs look like. The HTTP method is meaningless — it's always POST.</li>
+        <li><strong>Level 1 (Resources):</strong> Multiple endpoints, one per resource. <code>POST /users/get</code>, <code>POST /users/update</code>. Better URL structure but still misusing HTTP.</li>
+        <li><strong>Level 2 (HTTP Verbs):</strong> Resources + correct HTTP verbs. <code>GET /users/{id}</code>, <code>PUT /users/{id}</code>, <code>DELETE /users/{id}</code>. This is what most people mean by "REST" and what Stripe, GitHub, and Twilio implement. Use the right status codes too: 201 for created, 404 for not found, 409 for conflict.</li>
+        <li><strong>Level 3 (HATEOAS):</strong> Responses include links to related actions. A <code>GET /orders/123</code> response includes links to <code>/orders/123/cancel</code>, <code>/orders/123/ship</code>, etc. Theoretically decouples clients from API structure but adds complexity that most teams don't find worth it.</li>
+      </ul>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>http (well-designed REST API)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Creating an order</span>
+POST /v1/orders
+Content-Type: application/json
+Authorization: Bearer sk_live_xxxx
+Idempotency-Key: 7f3b2a91-8c4d-4e6f-a9b0-123456789abc
+
+{
+  "user_id": "usr_abc123",
+  "items": [{"sku": "SHOE-001", "qty": 2, "price_cents": 4999}],
+  "shipping_address_id": "addr_xyz789"
+}
+
+HTTP/1.1 201 Created
+Location: /v1/orders/ord_def456
+X-Request-Id: req_ghi789
+Retry-After: null
+
+{
+  "id": "ord_def456",
+  "status": "pending",
+  "created_at": "2026-06-29T10:30:00Z",
+  "total_cents": 9998,
+  "_links": {
+    "self": "/v1/orders/ord_def456",
+    "cancel": "/v1/orders/ord_def456/cancel"
+  }
+}
+
+<span class="cm"># Idempotency: same Idempotency-Key → same response, no duplicate order</span>
+<span class="cm"># Use Stripe's approach: store key → response for 24h</span></code></pre>
+      </div>
+
+      <h3>GraphQL Federation</h3>
+      <p>GraphQL solves a real problem with REST: client-specified queries eliminate over-fetching (getting fields you don't need) and under-fetching (needing multiple round trips to get all required data). But naive GraphQL implementation creates the "N+1 query problem" and can expose your database to expensive, hard-to-predict queries from clients.</p>
+      <p>Apollo Federation enables you to compose a single GraphQL schema from multiple downstream microservices, each owning a slice of the schema. The gateway receives a client query, decomposes it into sub-queries for the relevant services, fetches them in parallel, and assembles the final response. This is how large GraphQL deployments (Netflix, Airbnb, GitHub) manage schema ownership across teams.</p>
+
+      <div class="ascii-diagram">
+GraphQL Federation Architecture:
+
+Mobile/Web Client
+     │  query { user(id:"123") { name orders { total } } }
+     ▼
+Apollo Gateway (schema composition + query planning)
+     │
+     ├──► User Service (owns User type)
+     │    GET name, email for user 123
+     │
+     └──► Orders Service (owns Order type, extends User)
+          GET orders for user 123
+          (parallel, not sequential)</div>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">GraphQL Pitfall: The N+1 Problem</div>
+        <p>If you naively implement a <code>user { orders { lineItems { product { name } } } }</code> query, you'll issue 1 query for the user, N queries for their orders, N*M queries for line items, and N*M*K queries for products. This is the N+1 problem. The fix is DataLoader (batching): instead of fetching each product individually, collect all product IDs during a request, then fetch them all in a single <code>SELECT * FROM products WHERE id IN (...)</code>. DataLoader is a library that handles this batching automatically.</p>
+      </div>
+
+      <h3>gRPC and Protocol Buffers</h3>
+      <p>gRPC is Google's open-source RPC framework built on HTTP/2 and Protocol Buffers. It's the default choice for service-to-service communication in performance-sensitive systems. The advantages over JSON/REST are substantial:</p>
+      <ul>
+        <li><strong>Binary serialization:</strong> Protobuf messages are 3-10x smaller than equivalent JSON and 5-10x faster to serialize/deserialize. At 100K RPS, this difference in CPU cost is significant.</li>
+        <li><strong>Strongly typed contracts:</strong> The <code>.proto</code> schema is the contract. Client and server code is generated from it. Schema violations are caught at compile time, not runtime.</li>
+        <li><strong>HTTP/2 multiplexing:</strong> Multiple RPCs can share a single connection, eliminating head-of-line blocking and reducing connection overhead.</li>
+        <li><strong>Streaming:</strong> gRPC supports server-side streaming, client-side streaming, and bidirectional streaming — use cases that are awkward with REST.</li>
+      </ul>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>protobuf + python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm">// order_service.proto</span>
+syntax = <span class="st">"proto3"</span>;
+package order;
+
+<span class="kw">service</span> <span class="fn">OrderService</span> {
+  rpc <span class="fn">GetOrder</span> (GetOrderRequest) returns (Order);
+  rpc <span class="fn">ListOrders</span> (ListOrdersRequest) returns (<span class="kw">stream</span> Order);
+  rpc <span class="fn">CreateOrder</span> (CreateOrderRequest) returns (Order);
+}
+
+<span class="kw">message</span> <span class="fn">Order</span> {
+  <span class="nb">string</span> id = <span class="nr">1</span>;
+  <span class="nb">string</span> user_id = <span class="nr">2</span>;
+  <span class="nb">int64</span> total_cents = <span class="nr">3</span>;
+  OrderStatus status = <span class="nr">4</span>;
+  <span class="nb">int64</span> created_at_unix = <span class="nr">5</span>;
+  <span class="kw">repeated</span> LineItem items = <span class="nr">6</span>;
+}
+
+<span class="kw">enum</span> <span class="fn">OrderStatus</span> {
+  PENDING = <span class="nr">0</span>;
+  CONFIRMED = <span class="nr">1</span>;
+  SHIPPED = <span class="nr">2</span>;
+  DELIVERED = <span class="nr">3</span>;
+  CANCELLED = <span class="nr">4</span>;
+}
+
+<span class="cm">---</span>
+<span class="cm"># Python server implementation</span>
+<span class="kw">class</span> <span class="fn">OrderServicer</span>(order_pb2_grpc.OrderServiceServicer):
+    <span class="kw">async def</span> <span class="fn">GetOrder</span>(<span class="nb">self</span>, request, context):
+        order = <span class="kw">await</span> db.<span class="fn">get_order</span>(request.order_id)
+        <span class="kw">if not</span> order:
+            context.<span class="fn">abort</span>(grpc.StatusCode.NOT_FOUND, <span class="st">"Order not found"</span>)
+        <span class="kw">return</span> order_pb2.<span class="fn">Order</span>(**order)
+
+    <span class="kw">async def</span> <span class="fn">ListOrders</span>(<span class="nb">self</span>, request, context):
+        <span class="cm"># Server-side streaming: yield orders as they're found</span>
+        <span class="kw">async for</span> order <span class="kw">in</span> db.<span class="fn">stream_orders</span>(request.user_id):
+            <span class="kw">yield</span> order_pb2.<span class="fn">Order</span>(**order)</code></pre>
+      </div>
+
+      <h3>API Gateway Patterns</h3>
+      <p>An API gateway is the single entry point for all client traffic into your system. It handles concerns that would otherwise need to be implemented in every microservice: authentication, rate limiting, SSL termination, request logging, response caching, and routing. Think of it as the "reverse proxy with business logic" layer.</p>
+      <p>Popular choices and their sweet spots: <strong>Kong</strong> (open-source, plugin ecosystem, good for complex routing), <strong>AWS API Gateway</strong> (zero ops, deep AWS integration, expensive at scale), <strong>Nginx</strong> (highest raw performance, great for simple routing), <strong>Envoy</strong> (best for service mesh integration, programmatic configuration), <strong>Traefik</strong> (cloud-native, automatic service discovery in Kubernetes).</p>
+
+      <h3>Backend for Frontend (BFF) Pattern</h3>
+      <p>The BFF pattern creates dedicated API gateway instances for each client type — mobile, web, third-party. Instead of one general-purpose API that serves all clients, you have a Mobile BFF that returns data pre-optimized for mobile (smaller payloads, aggregated responses), a Web BFF optimized for the web UI's data needs, and a Partner API with its own authentication and rate limiting regime.</p>
+      <p>SoundCloud pioneered this pattern. Their mobile clients needed different data shapes than their web clients, and a single general API was either over-fetching or requiring too many round trips. Netflix uses BFF extensively — their device gateway is customized per device type (iOS, Android, smart TV, game console) because each has different UI capabilities and network characteristics.</p>
+
+      <h3>API Versioning Strategies</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Strategy</th><th>Example</th><th>Pros</th><th>Cons</th></tr></thead>
+          <tbody>
+            <tr><td>URL versioning</td><td><code>/v1/users</code>, <code>/v2/users</code></td><td>Explicit, cacheable, easy to test</td><td>Clients must update URLs; version proliferation</td></tr>
+            <tr><td>Header versioning</td><td><code>Accept: application/vnd.api.v2+json</code></td><td>Clean URLs</td><td>Harder to test, less cache-friendly</td></tr>
+            <tr><td>Query param</td><td><code>/users?version=2</code></td><td>Easy for exploration</td><td>Messy, often missed in logging</td></tr>
+            <tr><td>Date-based</td><td>Stripe's <code>Stripe-Version: 2024-06-15</code></td><td>Precise, no version cliffs</td><td>Complex to implement; must freeze each date's behavior</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Stripe's date-based versioning is the most sophisticated approach. Every API change is gated behind a date. Customers pin their API calls to a specific date when they integrated, and that version's behavior is frozen for them forever. When Stripe changes behavior, new customers get the new behavior; old customers keep the old. This is operationally complex (you're maintaining many versions simultaneously) but produces the best developer experience because old integrations never break.</p>
+
+      <h4>Cursor-Based Pagination</h4>
+      <p>Never use <code>OFFSET</code>-based pagination for large datasets. <code>SELECT * FROM orders ORDER BY created_at DESC LIMIT 20 OFFSET 10000</code> requires the database to scan 10,020 rows to return 20 — this gets slower as users page deeper. Cursor-based pagination uses an opaque cursor (usually a base64-encoded value of the last seen primary key or sort key) to efficiently resume where you left off:</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>sql + python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Cursor-based: O(1) regardless of depth</span>
+<span class="cm"># First page:</span>
+SELECT id, created_at, total FROM orders
+WHERE user_id = <span class="nr">123</span>
+ORDER BY created_at DESC, id DESC
+LIMIT <span class="nr">21</span>  <span class="cm">-- fetch N+1 to know if there's a next page</span>
+
+<span class="cm"># Subsequent pages (cursor = last item's (created_at, id)):</span>
+SELECT id, created_at, total FROM orders
+WHERE user_id = <span class="nr">123</span>
+  AND (created_at, id) &lt; (<span class="st">'2026-06-01T10:00:00Z'</span>, <span class="nr">98765</span>)
+ORDER BY created_at DESC, id DESC
+LIMIT <span class="nr">21</span>
+
+<span class="cm"># Python: encode/decode cursor</span>
+<span class="kw">import</span> base64, json
+
+<span class="kw">def</span> <span class="fn">encode_cursor</span>(created_at: <span class="nb">str</span>, order_id: <span class="nb">int</span>) -> <span class="nb">str</span>:
+    payload = json.<span class="fn">dumps</span>({<span class="st">'ts'</span>: created_at, <span class="st">'id'</span>: order_id})
+    <span class="kw">return</span> base64.<span class="fn">urlsafe_b64encode</span>(payload.<span class="fn">encode</span>()).<span class="fn">decode</span>()
+
+<span class="kw">def</span> <span class="fn">decode_cursor</span>(cursor: <span class="nb">str</span>) -> <span class="nb">dict</span>:
+    payload = base64.<span class="fn">urlsafe_b64decode</span>(cursor.<span class="fn">encode</span>())
+    <span class="kw">return</span> json.<span class="fn">loads</span>(payload)</code></pre>
+      </div>
+
+      <div class="callout callout-success">
+        <div class="callout-title">API Design Principles That Scale</div>
+        <p>Always include an <code>Idempotency-Key</code> mechanism for state-changing operations. Return consistent error shapes with machine-readable error codes (not just human-readable messages). Include <code>X-Request-Id</code> on all responses for distributed tracing. Use cursor-based pagination from day one. Version your API before your first external user — retrofitting versioning is painful. Treat backward compatibility as a contract: adding optional fields is safe, removing or renaming fields breaks clients.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 8 -->
+  <div class="module" id="module-8" data-module="8">
+    <div class="module-header" onclick="toggleModule(8)">
+      <input type="checkbox" class="module-checkbox" data-module="8" onclick="event.stopPropagation(); toggleCheckbox(8)">
+      <div class="module-number">8</div>
+      <span class="module-title-text">CAP Theorem &amp; Consistency Models</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>CAP Theorem: What It Actually Says</h3>
+      <p>The CAP theorem (Brewer, 2000; formally proven by Gilbert and Lynch, 2002) states that a distributed data store can provide at most two of three guarantees simultaneously: <strong>Consistency</strong> (every read receives the most recent write or an error), <strong>Availability</strong> (every request receives a non-error response, though possibly stale), and <strong>Partition Tolerance</strong> (the system continues to operate when network partitions occur).</p>
+      <p>The critical — and often misunderstood — point is that partition tolerance is not optional. Networks partition. If you claim to build a distributed system without handling partitions, you're just not thinking about it when it happens. This means the real choice is: <strong>when a partition occurs, do you prioritize consistency or availability?</strong></p>
+      <p>CP systems (Consistent + Partition Tolerant) choose to refuse requests rather than return potentially stale data during a partition. HBase, Zookeeper, and etcd are CP systems. During a partition that prevents a quorum, they become unavailable. AP systems (Available + Partition Tolerant) continue serving requests during a partition, potentially returning stale data. Cassandra, CouchDB, and DynamoDB (in eventual consistency mode) are AP systems.</p>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">CAP Misconception Alert</div>
+        <p>CAP is about the choice you make <em>during a partition</em>, not during normal operation. During normal operation (no partition), you can have both consistency and availability. The theorem doesn't mean you should casually sacrifice consistency — it means you need a defined policy for what happens when the network breaks. Most teams spend zero time defining this policy and then wonder why their system behaves oddly during outages.</p>
+      </div>
+
+      <h3>PACELC: The More Useful Model</h3>
+      <p>Daniel Abadi's PACELC theorem extends CAP to cover normal operation (not just partitions): "If there is a Partition, how do you trade off Availability vs Consistency? Else, even without partitions, how do you trade off Latency vs Consistency?" This is much more relevant to daily engineering decisions because partitions are relatively rare but the latency-consistency trade-off happens on every read.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>System</th><th>Partition choice</th><th>Normal operation choice</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>DynamoDB (default)</td><td>A (available)</td><td>L (low latency)</td><td>Eventually consistent by default</td></tr>
+            <tr><td>DynamoDB (strong)</td><td>C (consistent)</td><td>C (consistent)</td><td>Strongly consistent reads option</td></tr>
+            <tr><td>Cassandra</td><td>A</td><td>L</td><td>Tunable consistency per query</td></tr>
+            <tr><td>PostgreSQL</td><td>C</td><td>C</td><td>ACID; not distributed by default</td></tr>
+            <tr><td>CockroachDB</td><td>C</td><td>C</td><td>Serializable isolation, global</td></tr>
+            <tr><td>MongoDB (default)</td><td>A</td><td>L</td><td>Eventual with replica sets</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Consistency Models Spectrum</h3>
+      <p>Consistency is not binary. There's a rich spectrum from strongest (most correct but slowest) to weakest (fastest but most surprising behavior):</p>
+      <p><strong>Linearizability (Strict Consistency):</strong> The strongest consistency model. Every operation appears to take effect instantaneously at some point between its invocation and completion, and all operations are globally ordered. If you write a value and immediately read it, you'll see your write. etcd, ZooKeeper, and Google Spanner provide linearizability. The cost: every read must go through the leader and verify no newer write exists.</p>
+      <p><strong>Sequential Consistency:</strong> All operations appear to execute in some total order consistent with each process's program order. Weaker than linearizability — the global order doesn't need to respect real-time ordering. Rarely implemented in distributed databases; mostly relevant in CPU memory models.</p>
+      <p><strong>Causal Consistency:</strong> Operations that are causally related are seen by all nodes in causal order. Concurrent (causally unrelated) operations may be seen in different orders by different nodes. MongoDB's causal consistency sessions implement this. This is often the "sweet spot" for social applications — you see your own writes immediately, and replies always appear after the message they reply to.</p>
+      <p><strong>Eventual Consistency:</strong> If no new updates are made, all replicas will eventually converge to the same value. This says nothing about how long "eventually" takes or what you see in the interim. Cassandra and DynamoDB use this model. The practical implication: a user updates their profile and immediately visits their profile page — they might see the old version. This is usually acceptable if the convergence time is sub-second.</p>
+      <p><strong>Read Your Own Writes (RYOW):</strong> A session-level guarantee that you'll always see your own writes, even in an eventually consistent system. Implemented by routing reads to the replica that handled your writes, or by passing a "read-after-write" token (the write's timestamp or log position) with subsequent reads.</p>
+
+      <h3>Quorum Reads and Writes: Dynamo Style</h3>
+      <p>Amazon Dynamo (the internal system, not DynamoDB) introduced a tunable consistency model using quorum reads and writes. With N replicas, a write is acknowledged after W replicas confirm it. A read queries R replicas and returns the most recent value. Consistency is guaranteed when R + W > N (read and write quorums overlap, ensuring at least one replica has the latest value).</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>configuration examples</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Cassandra: N=3 replicas</span>
+<span class="cm"># Common configurations:</span>
+
+<span class="cm"># High availability, eventual consistency:</span>
+<span class="cm"># W=1 (write to 1 replica), R=1 (read from 1 replica)</span>
+<span class="cm"># Fast but no consistency guarantees (R+W=2, not > 3)</span>
+consistency_level_write = ONE
+consistency_level_read = ONE
+
+<span class="cm"># Balanced: strong consistency, some availability</span>
+<span class="cm"># W=2, R=2  (R+W=4 > 3=N → consistent)</span>
+consistency_level_write = QUORUM   <span class="cm"># ceil(N/2)+1 = 2</span>
+consistency_level_read = QUORUM
+
+<span class="cm"># Strongest: write to all, read from one</span>
+<span class="cm"># W=3, R=1 (R+W=4 > 3=N → consistent, great read perf)</span>
+consistency_level_write = ALL
+consistency_level_read = ONE
+
+<span class="cm"># DynamoDB strongly consistent reads:</span>
+<span class="cm"># Always reads from the leader replica (not eventual quorum)</span>
+<span class="cm"># 2x cost, ~double the latency vs eventually consistent</span>
+response = dynamodb.<span class="fn">get_item</span>(
+    TableName=<span class="st">'Orders'</span>,
+    Key={<span class="st">'order_id'</span>: {<span class="st">'S'</span>: order_id}},
+    ConsistentRead=<span class="kw">True</span>   <span class="cm"># Linearizable read</span>
+)</code></pre>
+      </div>
+
+      <h3>CRDTs: Conflict-Free Replicated Data Types</h3>
+      <p>CRDTs are data structures designed to be safely merged across replicas without coordination. Each CRDT operation is designed such that merging concurrent updates always produces a deterministic result, regardless of the order in which updates are applied. This makes CRDTs ideal for use in eventually-consistent systems where you want to avoid conflicts entirely rather than detect and resolve them.</p>
+      <p>Common CRDTs: <strong>G-Counter</strong> (grow-only counter — each node has its own counter, total is the sum; used by Riak for view counts), <strong>PN-Counter</strong> (increment and decrement — two G-counters, total = increment sum - decrement sum), <strong>LWW-Element-Set</strong> (Last-Write-Wins set — each element has a timestamp; the replica with the highest timestamp wins), <strong>OR-Set</strong> (Observed-Remove Set — tracks which node added an element with a unique tag; safe concurrent add/remove).</p>
+
+      <div class="ascii-diagram">
+G-Counter CRDT across 3 nodes:
+
+Node A: [A:5, B:0, C:0]   → local view of "A incremented 5 times"
+Node B: [A:0, B:3, C:0]   → local view of "B incremented 3 times"
+Node C: [A:0, B:0, C:7]   → local view of "C incremented 7 times"
+
+After merge (take max of each component):
+All nodes converge to: [A:5, B:3, C:7] → total = 15
+
+This merge is:
+  Commutative: merge(A,B) = merge(B,A)
+  Associative: merge(merge(A,B),C) = merge(A,merge(B,C))
+  Idempotent:  merge(A,A) = A
+These three properties guarantee eventual convergence.</div>
+
+      <h3>Google Spanner: Having Your Cake</h3>
+      <p>Google Spanner achieves global, linearizable consistency across geographically distributed data while maintaining competitive performance. The trick is TrueTime — atomic clocks and GPS receivers in every Google datacenter, providing a globally synchronized time with a bounded uncertainty interval (typically ±7ms). Spanner uses this to implement external consistency: if transaction T1 commits before T2 starts (in real time), then T1's commit timestamp is lower than T2's. This globally orders all transactions without coordination across datacenters.</p>
+      <p>Spanner's read-write transactions use two-phase locking across shards. Cross-shard commit uses two-phase commit (2PC), which Spanner makes safe by using Paxos groups rather than a single coordinator. The result: serializable, globally-consistent transactions with ~5–10ms P50 latency within a region and ~100ms cross-continent. CockroachDB implements a similar architecture using HLC (Hybrid Logical Clocks) as an open-source TrueTime analog.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Choosing Your Consistency Model</div>
+        <p>For financial transactions and inventory: use strong consistency (PostgreSQL, CockroachDB, Spanner). Double-spending and overselling are worse than extra latency. For social features (likes, follower counts, feed): eventual consistency is fine. A user seeing a like count that's 2 seconds behind is acceptable. For user-generated content (posts, comments): causal consistency prevents the jarring experience of seeing replies before the original post. Match your consistency model to your business invariant, not to what your database happens to default to.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 9 -->
+  <div class="module" id="module-9" data-module="9">
+    <div class="module-header" onclick="toggleModule(9)">
+      <input type="checkbox" class="module-checkbox" data-module="9" onclick="event.stopPropagation(); toggleCheckbox(9)">
+      <div class="module-number">9</div>
+      <span class="module-title-text">Resilience Patterns</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Resilience Is an Architecture Decision</h3>
+      <p>Resilience is not something you add to a system after it's built — it's a property that emerges from design decisions made at every layer. A system is resilient when it continues to provide an acceptable level of service in the presence of faults and challenges to normal operation. Not perfect service — acceptable service. The goal is graceful degradation, not perfection.</p>
+      <p>Netflix coined the term "chaos engineering" precisely because resilience can't be assumed — it must be continuously validated. They've found that systems they believed were resilient would fail in unexpected ways when a single dependency was removed. The only way to know your system is resilient is to deliberately break it in production and observe what happens. Organizations that do this proactively have vastly fewer unplanned outages than those that discover failure modes during incidents.</p>
+
+      <h3>Circuit Breaker Pattern</h3>
+      <p>The circuit breaker pattern (named after electrical circuit breakers) prevents cascading failures by stopping calls to a failing dependency. When a dependency starts failing, you don't want your service to keep sending requests that will timeout — each timed-out request holds threads/connections and increases latency. The circuit breaker detects the failure rate and "opens" the circuit, returning errors immediately without attempting the call. After a configured time, it enters a "half-open" state, allowing a test request through. If that succeeds, it closes the circuit; if not, it stays open.</p>
+
+      <div class="ascii-diagram">
+Circuit Breaker State Machine:
+
+    ┌──────────────────────────────────────────┐
+    │                                          │
+    ▼           success rate OK                │
+[CLOSED] ──────────────────────────────────────┘
+    │
+    │ error rate > threshold (e.g., 50% in last 10s)
+    ▼
+[OPEN] ──── returns error immediately ────────────►
+    │                                              Fast fail
+    │ after timeout (e.g., 30s)
+    ▼
+[HALF-OPEN]
+    │
+    ├── test request succeeds → [CLOSED]
+    └── test request fails → [OPEN]</div>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> time
+<span class="kw">from</span> enum <span class="kw">import</span> Enum
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+
+<span class="kw">class</span> <span class="fn">State</span>(Enum):
+    CLOSED = <span class="st">"closed"</span>
+    OPEN = <span class="st">"open"</span>
+    HALF_OPEN = <span class="st">"half_open"</span>
+
+<span class="kw">class</span> <span class="fn">CircuitBreaker</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>,
+                 failure_threshold: <span class="nb">float</span> = <span class="nr">0.5</span>,  <span class="cm"># 50% failure rate</span>
+                 window_seconds: <span class="nb">int</span> = <span class="nr">10</span>,
+                 open_duration: <span class="nb">int</span> = <span class="nr">30</span>):
+        <span class="nb">self</span>.failure_threshold = failure_threshold
+        <span class="nb">self</span>.window = deque()
+        <span class="nb">self</span>.window_seconds = window_seconds
+        <span class="nb">self</span>.open_duration = open_duration
+        <span class="nb">self</span>.state = State.CLOSED
+        <span class="nb">self</span>.opened_at = <span class="kw">None</span>
+
+    <span class="kw">def</span> <span class="fn">_prune_window</span>(<span class="nb">self</span>):
+        cutoff = time.<span class="fn">time</span>() - <span class="nb">self</span>.window_seconds
+        <span class="kw">while</span> <span class="nb">self</span>.window <span class="kw">and</span> <span class="nb">self</span>.window[<span class="nr">0</span>][<span class="nr">0</span>] < cutoff:
+            <span class="nb">self</span>.window.<span class="fn">popleft</span>()
+
+    <span class="kw">def</span> <span class="fn">call</span>(<span class="nb">self</span>, fn, *args, **kwargs):
+        <span class="kw">if</span> <span class="nb">self</span>.state == State.OPEN:
+            <span class="kw">if</span> time.<span class="fn">time</span>() - <span class="nb">self</span>.opened_at > <span class="nb">self</span>.open_duration:
+                <span class="nb">self</span>.state = State.HALF_OPEN
+            <span class="kw">else</span>:
+                <span class="kw">raise</span> <span class="fn">CircuitOpenError</span>(<span class="st">"Circuit is open"</span>)
+
+        <span class="kw">try</span>:
+            result = <span class="fn">fn</span>(*args, **kwargs)
+            <span class="nb">self</span>.window.<span class="fn">append</span>((time.<span class="fn">time</span>(), <span class="kw">True</span>))
+            <span class="kw">if</span> <span class="nb">self</span>.state == State.HALF_OPEN:
+                <span class="nb">self</span>.state = State.CLOSED
+            <span class="kw">return</span> result
+        <span class="kw">except</span> Exception <span class="kw">as</span> e:
+            <span class="nb">self</span>.window.<span class="fn">append</span>((time.<span class="fn">time</span>(), <span class="kw">False</span>))
+            <span class="nb">self</span>.<span class="fn">_prune_window</span>()
+            failures = <span class="fn">sum</span>(<span class="nr">1</span> <span class="kw">for</span> _, ok <span class="kw">in</span> <span class="nb">self</span>.window <span class="kw">if not</span> ok)
+            rate = failures / <span class="fn">len</span>(<span class="nb">self</span>.window) <span class="kw">if</span> <span class="nb">self</span>.window <span class="kw">else</span> <span class="nr">0</span>
+            <span class="kw">if</span> rate >= <span class="nb">self</span>.failure_threshold:
+                <span class="nb">self</span>.state = State.OPEN
+                <span class="nb">self</span>.opened_at = time.<span class="fn">time</span>()
+            <span class="kw">raise</span></code></pre>
+      </div>
+
+      <h3>Bulkhead Isolation</h3>
+      <p>The bulkhead pattern (named after the watertight compartments in ship hulls) isolates components into "pools" so that failure in one pool doesn't drain resources from another. In practice, this means: separate thread pools for different downstream services, separate connection pools for different databases, separate rate limit buckets per customer tier.</p>
+      <p>Netflix's Hystrix (now in maintenance mode, superseded by Resilience4j) implements bulkheads via thread pools. Each upstream service dependency gets its own thread pool with a configurable size. If the payment service starts timing out and exhausts its 10-thread pool, requests queue or fail fast — but the inventory service's 10-thread pool is unaffected. Without bulkheads, a slow dependency can consume all your application threads and bring down the entire service.</p>
+
+      <h3>Retry with Exponential Backoff and Jitter</h3>
+      <p>Retries are essential for handling transient failures, but naive retries can make an already-overloaded system catastrophically worse. If 10,000 clients all retry at the same time after a 503, the server gets a synchronized thundering herd. The solution is exponential backoff with jitter.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> time, random
+<span class="kw">from</span> typing <span class="kw">import</span> Callable, TypeVar
+
+T = TypeVar(<span class="st">'T'</span>)
+
+<span class="kw">def</span> <span class="fn">retry_with_backoff</span>(
+    fn: Callable[[], T],
+    max_attempts: <span class="nb">int</span> = <span class="nr">5</span>,
+    base_delay: <span class="nb">float</span> = <span class="nr">0.1</span>,   <span class="cm"># 100ms</span>
+    max_delay: <span class="nb">float</span> = <span class="nr">30.0</span>,   <span class="cm"># 30 seconds max</span>
+    jitter: <span class="nb">bool</span> = <span class="kw">True</span>
+) -> T:
+    <span class="kw">for</span> attempt <span class="kw">in</span> <span class="fn">range</span>(max_attempts):
+        <span class="kw">try</span>:
+            <span class="kw">return</span> <span class="fn">fn</span>()
+        <span class="kw">except</span> TransientError <span class="kw">as</span> e:
+            <span class="kw">if</span> attempt == max_attempts - <span class="nr">1</span>:
+                <span class="kw">raise</span>  <span class="cm"># Exhausted retries</span>
+
+            <span class="cm"># Exponential backoff: 100ms, 200ms, 400ms, 800ms, 1600ms</span>
+            delay = <span class="fn">min</span>(base_delay * (<span class="nr">2</span> ** attempt), max_delay)
+
+            <span class="kw">if</span> jitter:
+                <span class="cm"># "Full jitter" (AWS recommendation)</span>
+                <span class="cm"># Spreads retries across [0, delay] uniformly</span>
+                <span class="cm"># Eliminates synchronized retry bursts</span>
+                delay = random.<span class="fn">uniform</span>(<span class="nr">0</span>, delay)
+
+            time.<span class="fn">sleep</span>(delay)
+
+<span class="cm"># What NOT to do: fixed sleep between retries</span>
+<span class="cm"># time.sleep(1.0)  # Every client retries at t+1, t+2, t+3...</span>
+<span class="cm"># This creates synchronized retry waves that hammer your service</span></code></pre>
+      </div>
+
+      <h3>Timeout Budgets</h3>
+      <p>Every outbound call must have a timeout. "No timeout" is the single most common cause of thread starvation in production systems. A call to a slow service without a timeout will hold a thread forever, and 10,000 slow calls will exhaust your thread pool. But timeout values also need to be thoughtful — too aggressive (50ms) and you'll retry operations that would have succeeded in 100ms; too loose (30 seconds) and you hold threads unnecessarily long.</p>
+      <p>The more sophisticated approach is <strong>deadline propagation</strong>: each incoming request has a total deadline budget. As it calls downstream services, each call gets a portion of the remaining budget. If only 50ms remains and the downstream call typically takes 100ms, you can skip the call and return a degraded response rather than waiting and failing. Google's gRPC context propagation implements this. The idea: the user's patience is finite; make every system component aware of the remaining time budget and fail fast when it's exhausted.</p>
+
+      <h3>Feature Flags for Graceful Degradation</h3>
+      <p>Feature flags (or feature toggles) allow you to disable non-critical features at runtime without a deployment. During an incident where a downstream service is failing, you can immediately disable the feature that depends on it, serve a degraded but functional response, and re-enable it when the dependency recovers. This is vastly faster than deploying a code change during an incident.</p>
+      <p>Tools: <strong>LaunchDarkly</strong> (the enterprise standard, with targeting rules and gradual rollouts), <strong>Unleash</strong> (open-source), <strong>Flagsmith</strong> (open-source with cloud option). Implement flags as a simple boolean at first; the infrastructure cost is low and the operational benefit during incidents is enormous.</p>
+
+      <h3>Chaos Engineering</h3>
+      <p>Chaos engineering is the practice of deliberately injecting failures into a production system to discover weaknesses before they cause real incidents. Netflix's Chaos Monkey randomly terminates EC2 instances. Chaos Kong simulates the failure of an entire AWS availability zone. These run continuously in production — not occasionally in staging.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Tool</th><th>What It Breaks</th><th>Origin</th></tr></thead>
+          <tbody>
+            <tr><td>Chaos Monkey</td><td>Random instance termination</td><td>Netflix</td></tr>
+            <tr><td>Chaos Kong</td><td>Entire AWS AZ failure simulation</td><td>Netflix</td></tr>
+            <tr><td>ChaosMesh</td><td>Kubernetes pod failures, network delays, DNS errors</td><td>PingCAP (open-source)</td></tr>
+            <tr><td>Gremlin</td><td>CPU stress, memory exhaustion, network latency, blackhole</td><td>Gremlin Inc.</td></tr>
+            <tr><td>AWS Fault Injection Simulator</td><td>EC2, RDS, EKS failures in AWS environments</td><td>AWS</td></tr>
+            <tr><td>Toxiproxy</td><td>Network conditions (latency, jitter, packet loss) per connection</td><td>Shopify (open-source)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The chaos engineering process: define steady state (normal behavior metrics — error rate, latency P99, throughput), form a hypothesis ("if we kill one pod in the order-service deployment, the error rate should stay below 0.1% because we have 3 replicas"), run the experiment, verify the system behaves as hypothesized or fix the gap. Start small (single pod in staging) and expand to production when you have confidence.</p>
+
+      <h3>Service Mesh for Resilience</h3>
+      <p>A service mesh (Istio, Linkerd, Consul Connect) deploys a sidecar proxy (typically Envoy) alongside every service instance. This proxy intercepts all network traffic and can implement circuit breaking, retries, timeouts, mutual TLS, and distributed tracing without any changes to application code. The appeal is enormous: every service gets production-grade resilience primitives "for free," configured centrally by the platform team rather than reimplemented by every service team.</p>
+      <p>The reality is more nuanced. Istio adds ~15% latency overhead from the sidecar proxy hop. The control plane (Istiod) is a complex distributed system in its own right. Debugging networking issues in a service mesh is harder, not easier, because traffic flows through an extra layer. LinkedIn found that Istio at their scale added enough overhead to require dedicated platform teams just to manage it. Evaluate carefully based on your team's operational sophistication.</p>
+
+      <div class="callout">
+        <div class="callout-title">Netflix Resilience Numbers</div>
+        <p>Netflix runs over 150,000 AWS instances across multiple regions. Their chaos engineering practice has reduced the mean time between failures from months to days — intentionally. Each failure discovered by Chaos Monkey in production is a failure that didn't surprise them during a real outage. Their measured result: services with circuit breakers and bulkheads recover from dependency failures in under 100ms versus minutes for services without these patterns. The investment in resilience engineering directly reduces their P0 incident rate.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 10 -->
+  <div class="module" id="module-10" data-module="10">
+    <div class="module-header" onclick="toggleModule(10)">
+      <input type="checkbox" class="module-checkbox" data-module="10" onclick="event.stopPropagation(); toggleCheckbox(10)">
+      <div class="module-number">10</div>
+      <span class="module-title-text">Interview System Design Problems</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>How to Approach System Design Interviews</h3>
+      <p>System design interviews are not about having the "right answer" — there is no single correct architecture. They're about demonstrating that you can think through a complex problem systematically, make explicit trade-offs, and communicate your reasoning clearly. The best answers acknowledge limitations, ask clarifying questions, and adapt when the interviewer steers you in a different direction.</p>
+      <p>A reliable framework: (1) <strong>Clarify requirements</strong> — functional (what the system does) and non-functional (scale, latency, availability). (2) <strong>Estimate scale</strong> — QPS, storage, bandwidth. (3) <strong>High-level design</strong> — draw the major components. (4) <strong>Deep dive</strong> — focus on the hardest or most interesting components. (5) <strong>Address bottlenecks</strong> — what breaks first? how do you fix it? Spend about 5 minutes on 1-2, 10 minutes on 3, 20 minutes on 4-5 in a 45-minute interview.</p>
+
+      <h3>Problem 1: Design Twitter/X Feed</h3>
+      <p><strong>Requirements clarification:</strong> 500M daily active users, each with ~200 followers on average, celebrities with up to 100M followers. Users post ~500M tweets/day. Feed shows tweets from followed users, reverse-chronological (or ranked). Read-heavy system — reads outnumber writes 100:1. Latency target: feed loads in &lt;200ms P99.</p>
+      <p><strong>Scale estimation:</strong> 500M tweets/day = ~5,800 tweets/second. Feed generation: 500M users × 5 feed loads/day = ~29,000 feed loads/second. Storage: avg tweet = 200 bytes, 500M/day × 200B = 100GB/day of tweet text.</p>
+      <p><strong>The fundamental architectural choice:</strong> push vs pull for feed generation.</p>
+      <p><strong>Pull model (fanout-on-read):</strong> When a user requests their feed, query all accounts they follow, get their recent tweets, merge and sort. Simple to implement, no write amplification. But at scale: a user following 2,000 accounts = 2,000 database queries per feed load. For 29,000 feed loads/second, that's 58 million queries/second to your tweet store. Prohibitive.</p>
+      <p><strong>Push model (fanout-on-write):</strong> When a user tweets, immediately push the tweet ID into the home timeline cache of each follower. Feed load = single Redis ZSET lookup. Extremely fast reads. Problem: Lady Gaga has 100M followers. A single tweet triggers 100 million cache writes. At even 100K writes/second, that takes 16 minutes to complete — followers see the tweet hours later.</p>
+      <p><strong>Twitter's actual solution (hybrid):</strong> Push for normal users (under ~10K followers). Pull for celebrities. When rendering a feed, merge the pre-computed timeline (from push) with tweets from any celebrities you follow (fetched on-demand). This caps write amplification at ~10K per tweet for 99.9% of tweets while giving celebrities real-time distribution.</p>
+
+      <div class="ascii-diagram">
+Twitter Feed Architecture:
+
+WRITE PATH:
+Tweet Posted → Fanout Service
+                    │
+                    ├─ [followers < 10K] → Push to each follower's
+                    │                      Redis ZSET timeline
+                    │
+                    └─ [followers > 10K] → Store tweet in
+                                           celebrity tweet store only
+
+READ PATH (feed load):
+User requests feed
+    │
+    ├─ Fetch pre-built timeline from Redis (push model tweets)
+    │   Key: "timeline:{user_id}" → ZSET of tweet_ids by timestamp
+    │
+    ├─ Identify celebrity accounts user follows (cached)
+    │
+    ├─ Fetch recent celebrity tweets (pull)
+    │
+    └─ Merge & rank → return top 50 tweets to client</div>
+
+      <h3>Problem 2: Design Uber Ride Matching</h3>
+      <p><strong>Requirements:</strong> Match riders to the nearest available driver in &lt;10 seconds. Handle 10M rides/day globally. Driver location updates every 4 seconds (GPS pings). City-level deployment, thousands of drivers online simultaneously per major city.</p>
+      <p><strong>The core problem:</strong> Efficiently finding the nearest available drivers to a given location. This is a geospatial nearest-neighbor query at high update frequency. Standard SQL <code>SELECT ... ORDER BY distance LIMIT 5</code> with an index is O(n) in the worst case and too slow at scale.</p>
+      <p><strong>Geohashing:</strong> Encode latitude/longitude into a string where the prefix determines geographic proximity. A geohash of length 6 covers an ~1.2km × 0.6km cell. Drivers in the same cell share a geohash prefix. Finding nearby drivers = query drivers in the same geohash cell and adjacent cells (8 neighbors).</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">import</span> geohash2 <span class="kw">as</span> geohash
+<span class="kw">import</span> redis
+
+r = redis.<span class="fn">Redis</span>()
+
+<span class="kw">def</span> <span class="fn">update_driver_location</span>(driver_id: <span class="nb">str</span>, lat: <span class="nb">float</span>, lng: <span class="nb">float</span>):
+    <span class="cm"># Redis GEO commands handle geohashing internally</span>
+    r.<span class="fn">geoadd</span>(<span class="st">"drivers:available"</span>, [lng, lat, driver_id])
+    <span class="cm"># Also store driver metadata for fast retrieval</span>
+    r.<span class="fn">hset</span>(<span class="st">f"driver:</span>{driver_id}<span class="st">"</span>, <span class="fn">mapping</span>={
+        <span class="st">"lat"</span>: lat, <span class="st">"lng"</span>: lng,
+        <span class="st">"status"</span>: <span class="st">"available"</span>,
+        <span class="st">"updated_at"</span>: <span class="nb">int</span>(time.<span class="fn">time</span>())
+    })
+    r.<span class="fn">expire</span>(<span class="st">f"driver:</span>{driver_id}<span class="st">"</span>, <span class="nr">30</span>)  <span class="cm"># Expire if no update in 30s</span>
+
+<span class="kw">def</span> <span class="fn">find_nearby_drivers</span>(rider_lat: <span class="nb">float</span>, rider_lng: <span class="nb">float</span>,
+                         radius_km: <span class="nb">float</span> = <span class="nr">2.0</span>,
+                         max_results: <span class="nb">int</span> = <span class="nr">10</span>) -> <span class="nb">list</span>:
+    <span class="cm"># Redis GEOSEARCH: O(N+log(M)) where N is results, M is set size</span>
+    nearby = r.<span class="fn">geosearch</span>(
+        <span class="st">"drivers:available"</span>,
+        longitude=rider_lng, latitude=rider_lat,
+        radius=radius_km, unit=<span class="st">"km"</span>,
+        sort=<span class="st">"ASC"</span>,     <span class="cm"># Nearest first</span>
+        count=max_results,
+        withcoord=<span class="kw">True</span>,
+        withdist=<span class="kw">True</span>
+    )
+    <span class="kw">return</span> [{
+        <span class="st">"driver_id"</span>: item[<span class="nr">0</span>],
+        <span class="st">"distance_km"</span>: item[<span class="nr">1</span>],
+        <span class="st">"location"</span>: item[<span class="nr">2</span>]
+    } <span class="kw">for</span> item <span class="kw">in</span> nearby]
+
+<span class="cm"># At 10,000 drivers online in NYC, Redis GEOSEARCH is ~1ms</span>
+<span class="cm"># Uber partitions by city: each city has its own Redis instance</span></code></pre>
+      </div>
+
+      <h3>Problem 3: Design YouTube Video Processing</h3>
+      <p><strong>Requirements:</strong> 500 hours of video uploaded per minute. Each video must be transcoded into multiple resolutions (360p, 720p, 1080p, 4K) and formats (MP4/H.264, WebM/VP9, HLS for adaptive streaming). Processing must complete within minutes of upload. Store petabytes of video data.</p>
+      <p><strong>High-level pipeline:</strong> Upload → object storage → message queue → transcoding workers → output object storage → CDN. The transcoding is CPU-intensive and perfectly parallelizable: different resolution outputs are independent jobs.</p>
+
+      <div class="ascii-diagram">
+YouTube-Scale Video Processing Pipeline:
+
+1. Upload API → streaming upload to S3/GCS
+   (multipart upload, resume support)
+
+2. S3 event notification → SQS/Pub-Sub → Video Processing Queue
+
+3. Transcoding Orchestrator (checks out job):
+   │
+   ├── Job: Generate thumbnail (fast, &lt;10s)
+   │
+   ├── Job: Audio extraction (fast)
+   │
+   ├── Job: Transcode → 360p (2-5 min for 10min video)
+   ├── Job: Transcode → 720p (5-10 min)
+   ├── Job: Transcode → 1080p (10-20 min)
+   └── Job: Transcode → 4K (20-60 min)
+       (all run in parallel on different EC2 spot instances)
+
+4. Completion → metadata DB update → CDN pre-warming → available</div>
+
+      <p><strong>Key design decisions:</strong> Use spot/preemptible instances for transcoding (70–90% cost savings; checkpointing handles interruptions). FFmpeg is the standard transcoding tool — wrap it in a worker that pulls jobs from SQS. HLS (HTTP Live Streaming) output splits video into 2–10 second segments, enabling adaptive bitrate streaming where the client switches between quality levels based on available bandwidth. YouTube serves video from a custom CDN (Open Connect) deployed in ISP data centers. Netflix does the same — 15TB of content prefetched into an ISP's servers means video bytes never traverse the public internet for most users.</p>
+
+      <h3>Problem 4: Design a Distributed Cache</h3>
+      <p><strong>Requirements:</strong> 1 million QPS. Sub-millisecond P99 read latency. 10TB of cached data. High availability (99.99% uptime). Support for TTL-based expiration. Key-value store with string values up to 1MB.</p>
+      <p><strong>Architecture:</strong> Consistent hashing ring with 16 nodes (each handling ~625GB, well within 1TB NVMe capacity). Each node is a primary + 1 replica (synchronous replication for consistency). Nodes expose a binary protocol (like Memcached's binary protocol) for minimal parsing overhead. Connection pooling in the client library avoids TCP handshake overhead.</p>
+      <p><strong>Eviction policy:</strong> LRU (Least Recently Used) eviction using an O(1) implementation: a hash map for O(1) lookup combined with a doubly-linked list where the head is MRU and tail is LRU. When the cache is full, evict the tail. Redis uses an approximated LRU that samples N random keys and evicts the least recently used among them — cheaper than maintaining a true LRU structure at scale.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="kw">from</span> collections <span class="kw">import</span> OrderedDict
+<span class="kw">import</span> time
+
+<span class="kw">class</span> <span class="fn">LRUCacheWithTTL</span>:
+    <span class="cm">"""O(1) get/put with TTL expiration"""</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nb">self</span>, capacity: <span class="nb">int</span>):
+        <span class="nb">self</span>.capacity = capacity
+        <span class="nb">self</span>.cache = <span class="fn">OrderedDict</span>()  <span class="cm"># key → (value, expiry_time)</span>
+
+    <span class="kw">def</span> <span class="fn">get</span>(<span class="nb">self</span>, key: <span class="nb">str</span>):
+        <span class="kw">if</span> key <span class="kw">not in</span> <span class="nb">self</span>.cache:
+            <span class="kw">return</span> <span class="kw">None</span>
+        value, expiry = <span class="nb">self</span>.cache[key]
+        <span class="kw">if</span> expiry <span class="kw">and</span> time.<span class="fn">time</span>() > expiry:
+            <span class="kw">del</span> <span class="nb">self</span>.cache[key]
+            <span class="kw">return</span> <span class="kw">None</span>
+        <span class="nb">self</span>.cache.<span class="fn">move_to_end</span>(key)  <span class="cm"># Mark as recently used</span>
+        <span class="kw">return</span> value
+
+    <span class="kw">def</span> <span class="fn">put</span>(<span class="nb">self</span>, key: <span class="nb">str</span>, value: <span class="nb">str</span>, ttl_seconds: <span class="nb">int</span> = <span class="kw">None</span>):
+        expiry = time.<span class="fn">time</span>() + ttl_seconds <span class="kw">if</span> ttl_seconds <span class="kw">else</span> <span class="kw">None</span>
+        <span class="kw">if</span> key <span class="kw">in</span> <span class="nb">self</span>.cache:
+            <span class="nb">self</span>.cache.<span class="fn">move_to_end</span>(key)
+        <span class="nb">self</span>.cache[key] = (value, expiry)
+        <span class="kw">if</span> <span class="fn">len</span>(<span class="nb">self</span>.cache) > <span class="nb">self</span>.capacity:
+            <span class="nb">self</span>.cache.<span class="fn">popitem</span>(last=<span class="kw">False</span>)  <span class="cm"># Evict LRU (first item)</span></code></pre>
+      </div>
+
+      <h3>Problem 5: Design a URL Shortener</h3>
+      <p><strong>Requirements:</strong> 100M URLs shortened per day (1,157/second). 10B redirects per day (115,000 reads/second). URLs must not expire. Short codes should be ~7 characters. Custom aliases optional. Analytics: track click counts per URL.</p>
+      <p><strong>Short code generation:</strong> The core challenge. Options: (1) MD5 hash of the long URL, take first 7 characters — collision risk, same URL might generate different codes. (2) Base62 encode a distributed counter (using a database sequence or Redis INCR) — unique by construction, no collisions, but the counter is a hotspot. (3) Pre-generate a pool of 7-character codes and distribute them — eliminates real-time generation latency.</p>
+      <p>The base62 counter approach is the most common in practice. With 62 characters (a-z, A-Z, 0-9) and 7 characters, you get 62^7 = 3.5 trillion unique codes — more than enough. The counter hotspot problem is solved by pre-allocating ranges: each application server claims a range of 1,000 IDs from the database and hands them out locally until exhausted, then claims another range. No per-request database write needed.</p>
+
+      <div class="ascii-diagram">
+URL Shortener Architecture:
+
+Write Path (1,157/sec):
+Client → API Server → Redis INCR (counter) → encode to base62
+                                ↓
+                        Store {short_code → long_url} in Cassandra
+                        (write to any replica — eventually consistent)
+
+Read Path (115,000/sec):
+Client → CDN (cache 301/302 redirects for popular URLs)
+           ↓ (miss)
+        API Server → Redis cache (90%+ hit rate for hot URLs)
+                       ↓ (miss)
+                   Cassandra (reads from nearest replica)
+
+Analytics Path:
+Redirect → Kafka event (non-blocking) → Flink aggregation → ClickHouse</div>
+
+      <p><strong>Caching strategy:</strong> 20% of URLs generate 80% of traffic (Pareto principle). Cache those hot URLs in Redis with an LRU policy. At 100 bytes per URL × 10M hot URLs = 1GB — easily fits in a single Redis instance. Add a CDN layer in front: Cloudflare can cache 301 redirects and serve them from the edge, eliminating your servers entirely for hot URLs. Use 302 (temporary redirect) if you want to maintain control and analytics; use 301 (permanent redirect) only if you want browsers to permanently cache it (you lose click analytics).</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Interview Pro Tips</div>
+        <p>Always start by asking: "What's the read/write ratio?" and "What's the scale target?" These two questions immediately constrain your design choices. Then say out loud what you're optimizing for: "I'm going to optimize for read latency over write simplicity because reads outnumber writes 100:1." Interviewers want to see that you make explicit trade-offs, not that you know the single "right" answer. Draw diagrams as you talk — it signals structured thinking. If you're unsure about a number, estimate it out loud: "A tweet is maybe 200 bytes, so 500M tweets/day is 100GB/day, or about 36TB/year — a reasonable S3 bill." Showing your math is more impressive than having the right number memorized.</p>
+      </div>
+
+      <h4>Common Scaling Interview Anti-Patterns</h4>
+      <ul>
+        <li>Jumping straight to microservices without discussing scale requirements first</li>
+        <li>Adding Kafka to every design "for scalability" without explaining what the consumer does</li>
+        <li>Saying "use a distributed database" without specifying which one and why</li>
+        <li>Ignoring the read/write ratio when choosing between SQL and NoSQL</li>
+        <li>Not considering failure modes — what happens when the cache goes down? When the database master fails?</li>
+        <li>Designing to serve 1B users from day one instead of showing how you'd evolve the design incrementally</li>
+      </ul>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-celebration" id="footer-celebration">All 10 Modules Complete — You're Ready to Build at Billion-User Scale.</div>
+  <div class="footer-stats">Modules completed: <span id="completed-count">0</span> / 10</div>
+  <div class="footer-sub">System Design at Scale &mdash; Mustafa Furniturewala &mdash; June 2026</div>
+</footer>
+
+<script>
+const STORAGE_KEY = 'system-design-at-scale-course-progress';
+const TOTAL_MODULES = 10;
+
+function loadProgress() { try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : {}; } catch { return {}; } }
+function saveProgress(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {} }
+
+function toggleModule(num) { const m = document.getElementById('module-' + num); if (m) m.classList.toggle('expanded'); }
+
+function toggleCheckbox(num) { const p = loadProgress(); const cb = document.querySelector('.module-checkbox[data-module="' + num + '"]'); if (!cb) return; p[num] = cb.checked; saveProgress(p); updateUI(); }
+
+function updateUI() {
+  const p = loadProgress(); let c = 0;
+  for (let i = 1; i <= TOTAL_MODULES; i++) {
+    const cb = document.querySelector('.module-checkbox[data-module="' + i + '"]');
+    const nl = document.querySelector('.nav-module-link[data-module="' + i + '"]');
+    if (cb) cb.checked = !!p[i];
+    if (nl) { if (p[i]) { nl.classList.add('completed'); c++; } else { nl.classList.remove('completed'); } }
+  }
+  const pb = document.getElementById('progress-bar'); if (pb) pb.style.width = ((c / TOTAL_MODULES) * 100) + '%';
+  const nc = document.getElementById('nav-completion'); if (nc) nc.textContent = c + '/' + TOTAL_MODULES;
+  const cc = document.getElementById('completed-count'); if (cc) cc.textContent = c;
+  const fc = document.getElementById('footer-celebration'); if (fc) { if (c === TOTAL_MODULES) fc.classList.add('visible'); else fc.classList.remove('visible'); }
+}
+
+function updateActiveModule() {
+  const mods = document.querySelectorAll('.module');
+  const links = document.querySelectorAll('.nav-module-link');
+  let active = '1';
+  mods.forEach(m => { if (m.getBoundingClientRect().top <= 120) active = m.dataset.module; });
+  links.forEach(l => { if (l.dataset.module === active) l.classList.add('active'); else l.classList.remove('active'); });
+}
+
+function copyCode(btn) {
+  const w = btn.closest('.code-block-wrapper');
+  const cb = w.querySelector('.code-block');
+  navigator.clipboard.writeText(cb.textContent).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); }).catch(() => { const t = document.createElement('textarea'); t.value = cb.textContent; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); });
+}
+
+function handleSearch(query) {
+  const results = document.getElementById('search-results');
+  if (!query || query.length < 2) { results.innerHTML = ''; return; }
+  const q = query.toLowerCase();
+  const items = [];
+  document.querySelectorAll('.module').forEach(mod => {
+    const num = mod.dataset.module;
+    const title = mod.querySelector('.module-title-text').textContent;
+    const body = mod.querySelector('.module-body');
+    if (!body) return;
+    const text = body.textContent;
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx !== -1) {
+      const start = Math.max(0, idx - 40);
+      const end = Math.min(text.length, idx + query.length + 40);
+      let snippet = (start > 0 ? '...' : '') + text.substring(start, end) + (end < text.length ? '...' : '');
+      snippet = snippet.replace(new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+      items.push('<div class="search-result-item" onclick="document.getElementById(\'module-' + num + '\').classList.add(\'expanded\'); document.getElementById(\'module-' + num + '\').scrollIntoView({behavior:\'smooth\', block:\'start\'})"><strong>Module ' + num + ': ' + title + '</strong><br>' + snippet + '</div>');
+    }
+  });
+  results.innerHTML = items.length ? items.join('') : '<div class="no-results">No results found</div>';
+}
+
+document.getElementById('hamburger').addEventListener('click', () => document.getElementById('nav-modules').classList.toggle('open'));
+document.querySelectorAll('.nav-module-link').forEach(l => l.addEventListener('click', () => document.getElementById('nav-modules').classList.remove('open')));
+let st; window.addEventListener('scroll', () => { if (st) cancelAnimationFrame(st); st = requestAnimationFrame(updateActiveModule); });
+updateUI(); updateActiveModule();
+</script>
+</body>
+</html>

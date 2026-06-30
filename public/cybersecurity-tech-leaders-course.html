@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cybersecurity for Technology Leaders — Mustafa Furniturewala</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0f1a; --bg-secondary: #0d1117; --bg-tertiary: #131a2b; --bg-code: #1a1a2e;
+  --text: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+  --accent: #f97316; --accent-dim: #c2410c; --accent-glow: rgba(249, 115, 22, 0.15);
+  --border: #1e293b; --border-light: #334155;
+  --success: #22c55e; --error: #ef4444; --warning: #eab308;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 17px; min-height: 100vh; }
+#progress-bar-container { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: var(--bg-secondary); z-index: 1001; }
+#progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #fb923c); width: 0%; transition: width 0.4s ease; }
+.top-nav { position: fixed; top: 4px; left: 0; right: 0; background: rgba(10,15,26,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 1000; padding: 0; }
+.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; padding: 0 1.5rem; height: 52px; }
+.nav-brand { font-weight: 700; color: var(--accent); margin-right: 1.5rem; font-size: 0.95rem; white-space: nowrap; }
+.nav-modules { display: flex; gap: 0.25rem; flex: 1; justify-content: center; }
+.nav-module-link { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; position: relative; border: 1px solid transparent; }
+.nav-module-link:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-light); }
+.nav-module-link.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.nav-module-link.completed::after { content: ''; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--success); border-radius: 50%; border: 2px solid var(--bg); }
+.hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; padding: 0.25rem; }
+.nav-completion { font-size: 0.8rem; color: var(--text-muted); margin-left: 1rem; white-space: nowrap; }
+.hero { padding: 8rem 1.5rem 4rem; text-align: center; max-width: 900px; margin: 0 auto; border-bottom: 1px solid var(--border); }
+.hero-eyebrow { text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 1rem; }
+.hero h1 { font-size: clamp(2rem,5vw,3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-subtitle { font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2rem; font-style: italic; }
+.hero-meta { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+.hero-meta-item { font-size: 0.9rem; color: var(--text-muted); }
+.hero-meta-item strong { color: var(--text-secondary); }
+.hero-description { font-size: 1.05rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto; line-height: 1.8; }
+.content-wrapper { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.module { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-secondary); }
+.module-header { display: flex; align-items: center; padding: 1rem 1.25rem; cursor: pointer; user-select: none; background: var(--bg-secondary); transition: background 0.2s; gap: 0.75rem; }
+.module-header:hover { background: var(--bg-tertiary); }
+.module-checkbox { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border: 2px solid var(--border-light); border-radius: 6px; cursor: pointer; flex-shrink: 0; position: relative; transition: all 0.2s; background: transparent; }
+.module-checkbox:checked { background: var(--accent); border-color: var(--accent); }
+.module-checkbox:checked::after { content: '\2713'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-size: 14px; font-weight: 700; }
+.module-number { background: var(--accent); color: #fff; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+.module-title-text { flex: 1; font-weight: 700; font-size: 1.1rem; }
+.module-chevron { font-size: 1rem; color: var(--text-muted); transition: transform 0.3s ease; flex-shrink: 0; }
+.module.expanded .module-chevron { transform: rotate(180deg); }
+.module-body { display: none; padding: 0.5rem 1.5rem 2rem; border-top: 1px solid var(--border); }
+.module.expanded .module-body { display: block; }
+.module-body h3 { font-size: 1.3rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--text); }
+.module-body h4 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; color: var(--accent); }
+.module-body p { margin-bottom: 1rem; color: var(--text-secondary); }
+.module-body ul, .module-body ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-secondary); }
+.module-body li { margin-bottom: 0.4rem; }
+.module-body strong { color: var(--text); }
+.module-body em { color: var(--accent); font-style: italic; }
+.code-block-wrapper { position: relative; margin: 1.25rem 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); border-left: 3px solid var(--accent); }
+.code-block-header { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.75rem; background: #12122a; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); }
+.copy-btn { background: var(--bg-tertiary); color: var(--text-muted); border: 1px solid var(--border-light); padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.72rem; font-family: var(--font-sans); transition: all 0.2s; }
+.copy-btn:hover { color: var(--text); border-color: var(--accent); }
+.code-block { background: var(--bg-code); padding: 1rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; color: #c9d1d9; }
+.code-block code { font-family: inherit; }
+.kw { color: #ff79c6; } .fn { color: #50fa7b; } .st { color: #f1fa8c; } .cm { color: #6272a4; font-style: italic; } .nb { color: #8be9fd; } .op { color: #ff79c6; } .dc { color: #bd93f9; } .nr { color: #bd93f9; } .im { color: #ff79c6; } .se { color: #8be9fd; } .at { color: #50fa7b; }
+.module-body code { background: var(--bg-code); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: #fb923c; }
+.table-wrapper { overflow-x: auto; margin: 1.25rem 0; border-radius: 8px; border: 1px solid var(--border); }
+.table-wrapper table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 600px; }
+.table-wrapper th { background: var(--accent); color: #fff; padding: 0.7rem 0.75rem; text-align: left; font-weight: 600; white-space: nowrap; }
+.table-wrapper td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.table-wrapper tr:nth-child(even) td { background: var(--bg-secondary); }
+.table-wrapper tr:nth-child(odd) td { background: var(--bg-tertiary); }
+.callout { padding: 1.25rem 1.5rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid var(--accent); background: var(--accent-glow); }
+.callout-title { font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; font-size: 0.95rem; }
+.callout p { color: var(--text-secondary); margin-bottom: 0.5rem; }
+.callout p:last-child { margin-bottom: 0; }
+.callout-warning { border-left-color: var(--warning); background: rgba(234,179,8,0.08); }
+.callout-warning .callout-title { color: var(--warning); }
+.callout-error { border-left-color: var(--error); background: rgba(239,68,68,0.08); }
+.callout-error .callout-title { color: var(--error); }
+.callout-success { border-left-color: var(--success); background: rgba(34,197,94,0.08); }
+.callout-success .callout-title { color: var(--success); }
+.ascii-diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.4; color: var(--accent); margin: 1.25rem 0; white-space: pre; }
+.footer { border-top: 1px solid var(--border); padding: 3rem 1.5rem; text-align: center; max-width: 900px; margin: 0 auto; }
+.footer-stats { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; }
+.footer-celebration { display: none; font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+.footer-celebration.visible { display: block; }
+.footer-sub { color: var(--text-muted); font-size: 0.8rem; }
+.search-container { position: relative; margin-bottom: 2rem; }
+.search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; font-family: var(--font-sans); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--accent); }
+.search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem; pointer-events: none; }
+.search-results { margin-top: 0.5rem; }
+.search-result-item { padding: 0.5rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.25rem; cursor: pointer; font-size: 0.85rem; color: var(--text-secondary); transition: all 0.2s; }
+.search-result-item:hover { border-color: var(--accent); color: var(--text); }
+.search-result-item mark { background: var(--accent); color: #fff; padding: 0 2px; border-radius: 2px; }
+.no-results { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem; }
+.checklist { list-style: none; margin: 0.5rem 0; padding: 0; }
+.checklist li { padding: 0.3rem 0; padding-left: 1.5rem; position: relative; }
+.checklist li::before { content: '\25A1'; position: absolute; left: 0; color: var(--accent); font-size: 1rem; }
+@media (max-width: 768px) {
+  .nav-modules { display: none; }
+  .nav-modules.open { display: flex; flex-wrap: wrap; position: absolute; top: 52px; left: 0; right: 0; background: var(--bg-secondary); padding: 1rem; border-bottom: 1px solid var(--border); gap: 0.5rem; justify-content: center; }
+  .hamburger { display: block; margin-left: auto; }
+  .nav-completion { display: none; }
+  .nav-brand { font-size: 0.85rem; }
+  .hero { padding: 6rem 1rem 2.5rem; }
+  .hero h1 { font-size: 1.8rem; }
+  .hero-meta { gap: 1rem; }
+  .content-wrapper { padding: 1rem; }
+  .module-body { padding: 0.5rem 1rem 1.5rem; }
+  .module-title-text { font-size: 0.95rem; }
+  body { font-size: 16px; }
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::selection { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-brand">Cybersecurity</span>
+    <div class="nav-modules" id="nav-modules">
+      <a href="#module-1" class="nav-module-link" data-module="1">1</a>
+      <a href="#module-2" class="nav-module-link" data-module="2">2</a>
+      <a href="#module-3" class="nav-module-link" data-module="3">3</a>
+      <a href="#module-4" class="nav-module-link" data-module="4">4</a>
+      <a href="#module-5" class="nav-module-link" data-module="5">5</a>
+      <a href="#module-6" class="nav-module-link" data-module="6">6</a>
+      <a href="#module-7" class="nav-module-link" data-module="7">7</a>
+      <a href="#module-8" class="nav-module-link" data-module="8">8</a>
+      <a href="#module-9" class="nav-module-link" data-module="9">9</a>
+      <a href="#module-10" class="nav-module-link" data-module="10">10</a>
+    </div>
+    <span class="nav-completion" id="nav-completion">0/10</span>
+    <button class="hamburger" id="hamburger" aria-label="Toggle navigation">&#9776;</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Comprehensive Course</div>
+  <h1>Cybersecurity for Technology Leaders</h1>
+  <p class="hero-subtitle">From Zero Trust to Board Reporting: A CPTO's Security Playbook</p>
+  <div class="hero-meta">
+    <span class="hero-meta-item"><strong>Author:</strong> Mustafa Furniturewala</span>
+    <span class="hero-meta-item"><strong>Level:</strong> VP / CPTO Level</span>
+    <span class="hero-meta-item"><strong>Reading Time:</strong> ~3 hours</span>
+    <span class="hero-meta-item"><strong>Updated:</strong> June 2026</span>
+  </div>
+  <p class="hero-description">A practitioner's guide to building and leading a security program at a technology company. This is not a compliance checklist or a vendor pitch deck. It is a battle-tested playbook covering the frameworks, architectures, tools, and organizational strategies a CPTO needs to protect their company, their customers, and their career. Includes real breach analyses, production configurations, and hard-won lessons from companies that learned the expensive way.</p>
+</section>
+
+<main class="content-wrapper">
+  <div class="search-container">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" class="search-input" id="search-input" placeholder="Search this course..." oninput="handleSearch(this.value)">
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <!-- MODULE 1 -->
+  <div class="module expanded" id="module-1" data-module="1">
+    <div class="module-header" onclick="toggleModule(1)">
+      <input type="checkbox" class="module-checkbox" data-module="1" onclick="event.stopPropagation(); toggleCheckbox(1)">
+      <div class="module-number">1</div>
+      <span class="module-title-text">Security Landscape for Tech Leaders</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Why Security Is a CPTO Responsibility</h3>
+      <p>Let's start with the uncomfortable reality: <strong>security is not the CISO's problem alone</strong>. If you are a CTO, CPO, or VP of Engineering and you think security belongs exclusively to the security team, you are building a house on sand. The CISO sets policy and provides expertise. But the engineering organization writes the code, builds the infrastructure, ships the product, and ultimately creates or eliminates the attack surface. Every architectural decision your team makes is a security decision, whether anyone frames it that way or not.</p>
+      <p>When a breach happens, it is not the CISO who faces the board alone. The CTO sits right next to them, explaining why the API had no rate limiting, why customer data was stored unencrypted, or why a third-party dependency with a known CVE sat unpatched for six months. The SEC's 2023 cybersecurity disclosure rules (effective December 2023) now require material cybersecurity incidents to be reported within four business days. The board wants to know who is responsible. If you are the CPTO, that is you.</p>
+      <p>Security is also a <strong>competitive advantage</strong>, especially in EdTech, healthcare, and fintech. When an enterprise customer evaluates two LMS platforms and one has SOC 2 Type II with clean audit results while the other says "we take security seriously" on their website, the deal goes to the first company every time. Salesforce reported that security certifications reduced their enterprise sales cycle by 40%. If you are building a product that handles student data, health records, or financial information, security is not overhead. It is a revenue enabler.</p>
+
+      <h3>The Threat Landscape 2024-2026</h3>
+      <p>The threat landscape has fundamentally shifted in the last three years. Understanding these shifts is essential for any technology leader who wants to prioritize security investments correctly rather than chasing yesterday's threats.</p>
+
+      <h4>Ransomware Evolution</h4>
+      <p>Ransomware in 2024-2026 is unrecognizable from the spray-and-pray attacks of 2018. Modern ransomware operators run professional affiliate programs (Ransomware-as-a-Service, or RaaS), conduct weeks of reconnaissance before deploying payloads, and employ double and triple extortion tactics. The playbook now looks like this: gain initial access (often via phishing or an unpatched VPN appliance), move laterally for 10-21 days mapping the network, exfiltrate sensitive data, then encrypt everything simultaneously. The ransom demand is for decryption. The second demand is to not publish the exfiltrated data. The third demand, increasingly common, is to not notify the victim's customers directly.</p>
+      <p>The numbers are staggering. The IBM Cost of a Data Breach Report 2025 puts the global average cost at <strong>$4.88 million per breach</strong>, up 10% from 2023. Healthcare leads at $10.93 million per breach. The average time to identify a breach is 194 days, and the average time to contain it is 64 days. That means a typical breach goes undetected for over six months. For a CPTO, this means your detection capabilities matter far more than your perimeter defenses.</p>
+
+      <h4>AI-Powered Attacks</h4>
+      <p>Generative AI has democratized sophisticated attacks. Phishing emails that were once identifiable by their broken grammar are now indistinguishable from legitimate corporate communications. AI-generated deepfake audio has been used in CEO fraud attacks, with one documented case in 2024 where a finance executive transferred $25 million after receiving a deepfake video call from what appeared to be the company's CFO. Voice cloning requires as little as three seconds of audio. AI also accelerates vulnerability discovery: automated fuzzing tools powered by LLMs can explore code paths and generate exploits at a pace that overwhelms manual code review.</p>
+      <p>The defensive applications of AI are equally important. AI-powered SIEM tools (like Microsoft Sentinel, Splunk with AI assistant, and CrowdStrike Charlotte AI) can correlate signals across millions of events to detect anomalies that human analysts would miss. But these tools are only as good as the data you feed them, which brings us back to the fundamental question: do you have visibility into what is happening across your infrastructure?</p>
+
+      <h4>Supply Chain Compromise</h4>
+      <p>The SolarWinds attack (2020) and Log4Shell vulnerability (2021) proved that your security is only as strong as your weakest dependency. SolarWinds affected 18,000 organizations including the US Treasury and Department of Homeland Security. Log4Shell (CVE-2021-44228) affected virtually every Java application on the planet. The XZ Utils backdoor discovered in March 2024 revealed a multi-year social engineering campaign where a threat actor gained commit access to a critical open-source compression library used by SSH. These are not edge cases. They are the new normal.</p>
+
+      <div class="callout callout-error">
+        <div class="callout-title">Breach Reality Check: The Numbers</div>
+        <p><strong>$4.88M</strong> — Average total cost of a data breach globally (IBM 2025). <strong>$10.93M</strong> — Average in healthcare. <strong>194 days</strong> — Average time to identify a breach. <strong>$1.76M</strong> — Average savings when AI and automation are extensively used in detection. <strong>82%</strong> — Breaches involving data stored in the cloud. <strong>$4.66M</strong> — Average cost when a breach involves compromised credentials. These are not abstract statistics. They are the financial reality your board cares about.</p>
+      </div>
+
+      <h3>The NIST Cybersecurity Framework (CSF 2.0)</h3>
+      <p>The NIST Cybersecurity Framework is the gold standard for organizing a security program. The 2024 update (CSF 2.0) added a sixth function — Govern — to the original five. Understanding these six functions gives you a vocabulary to discuss security with your board, your CISO, and your engineering teams:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Function</th><th>Purpose</th><th>Key Activities</th><th>CPTO Responsibility</th></tr>
+          <tr><td>Govern (new)</td><td>Establish security governance</td><td>Risk management strategy, roles, policies, oversight</td><td>Participate in risk committee, set engineering security standards</td></tr>
+          <tr><td>Identify</td><td>Know your assets and risks</td><td>Asset inventory, risk assessment, business environment</td><td>Maintain accurate CMDB, know your data flows</td></tr>
+          <tr><td>Protect</td><td>Implement safeguards</td><td>Access control, training, data security, platform security</td><td>Enforce secure SDLC, approve architecture decisions</td></tr>
+          <tr><td>Detect</td><td>Find security events</td><td>Continuous monitoring, anomaly detection, event analysis</td><td>Ensure logging and observability are comprehensive</td></tr>
+          <tr><td>Respond</td><td>Act on detected incidents</td><td>Incident response plan, communications, mitigation</td><td>Lead engineering response during incidents</td></tr>
+          <tr><td>Recover</td><td>Restore capabilities</td><td>Recovery planning, improvements, communications</td><td>Ensure backup/restore procedures are tested regularly</td></tr>
+        </table>
+      </div>
+
+      <h3>Risk-Based Security Prioritization</h3>
+      <p>You will never have enough budget to fix everything. Risk-based prioritization is how you decide what to fix first. The formula is simple in theory: <strong>Risk = Likelihood x Impact</strong>. In practice, estimating both is hard. The FAIR (Factor Analysis of Information Risk) model provides a more rigorous framework that produces dollar-denominated risk estimates your CFO can understand.</p>
+      <p>A practical approach for a CPTO: rank your security investments on two axes. First, what is the blast radius if this fails? A vulnerability in your authentication system affects every user. A vulnerability in your internal admin panel affects only admins. Second, what is the exposure? An internet-facing API endpoint with no authentication is high exposure. An internal service behind a VPN with mTLS is low exposure. Multiply these, and you have a rough priority ordering that is more useful than any vendor's "critical" severity rating.</p>
+
+      <h3>Building a Security-First Culture</h3>
+      <p>Culture is what people do when nobody is watching. A security-first culture means developers check for injection vulnerabilities not because a scanner will catch it, but because they understand why it matters. Building this culture requires three things: <strong>education</strong> (people need to understand attacks to prevent them), <strong>incentives</strong> (reward finding and reporting vulnerabilities, not punish the reporter), and <strong>tooling</strong> (make the secure path the easy path).</p>
+      <p>Concrete actions: run quarterly "security days" where engineers spend time on security improvements and get recognition for it. Include security as a dimension in architecture reviews and code reviews. Celebrate when someone catches a vulnerability before production, just like you celebrate shipping features. Publish an internal "breach of the week" newsletter analyzing real-world incidents — nothing motivates secure coding like reading about a company that got destroyed because they stored passwords in plaintext.</p>
+
+      <h4>Security as Competitive Advantage in EdTech</h4>
+      <p>In EdTech specifically, security is a deal-breaker. School districts and universities are required by law (FERPA, COPPA, state privacy laws) to ensure that student data is protected. The K-12 Cybersecurity Resource Center tracked 408 publicly disclosed cybersecurity incidents affecting US school districts in 2023 alone. Districts are scared, and they are increasingly demanding SOC 2 Type II reports, penetration test summaries, and detailed data processing agreements before signing contracts. If your EdTech product can demonstrate a mature security program, you close deals that your competitors cannot. This is not a hypothetical advantage. It is a measurable, quota-carrying revenue impact.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 1</div>
+        <p>Security is a CPTO responsibility, not just the CISO's domain. The threat landscape has shifted toward ransomware-as-a-service, AI-powered attacks, and supply chain compromise. Use the NIST CSF 2.0 framework to organize your program. Prioritize investments by risk (likelihood x impact), not by vendor severity ratings. Build a security-first culture through education, incentives, and tooling. In EdTech, security is a revenue enabler, not just a cost center.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 2 -->
+  <div class="module" id="module-2" data-module="2">
+    <div class="module-header" onclick="toggleModule(2)">
+      <input type="checkbox" class="module-checkbox" data-module="2" onclick="event.stopPropagation(); toggleCheckbox(2)">
+      <div class="module-number">2</div>
+      <span class="module-title-text">Zero Trust Architecture</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>The Death of the Perimeter</h3>
+      <p>Traditional network security operates on a castle-and-moat model: everything inside the corporate network is trusted, everything outside is not. This model was already crumbling before COVID-19 sent everyone home. Now it is dead. Your employees work from home, from coffee shops, from airports. Your applications run in three cloud providers. Your data flows through SaaS tools you do not control. Your contractors access production systems from personal laptops. There is no perimeter to defend.</p>
+      <p><strong>Zero Trust</strong> replaces the implicit trust of network location with explicit verification of every request. The core principle is devastatingly simple: <em>never trust, always verify</em>. Every request — whether it comes from the CEO's laptop on the corporate network or from an intern's phone on airport WiFi — must be authenticated, authorized, and encrypted. The network location of the request is irrelevant to the access decision.</p>
+
+      <h4>Zero Trust Principles</h4>
+      <ol>
+        <li><strong>Verify explicitly:</strong> Always authenticate and authorize based on all available data points — identity, device health, location, service, data classification, anomalies.</li>
+        <li><strong>Use least-privilege access:</strong> Limit user access with just-in-time (JIT) and just-enough-access (JEA). Risk-based adaptive policies. Data protection to help secure both data and productivity.</li>
+        <li><strong>Assume breach:</strong> Minimize blast radius and segment access. Verify end-to-end encryption. Use analytics to get visibility, drive threat detection, and improve defenses.</li>
+      </ol>
+
+      <h3>Google BeyondCorp: The Original Zero Trust</h3>
+      <p>Google's BeyondCorp is the most well-documented enterprise-scale Zero Trust implementation. Born out of the Operation Aurora attacks in 2009-2010 (where Chinese state actors compromised Google's internal network through a targeted phishing attack on employees), BeyondCorp fundamentally changed how Google employees access internal applications.</p>
+      <p>Before BeyondCorp, Google used a traditional VPN. After BeyondCorp, there is no VPN. Every Google employee accesses internal applications through the same internet-facing proxy, whether they are sitting in a Google office or working from home. The access decision is made by an Access Proxy that evaluates three things:</p>
+      <ul>
+        <li><strong>Identity:</strong> Who is the user? (Strong authentication via hardware security keys)</li>
+        <li><strong>Device:</strong> What device are they using? Is it a managed device? Is it patched? Is its disk encrypted? Does it have endpoint protection?</li>
+        <li><strong>Context:</strong> What are they trying to access? What is the trust level required for that resource?</li>
+      </ul>
+
+      <div class="ascii-diagram">
+BeyondCorp Architecture:
+
+Employee Laptop            Access Proxy              Internal Apps
+(any network)             (internet-facing)
+    │                          │                          │
+    │── HTTPS request ────────►│                          │
+    │                          │── Check identity ──►  Identity Provider
+    │                          │── Check device ───►  Device Inventory DB
+    │                          │── Check policy ───►  Access Policy Engine
+    │                          │                          │
+    │                          │  All checks pass?        │
+    │                          │── YES: Forward ─────────►│
+    │                          │── NO: Deny + log         │
+    │                          │                          │
+    │◄── Response ─────────────│◄── Response ─────────────│
+
+Key insight: NO VPN. NO "trusted network."
+The Access Proxy IS the perimeter, and it verifies every request.</div>
+
+      <h3>Zero Trust Network Architecture (ZTNA)</h3>
+      <p>ZTNA replaces VPNs by providing application-level access rather than network-level access. With a VPN, once you are connected, you can reach any system on the network (lateral movement paradise). With ZTNA, you get access only to the specific application you are authorized to use, and only for the duration of your session.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Aspect</th><th>Traditional VPN</th><th>ZTNA</th></tr>
+          <tr><td>Trust model</td><td>Trust after connection</td><td>Never trust, always verify</td></tr>
+          <tr><td>Access scope</td><td>Entire network subnet</td><td>Specific application only</td></tr>
+          <tr><td>Lateral movement</td><td>Easy (same network)</td><td>Not possible (app-level isolation)</td></tr>
+          <tr><td>Device posture</td><td>Usually not checked</td><td>Continuously verified</td></tr>
+          <tr><td>User experience</td><td>Full tunnel slows everything</td><td>Per-app, minimal latency impact</td></tr>
+          <tr><td>Vendor examples</td><td>Cisco AnyConnect, OpenVPN</td><td>Zscaler Private Access, Cloudflare Access, Tailscale</td></tr>
+        </table>
+      </div>
+
+      <h4>Microsegmentation</h4>
+      <p>Microsegmentation is the practice of dividing your network into small, isolated zones so that even if an attacker compromises one workload, they cannot move laterally to others. In a traditional flat network, compromising a single server gives the attacker access to everything on the same VLAN. With microsegmentation, each workload (or group of workloads) has its own security policy that defines exactly which other workloads it can communicate with, on which ports, using which protocols.</p>
+      <p>In Kubernetes, Network Policies provide microsegmentation at the pod level. In AWS, Security Groups and VPC configurations provide microsegmentation at the instance level. Tools like Illumio, Guardicore (now Akamai), and Cilium (for Kubernetes) provide microsegmentation with visualization and policy recommendation engines that make it practical to implement even in complex environments.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>kubernetes-network-policy.yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Microsegmentation: Only allow traffic from the API gateway</span>
+<span class="cm"># to the user-service on port 8080. Block everything else.</span>
+<span class="kw">apiVersion</span>: networking.k8s.io/v1
+<span class="kw">kind</span>: NetworkPolicy
+<span class="kw">metadata</span>:
+  <span class="kw">name</span>: user-service-ingress
+  <span class="kw">namespace</span>: production
+<span class="kw">spec</span>:
+  <span class="kw">podSelector</span>:
+    <span class="kw">matchLabels</span>:
+      <span class="at">app</span>: user-service
+  <span class="kw">policyTypes</span>:
+    - Ingress
+  <span class="kw">ingress</span>:
+    - <span class="kw">from</span>:
+        - <span class="kw">podSelector</span>:
+            <span class="kw">matchLabels</span>:
+              <span class="at">app</span>: api-gateway
+        - <span class="kw">namespaceSelector</span>:
+            <span class="kw">matchLabels</span>:
+              <span class="at">name</span>: production
+      <span class="kw">ports</span>:
+        - <span class="kw">protocol</span>: TCP
+          <span class="kw">port</span>: <span class="nr">8080</span></code></pre>
+      </div>
+
+      <h3>NIST SP 800-207: The Zero Trust Bible</h3>
+      <p>NIST Special Publication 800-207 is the definitive government reference for Zero Trust Architecture. It defines seven tenets of Zero Trust that every technology leader should understand. The document is free, it is well-written, and it provides a vendor-neutral framework for evaluating Zero Trust solutions. The key concepts include treating all data sources and computing services as resources, securing all communication regardless of network location, granting access on a per-session basis, and making access decisions based on dynamic policy including behavioral attributes.</p>
+
+      <h3>Implementation Roadmap: Zero Trust for a SaaS Company</h3>
+      <p>Implementing Zero Trust is not a project. It is a multi-year journey. Here is a practical maturity model:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Phase</th><th>Timeline</th><th>Focus</th><th>Key Actions</th></tr>
+          <tr><td>Phase 1: Foundation</td><td>Months 1-3</td><td>Identity</td><td>Deploy SSO (Okta/Auth0), enforce MFA everywhere, inventory all user accounts, eliminate shared credentials</td></tr>
+          <tr><td>Phase 2: Visibility</td><td>Months 3-6</td><td>Device &amp; Network</td><td>Deploy MDM, implement device posture checks, enable network logging, deploy ZTNA pilot for one internal app</td></tr>
+          <tr><td>Phase 3: Segmentation</td><td>Months 6-12</td><td>Workload</td><td>Implement Kubernetes network policies, deploy service mesh (Istio/Linkerd) with mTLS, segment production from staging</td></tr>
+          <tr><td>Phase 4: Data</td><td>Months 12-18</td><td>Data protection</td><td>Classify data, implement DLP policies, encrypt sensitive data at rest and in transit, audit data access patterns</td></tr>
+          <tr><td>Phase 5: Continuous</td><td>Month 18+</td><td>Automation &amp; Analytics</td><td>Continuous verification, risk-based adaptive policies, automated response to anomalies, eliminate VPN entirely</td></tr>
+        </table>
+      </div>
+
+      <div class="callout">
+        <div class="callout-title">Zscaler Zero Trust Exchange</div>
+        <p>Zscaler's implementation is the most widely deployed commercial ZTNA solution. Their architecture routes all user traffic through their cloud, where policies are enforced before traffic reaches the application. The advantage: you never expose your applications to the internet. The disadvantage: you are routing all your traffic through a third party, which creates a single point of failure and a prime target. When Zscaler had issues in 2024, customers' users could not access any internal applications. Consider this dependency when evaluating. For smaller companies, Cloudflare Access and Tailscale provide lighter-weight alternatives that may be more appropriate.</p>
+      </div>
+
+      <h4>Software-Defined Perimeter (SDP)</h4>
+      <p>SDP, defined by the Cloud Security Alliance, implements Zero Trust by making application infrastructure invisible to unauthorized users. The approach uses a three-component architecture: an SDP Controller (which handles authentication and authorization), an Initiating Host (the user's device running the SDP client), and an Accepting Host (the gateway in front of the protected application). Before any network connection is established, the user must authenticate to the Controller, which then instructs the Accepting Host to open a connection for that specific user to that specific application. From the perspective of a port scanner, the Accepting Host simply does not exist — it drops all packets from unauthorized sources.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 2</div>
+        <p>Zero Trust is not a product you buy. It is an architecture you build incrementally. Start with identity (SSO + MFA), then add device posture checks, then microsegmentation, then data classification. Study Google's BeyondCorp for the gold standard. Read NIST SP 800-207 for the framework. Evaluate Zscaler, Cloudflare Access, or Tailscale based on your company's size and complexity. The goal: eliminate implicit trust based on network location. Every request verified, every time.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 3 -->
+  <div class="module" id="module-3" data-module="3">
+    <div class="module-header" onclick="toggleModule(3)">
+      <input type="checkbox" class="module-checkbox" data-module="3" onclick="event.stopPropagation(); toggleCheckbox(3)">
+      <div class="module-number">3</div>
+      <span class="module-title-text">SOC 2 Type II &amp; Compliance Frameworks</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Why Compliance Matters (And Why It Is Not Security)</h3>
+      <p>Compliance and security are not the same thing. Compliance is the minimum bar — it proves to an auditor that you have controls in place. Security is the actual protection of your systems and data. You can be compliant and insecure (Equifax was PCI compliant when they were breached). You can be secure but non-compliant (many startups have excellent security practices but no formal audit). As a CPTO, you need both: compliance to close enterprise deals and pass vendor security assessments, and actual security to prevent breaches.</p>
+      <p>That said, compliance frameworks provide an excellent scaffolding for building a security program. If you have never had a formal security program, pursuing SOC 2 Type II is a great way to force the discipline of documenting controls, establishing policies, and building monitoring. The framework gives you a checklist. Your job is to make the checklist real rather than performative.</p>
+
+      <h3>SOC 2 Trust Service Criteria</h3>
+      <p>SOC 2, developed by the American Institute of Certified Public Accountants (AICPA), evaluates an organization against five Trust Service Criteria (TSC). Not all criteria are required — you choose which ones to include in your audit based on your business and customer expectations. For a SaaS company, Security and Availability are almost always required. Privacy is increasingly demanded by enterprise customers, especially in EdTech and healthcare.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Criterion</th><th>Focus</th><th>Example Controls</th><th>When to Include</th></tr>
+          <tr><td>Security (CC)</td><td>Protection against unauthorized access</td><td>Access controls, encryption, monitoring, incident response, change management</td><td>Always required — this is the foundation</td></tr>
+          <tr><td>Availability (A)</td><td>System uptime and operational</td><td>SLAs, disaster recovery, capacity planning, backup procedures</td><td>Include if you have SLA commitments (most SaaS do)</td></tr>
+          <tr><td>Processing Integrity (PI)</td><td>Data processing is complete, valid, accurate</td><td>Input validation, error handling, reconciliation procedures</td><td>Include if you process financial transactions or critical data</td></tr>
+          <tr><td>Confidentiality (C)</td><td>Data designated as confidential is protected</td><td>Data classification, encryption at rest, access restrictions, data retention</td><td>Include if you handle confidential business data</td></tr>
+          <tr><td>Privacy (P)</td><td>Personal information handling</td><td>Privacy notice, consent management, data subject rights, data minimization</td><td>Include if you handle PII (especially for EdTech/FERPA)</td></tr>
+        </table>
+      </div>
+
+      <h4>Type I vs Type II: The Critical Difference</h4>
+      <p><strong>SOC 2 Type I</strong> evaluates whether your controls are suitably designed at a <em>specific point in time</em>. It is a snapshot. Think of it as a building inspection on one specific day — the inspector checks that fire alarms exist and are installed correctly, but does not verify that they have been working for the past six months.</p>
+      <p><strong>SOC 2 Type II</strong> evaluates whether your controls operated effectively over a <em>period of time</em> (typically 6-12 months). This is the real deal. The auditor reviews evidence that your controls have been functioning consistently: access review logs showing quarterly reviews actually happened, incident response records showing your process was followed, change management tickets showing all production changes went through the approval process.</p>
+      <p>Most enterprise customers require Type II. Type I is useful as a stepping stone — it proves you have the controls designed, which you can use to start closing deals while your Type II observation period runs. The typical path: start building controls in months 1-6, get Type I at month 6-8, then use the next 6-12 months as your Type II observation period, completing the Type II audit at month 14-20.</p>
+
+      <h3>The 12-Month SOC 2 Preparation Timeline</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Month</th><th>Phase</th><th>Key Activities</th></tr>
+          <tr><td>1-2</td><td>Gap Assessment</td><td>Identify missing controls, select TSC scope, choose auditor firm, select compliance automation platform</td></tr>
+          <tr><td>3-4</td><td>Policy Development</td><td>Write information security policy, acceptable use policy, incident response plan, change management procedure, access control policy, data classification policy, vendor management policy</td></tr>
+          <tr><td>5-6</td><td>Control Implementation</td><td>Deploy MDM, configure SIEM/logging, implement background checks, deploy vulnerability scanning, configure access reviews, implement change management workflow</td></tr>
+          <tr><td>7</td><td>Type I Readiness</td><td>Internal audit, fix gaps, evidence collection dry run</td></tr>
+          <tr><td>8</td><td>Type I Audit</td><td>Auditor evaluates control design at a point in time</td></tr>
+          <tr><td>9-14</td><td>Type II Observation</td><td>Controls operate under observation. Collect evidence continuously. Fix any control failures immediately.</td></tr>
+          <tr><td>14-15</td><td>Type II Audit</td><td>Auditor reviews 6+ months of evidence. Any control gaps become audit exceptions.</td></tr>
+        </table>
+      </div>
+
+      <h4>Evidence Collection Automation</h4>
+      <p>Manual evidence collection for SOC 2 is a nightmare. You need to prove that access reviews happened quarterly, that all production changes went through code review, that vulnerability scans ran weekly, that background checks were completed for all employees. Doing this with spreadsheets and screenshots is possible but soul-crushing. Compliance automation platforms integrate with your tools (GitHub, AWS, Okta, Jira) and continuously collect evidence automatically.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Platform</th><th>Pricing (est.)</th><th>Strengths</th><th>Weaknesses</th></tr>
+          <tr><td>Vanta</td><td>$10K-$50K/year</td><td>Most integrations (200+), excellent automation, used by thousands of startups, fast onboarding</td><td>Can be expensive at scale, some integrations are shallow</td></tr>
+          <tr><td>Drata</td><td>$10K-$40K/year</td><td>Strong automation, good UX, responsive support, SOC 2 + ISO 27001 + HIPAA in one platform</td><td>Newer, fewer integrations than Vanta, less community documentation</td></tr>
+          <tr><td>Secureframe</td><td>$8K-$35K/year</td><td>Good value for smaller companies, clean interface, solid integrations</td><td>Fewer enterprise features, smaller team</td></tr>
+          <tr><td>Tugboat Logic (now OneTrust)</td><td>$15K-$60K/year</td><td>Enterprise-grade, broad compliance framework support</td><td>Absorbed into OneTrust — product direction unclear, heavier platform</td></tr>
+        </table>
+      </div>
+
+      <h3>ISO 27001 vs SOC 2</h3>
+      <p>ISO 27001 is an international standard for information security management systems (ISMS). If you sell primarily to US companies, SOC 2 is usually sufficient. If you sell internationally (especially in Europe), you will likely need ISO 27001 as well. The good news: there is significant overlap. About 70% of the controls map between the two frameworks. If you build your program around SOC 2 first, adding ISO 27001 is incremental rather than starting from scratch.</p>
+      <p>Key differences: SOC 2 is an attestation report (an auditor says "we tested and here's what we found"). ISO 27001 is a certification (a certification body says "you passed"). SOC 2 reports are shared under NDA. ISO 27001 certificates can be displayed publicly. SOC 2 is US-focused. ISO 27001 is internationally recognized. For most SaaS companies selling to US enterprises, start with SOC 2 Type II, then add ISO 27001 when international expansion demands it.</p>
+
+      <h4>FedRAMP Overview</h4>
+      <p>If you want to sell to the US federal government, you need FedRAMP authorization. This is SOC 2 on steroids. FedRAMP is based on NIST SP 800-53 and has three impact levels: Low (125 controls), Moderate (325 controls), and High (421 controls). The authorization process takes 12-18 months minimum and costs $1M-$3M including the 3PAO (Third-Party Assessment Organization) audit. For most SaaS companies, FedRAMP is a strategic decision that requires dedicated resources and executive commitment. The payoff: access to the $100B+ federal IT market where competitors without FedRAMP cannot compete.</p>
+
+      <h3>Compliance-as-Code</h3>
+      <p>The modern approach to compliance treats security controls as code that can be version-controlled, tested, and automatically enforced. Tools like Open Policy Agent (OPA), HashiCorp Sentinel, and AWS Config Rules allow you to define compliance policies as code and automatically flag or prevent violations.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>rego (Open Policy Agent)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># SOC 2 CC6.1: Encrypt all S3 buckets at rest</span>
+<span class="kw">package</span> aws.s3
+
+<span class="kw">deny</span>[msg] {
+    <span class="nb">bucket</span> := <span class="nb">input</span>.resource.aws_s3_bucket[<span class="nb">name</span>]
+    <span class="kw">not</span> <span class="nb">bucket</span>.server_side_encryption_configuration
+    msg := <span class="fn">sprintf</span>(<span class="st">"S3 bucket '%s' missing encryption (SOC 2 CC6.1)"</span>, [<span class="nb">name</span>])
+}
+
+<span class="kw">deny</span>[msg] {
+    <span class="nb">bucket</span> := <span class="nb">input</span>.resource.aws_s3_bucket[<span class="nb">name</span>]
+    <span class="nb">bucket</span>.acl == <span class="st">"public-read"</span>
+    msg := <span class="fn">sprintf</span>(<span class="st">"S3 bucket '%s' is publicly readable (SOC 2 CC6.6)"</span>, [<span class="nb">name</span>])
+}
+
+<span class="cm"># SOC 2 CC6.3: Require MFA delete on versioned buckets</span>
+<span class="kw">warn</span>[msg] {
+    <span class="nb">bucket</span> := <span class="nb">input</span>.resource.aws_s3_bucket[<span class="nb">name</span>]
+    <span class="nb">bucket</span>.versioning.enabled == <span class="kw">true</span>
+    <span class="kw">not</span> <span class="nb">bucket</span>.versioning.mfa_delete
+    msg := <span class="fn">sprintf</span>(<span class="st">"Bucket '%s': MFA delete recommended (SOC 2 CC6.3)"</span>, [<span class="nb">name</span>])
+}</code></pre>
+      </div>
+
+      <h4>Cost of Compliance</h4>
+      <p>Real numbers for a 50-200 person SaaS company: SOC 2 Type II audit fees run $30K-$80K depending on the firm and scope. Compliance automation platform: $10K-$50K/year. Internal labor (compliance lead, engineering time for control implementation): $100K-$200K in the first year, $50K-$100K ongoing. Penetration testing: $15K-$40K/year. Total first-year cost: approximately $150K-$370K. Ongoing annual cost: $100K-$250K. This is significant, but compare it to the cost of losing a $500K enterprise deal because you could not provide a SOC 2 report. One deal pays for the entire compliance program.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 3</div>
+        <p>Start with SOC 2 Type II for US enterprise sales. Use a compliance automation platform (Vanta, Drata, or Secureframe) from day one. Plan for a 12-15 month timeline from zero to Type II report. Budget $150K-$370K for the first year. Implement compliance-as-code to make controls enforceable rather than aspirational. Add ISO 27001 when you expand internationally. Consider FedRAMP only when the federal market opportunity justifies the $1M+ investment.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 4 -->
+  <div class="module" id="module-4" data-module="4">
+    <div class="module-header" onclick="toggleModule(4)">
+      <input type="checkbox" class="module-checkbox" data-module="4" onclick="event.stopPropagation(); toggleCheckbox(4)">
+      <div class="module-number">4</div>
+      <span class="module-title-text">Application Security</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>The OWASP Top 10 (2025 Edition): What Actually Matters</h3>
+      <p>The OWASP Top 10 is the standard awareness document for web application security. It is updated every few years based on data from hundreds of organizations and thousands of applications. If your engineering team does not know the OWASP Top 10, you have a fundamental education problem. But knowing the list is not enough — you need to understand the attack mechanics, the defensive patterns, and the tools that detect each vulnerability class.</p>
+
+      <h4>A01: Broken Access Control</h4>
+      <p>This has been the #1 vulnerability since 2021. Broken access control means a user can access resources or perform actions they should not be authorized for. The most common pattern is <strong>Insecure Direct Object Reference (IDOR)</strong>: an API endpoint like <code>/api/users/12345/grades</code> that returns grades for user 12345 without verifying that the authenticated user is authorized to see user 12345's grades. An attacker simply changes the ID in the URL to access other users' data.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python (vulnerable)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># VULNERABLE: No authorization check — IDOR vulnerability</span>
+<span class="at">@app.route</span>(<span class="st">'/api/users/&lt;user_id&gt;/grades'</span>)
+<span class="at">@login_required</span>
+<span class="kw">def</span> <span class="fn">get_grades</span>(user_id):
+    grades = Grade.query.<span class="fn">filter_by</span>(user_id=user_id).<span class="fn">all</span>()
+    <span class="kw">return</span> <span class="fn">jsonify</span>([g.<span class="fn">to_dict</span>() <span class="kw">for</span> g <span class="kw">in</span> grades])
+
+<span class="cm"># SECURE: Authorization check verifies the requesting user</span>
+<span class="at">@app.route</span>(<span class="st">'/api/users/&lt;user_id&gt;/grades'</span>)
+<span class="at">@login_required</span>
+<span class="kw">def</span> <span class="fn">get_grades</span>(user_id):
+    <span class="kw">if</span> current_user.id != user_id <span class="kw">and not</span> current_user.<span class="fn">has_role</span>(<span class="st">'admin'</span>):
+        <span class="kw">return</span> <span class="fn">jsonify</span>({<span class="st">'error'</span>: <span class="st">'Forbidden'</span>}), <span class="nr">403</span>
+    grades = Grade.query.<span class="fn">filter_by</span>(user_id=user_id).<span class="fn">all</span>()
+    <span class="kw">return</span> <span class="fn">jsonify</span>([g.<span class="fn">to_dict</span>() <span class="kw">for</span> g <span class="kw">in</span> grades])</code></pre>
+      </div>
+
+      <h4>A02: Cryptographic Failures</h4>
+      <p>Using weak algorithms (MD5, SHA1 for passwords), transmitting data in cleartext, using hardcoded encryption keys, or improper TLS configuration. The fix: use bcrypt or Argon2 for passwords, enforce TLS 1.2+ everywhere, use AES-256-GCM for encryption at rest, and never store encryption keys alongside encrypted data.</p>
+
+      <h4>A03: Injection</h4>
+      <p>SQL injection, NoSQL injection, OS command injection, LDAP injection. Despite being well-understood, injection remains in the Top 10 because developers still concatenate user input into queries. Use parameterized queries or ORM-generated queries. Never build SQL strings with string formatting or concatenation.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>python (SQL injection)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># VULNERABLE: SQL injection via string formatting</span>
+<span class="kw">def</span> <span class="fn">get_user</span>(username):
+    query = <span class="st">f"SELECT * FROM users WHERE name = '</span>{username}<span class="st">'"</span>
+    <span class="kw">return</span> db.<span class="fn">execute</span>(query)  <span class="cm"># If username = "' OR '1'='1" — full table dump</span>
+
+<span class="cm"># SECURE: Parameterized query</span>
+<span class="kw">def</span> <span class="fn">get_user</span>(username):
+    query = <span class="st">"SELECT * FROM users WHERE name = %s"</span>
+    <span class="kw">return</span> db.<span class="fn">execute</span>(query, (username,))  <span class="cm"># Database handles escaping</span></code></pre>
+      </div>
+
+      <h4>A04-A10: The Remaining Vulnerabilities</h4>
+      <p><strong>A04: Insecure Design</strong> — Threats that cannot be fixed by better implementation; they require secure design patterns. Use threat modeling (STRIDE, PASTA) during design phase. <strong>A05: Security Misconfiguration</strong> — Default credentials, unnecessary features enabled, overly permissive cloud IAM policies. <strong>A06: Vulnerable and Outdated Components</strong> — Using libraries with known CVEs. Use SCA tools (Snyk, Dependabot). <strong>A07: Identification and Authentication Failures</strong> — Weak passwords, credential stuffing, missing MFA. <strong>A08: Software and Data Integrity Failures</strong> — Insecure CI/CD pipelines, unsigned code, auto-update without verification. <strong>A09: Security Logging and Monitoring Failures</strong> — Not detecting breaches because you do not log enough. <strong>A10: Server-Side Request Forgery (SSRF)</strong> — The attacker makes your server send requests to internal services, bypassing firewalls.</p>
+
+      <h3>Security Testing Tools</h3>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Category</th><th>Tool</th><th>Type</th><th>Pros</th><th>Cons</th></tr>
+          <tr><td>SAST</td><td>Semgrep</td><td>Static Analysis</td><td>Fast, custom rules in YAML, great CI integration, free tier</td><td>Higher false positive rate than CodeQL for complex patterns</td></tr>
+          <tr><td>SAST</td><td>CodeQL</td><td>Static Analysis</td><td>Deep semantic analysis, GitHub-native, powerful query language</td><td>Slow on large codebases, steep learning curve for custom queries</td></tr>
+          <tr><td>SAST</td><td>SonarQube</td><td>Static Analysis</td><td>Broad language support, quality + security, well-known</td><td>Security rules less deep than specialized tools, expensive at scale</td></tr>
+          <tr><td>DAST</td><td>OWASP ZAP</td><td>Dynamic Analysis</td><td>Free, open source, excellent for CI, active community</td><td>More manual configuration, fewer advanced features than Burp</td></tr>
+          <tr><td>DAST</td><td>Burp Suite Pro</td><td>Dynamic Analysis</td><td>Gold standard for manual testing, excellent scanner, extensions</td><td>$449/year/user, primarily manual tool (automation requires Enterprise)</td></tr>
+          <tr><td>SCA</td><td>Snyk</td><td>Composition Analysis</td><td>Developer-friendly, auto-fix PRs, container scanning, broad language support</td><td>Expensive at scale, free tier limited</td></tr>
+          <tr><td>SCA</td><td>Dependabot</td><td>Composition Analysis</td><td>Free with GitHub, auto-creates PRs, minimal setup</td><td>GitHub-only, less sophisticated prioritization, no container scanning</td></tr>
+        </table>
+      </div>
+
+      <h3>Threat Modeling: STRIDE and PASTA</h3>
+      <p><strong>STRIDE</strong> (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) is Microsoft's framework for systematic threat identification. For each component in your architecture diagram, ask: Can an attacker spoof the identity? Tamper with the data? Deny they performed an action? Extract information? Deny service? Elevate their privileges?</p>
+      <p><strong>PASTA</strong> (Process for Attack Simulation and Threat Analysis) is a seven-stage risk-centric methodology: define objectives, define technical scope, decompose the application, analyze threats, analyze vulnerabilities, analyze attacks, perform risk/impact analysis. PASTA is more rigorous than STRIDE but takes longer. Use STRIDE for quick design-phase threat identification. Use PASTA for critical systems where the investment in thorough analysis is justified.</p>
+
+      <h4>Security Champions Program</h4>
+      <p>A security champions program embeds security-minded engineers within each development team. These are not dedicated security engineers — they are regular developers who volunteer (or are nominated) to be the security point person for their team. They attend monthly security champions meetings, get advanced training, review security-related PRs, and serve as the bridge between the security team and their development team. Google, Microsoft, and Salesforce all run champions programs. The typical ratio is one champion per 8-15 developers. Champions get recognition, training budget, and the satisfaction of preventing the next breach.</p>
+
+      <h3>API Security</h3>
+      <p>APIs are the most exposed attack surface for modern applications. The OWASP API Security Top 10 identifies the most common API vulnerabilities:</p>
+      <ul>
+        <li><strong>Broken Object Level Authorization (BOLA):</strong> The API equivalent of IDOR. The #1 API vulnerability. Test every endpoint with different user contexts.</li>
+        <li><strong>Broken Authentication:</strong> Weak token generation, missing rate limiting on login endpoints, tokens that do not expire.</li>
+        <li><strong>Excessive Data Exposure:</strong> API returns entire database objects instead of only the fields the client needs. The response includes email, phone, SSN when the client only needs name.</li>
+        <li><strong>Mass Assignment:</strong> API blindly accepts user input and updates model fields. Attacker sends <code>{"role": "admin"}</code> in a profile update request.</li>
+        <li><strong>Rate Limiting:</strong> No rate limiting allows brute-force attacks, enumeration, and denial of service.</li>
+      </ul>
+
+      <h4>Secrets in Code Prevention</h4>
+      <p>Hardcoded API keys, database passwords, and tokens in source code are one of the most common and dangerous mistakes. Use pre-commit hooks with tools like <code>gitleaks</code>, <code>trufflehog</code>, or <code>detect-secrets</code> to prevent secrets from ever entering version control.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>.pre-commit-config.yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Prevent secrets from being committed to version control</span>
+<span class="kw">repos</span>:
+  - <span class="kw">repo</span>: https://github.com/gitleaks/gitleaks
+    <span class="kw">rev</span>: v8.18.0
+    <span class="kw">hooks</span>:
+      - <span class="kw">id</span>: gitleaks
+  - <span class="kw">repo</span>: https://github.com/Yelp/detect-secrets
+    <span class="kw">rev</span>: v1.4.0
+    <span class="kw">hooks</span>:
+      - <span class="kw">id</span>: detect-secrets
+        <span class="kw">args</span>: [<span class="st">'--baseline'</span>, <span class="st">'.secrets.baseline'</span>]</code></pre>
+      </div>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 4</div>
+        <p>Focus on Broken Access Control (OWASP #1) — it is the most common and most impactful vulnerability. Implement SAST (Semgrep), DAST (OWASP ZAP), and SCA (Snyk/Dependabot) in your CI/CD pipeline. Use threat modeling during design reviews. Start a security champions program. Prevent secrets in code with pre-commit hooks. API security deserves dedicated attention — BOLA and mass assignment are rampant.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 5 -->
+  <div class="module" id="module-5" data-module="5">
+    <div class="module-header" onclick="toggleModule(5)">
+      <input type="checkbox" class="module-checkbox" data-module="5" onclick="event.stopPropagation(); toggleCheckbox(5)">
+      <div class="module-number">5</div>
+      <span class="module-title-text">Supply Chain Security</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Your Code Is Only as Secure as Your Dependencies</h3>
+      <p>The average modern application has <strong>200-500 direct dependencies and 1,000-3,000 transitive dependencies</strong>. Each one of those dependencies is code that your team did not write, did not review, and largely does not understand. Each one is a potential entry point for an attacker. Supply chain security is about managing this risk systematically rather than pretending it does not exist.</p>
+
+      <h4>The SolarWinds Attack: Anatomy of a Supply Chain Compromise</h4>
+      <p>In December 2020, FireEye (now Mandiant) discovered that SolarWinds' Orion network monitoring software had been backdoored by a threat actor widely attributed to Russia's SVR. The attackers compromised SolarWinds' build system and injected malicious code into the Orion software update. When 18,000 SolarWinds customers installed the update, they unknowingly installed the backdoor (dubbed SUNBURST). The attackers then selectively activated the backdoor in high-value targets including the US Treasury, Department of Commerce, Department of Homeland Security, and major technology companies.</p>
+      <p>The key lessons for a CPTO: the attackers did not hack 18,000 organizations. They hacked one build system. Your build pipeline is a high-value target. Protect it accordingly — restrict access, sign artifacts, verify integrity at every step, and monitor for anomalous changes.</p>
+
+      <h4>Log4Shell: When a Logging Library Threatens the Internet</h4>
+      <p>CVE-2021-44228 (Log4Shell) was a remote code execution vulnerability in Apache Log4j, a logging library used by virtually every Java application. The vulnerability allowed an attacker to execute arbitrary code on the server by simply sending a specially crafted log message. If your application logged any user-controlled input (HTTP headers, user agent strings, form fields), and you used Log4j 2.x, you were vulnerable. The severity was CVSS 10.0 — the maximum possible score.</p>
+      <p>Log4Shell taught the industry three painful lessons. First, <strong>you need an SBOM</strong> (Software Bill of Materials) so you can quickly answer "do we use Log4j and where?" Second, <strong>transitive dependencies are the real danger</strong> — your code might not import Log4j directly, but if one of your 500 dependencies uses it, you are still vulnerable. Third, <strong>patching speed is everything</strong> — organizations that patched within 72 hours had significantly fewer compromises than those that took weeks.</p>
+
+      <div class="callout callout-error">
+        <div class="callout-title">The XZ Utils Backdoor (2024): Social Engineering at Scale</div>
+        <p>In March 2024, Microsoft engineer Andres Freund accidentally discovered a backdoor in XZ Utils, a compression library used by SSH on most Linux distributions. A threat actor operating as "Jia Tan" had spent <strong>two years</strong> contributing to the project, building trust, and eventually gaining maintainer access. They then inserted a sophisticated backdoor that would allow remote code execution on any SSH server using the compromised library. The backdoor was caught only because Freund noticed that SSH logins were 500ms slower than expected and investigated. If it had shipped in stable releases, it would have compromised virtually every Linux server on the internet. This attack demonstrates that supply chain security is not just about code scanning — it is about the trust model of open-source maintenance.</p>
+      </div>
+
+      <h3>SBOM: Software Bill of Materials</h3>
+      <p>An SBOM is a comprehensive inventory of every component in your software — direct dependencies, transitive dependencies, their versions, licenses, and origins. The US Executive Order 14028 (May 2021) requires SBOMs for software sold to the federal government. Even if you do not sell to the government, maintaining an SBOM is critical for incident response: when the next Log4Shell happens, you need to know within minutes whether you are affected.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>bash (generating SBOMs)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Generate SBOM in CycloneDX format using Syft</span>
+syft packages dir:./my-app -o cyclonedx-json &gt; sbom.json
+
+<span class="cm"># Generate SBOM for a container image</span>
+syft packages registry:mycompany/api:latest -o spdx-json &gt; container-sbom.json
+
+<span class="cm"># Scan the SBOM for known vulnerabilities using Grype</span>
+grype sbom:sbom.json --output table
+
+<span class="cm"># Automate in CI/CD pipeline</span>
+<span class="cm"># GitHub Actions example:</span>
+<span class="cm"># - name: Generate SBOM</span>
+<span class="cm">#   uses: anchore/sbom-action@v0</span>
+<span class="cm">#   with:</span>
+<span class="cm">#     artifact-name: sbom.spdx.json</span>
+<span class="cm"># - name: Scan for vulnerabilities</span>
+<span class="cm">#   uses: anchore/scan-action@v3</span>
+<span class="cm">#   with:</span>
+<span class="cm">#     sbom: sbom.spdx.json</span>
+<span class="cm">#     fail-build: true</span>
+<span class="cm">#     severity-cutoff: high</span></code></pre>
+      </div>
+
+      <h3>SLSA Framework: Supply Chain Levels for Software Artifacts</h3>
+      <p>SLSA (pronounced "salsa") is a framework from Google that defines levels of supply chain integrity. It provides a checklist of standards and controls to prevent tampering, improve integrity, and secure packages and infrastructure in your projects.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>SLSA Level</th><th>Requirements</th><th>Protects Against</th></tr>
+          <tr><td>Level 1: Provenance</td><td>Build process documented, provenance metadata generated automatically</td><td>Accidental errors, building from wrong source</td></tr>
+          <tr><td>Level 2: Hosted Build</td><td>Build runs on a hosted build platform (not a developer laptop), provenance signed</td><td>Tampered builds from compromised developer machines</td></tr>
+          <tr><td>Level 3: Hardened Builds</td><td>Build platform verifiably produces correct provenance, builds are hermetic and isolated</td><td>Compromised build platform, insider threats during build</td></tr>
+        </table>
+      </div>
+
+      <h4>Sigstore: Signing Without the Pain</h4>
+      <p>Sigstore is an open-source project (backed by Google, Red Hat, and the Linux Foundation) that makes cryptographic signing of software artifacts as easy as possible. Traditional code signing requires managing long-lived signing keys — which creates its own security problem (what if the signing key is compromised?). Sigstore uses short-lived certificates tied to OIDC identity (your GitHub or Google identity), stored in a transparency log (Rekor). This means you can verify that a container image was built by a specific CI pipeline in a specific GitHub repository, without anyone needing to manage signing keys.</p>
+
+      <h3>Container Image Security</h3>
+      <p>Container images are a critical part of the supply chain. Use minimal base images (distroless or Alpine), scan images in CI with Trivy or Grype, enforce image signing with cosign (part of Sigstore), and pin image digests rather than tags (tags are mutable — someone can push a new image with the same tag).</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>Dockerfile (secure)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Use a specific digest, not a mutable tag</span>
+<span class="kw">FROM</span> node:20-alpine@sha256:abc123def456... <span class="kw">AS</span> builder
+
+<span class="cm"># Run as non-root</span>
+<span class="kw">RUN</span> addgroup -S appgroup &amp;&amp; adduser -S appuser -G appgroup
+<span class="kw">USER</span> appuser
+
+<span class="cm"># Copy only what's needed (multi-stage build)</span>
+<span class="kw">COPY</span> --from=builder /app/dist /app
+<span class="kw">COPY</span> --from=builder /app/node_modules /app/node_modules
+
+<span class="cm"># No shell in production image — use distroless for final stage</span>
+<span class="kw">FROM</span> gcr.io/distroless/nodejs20-debian12
+<span class="kw">COPY</span> --from=builder /app /app
+<span class="kw">CMD</span> [<span class="st">"server.js"</span>]</code></pre>
+      </div>
+
+      <h4>Building a Supply Chain Security Program</h4>
+      <ul class="checklist">
+        <li>Maintain a current SBOM for every production application and container image</li>
+        <li>Scan dependencies for known vulnerabilities in CI/CD (block merges for critical/high CVEs)</li>
+        <li>Pin dependency versions and use lock files (package-lock.json, Pipfile.lock, go.sum)</li>
+        <li>Use Dependabot or Renovate for automated dependency updates</li>
+        <li>Sign all container images and verify signatures before deployment</li>
+        <li>Use minimal base images (distroless preferred, Alpine acceptable)</li>
+        <li>Restrict who can modify CI/CD pipeline configurations</li>
+        <li>Implement SLSA Level 2 minimum for production builds</li>
+        <li>Conduct vendor security assessments for critical third-party services</li>
+        <li>Monitor for dependency confusion attacks (internal package names registered on public registries)</li>
+      </ul>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 5</div>
+        <p>Your supply chain is your biggest blind spot. Generate SBOMs for all production software. Implement SLSA Level 2 for build integrity. Use Sigstore/cosign for artifact signing. Scan containers with Trivy. Pin dependencies by digest, not tag. When the next Log4Shell happens, you need to answer "are we affected?" within minutes, not days.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 6 -->
+  <div class="module" id="module-6" data-module="6">
+    <div class="module-header" onclick="toggleModule(6)">
+      <input type="checkbox" class="module-checkbox" data-module="6" onclick="event.stopPropagation(); toggleCheckbox(6)">
+      <div class="module-number">6</div>
+      <span class="module-title-text">Secrets Management &amp; Cryptography</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>The Secrets Sprawl Problem</h3>
+      <p>A typical SaaS company has hundreds of secrets: database credentials, API keys for third-party services, TLS certificates, encryption keys, service account tokens, OAuth client secrets. These secrets live in environment variables, config files, CI/CD systems, Kubernetes secrets, developer laptops, and Slack messages. Every copy of a secret is an attack surface. Every human who knows a secret is a potential leak. Secrets management is about reducing the number of copies, limiting who has access, rotating credentials automatically, and auditing all access.</p>
+
+      <h3>HashiCorp Vault: Deep Dive</h3>
+      <p>Vault is the industry standard for centralized secrets management. It provides a single source of truth for secrets, with fine-grained access control, audit logging, and — critically — <strong>dynamic secrets</strong> that are generated on-demand and automatically revoked after a TTL expires.</p>
+
+      <h4>Secret Engines</h4>
+      <p>Vault's secret engines are pluggable backends that generate, store, or encrypt data. The most commonly used engines:</p>
+      <ul>
+        <li><strong>KV (Key-Value):</strong> Simple key-value storage with versioning. Use for static secrets like API keys that cannot be dynamically generated.</li>
+        <li><strong>Database:</strong> Generates dynamic database credentials with configurable TTL. When a service needs database access, Vault creates a unique username/password pair, grants it the required permissions, and automatically revokes it after the TTL expires. No more shared database passwords.</li>
+        <li><strong>AWS:</strong> Generates dynamic IAM credentials. Instead of long-lived AWS access keys, services request short-lived credentials from Vault.</li>
+        <li><strong>Transit:</strong> Encryption as a service. Your application sends plaintext to Vault, Vault encrypts it and returns ciphertext. Your application never handles encryption keys directly.</li>
+        <li><strong>PKI:</strong> Issues TLS certificates dynamically. Combined with cert-manager in Kubernetes, this automates certificate lifecycle management.</li>
+      </ul>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>hcl (Vault policy)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Vault policy for the "api-service" application</span>
+<span class="cm"># Principle of least privilege: only access what this service needs</span>
+
+<span class="cm"># Read database credentials (dynamic secrets)</span>
+<span class="kw">path</span> <span class="st">"database/creds/api-service-readonly"</span> {
+  capabilities = [<span class="st">"read"</span>]
+}
+
+<span class="cm"># Read application config from KV store</span>
+<span class="kw">path</span> <span class="st">"kv/data/api-service/*"</span> {
+  capabilities = [<span class="st">"read"</span>, <span class="st">"list"</span>]
+}
+
+<span class="cm"># Encrypt/decrypt using Transit engine (never see the key)</span>
+<span class="kw">path</span> <span class="st">"transit/encrypt/api-service-key"</span> {
+  capabilities = [<span class="st">"update"</span>]
+}
+<span class="kw">path</span> <span class="st">"transit/decrypt/api-service-key"</span> {
+  capabilities = [<span class="st">"update"</span>]
+}
+
+<span class="cm"># NO access to admin paths, other services' secrets, or seal/unseal</span>
+<span class="cm"># Deny is implicit — anything not listed above is denied</span></code></pre>
+      </div>
+
+      <h4>Dynamic Secrets: The Game Changer</h4>
+      <p>Dynamic secrets are Vault's killer feature. Instead of storing a long-lived database password that every developer and every service shares, Vault generates unique, short-lived credentials for each requester. When the API service needs database access, it asks Vault for credentials. Vault creates a new database user with a random password, grants it the appropriate permissions, and sets a TTL of (for example) one hour. After one hour, Vault automatically revokes the credentials.</p>
+      <p>This means: no shared passwords, no password rotation burden, automatic revocation on TTL expiry, and complete audit trail of who accessed what and when. If a credential is compromised, it is only valid for the TTL period. If an employee leaves, their access to secrets is revoked by disabling their Vault authentication — no need to rotate every credential they ever accessed.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>bash (Vault dynamic secrets)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm"># Configure the database secret engine</span>
+vault secrets enable database
+
+vault write database/config/myapp-db \
+  plugin_name=postgresql-database-plugin \
+  allowed_roles=<span class="st">"api-service-readonly,api-service-readwrite"</span> \
+  connection_url=<span class="st">"postgresql://{{username}}:{{password}}@db.internal:5432/myapp"</span> \
+  username=<span class="st">"vault_admin"</span> \
+  password=<span class="st">"initial-password"</span>
+
+<span class="cm"># Define a role with specific permissions and TTL</span>
+vault write database/roles/api-service-readonly \
+  db_name=myapp-db \
+  creation_statements=<span class="st">"CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT SELECT ON ALL TABLES IN SCHEMA public TO \"{{name}}\";"</span> \
+  default_ttl=<span class="st">"1h"</span> \
+  max_ttl=<span class="st">"24h"</span>
+
+<span class="cm"># Application requests credentials (gets unique username/password)</span>
+vault read database/creds/api-service-readonly
+<span class="cm"># Returns: username=v-api-svc-readonly-abc123, password=random-strong-password</span>
+<span class="cm"># Automatically revoked after 1 hour</span></code></pre>
+      </div>
+
+      <h3>Cloud Provider Secrets Management</h3>
+      <p><strong>AWS Secrets Manager</strong> provides automatic rotation for RDS database credentials, per-secret IAM policies, and cross-region replication. Cost: $0.40/secret/month + $0.05 per 10,000 API calls. Good for AWS-native shops that do not need Vault's breadth. <strong>AWS Systems Manager Parameter Store</strong> is free for standard parameters (up to 10,000) and is sufficient for simple key-value secrets that do not need rotation. <strong>Azure Key Vault</strong> provides similar functionality for Azure environments with HSM-backed key storage.</p>
+
+      <h3>Encryption: Getting It Right</h3>
+
+      <h4>Encryption at Rest</h4>
+      <p>All data at rest should be encrypted. The question is: who manages the keys? Three options, in increasing order of security and operational burden:</p>
+      <ol>
+        <li><strong>Provider-managed keys:</strong> AWS encrypts your S3 data with keys they manage (SSE-S3). Simplest, protects against physical disk theft, but AWS (and anyone who compromises their key management) can decrypt your data.</li>
+        <li><strong>Customer-managed keys (CMK) in cloud KMS:</strong> You create and control the key in AWS KMS or Google Cloud KMS. You control who can use the key via IAM policies. You can disable or delete the key. This is the recommended approach for most companies.</li>
+        <li><strong>Customer-managed keys with external HSM:</strong> You hold the key in your own hardware security module. Maximum control, but significant operational burden. Required only for regulated industries with specific key custody requirements.</li>
+      </ol>
+
+      <h4>Envelope Encryption</h4>
+      <p>Envelope encryption is the pattern used by every cloud KMS. Instead of sending your data to KMS for encryption (which would be slow and expensive at scale), you generate a Data Encryption Key (DEK), encrypt your data locally with the DEK using AES-256-GCM, then encrypt the DEK with your KMS master key (the Key Encryption Key, or KEK). You store the encrypted DEK alongside the encrypted data. To decrypt, you send the encrypted DEK to KMS to get the plaintext DEK, then use that to decrypt the data locally. This approach means KMS only handles small key material (fast), while bulk encryption happens locally (efficient).</p>
+
+      <div class="ascii-diagram">
+Envelope Encryption:
+
+Encrypt:
+  1. Generate random DEK (Data Encryption Key)
+  2. Encrypt data with DEK locally (AES-256-GCM)
+  3. Encrypt DEK with KEK via KMS API call
+  4. Store encrypted data + encrypted DEK together
+  5. Discard plaintext DEK from memory
+
+  ┌─────────────────────────────────────┐
+  │  Stored Object                      │
+  │  ┌──────────────┐ ┌──────────────┐  │
+  │  │ Encrypted    │ │ Encrypted    │  │
+  │  │ DEK (tiny)   │ │ Data (bulk)  │  │
+  │  └──────┬───────┘ └──────┬───────┘  │
+  │         │                │          │
+  └─────────┼────────────────┼──────────┘
+            │                │
+Decrypt:    │                │
+  1. Send encrypted DEK ─► KMS ─► Plaintext DEK
+  2. Use plaintext DEK to decrypt data locally
+  3. Discard plaintext DEK from memory</div>
+
+      <h4>Common Cryptography Mistakes</h4>
+      <ul>
+        <li><strong>Using ECB mode:</strong> ECB encrypts identical plaintext blocks to identical ciphertext blocks, leaking patterns. Always use GCM or CBC with random IV.</li>
+        <li><strong>Reusing IVs/nonces:</strong> In AES-GCM, reusing a nonce with the same key completely breaks the encryption. Generate a random nonce for every encryption operation.</li>
+        <li><strong>Rolling your own crypto:</strong> Never implement encryption algorithms yourself. Use established libraries (libsodium, AWS Encryption SDK, Google Tink).</li>
+        <li><strong>Storing keys alongside data:</strong> If the encrypted data and the decryption key are in the same database, an attacker who compromises the database gets both.</li>
+        <li><strong>Using symmetric encryption for password storage:</strong> Passwords should be hashed (bcrypt, Argon2), not encrypted. Encryption is reversible. Hashing is not.</li>
+      </ul>
+
+      <h4>Developer Secrets: age and sops</h4>
+      <p>For developer workflows (encrypting secrets in git repositories, sharing secrets between team members), Mozilla's <code>sops</code> (Secrets OPerationS) combined with <code>age</code> encryption provides a pragmatic solution. sops encrypts only the values in a YAML/JSON file, leaving keys visible for easy diffing and code review. It integrates with AWS KMS, GCP KMS, Azure Key Vault, and age keys.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 6</div>
+        <p>Centralize secrets in Vault or your cloud provider's secrets manager. Use dynamic secrets to eliminate shared, long-lived credentials. Implement envelope encryption for data at rest. Never roll your own crypto — use established libraries. Use sops+age for developer secrets in git. Rotate all secrets on a schedule, and rotate immediately if you suspect compromise.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 7 -->
+  <div class="module" id="module-7" data-module="7">
+    <div class="module-header" onclick="toggleModule(7)">
+      <input type="checkbox" class="module-checkbox" data-module="7" onclick="event.stopPropagation(); toggleCheckbox(7)">
+      <div class="module-number">7</div>
+      <span class="module-title-text">Identity &amp; Access Management</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Identity Is the New Perimeter</h3>
+      <p>In a Zero Trust world where network location is irrelevant, <strong>identity is everything</strong>. If an attacker obtains valid credentials, they can access your systems from anywhere in the world, and your monitoring will see a legitimate user performing legitimate actions. The 2025 IBM breach report found that compromised credentials were the initial attack vector in <strong>16% of breaches</strong>, with an average cost of $4.66 million and the longest average time to identify (292 days). Identity and access management (IAM) is not a supporting function. It is the foundation of your entire security architecture.</p>
+
+      <h3>SSO Architecture: SAML vs OAuth 2.0 vs OIDC</h3>
+      <p>Single Sign-On (SSO) allows users to authenticate once and access multiple applications without re-entering credentials. Understanding the three major protocols is essential for any technology leader:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Protocol</th><th>Purpose</th><th>Token Format</th><th>Best For</th><th>Year Introduced</th></tr>
+          <tr><td>SAML 2.0</td><td>Authentication + Authorization</td><td>XML assertions</td><td>Enterprise SSO, legacy apps</td><td>2005</td></tr>
+          <tr><td>OAuth 2.0</td><td>Authorization only</td><td>Access tokens (opaque or JWT)</td><td>API access, delegated authorization</td><td>2012</td></tr>
+          <tr><td>OIDC</td><td>Authentication (built on OAuth 2.0)</td><td>ID tokens (JWT) + access tokens</td><td>Modern web/mobile apps, SSO</td><td>2014</td></tr>
+        </table>
+      </div>
+
+      <p><strong>SAML</strong> is the old guard. It uses XML-based assertions exchanged between a Service Provider (your app) and an Identity Provider (Okta, Azure AD). SAML works, but it is verbose, hard to debug, and does not work well for mobile apps or SPAs. If your enterprise customer demands SAML, support it. For new applications, use OIDC.</p>
+      <p><strong>OAuth 2.0</strong> is an authorization framework, not an authentication protocol. It answers "what can this application do on behalf of the user?" not "who is the user?" Many developers misuse OAuth 2.0 for authentication, which leads to security vulnerabilities. OAuth 2.0 defines four grant types: Authorization Code (for server-side apps), Authorization Code with PKCE (for SPAs and mobile), Client Credentials (for service-to-service), and Implicit (deprecated — do not use).</p>
+      <p><strong>OpenID Connect (OIDC)</strong> adds an identity layer on top of OAuth 2.0. It adds an ID token (a signed JWT containing user identity claims like email, name, and unique subject identifier) to the OAuth 2.0 flow. OIDC is the correct protocol for modern authentication. Use it.</p>
+
+      <div class="ascii-diagram">
+OIDC Authorization Code Flow with PKCE:
+
+User Browser          Your App (SPA)         Identity Provider (Okta)
+    │                      │                          │
+    │──Click "Login"──────►│                          │
+    │                      │──Generate code_verifier──│
+    │                      │  + code_challenge        │
+    │◄─Redirect to IdP─────│                          │
+    │                      │                          │
+    │──────────────────────────────────────────────────►│
+    │                      │              Login page   │
+    │──────────Username/Password──────────────────────►│
+    │                      │              MFA check    │
+    │◄─Redirect + auth_code────────────────────────────│
+    │                      │                          │
+    │──auth_code──────────►│                          │
+    │                      │──Exchange code + verifier►│
+    │                      │◄─ID token + access token──│
+    │                      │                          │
+    │                      │  Validate ID token:      │
+    │                      │  - Check signature (JWKS)│
+    │                      │  - Check issuer          │
+    │                      │  - Check audience        │
+    │                      │  - Check expiration      │
+    │◄─Logged in───────────│                          │</div>
+
+      <h3>MFA Strategies: The Phishing-Resistant Imperative</h3>
+      <p>Multi-factor authentication (MFA) is the single most effective control against credential-based attacks. But not all MFA is created equal:</p>
+      <ul>
+        <li><strong>SMS OTP:</strong> Better than nothing, but vulnerable to SIM swapping, SS7 attacks, and real-time phishing proxies. NIST has deprecated SMS OTP. Stop using it for anything sensitive.</li>
+        <li><strong>TOTP (Time-based One-Time Password):</strong> Apps like Google Authenticator or Authy. Better than SMS, but still vulnerable to real-time phishing (attacker proxies the TOTP code to the real site in real time). Not phishing-resistant.</li>
+        <li><strong>Push notifications:</strong> Apps like Duo Push or Microsoft Authenticator. Convenient, but vulnerable to MFA fatigue attacks (attacker sends repeated push notifications until the user approves one to make them stop). Number matching (requiring the user to enter a number displayed on the login screen) mitigates this.</li>
+        <li><strong>WebAuthn/FIDO2 (hardware keys):</strong> YubiKeys and built-in platform authenticators (Touch ID, Windows Hello). <em>Phishing-resistant</em>. The browser cryptographically binds the authentication to the specific origin (domain), so a phishing site at attacker.com cannot replay the credential to legitimate.com. This is the gold standard. Google has had zero successful phishing attacks against employees since deploying hardware keys in 2017.</li>
+        <li><strong>Passkeys:</strong> The consumer-friendly evolution of FIDO2. Passkeys are synced across devices via iCloud Keychain or Google Password Manager. They provide phishing-resistant authentication without requiring a physical hardware key. For consumer-facing products, passkeys are the future of authentication.</li>
+      </ul>
+
+      <h3>RBAC vs ABAC vs ReBAC</h3>
+      <p><strong>Role-Based Access Control (RBAC)</strong> assigns permissions to roles, and users are assigned roles. Simple, well-understood, supported by every identity provider. Works well when you have a small number of clearly defined roles (Admin, Editor, Viewer). Breaks down when you need fine-grained permissions ("user can edit documents in their department but only view documents in other departments").</p>
+      <p><strong>Attribute-Based Access Control (ABAC)</strong> makes access decisions based on attributes of the user (department, clearance level), the resource (classification, owner), the action (read, write, delete), and the environment (time of day, location, device). Far more flexible than RBAC but significantly more complex to implement and audit. AWS IAM policies are essentially ABAC.</p>
+      <p><strong>Relationship-Based Access Control (ReBAC)</strong> defines access based on the relationship between the user and the resource. "User can edit this document because they are a member of the team that owns the document." Google Zanzibar (the authorization system behind Google Docs, Drive, and YouTube) is the canonical ReBAC implementation. Open-source implementations include OpenFGA (by Okta/Auth0) and SpiceDB (by Authzed). ReBAC excels in multi-tenant SaaS applications where ownership hierarchies determine access.</p>
+
+      <h4>Just-In-Time (JIT) Access and Zero Standing Privileges</h4>
+      <p>The principle of zero standing privileges means that no user has permanent elevated access. Instead, users request elevated access when they need it, the request is approved (automatically or by a human), access is granted for a limited time (typically 1-8 hours), and then automatically revoked. This drastically reduces the attack surface of compromised credentials — even if an admin's password is stolen, the attacker cannot use it for admin access unless access has been explicitly granted at that moment.</p>
+      <p>Tools like CyberArk, BeyondTrust, and HashiCorp Boundary provide JIT access workflows. For cloud environments, AWS IAM Identity Center supports JIT access to AWS accounts. For Kubernetes, tools like Teleport provide JIT access to clusters with session recording.</p>
+
+      <h3>Service-to-Service Authentication</h3>
+      <p>Humans are not the only identities in your system. Service-to-service authentication is equally important:</p>
+      <ul>
+        <li><strong>mTLS (mutual TLS):</strong> Both sides present certificates. Provides strong authentication and encryption. Service meshes (Istio, Linkerd) automate mTLS between all services in a Kubernetes cluster.</li>
+        <li><strong>JWT (JSON Web Tokens):</strong> Service A authenticates to an identity provider, receives a signed JWT, and presents it to Service B. Service B validates the signature and extracts claims. Good for stateless authentication but requires careful token lifetime management and revocation strategy.</li>
+        <li><strong>API keys:</strong> Simple but dangerous if not managed properly. Use API keys only when you must, rotate them regularly, scope them to specific permissions, and monitor usage for anomalies.</li>
+        <li><strong>SPIFFE/SPIRE:</strong> The Secure Production Identity Framework for Everyone. Provides cryptographic identity to every workload, regardless of where it runs. Adopted by Kubernetes (via projected service account tokens) and supported by Istio.</li>
+      </ul>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 7</div>
+        <p>Identity is the foundation of Zero Trust. Use OIDC (not SAML) for new applications. Deploy phishing-resistant MFA (WebAuthn/FIDO2 keys or passkeys) for all employees, especially admins. Implement RBAC as your baseline, consider ReBAC (OpenFGA/SpiceDB) for multi-tenant SaaS. Adopt zero standing privileges for admin access. Use mTLS for service-to-service authentication in Kubernetes.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 8 -->
+  <div class="module" id="module-8" data-module="8">
+    <div class="module-header" onclick="toggleModule(8)">
+      <input type="checkbox" class="module-checkbox" data-module="8" onclick="event.stopPropagation(); toggleCheckbox(8)">
+      <div class="module-number">8</div>
+      <span class="module-title-text">Vulnerability Management &amp; Penetration Testing</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Vulnerability Management Is Not Vulnerability Scanning</h3>
+      <p>Scanning is easy. Management is hard. Any tool can produce a list of 10,000 vulnerabilities. The challenge is turning that list into prioritized, actionable work that reduces real risk rather than just generating noise. A mature vulnerability management program has five components: <strong>discovery</strong> (find all assets), <strong>assessment</strong> (scan for vulnerabilities), <strong>prioritization</strong> (decide what to fix first), <strong>remediation</strong> (actually fix it), and <strong>verification</strong> (confirm it is fixed).</p>
+
+      <h4>Scanning Tools</h4>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Tool</th><th>Type</th><th>Best For</th><th>Cost</th></tr>
+          <tr><td>Nessus Professional</td><td>Network vulnerability scanner</td><td>Infrastructure scanning, compliance checks, broad protocol coverage</td><td>~$3,500/year per scanner</td></tr>
+          <tr><td>Qualys VMDR</td><td>Cloud-based vulnerability management</td><td>Enterprise-scale asset discovery and management, agent-based scanning, CSPM</td><td>Per-asset pricing, $$$</td></tr>
+          <tr><td>Nuclei</td><td>Open-source template-based scanner</td><td>Custom vulnerability checks, CI/CD integration, web app scanning, community templates</td><td>Free (open source)</td></tr>
+          <tr><td>Trivy</td><td>Container/IaC/SBOM scanner</td><td>Container images, Kubernetes, Terraform misconfigs, SBOM vulnerabilities</td><td>Free (open source)</td></tr>
+          <tr><td>AWS Inspector</td><td>AWS-native scanner</td><td>EC2, Lambda, ECR container scanning for AWS environments</td><td>Per-assessment pricing</td></tr>
+        </table>
+      </div>
+
+      <h3>CVSS Scoring and Its Limitations</h3>
+      <p>The Common Vulnerability Scoring System (CVSS) assigns a severity score from 0.0 to 10.0 based on the attack vector, complexity, privileges required, user interaction, scope, and impact (confidentiality, integrity, availability). While CVSS provides a standardized language for vulnerability severity, it has significant limitations that every CPTO should understand:</p>
+      <ul>
+        <li><strong>CVSS does not account for your specific context.</strong> A network-accessible vulnerability in a service behind a VPN with mTLS is less exploitable than the same vulnerability in an internet-facing API, but CVSS scores them the same.</li>
+        <li><strong>CVSS does not account for exploitability.</strong> A CVSS 9.8 vulnerability with no known exploit is arguably less urgent than a CVSS 7.5 vulnerability with a public Metasploit module being actively exploited in the wild.</li>
+        <li><strong>CVSS inflation:</strong> Vendors have incentives to rate their findings as Critical to justify their tool's value. This leads to "alert fatigue" where teams stop trusting severity ratings.</li>
+      </ul>
+      <p>Better prioritization approaches: use <strong>EPSS</strong> (Exploit Prediction Scoring System), which uses machine learning to predict the probability that a vulnerability will be exploited in the next 30 days. Combine CVSS with EPSS and your asset criticality to create a risk-based priority. A CVSS 9.0 vulnerability with 0.1% EPSS on a non-critical internal tool is less urgent than a CVSS 7.0 vulnerability with 85% EPSS on your payment processing service.</p>
+
+      <h3>SLA-Based Remediation Timelines</h3>
+      <p>Every vulnerability management program needs clear remediation SLAs. Without SLAs, vulnerabilities accumulate indefinitely. Here is a practical SLA framework:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Severity</th><th>CVSS Range</th><th>Internet-Facing SLA</th><th>Internal SLA</th><th>Example</th></tr>
+          <tr><td>Critical</td><td>9.0-10.0</td><td>24-72 hours</td><td>7 days</td><td>RCE in authentication service, active exploitation</td></tr>
+          <tr><td>High</td><td>7.0-8.9</td><td>7 days</td><td>30 days</td><td>SQL injection in user-facing API</td></tr>
+          <tr><td>Medium</td><td>4.0-6.9</td><td>30 days</td><td>90 days</td><td>XSS in admin panel, information disclosure</td></tr>
+          <tr><td>Low</td><td>0.1-3.9</td><td>90 days</td><td>180 days or accept risk</td><td>Missing security headers, verbose error messages</td></tr>
+        </table>
+      </div>
+
+      <h3>Penetration Testing</h3>
+      <p>Penetration testing simulates real-world attacks against your systems to find vulnerabilities that automated scanners miss. Unlike scanning, penetration testing involves a skilled human tester who chains together multiple findings, uses creative attack paths, and thinks like an actual attacker.</p>
+
+      <h4>Scoping a Penetration Test</h4>
+      <p>A well-scoped penetration test defines exactly what is in scope, what testing methods are permitted, the testing timeframe, and what deliverables you expect. Common penetration test types:</p>
+      <ul>
+        <li><strong>External network penetration test:</strong> Tests internet-facing infrastructure — web applications, APIs, VPN gateways, mail servers. This is the minimum you should do annually.</li>
+        <li><strong>Internal network penetration test:</strong> Assumes the attacker has gained access to the internal network (via phishing, compromised VPN, etc.) and tests how far they can go. Tests lateral movement, privilege escalation, domain admin compromise.</li>
+        <li><strong>Web application penetration test:</strong> Deep testing of a specific web application, including business logic flaws that scanners cannot detect.</li>
+        <li><strong>API penetration test:</strong> Tests API endpoints for BOLA, broken authentication, mass assignment, and injection.</li>
+        <li><strong>Cloud configuration review:</strong> Reviews your AWS/GCP/Azure configuration for misconfigurations — overly permissive IAM policies, public S3 buckets, unencrypted storage.</li>
+      </ul>
+
+      <h4>Red Team vs Blue Team vs Purple Team</h4>
+      <p><strong>Red Team:</strong> Offensive security. The red team simulates a real adversary with a defined objective (e.g., "exfiltrate customer data" or "compromise the CI/CD pipeline"). Red team exercises are realistic, use social engineering and physical security testing in addition to technical attacks, and typically run for 2-4 weeks without the blue team's knowledge. Cost: $50K-$150K+.</p>
+      <p><strong>Blue Team:</strong> Defensive security. Your SOC analysts, incident responders, and security engineers. They detect, respond to, and recover from security incidents. Blue team effectiveness is measured by Mean Time to Detect (MTTD) and Mean Time to Respond (MTTR).</p>
+      <p><strong>Purple Team:</strong> Red and blue working together. The red team attacks, but instead of operating covertly, they collaborate with the blue team in real-time. After each attack technique, they pause and ask: "Did you detect this? What signals were generated? How can we improve detection?" This is the most cost-effective way to improve your defensive capabilities because you get immediate feedback and tuning rather than waiting for a report.</p>
+
+      <h3>Bug Bounty Programs</h3>
+      <p>A bug bounty program pays external security researchers to find and report vulnerabilities in your systems. Platforms like HackerOne and Bugcrowd provide managed bug bounty programs with triage support, hacker communities, and legal safe harbor.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Program Type</th><th>Cost</th><th>Pros</th><th>Cons</th></tr>
+          <tr><td>Private (invite-only)</td><td>$20K-$100K/year + bounties</td><td>Controlled, fewer reports, higher quality</td><td>Fewer researchers, less coverage</td></tr>
+          <tr><td>Public</td><td>$50K-$200K/year + bounties</td><td>Massive researcher pool, continuous testing</td><td>Volume of noise/duplicate reports, requires triage resources</td></tr>
+          <tr><td>Self-hosted VDP</td><td>Near zero platform cost</td><td>Cheapest option, establishes responsible disclosure</td><td>No triage support, less researcher motivation without bounties</td></tr>
+        </table>
+      </div>
+
+      <p>Start with a Vulnerability Disclosure Policy (VDP) — a page on your website that tells researchers how to report vulnerabilities safely. Then graduate to a private bug bounty with 10-20 invited researchers. Once your team can handle the volume, consider going public. Bounty ranges: $100-$500 for low severity, $1,000-$5,000 for medium, $5,000-$15,000 for high, $10,000-$50,000+ for critical (RCE, mass data exposure).</p>
+
+      <h4>Vulnerability Management Metrics Dashboard</h4>
+      <p>What you measure determines what gets fixed. Key metrics for your vulnerability management dashboard:</p>
+      <ul>
+        <li><strong>Open vulnerability count by severity:</strong> Trending over time. Should decrease or stay stable. If it increases, your remediation is not keeping up with discovery.</li>
+        <li><strong>Mean time to remediate (MTTR) by severity:</strong> Are you meeting your SLAs? Track separately for each severity level.</li>
+        <li><strong>SLA compliance rate:</strong> What percentage of vulnerabilities are fixed within the SLA? Target 95%+ for critical and high.</li>
+        <li><strong>Vulnerability density:</strong> Vulnerabilities per 1,000 lines of code, or per application. Identifies which teams/apps need more security attention.</li>
+        <li><strong>Patch coverage:</strong> What percentage of systems are fully patched within SLA?</li>
+        <li><strong>Scan coverage:</strong> What percentage of assets are being scanned? 100% is the target. Any unscanned asset is a blind spot.</li>
+      </ul>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 8</div>
+        <p>Vulnerability management is prioritization, not just scanning. Use EPSS alongside CVSS for risk-based prioritization. Set and enforce remediation SLAs. Conduct annual penetration tests at minimum. Start with a VDP and graduate to a bug bounty program. Purple team exercises give the best ROI for improving detection capabilities. Track MTTR and SLA compliance as your primary vulnerability management KPIs.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 9 -->
+  <div class="module" id="module-9" data-module="9">
+    <div class="module-header" onclick="toggleModule(9)">
+      <input type="checkbox" class="module-checkbox" data-module="9" onclick="event.stopPropagation(); toggleCheckbox(9)">
+      <div class="module-number">9</div>
+      <span class="module-title-text">Security Culture &amp; CISO Partnership</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>Security Culture: What It Actually Means</h3>
+      <p>Security culture is not annual compliance training that employees click through while answering emails. Security culture is the collective set of behaviors, attitudes, and norms that determine how your organization handles risk on a daily basis. It is whether a developer pauses to think about input validation before writing an API endpoint. It is whether a PM asks "what are the security implications?" during a design review. It is whether an employee reports a suspicious email rather than ignoring it. Culture cannot be mandated through policy documents. It must be cultivated through leadership, education, and consistently reinforced incentives.</p>
+
+      <h3>Building Security Awareness That Does Not Suck</h3>
+      <p>Traditional security awareness training is universally despised. It consists of 45-minute videos about phishing, filmed in 2019, with a multiple-choice quiz at the end that everyone passes by guessing. This training exists to satisfy auditors, not to change behavior. Here is how to do it differently:</p>
+      <ul>
+        <li><strong>Micro-learning:</strong> Instead of annual marathons, deliver 5-minute monthly security tips via Slack/email. Short, relevant, actionable. "This month's tip: How to verify a suspicious email in 30 seconds."</li>
+        <li><strong>Phishing simulations:</strong> Run monthly simulated phishing campaigns. Track click rates by department. Provide instant feedback when someone clicks — a gentle coaching page, not a punitive warning. Companies that run monthly simulations see click rates drop from 30%+ to under 5% within 6 months.</li>
+        <li><strong>Gamification:</strong> Leaderboards for teams with the lowest phishing click rates. Security trivia competitions. CTF (Capture The Flag) events for engineers. Prizes and recognition for reporting real threats.</li>
+        <li><strong>Real-world stories:</strong> Nothing is more motivating than real breach stories, especially from companies similar to yours. Share anonymized incident reports. Show the timeline, the impact, and the root cause. Make it visceral. "Company X lost $4M because an engineer committed an AWS key to a public GitHub repo. Here's what they should have done."</li>
+        <li><strong>Role-specific training:</strong> Engineers need secure coding training (OWASP). Executives need social engineering awareness. Finance needs wire transfer fraud training. HR needs data handling training. One-size-fits-all does not work.</li>
+      </ul>
+
+      <h4>Phishing Simulation Programs</h4>
+      <p>A well-run phishing simulation program is one of the highest-ROI security investments you can make. Tools like KnowBe4, Proofpoint Security Awareness, and the open-source GoPhish make it straightforward to run simulated phishing campaigns.</p>
+      <p>Best practices: Start with easy-to-spot phishing emails and gradually increase sophistication. Simulate common real-world scenarios (password reset requests, shared document notifications, fake IT support). Never punish employees who click — use it as a teaching moment. Track metrics over time (click rate, report rate, time to report). Share aggregate results (never individual names) with the organization to create healthy social pressure. Target a click rate under 5% and a report rate over 60%.</p>
+
+      <h3>Security Champion Network Design</h3>
+      <p>A security champions program creates a distributed security team within your engineering organization. Each development team designates one engineer as their security champion. This person is not a security expert — they are a developer with additional security training and responsibilities:</p>
+      <ul>
+        <li>Attend monthly security champions meetings (1 hour) to learn about new threats, tools, and best practices</li>
+        <li>Review security-relevant PRs in their team (authentication changes, authorization logic, data handling, new API endpoints)</li>
+        <li>Triage security findings from SAST/DAST tools for their team's codebase</li>
+        <li>Advocate for security in design discussions and sprint planning</li>
+        <li>Serve as the first point of contact for the security team when an issue affects their service</li>
+      </ul>
+      <p>Incentives matter: security champions should get recognition (title, badge, visibility), training budget ($2K-$5K/year for conferences and certifications), and career development credit. Some companies tie champion participation to promotion criteria. The ratio should be approximately 1 champion per 8-15 developers. Start with volunteers — enthusiastic volunteers are far more effective than conscripts.</p>
+
+      <h3>The CISO-CTO Relationship</h3>
+      <p>The CISO-CTO (or CISO-CPTO) relationship is one of the most important partnerships in a technology company. When it works well, security is integrated into engineering from the design phase. When it fails, security becomes a bottleneck that engineering routes around, or a compliance theater that adds bureaucracy without reducing risk.</p>
+      <p>Common failure modes:</p>
+      <ul>
+        <li><strong>"Security says no" culture:</strong> The security team blocks changes without offering alternatives. Engineering learns to avoid involving security until the last minute. Fix: require the security team to always provide a "yes, if..." response with conditions rather than a flat "no."</li>
+        <li><strong>Parallel universes:</strong> Engineering and security have completely different risk vocabularies and priorities. Engineering tracks velocity and uptime. Security tracks vulnerability counts and compliance gaps. They never connect. Fix: shared dashboards, joint OKRs, regular 1:1 meetings between CISO and CTO.</li>
+        <li><strong>Unfunded mandates:</strong> Security mandates controls but does not contribute engineering resources or budget to implement them. Engineering deprioritizes security work because it does not come with headcount. Fix: dedicated security engineering budget line, or security team provides implementation support.</li>
+      </ul>
+
+      <h4>Security as Enabler vs Blocker</h4>
+      <p>The most effective security teams operate as enablers. Instead of reviewing every deployment manually (blocker), they build automated security checks in the CI/CD pipeline (enabler). Instead of requiring security approval for every design (blocker), they provide threat modeling templates and office hours (enabler). Instead of mandating specific tools (blocker), they provide a curated, pre-approved tool catalog with security configurations baked in (enabler). The test: if removing the security team would make engineering faster, the security team is a blocker. If removing them would make engineering less secure and less productive, they are an enabler.</p>
+
+      <h3>Security Team Structure</h3>
+      <p>A mature security organization has four main functions. At smaller companies, one person may cover multiple functions. The key is ensuring all four areas are covered, even if by part-time roles:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Function</th><th>Scope</th><th>Key Responsibilities</th><th>When to Hire</th></tr>
+          <tr><td>Application Security (AppSec)</td><td>Code and product security</td><td>Secure SDLC, SAST/DAST, threat modeling, code review, security champions</td><td>First security hire for a product company</td></tr>
+          <tr><td>Security Operations (SecOps)</td><td>Detection and response</td><td>SIEM, incident response, monitoring, alerting, forensics</td><td>When you have production infrastructure to protect</td></tr>
+          <tr><td>Governance, Risk, Compliance (GRC)</td><td>Policy and compliance</td><td>SOC 2, ISO 27001, risk assessments, vendor reviews, policy management</td><td>When enterprise customers demand compliance reports</td></tr>
+          <tr><td>Product Security</td><td>Customer-facing security features</td><td>SSO integration, data encryption, access controls, security documentation</td><td>When security becomes a product feature customers pay for</td></tr>
+        </table>
+      </div>
+
+      <h3>Security Metrics That Matter</h3>
+      <p>Most security metrics are vanity metrics — they measure activity, not outcomes. "We blocked 1 million attacks this month" sounds impressive but says nothing about your actual risk posture (most of those "attacks" are automated scans that would have failed anyway). Here are the metrics that actually indicate security health:</p>
+      <ul>
+        <li><strong>MTTD (Mean Time to Detect):</strong> How long does it take to identify that a security incident has occurred? Industry average: 194 days. Target: under 24 hours for critical incidents.</li>
+        <li><strong>MTTR (Mean Time to Respond):</strong> Once detected, how long does it take to contain and remediate? Industry average: 64 days. Target: under 4 hours for critical incidents.</li>
+        <li><strong>Vulnerability density:</strong> Critical/high vulnerabilities per 1,000 lines of code, by application. Trending indicator of code quality.</li>
+        <li><strong>Patch coverage:</strong> Percentage of systems patched within SLA. Target: 95%+ for critical patches.</li>
+        <li><strong>Phishing click rate:</strong> Percentage of employees who click simulated phishing emails. Target: under 5%.</li>
+        <li><strong>MFA adoption:</strong> Percentage of accounts with MFA enabled. Target: 100% for employees, 50%+ for external users.</li>
+        <li><strong>Security debt:</strong> Number of accepted risks and deferred remediations. Trending upward means you are accumulating risk faster than you are addressing it.</li>
+      </ul>
+
+      <h4>Incident Response and Tabletop Exercises</h4>
+      <p>An incident response plan that has never been tested is not a plan — it is a wish. Tabletop exercises simulate a security incident in a conference room setting. The facilitator presents a scenario ("at 2:00 AM, your monitoring system detects unusual data exfiltration from the production database"), and the team walks through their response step by step. Who gets paged? What is the first action? Who communicates to customers? Who involves legal? Who talks to the press?</p>
+      <p>Run tabletop exercises quarterly, with different scenarios each time: ransomware, data breach, insider threat, supply chain compromise, DDoS. Include engineering leadership, legal, communications, and executive team. The most valuable outcome is not the exercise itself but the gaps you discover: "We realized we don't have an after-hours contact for our cloud provider" or "We discovered our backup restoration process has never been tested and takes 48 hours instead of the 4 hours in our plan."</p>
+
+      <h3>Communicating Security to Non-Technical Stakeholders</h3>
+      <p>When presenting security to the board, the CEO, or non-technical executives, translate everything into business impact. Instead of "we have 847 open critical vulnerabilities," say "we have vulnerabilities in our payment processing system that could result in a data breach affecting 500,000 customers and costing approximately $4M in direct costs plus regulatory fines." Instead of "we need to implement Zero Trust architecture," say "we need to ensure that a compromised laptop cannot give an attacker access to our entire network — here's the phased plan and budget."</p>
+      <p>Use the language of risk, not the language of technology. Board members understand probability and financial impact. They do not understand CVSS scores, MITRE ATT&CK techniques, or the difference between SAST and DAST. Your job as CPTO is to be the translator between the technical reality and the business implication.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 9</div>
+        <p>Security culture is built through leadership, education, and incentives — not compliance training videos. Run monthly phishing simulations targeting under 5% click rate. Build a security champions network (1 champion per 8-15 developers). The CISO-CTO partnership must focus on security as an enabler, not a blocker. Measure MTTD and MTTR as your primary security health indicators. Run quarterly tabletop exercises. When presenting to the board, speak the language of business risk and financial impact.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 10 -->
+  <div class="module" id="module-10" data-module="10">
+    <div class="module-header" onclick="toggleModule(10)">
+      <input type="checkbox" class="module-checkbox" data-module="10" onclick="event.stopPropagation(); toggleCheckbox(10)">
+      <div class="module-number">10</div>
+      <span class="module-title-text">Case Study: EdTech Security &amp; The Instructure/Canvas Breach</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+      <h3>The EdTech Security Landscape</h3>
+      <p>Education technology platforms occupy a uniquely sensitive position in the security landscape. They handle data about minors. They are subject to FERPA (Family Educational Rights and Privacy Act), COPPA (Children's Online Privacy Protection Act), and an increasingly complex patchwork of state privacy laws. They serve institutions (schools, universities) that lack sophisticated security evaluation capabilities but face enormous regulatory pressure to protect student data. And they are under constant attack — the K-12 Cybersecurity Resource Center documented 408 publicly disclosed cyber incidents affecting US school districts in 2023 alone, up from 182 in 2019.</p>
+      <p>For a CPTO evaluating EdTech platforms (or building one), security is not a feature checkbox. It is a fundamental architectural concern that affects every design decision from data modeling to API design to multi-tenancy implementation.</p>
+
+      <h3>Canvas LMS: Architecture and Security Challenges</h3>
+      <p>Canvas, built by Instructure, is one of the most widely deployed Learning Management Systems in the world, used by thousands of universities and K-12 school districts. Understanding its architecture reveals common security challenges that apply to any multi-tenant EdTech platform:</p>
+
+      <h4>Multi-Tenant Architecture</h4>
+      <p>Canvas uses a shared-infrastructure multi-tenant model where all institutions share the same application servers, databases, and storage infrastructure. Data isolation is enforced at the application layer through tenant-scoped queries, not through physical or logical database separation. This is a common pattern in SaaS (Salesforce uses the same approach) but it means that a bug in the application's tenant isolation logic can expose one institution's data to another.</p>
+
+      <div class="ascii-diagram">
+Canvas Multi-Tenant Architecture:
+
+                    ┌────────────────────────┐
+                    │   Load Balancer / CDN   │
+                    └───────────┬────────────┘
+                                │
+            ┌───────────────────┼───────────────────┐
+            │                   │                   │
+     ┌──────▼──────┐    ┌──────▼──────┐    ┌──────▼──────┐
+     │  App Server  │    │  App Server  │    │  App Server  │
+     │  (Rails)     │    │  (Rails)     │    │  (Rails)     │
+     └──────┬──────┘    └──────┬──────┘    └──────┬──────┘
+            │                   │                   │
+            └───────────────────┼───────────────────┘
+                                │
+                    ┌───────────▼───────────┐
+                    │  PostgreSQL Cluster    │
+                    │  (shared database)     │
+                    │                       │
+                    │  account_id enforced   │
+                    │  in every query WHERE  │
+                    │  clause                │
+                    └───────────┬───────────┘
+                                │
+                    ┌───────────▼───────────┐
+                    │  S3 / Object Storage   │
+                    │  (shared buckets,      │
+                    │   key-prefix per       │
+                    │   institution)         │
+                    └───────────────────────┘
+
+Risk: Any query that forgets the account_id filter
+can return data across all institutions.</div>
+
+      <h3>The Instructure Data Breach Analysis</h3>
+      <p>Instructure has faced multiple security incidents over its history that are instructive for any CPTO evaluating the platform or building a similar system. The security challenges are representative of those facing all EdTech companies at scale.</p>
+
+      <h4>Timeline and Response Pattern</h4>
+      <p>EdTech breaches typically follow a pattern: vulnerability discovery (often by a security researcher or student), delayed disclosure or patch, data exposure affecting thousands or millions of student records, regulatory scrutiny, and institutional trust erosion. In Instructure's case, the pattern has manifested through several incident types:</p>
+      <ul>
+        <li><strong>API Access Control Issues:</strong> Canvas's extensive REST API (essential for LTI integrations and institutional data exchange) has historically been a primary attack surface. API endpoints that allowed excessive data retrieval without proper authorization checks — the classic BOLA vulnerability from OWASP's API Security Top 10 — have been reported multiple times by security researchers. In one documented instance, API tokens with insufficient scope restrictions allowed third-party integrations to access data beyond their authorized scope, affecting multiple institutions.</li>
+        <li><strong>LTI Integration Vulnerabilities:</strong> Learning Tools Interoperability (LTI) is the standard protocol for integrating third-party tools (plagiarism detectors, video platforms, assessment tools) into an LMS. LTI passes student identity data (name, email, role) to third-party tools. Early LTI versions (1.0/1.1) used OAuth 1.0a signatures that were vulnerable to replay attacks if shared secrets were compromised. LTI 1.3 (based on OAuth 2.0 and OIDC) significantly improved security, but many institutions still run LTI 1.1 integrations because migration is complex and vendor support is uneven.</li>
+        <li><strong>Data Exposure Through Misconfiguration:</strong> Multi-tenant SaaS platforms are particularly vulnerable to data exposure through misconfigured administrative settings. Canvas allows institutional admins to configure visibility settings, API access policies, and data sharing rules. Misconfigurations at the admin level have resulted in unintended cross-institutional data exposure. This is not strictly a vulnerability in Canvas — it is a usability-security tradeoff where powerful configuration options create risk when administrators (who are educators, not security professionals) make incorrect choices.</li>
+      </ul>
+
+      <div class="callout callout-error">
+        <div class="callout-title">EdTech Breach Lessons</div>
+        <p>The Instructure/Canvas security incidents teach several critical lessons. <strong>First</strong>, multi-tenant data isolation must be enforced at multiple layers (application, database, infrastructure), not just the application layer. A single missed WHERE clause can expose millions of student records. <strong>Second</strong>, API security requires dedicated attention — APIs that serve institutional integrations are high-value targets with complex authorization requirements. <strong>Third</strong>, LTI integrations create a supply chain risk — you are sharing student data with every tool a professor installs, and the security of that data depends on the weakest LTI provider. <strong>Fourth</strong>, configuration complexity is a security risk — when non-technical administrators can make security-critical configuration decisions, the platform must make the secure choice the default and make dangerous configurations difficult.</p>
+      </div>
+
+      <h3>FERPA and COPPA Compliance for EdTech</h3>
+      <p><strong>FERPA</strong> (Family Educational Rights and Privacy Act) protects the privacy of student education records. Key requirements: schools must have written consent before disclosing PII from education records (with some exceptions for "school officials" with "legitimate educational interest"), students (or parents for minors) have the right to inspect and review their records, and schools must notify students annually of their FERPA rights.</p>
+      <p>For an EdTech vendor, FERPA compliance means: you are processing data as a "school official" under the school's direct control, you must not use student data for any purpose other than the educational purpose for which it was shared, you must protect the data with reasonable security measures, and you must return or destroy the data when the contract ends. Practically, this means your data processing agreement (DPA) with each institution must explicitly define the educational purpose, limit data use, and establish data retention and deletion procedures.</p>
+      <p><strong>COPPA</strong> (Children's Online Privacy Protection Act) applies when you collect personal information from children under 13. COPPA requires verifiable parental consent before collecting data from children, limits data collection to what is necessary, requires reasonable data security, and gives parents the right to review and delete their child's data. If your EdTech product serves K-12 students, COPPA likely applies. The FTC has been increasingly aggressive in COPPA enforcement, with fines reaching into the hundreds of millions (Epic Games paid $275M in 2022 for COPPA violations in Fortnite).</p>
+
+      <h4>Student Data Protection Checklist</h4>
+      <ul class="checklist">
+        <li>Sign a Data Processing Agreement (DPA) with every institution customer</li>
+        <li>Classify all student data by sensitivity level (PII, education records, behavioral data)</li>
+        <li>Encrypt student data at rest (AES-256) and in transit (TLS 1.2+)</li>
+        <li>Implement row-level security or tenant isolation at the database level</li>
+        <li>Audit all access to student data (who accessed what, when, why)</li>
+        <li>Implement data retention policies with automated deletion after contract end</li>
+        <li>Prohibit use of student data for advertising, marketing, or profiling</li>
+        <li>Ensure LTI integrations comply with your security standards</li>
+        <li>Conduct annual penetration tests focusing on multi-tenant data isolation</li>
+        <li>Maintain SOC 2 Type II with Privacy criteria included</li>
+        <li>Review compliance with state student privacy laws (all 50 states have them)</li>
+        <li>Implement Student Data Privacy Consortium (SDPC) National Data Privacy Agreement if selling to K-12</li>
+      </ul>
+
+      <h3>LTI Security Deep Dive</h3>
+      <p>LTI (Learning Tools Interoperability) is the lifeblood of the LMS ecosystem but also its greatest security challenge. Every LTI integration shares student identity data with a third-party tool. The typical data shared includes: student name, email, institutional ID, course enrollment, role (student, teacher, admin), and sometimes grades. This data flows to hundreds of third-party tools, each with their own security posture.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>json (LTI 1.3 launch JWT payload)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code>{
+  <span class="st">"iss"</span>: <span class="st">"https://canvas.instructure.com"</span>,
+  <span class="st">"sub"</span>: <span class="st">"user-12345"</span>,
+  <span class="st">"aud"</span>: <span class="st">"tool-client-id-abc"</span>,
+  <span class="st">"exp"</span>: <span class="nr">1719691200</span>,
+  <span class="st">"nonce"</span>: <span class="st">"unique-nonce-value"</span>,
+  <span class="st">"https://purl.imsglobal.org/spec/lti/claim/message_type"</span>: <span class="st">"LtiResourceLinkRequest"</span>,
+  <span class="st">"https://purl.imsglobal.org/spec/lti/claim/roles"</span>: [
+    <span class="st">"http://purl.imsglobal.org/vocab/lis/v2/membership#Learner"</span>
+  ],
+  <span class="st">"name"</span>: <span class="st">"Jane Student"</span>,
+  <span class="st">"email"</span>: <span class="st">"jane.student@university.edu"</span>,
+  <span class="st">"https://purl.imsglobal.org/spec/lti/claim/context"</span>: {
+    <span class="st">"id"</span>: <span class="st">"course-67890"</span>,
+    <span class="st">"title"</span>: <span class="st">"Introduction to Computer Science"</span>
+  }
+}</code></pre>
+      </div>
+
+      <p>Security risks in LTI integrations: shared secrets in LTI 1.1 can be compromised, tools may store student data beyond what is necessary, tools may share data with fourth parties, tools may have their own vulnerabilities, and there is no standardized way to audit what a tool does with the data it receives. Mitigation: migrate all integrations to LTI 1.3 (which uses public/private key pairs instead of shared secrets), maintain an inventory of all LTI tools and their data access, include security requirements in your LTI developer agreements, and periodically review tool vendor security practices.</p>
+
+      <h3>Multi-Tenant Security Architecture for an LMS</h3>
+      <p>If you are building (or evaluating) a multi-tenant EdTech platform, here are the security architecture principles that matter most:</p>
+      <ol>
+        <li><strong>Defense in depth for tenant isolation:</strong> Application-level tenant scoping is necessary but not sufficient. Add database-level row security policies (PostgreSQL Row-Level Security), separate encryption keys per tenant, and network-level isolation where possible.</li>
+        <li><strong>API rate limiting and abuse prevention:</strong> Per-tenant and per-user rate limits. Anomaly detection for unusual data access patterns (a student downloading every assignment in every course is suspicious).</li>
+        <li><strong>Granular audit logging:</strong> Log every data access event with tenant ID, user ID, resource accessed, action performed, timestamp, and source IP. This is not optional for FERPA compliance and is essential for incident investigation.</li>
+        <li><strong>Secure defaults:</strong> New institutional accounts should have the most restrictive settings by default. Administrators should have to explicitly opt into less secure configurations (never opt out of secure ones).</li>
+        <li><strong>Data residency:</strong> Some institutions (especially international ones) require data to be stored in specific geographic regions. Your architecture must support this without compromising security or performance.</li>
+      </ol>
+
+      <h3>Pen Testing an EdTech Platform: Checklist</h3>
+      <p>When commissioning a penetration test for an EdTech platform, ensure the scope includes these EdTech-specific test cases in addition to standard web application testing:</p>
+      <ul class="checklist">
+        <li>Cross-tenant data access (can Institution A's admin see Institution B's student records?)</li>
+        <li>Student-to-teacher privilege escalation (can a student modify grades, access answer keys?)</li>
+        <li>LTI launch manipulation (can an attacker forge LTI launches to impersonate users?)</li>
+        <li>API token scope validation (do API tokens respect the principle of least privilege?)</li>
+        <li>Bulk data export abuse (can a compromised account exfiltrate large volumes of student data?)</li>
+        <li>File upload security (can malicious files be uploaded and executed via assignment submissions?)</li>
+        <li>Course content injection (can an attacker inject malicious content into course materials?)</li>
+        <li>SSO/SAML bypass (can an attacker bypass institutional SSO to access accounts directly?)</li>
+        <li>Data deletion verification (when a contract ends, is student data actually deleted?)</li>
+        <li>Admin configuration abuse (can excessive admin permissions lead to data exposure?)</li>
+      </ul>
+
+      <h3>Board-Level Security Reporting Template</h3>
+      <p>As a CPTO, you will need to present security status to the board. Here is a template that communicates effectively to non-technical directors:</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>Board Security Report Template</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre class="code-block"><code><span class="cm">SECURITY POSTURE REPORT — Q2 2026</span>
+<span class="cm">Prepared for: Board of Directors</span>
+<span class="cm">Presented by: CPTO</span>
+
+<span class="fn">1. EXECUTIVE SUMMARY</span>
+   Overall Risk Rating: <span class="st">MODERATE</span> (improved from ELEVATED in Q1)
+   Key Achievement: Achieved SOC 2 Type II certification
+   Key Risk: 2 critical vulnerabilities in third-party LTI integrations
+   Budget Status: Security spend at $X (Y% of engineering budget)
+
+<span class="fn">2. THREAT LANDSCAPE</span>
+   - Ransomware attacks targeting EdTech up 45% YoY
+   - Two peer companies breached in Q2 (Company A, Company B)
+   - New state privacy regulation in [State] effective Q3
+
+<span class="fn">3. KEY METRICS</span>
+   Mean Time to Detect:    <span class="nr">4.2 hours</span>  (target: &lt;24h) <span class="at">GREEN</span>
+   Mean Time to Respond:   <span class="nr">2.1 hours</span>  (target: &lt;4h)  <span class="at">GREEN</span>
+   Crit Vuln Remediation:  <span class="nr">98%</span> in SLA (target: 95%)  <span class="at">GREEN</span>
+   Phishing Click Rate:    <span class="nr">3.2%</span>       (target: &lt;5%)  <span class="at">GREEN</span>
+   MFA Adoption:           <span class="nr">100%</span>       (target: 100%) <span class="at">GREEN</span>
+   Open Critical Vulns:    <span class="nr">2</span>          (target: 0)    <span class="st">YELLOW</span>
+
+<span class="fn">4. COMPLIANCE STATUS</span>
+   SOC 2 Type II:    <span class="at">CERTIFIED</span> (valid through March 2027)
+   FERPA:            <span class="at">COMPLIANT</span>
+   COPPA:            <span class="at">COMPLIANT</span>
+   ISO 27001:        <span class="st">IN PROGRESS</span> (target: Q4 2026)
+
+<span class="fn">5. TOP RISKS &amp; MITIGATIONS</span>
+   Risk 1: Third-party LTI tool with unpatched vulnerability
+   Impact: Potential exposure of 50K student records
+   Mitigation: Vendor notified, compensating control deployed,
+               30-day remediation deadline
+
+   Risk 2: Legacy authentication system approaching end-of-life
+   Impact: Delayed SSO migration for 200 institutional clients
+   Mitigation: Migration plan accelerated, additional resources allocated
+
+<span class="fn">6. BUDGET REQUEST</span>
+   Requesting $X for Q3:
+   - Penetration testing (annual): $40K
+   - Bug bounty program launch: $30K
+   - Security engineer headcount: $180K (annual)
+   Total incremental: $250K
+   ROI: Enables FedRAMP authorization, unlocking $2M federal pipeline</code></pre>
+      </div>
+
+      <h3>Building a Security Roadmap for an EdTech Company</h3>
+      <p>A practical 18-month security roadmap for a growing EdTech company, prioritized by risk reduction and revenue impact:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Quarter</th><th>Focus Area</th><th>Key Deliverables</th><th>Business Impact</th></tr>
+          <tr><td>Q1</td><td>Foundation</td><td>SSO + MFA for all employees, SAST/SCA in CI/CD, incident response plan, vulnerability management program launch</td><td>Blocks most common attack vectors, enables enterprise sales conversations</td></tr>
+          <tr><td>Q2</td><td>Compliance</td><td>SOC 2 Type I, DPA template, FERPA compliance documentation, privacy policy update, security page on website</td><td>Unblocks enterprise sales, reduces security questionnaire response time from weeks to days</td></tr>
+          <tr><td>Q3</td><td>Detection</td><td>SIEM deployment, log aggregation, monitoring dashboards, first penetration test, phishing simulation program</td><td>Reduces MTTD from "unknown" to measurable, builds board confidence</td></tr>
+          <tr><td>Q4</td><td>Maturity</td><td>SOC 2 Type II (begin observation), security champions program, Zero Trust Phase 1 (ZTNA pilot), bug bounty VDP</td><td>Type II observation starts, demonstrates continuous commitment to customers</td></tr>
+          <tr><td>Q5</td><td>Scale</td><td>Complete SOC 2 Type II, LTI security review, multi-tenant isolation hardening, data classification</td><td>SOC 2 Type II report available for customer requests, competitive differentiator</td></tr>
+          <tr><td>Q6</td><td>Advanced</td><td>ISO 27001 certification, FedRAMP readiness assessment, purple team exercise, Zero Trust Phase 2-3</td><td>International expansion enabled, federal market entry planned</td></tr>
+        </table>
+      </div>
+
+      <h4>Security Considerations for a CPTO Evaluating Instructure</h4>
+      <p>If you are a CPTO evaluating Instructure (Canvas) for your institution or considering it as a competitor, here are the specific security questions you should be asking and the areas you should be probing:</p>
+      <ul>
+        <li><strong>Multi-tenant isolation:</strong> Request details on how tenant data is isolated. Is it application-level only, or are there database-level controls (RLS, separate schemas)? What testing is done to verify isolation?</li>
+        <li><strong>API security:</strong> Review the Canvas API documentation for authorization controls. Are API tokens scoped to specific permissions? Is there rate limiting? Can institutional admins audit API usage?</li>
+        <li><strong>LTI integration security:</strong> What version of LTI is supported? Are institutions forced to use LTI 1.3, or can they still deploy LTI 1.1 integrations? Is there an LTI tool vetting process?</li>
+        <li><strong>SOC 2 report:</strong> Request the most recent SOC 2 Type II report. Review the auditor's opinion for qualified findings. Pay attention to the "system description" to understand what is actually in scope (hosted infrastructure? Customer-facing app only? Including LTI integrations?).</li>
+        <li><strong>Incident response:</strong> What is their SLA for notifying customers of a security incident? Is it in the contract? (FERPA requires "reasonable" notification, but the timeline is not defined.)</li>
+        <li><strong>Data processing agreement:</strong> Review the DPA carefully. Does it limit data use to educational purposes? Does it require data deletion at contract end? Does it allow Instructure to use de-identified student data for their own purposes?</li>
+        <li><strong>Penetration testing:</strong> Do they conduct annual third-party penetration tests? Will they share a summary of findings? Do they have a bug bounty program?</li>
+        <li><strong>Encryption:</strong> Is student data encrypted at rest? What key management approach is used? Is encryption per-tenant or per-deployment?</li>
+        <li><strong>Data residency:</strong> Where is student data stored geographically? Can it be restricted to specific regions for compliance?</li>
+        <li><strong>Subprocessor management:</strong> Who are their subprocessors (cloud providers, CDNs, analytics tools) that have access to student data? How are subprocessor changes communicated?</li>
+      </ul>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Key Takeaways: Module 10</div>
+        <p>EdTech security is uniquely challenging due to student data sensitivity, regulatory complexity (FERPA, COPPA), and the LTI supply chain risk. Multi-tenant isolation must be enforced at multiple layers. API security and LTI integration security deserve dedicated testing. When evaluating vendors like Instructure, request and review their SOC 2 Type II report, DPA, incident response SLA, and penetration test results. Use the board-level reporting template to communicate security posture effectively. Build a phased security roadmap that ties security investments to business outcomes (enterprise sales, compliance certifications, market expansion).</p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-celebration" id="footer-celebration">All 10 Modules Complete — You're Ready to Lead Security at Scale.</div>
+  <div class="footer-stats">Modules completed: <span id="completed-count">0</span> / 10</div>
+  <div class="footer-sub">Cybersecurity for Technology Leaders &mdash; Mustafa Furniturewala &mdash; June 2026</div>
+</footer>
+
+<script>
+const STORAGE_KEY = 'cybersecurity-tech-leaders-course-progress';
+const TOTAL_MODULES = 10;
+
+function loadProgress() { try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : {}; } catch { return {}; } }
+function saveProgress(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {} }
+
+function toggleModule(num) { const m = document.getElementById('module-' + num); if (m) m.classList.toggle('expanded'); }
+
+function toggleCheckbox(num) { const p = loadProgress(); const cb = document.querySelector('.module-checkbox[data-module="' + num + '"]'); if (!cb) return; p[num] = cb.checked; saveProgress(p); updateUI(); }
+
+function updateUI() {
+  const p = loadProgress(); let c = 0;
+  for (let i = 1; i <= TOTAL_MODULES; i++) {
+    const cb = document.querySelector('.module-checkbox[data-module="' + i + '"]');
+    const nl = document.querySelector('.nav-module-link[data-module="' + i + '"]');
+    if (cb) cb.checked = !!p[i];
+    if (nl) { if (p[i]) { nl.classList.add('completed'); c++; } else { nl.classList.remove('completed'); } }
+  }
+  const pb = document.getElementById('progress-bar'); if (pb) pb.style.width = ((c / TOTAL_MODULES) * 100) + '%';
+  const nc = document.getElementById('nav-completion'); if (nc) nc.textContent = c + '/' + TOTAL_MODULES;
+  const cc = document.getElementById('completed-count'); if (cc) cc.textContent = c;
+  const fc = document.getElementById('footer-celebration'); if (fc) { if (c === TOTAL_MODULES) fc.classList.add('visible'); else fc.classList.remove('visible'); }
+}
+
+function updateActiveModule() {
+  const mods = document.querySelectorAll('.module');
+  const links = document.querySelectorAll('.nav-module-link');
+  let active = '1';
+  mods.forEach(m => { if (m.getBoundingClientRect().top <= 120) active = m.dataset.module; });
+  links.forEach(l => { if (l.dataset.module === active) l.classList.add('active'); else l.classList.remove('active'); });
+}
+
+function copyCode(btn) {
+  const w = btn.closest('.code-block-wrapper');
+  const cb = w.querySelector('.code-block');
+  navigator.clipboard.writeText(cb.textContent).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); }).catch(() => { const t = document.createElement('textarea'); t.value = cb.textContent; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); });
+}
+
+function handleSearch(query) {
+  const results = document.getElementById('search-results');
+  if (!query || query.length < 2) { results.innerHTML = ''; return; }
+  const q = query.toLowerCase();
+  const items = [];
+  document.querySelectorAll('.module').forEach(mod => {
+    const num = mod.dataset.module;
+    const title = mod.querySelector('.module-title-text').textContent;
+    const body = mod.querySelector('.module-body');
+    if (!body) return;
+    const text = body.textContent;
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx !== -1) {
+      const start = Math.max(0, idx - 40);
+      const end = Math.min(text.length, idx + query.length + 40);
+      let snippet = (start > 0 ? '...' : '') + text.substring(start, end) + (end < text.length ? '...' : '');
+      snippet = snippet.replace(new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+      items.push('<div class="search-result-item" onclick="document.getElementById(\'module-' + num + '\').classList.add(\'expanded\'); document.getElementById(\'module-' + num + '\').scrollIntoView({behavior:\'smooth\', block:\'start\'})"><strong>Module ' + num + ': ' + title + '</strong><br>' + snippet + '</div>');
+    }
+  });
+  results.innerHTML = items.length ? items.join('') : '<div class="no-results">No results found</div>';
+}
+
+document.getElementById('hamburger').addEventListener('click', () => document.getElementById('nav-modules').classList.toggle('open'));
+document.querySelectorAll('.nav-module-link').forEach(l => l.addEventListener('click', () => document.getElementById('nav-modules').classList.remove('open')));
+let st; window.addEventListener('scroll', () => { if (st) cancelAnimationFrame(st); st = requestAnimationFrame(updateActiveModule); });
+updateUI(); updateActiveModule();
+</script>
+</body>
+</html>

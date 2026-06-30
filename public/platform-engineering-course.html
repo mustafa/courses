@@ -1,0 +1,2067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Platform Engineering — Mustafa Furniturewala</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0f1a; --bg-secondary: #0d1117; --bg-tertiary: #131a2b; --bg-code: #1a1a2e;
+  --text: #e2e8f0; --text-secondary: #94a3b8; --text-muted: #64748b;
+  --accent: #f97316; --accent-dim: #c2410c; --accent-glow: rgba(249, 115, 22, 0.15);
+  --border: #1e293b; --border-light: #334155;
+  --success: #22c55e; --error: #ef4444; --warning: #eab308;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.75; font-size: 17px; min-height: 100vh; }
+#progress-bar-container { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: var(--bg-secondary); z-index: 1001; }
+#progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #fb923c); width: 0%; transition: width 0.4s ease; }
+.top-nav { position: fixed; top: 4px; left: 0; right: 0; background: rgba(10,15,26,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); z-index: 1000; padding: 0; }
+.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; padding: 0 1.5rem; height: 52px; }
+.nav-brand { font-weight: 700; color: var(--accent); margin-right: 1.5rem; font-size: 0.95rem; white-space: nowrap; }
+.nav-modules { display: flex; gap: 0.25rem; flex: 1; justify-content: center; }
+.nav-module-link { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: var(--bg-secondary); color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; position: relative; border: 1px solid transparent; }
+.nav-module-link:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-light); }
+.nav-module-link.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.nav-module-link.completed::after { content: ''; position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; background: var(--success); border-radius: 50%; border: 2px solid var(--bg); }
+.hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; padding: 0.25rem; }
+.nav-completion { font-size: 0.8rem; color: var(--text-muted); margin-left: 1rem; white-space: nowrap; }
+.hero { padding: 8rem 1.5rem 4rem; text-align: center; max-width: 900px; margin: 0 auto; border-bottom: 1px solid var(--border); }
+.hero-eyebrow { text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 1rem; }
+.hero h1 { font-size: clamp(2rem,5vw,3.2rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-subtitle { font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2rem; font-style: italic; }
+.hero-meta { display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+.hero-meta-item { font-size: 0.9rem; color: var(--text-muted); }
+.hero-meta-item strong { color: var(--text-secondary); }
+.hero-description { font-size: 1.05rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto; line-height: 1.8; }
+.content-wrapper { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.module { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-secondary); }
+.module-header { display: flex; align-items: center; padding: 1rem 1.25rem; cursor: pointer; user-select: none; background: var(--bg-secondary); transition: background 0.2s; gap: 0.75rem; }
+.module-header:hover { background: var(--bg-tertiary); }
+.module-checkbox { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border: 2px solid var(--border-light); border-radius: 6px; cursor: pointer; flex-shrink: 0; position: relative; transition: all 0.2s; background: transparent; }
+.module-checkbox:checked { background: var(--accent); border-color: var(--accent); }
+.module-checkbox:checked::after { content: '\2713'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #fff; font-size: 14px; font-weight: 700; }
+.module-number { background: var(--accent); color: #fff; width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+.module-title-text { flex: 1; font-weight: 700; font-size: 1.1rem; }
+.module-chevron { font-size: 1rem; color: var(--text-muted); transition: transform 0.3s ease; flex-shrink: 0; }
+.module.expanded .module-chevron { transform: rotate(180deg); }
+.module-body { display: none; padding: 0.5rem 1.5rem 2rem; border-top: 1px solid var(--border); }
+.module.expanded .module-body { display: block; }
+.module-body h3 { font-size: 1.3rem; font-weight: 700; margin: 2rem 0 0.75rem; color: var(--text); }
+.module-body h4 { font-size: 1.1rem; font-weight: 600; margin: 1.5rem 0 0.5rem; color: var(--accent); }
+.module-body p { margin-bottom: 1rem; color: var(--text-secondary); }
+.module-body ul, .module-body ol { margin: 0.5rem 0 1rem 1.5rem; color: var(--text-secondary); }
+.module-body li { margin-bottom: 0.4rem; }
+.module-body strong { color: var(--text); }
+.module-body em { color: var(--accent); font-style: italic; }
+.code-block-wrapper { position: relative; margin: 1.25rem 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); border-left: 3px solid var(--accent); }
+.code-block-header { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.75rem; background: #12122a; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); }
+.copy-btn { background: var(--bg-tertiary); color: var(--text-muted); border: 1px solid var(--border-light); padding: 0.2rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.72rem; font-family: var(--font-sans); transition: all 0.2s; }
+.copy-btn:hover { color: var(--text); border-color: var(--accent); }
+.code-block { background: var(--bg-code); padding: 1rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.6; color: #c9d1d9; }
+.code-block code { font-family: inherit; }
+.kw { color: #ff79c6; } .fn { color: #50fa7b; } .st { color: #f1fa8c; } .cm { color: #6272a4; font-style: italic; } .nb { color: #8be9fd; } .op { color: #ff79c6; } .dc { color: #bd93f9; } .nr { color: #bd93f9; } .im { color: #ff79c6; } .se { color: #8be9fd; } .at { color: #50fa7b; }
+.module-body code { background: var(--bg-code); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: #fb923c; }
+.table-wrapper { overflow-x: auto; margin: 1.25rem 0; border-radius: 8px; border: 1px solid var(--border); }
+.table-wrapper table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 600px; }
+.table-wrapper th { background: var(--accent); color: #fff; padding: 0.7rem 0.75rem; text-align: left; font-weight: 600; white-space: nowrap; }
+.table-wrapper td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); color: var(--text-secondary); }
+.table-wrapper tr:nth-child(even) td { background: var(--bg-secondary); }
+.table-wrapper tr:nth-child(odd) td { background: var(--bg-tertiary); }
+.callout { padding: 1.25rem 1.5rem; border-radius: 8px; margin: 1.5rem 0; border-left: 4px solid var(--accent); background: var(--accent-glow); }
+.callout-title { font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; font-size: 0.95rem; }
+.callout p { color: var(--text-secondary); margin-bottom: 0.5rem; }
+.callout p:last-child { margin-bottom: 0; }
+.callout-warning { border-left-color: var(--warning); background: rgba(234,179,8,0.08); }
+.callout-warning .callout-title { color: var(--warning); }
+.callout-error { border-left-color: var(--error); background: rgba(239,68,68,0.08); }
+.callout-error .callout-title { color: var(--error); }
+.callout-success { border-left-color: var(--success); background: rgba(34,197,94,0.08); }
+.callout-success .callout-title { color: var(--success); }
+.ascii-diagram { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.4; color: var(--accent); margin: 1.25rem 0; white-space: pre; }
+.footer { border-top: 1px solid var(--border); padding: 3rem 1.5rem; text-align: center; max-width: 900px; margin: 0 auto; }
+.footer-stats { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; }
+.footer-celebration { display: none; font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+.footer-celebration.visible { display: block; }
+.footer-sub { color: var(--text-muted); font-size: 0.8rem; }
+.search-container { position: relative; margin-bottom: 2rem; }
+.search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; font-family: var(--font-sans); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--accent); }
+.search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.95rem; pointer-events: none; }
+.search-results { margin-top: 0.5rem; }
+.search-result-item { padding: 0.5rem 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.25rem; cursor: pointer; font-size: 0.85rem; color: var(--text-secondary); transition: all 0.2s; }
+.search-result-item:hover { border-color: var(--accent); color: var(--text); }
+.search-result-item mark { background: var(--accent); color: #fff; padding: 0 2px; border-radius: 2px; }
+.no-results { color: var(--text-muted); font-size: 0.85rem; padding: 0.5rem; }
+.checklist { list-style: none; margin: 0.5rem 0; padding: 0; }
+.checklist li { padding: 0.3rem 0; padding-left: 1.5rem; position: relative; }
+.checklist li::before { content: '\25A1'; position: absolute; left: 0; color: var(--accent); font-size: 1rem; }
+@media (max-width: 768px) {
+  .nav-modules { display: none; }
+  .nav-modules.open { display: flex; flex-wrap: wrap; position: absolute; top: 52px; left: 0; right: 0; background: var(--bg-secondary); padding: 1rem; border-bottom: 1px solid var(--border); gap: 0.5rem; justify-content: center; }
+  .hamburger { display: block; margin-left: auto; }
+  .nav-completion { display: none; }
+  .nav-brand { font-size: 0.85rem; }
+  .hero { padding: 6rem 1rem 2.5rem; }
+  .hero h1 { font-size: 1.8rem; }
+  .hero-meta { gap: 1rem; }
+  .content-wrapper { padding: 1rem; }
+  .module-body { padding: 0.5rem 1rem 1.5rem; }
+  .module-title-text { font-size: 0.95rem; }
+  body { font-size: 16px; }
+}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::selection { background: var(--accent); color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<nav class="top-nav">
+  <div class="nav-inner">
+    <span class="nav-brand">Platform Eng</span>
+    <div class="nav-modules" id="nav-modules">
+      <a href="#module-1" class="nav-module-link" data-module="1">1</a>
+      <a href="#module-2" class="nav-module-link" data-module="2">2</a>
+      <a href="#module-3" class="nav-module-link" data-module="3">3</a>
+      <a href="#module-4" class="nav-module-link" data-module="4">4</a>
+      <a href="#module-5" class="nav-module-link" data-module="5">5</a>
+      <a href="#module-6" class="nav-module-link" data-module="6">6</a>
+      <a href="#module-7" class="nav-module-link" data-module="7">7</a>
+      <a href="#module-8" class="nav-module-link" data-module="8">8</a>
+      <a href="#module-9" class="nav-module-link" data-module="9">9</a>
+      <a href="#module-10" class="nav-module-link" data-module="10">10</a>
+    </div>
+    <button class="hamburger" id="hamburger">&#9776;</button>
+    <span class="nav-completion" id="nav-completion">0/10</span>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-eyebrow">Comprehensive Technical Course</div>
+  <h1>Platform Engineering</h1>
+  <p class="hero-subtitle">Building the Developer Experience That Ships Software Faster</p>
+  <div class="hero-meta">
+    <span class="hero-meta-item"><strong>Author:</strong> Mustafa Furniturewala</span>
+    <span class="hero-meta-item"><strong>Level:</strong> VP / Staff+ Engineering</span>
+    <span class="hero-meta-item"><strong>Reading Time:</strong> ~3 hours</span>
+    <span class="hero-meta-item"><strong>Updated:</strong> June 2026</span>
+  </div>
+  <p class="hero-description">Platform engineering is the discipline of building and operating internal developer platforms that reduce cognitive load, eliminate toil, and accelerate software delivery. This course covers the full spectrum: from foundational concepts and Internal Developer Platforms to CI/CD architecture, Infrastructure as Code, Kubernetes in production, observability, SRE practices, build systems, feature flags, and zero-downtime database migrations. Everything a senior engineering leader needs to build world-class developer platforms.</p>
+</header>
+
+<main class="content-wrapper">
+
+  <div class="search-container">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" class="search-input" placeholder="Search across all modules..." oninput="handleSearch(this.value)">
+    <div class="search-results" id="search-results"></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 1 -->
+  <!-- ============================================================ -->
+  <div class="module expanded" id="module-1" data-module="1">
+    <div class="module-header" onclick="toggleModule(1)">
+      <input type="checkbox" class="module-checkbox" data-module="1" onclick="event.stopPropagation(); toggleCheckbox(1)">
+      <div class="module-number">1</div>
+      <span class="module-title-text">The Rise of Platform Engineering</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>What Is Platform Engineering, Really?</h3>
+      <p>Let's start with the question everyone asks: isn't this just DevOps with a fancier name? The short answer is no. The longer answer requires understanding why DevOps, despite its noble goals, left a gap that platform engineering was born to fill.</p>
+      <p>DevOps promised to break down the wall between development and operations. The idea was sound: "you build it, you run it." But in practice, that mantra often translated to "you build it, you also figure out Kubernetes, Terraform, Helm, ArgoCD, Datadog, PagerDuty, and seventeen other tools before your code reaches production." The cognitive load on individual developers became crushing.</p>
+      <p>Platform engineering is the discipline of <strong>designing and building self-service toolchains and workflows</strong> that enable software engineering organizations to ship faster while maintaining operational excellence. It treats the internal developer experience as a product, complete with user research, roadmaps, and success metrics. The platform team's customers are the application developers within the organization.</p>
+
+      <div class="callout">
+        <div class="callout-title">Key Distinction</div>
+        <p>DevOps is a <strong>culture and set of practices</strong>. Platform engineering is a <strong>discipline that operationalizes</strong> those practices into self-service capabilities. SRE focuses on <strong>reliability</strong>. Platform engineering focuses on <strong>developer productivity and experience</strong>. All three coexist. None replaces the others.</p>
+      </div>
+
+      <h3>The Cognitive Load Thesis</h3>
+      <p>The intellectual foundation of platform engineering comes from <em>Team Topologies</em> by Matthew Skelton and Manuel Pais. Their core argument is powerful: every team has a finite cognitive load budget. When that budget is consumed by infrastructure complexity, there's nothing left for solving business problems.</p>
+      <p>Team Topologies identifies four fundamental team types: <strong>stream-aligned teams</strong> (building features), <strong>enabling teams</strong> (helping stream-aligned teams adopt new capabilities), <strong>complicated-subsystem teams</strong> (managing complex domains like ML or video encoding), and <strong>platform teams</strong> (providing self-service internal capabilities). The platform team exists to <em>reduce the cognitive load</em> on stream-aligned teams by abstracting away infrastructure complexity behind simple, self-service interfaces.</p>
+      <p>Think of it this way: a stream-aligned team building a checkout flow shouldn't need to know whether their database runs on RDS or Aurora, whether their containers are scheduled by ECS or Kubernetes, or how their logs get from a container sidecar to a Grafana dashboard. They need to know: "I push code, it deploys. I query metrics, they're there. I need a database, I click a button." That's the platform's job.</p>
+
+      <h3>Platform as a Product</h3>
+      <p>The most important mindset shift in platform engineering is treating your platform as a product. This isn't a metaphor. It's literal. You need product management, user research, roadmaps, success metrics, feedback loops, and a relentless focus on adoption.</p>
+
+      <h4>What "Product Thinking" Actually Means for Platforms</h4>
+      <ul>
+        <li><strong>User research:</strong> Conduct developer surveys, shadowing sessions, and interviews. What are the pain points? Where do developers get stuck? What tasks take disproportionate time?</li>
+        <li><strong>Roadmapping:</strong> Prioritize platform capabilities based on developer impact, not technical elegance. A beautiful service mesh matters nothing if developers can't deploy without filing a Jira ticket.</li>
+        <li><strong>Adoption metrics:</strong> Track adoption like a SaaS product. If you build a golden path template and only 30% of teams use it, that's a product failure, not a developer failure.</li>
+        <li><strong>Support model:</strong> Define SLAs for your platform. If a developer can't deploy because your CI system is down, that's an incident with real business cost.</li>
+        <li><strong>Documentation and onboarding:</strong> If your platform requires a 2-hour training session to use, it's too complex. The best platforms are discoverable.</li>
+      </ul>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">Anti-Pattern: The "Mandate" Platform</div>
+        <p>The fastest way to kill platform adoption is to mandate it. If your platform is so good that developers <em>want</em> to use it, you won't need mandates. If you need mandates, your platform isn't good enough yet. Mandating a bad platform creates shadow IT, workarounds, and resentment. Build something people choose.</p>
+      </div>
+
+      <h3>The Paved Road Philosophy</h3>
+      <p>Netflix popularized the concept of the "paved road." The idea is straightforward: instead of building walls (you <em>must</em> use this), build roads (this is the <em>easiest</em> path). A paved road is a supported, well-tested, well-documented path for accomplishing a common task. Developers are free to go off-road, but they take on the maintenance burden themselves.</p>
+      <p>For example, at Netflix, the paved road for deploying a JVM service includes Spinnaker for deployment, Atlas for metrics, and a standard base image. You <em>can</em> deploy a Go service with a custom pipeline, but you'll be responsible for your own deployment tooling, metric instrumentation, and base image maintenance. Most teams, rationally, choose the paved road.</p>
+      <p>This philosophy is critical because it respects developer autonomy while channeling behavior toward supported patterns. It also gives the platform team a clear mandate: make the paved road so smooth that going off-road feels like unnecessary friction.</p>
+
+      <h3>Backstage and the IDP Movement</h3>
+      <p>Spotify's open-sourcing of Backstage in 2020 was a watershed moment. For the first time, there was an open-source framework for building Internal Developer Portals (IDPs). Backstage provides a software catalog, TechDocs integration, a scaffolder for creating new services from templates, and a plugin architecture that lets you integrate everything from CI/CD status to cloud costs.</p>
+      <p>The broader IDP movement goes beyond Backstage. Companies like Humanitec, Port, and Cortex are building commercial platforms. The core insight they all share: <strong>developers need a single pane of glass</strong> that shows them everything about their services, from code to cloud.</p>
+
+      <div class="ascii-diagram">
+  Platform Engineering Ecosystem
+  ================================
+
+  Developers          Platform Team           Infrastructure
+  +----------+       +-----------------+      +------------------+
+  |          |       |                 |      |                  |
+  | Feature  |------>| Internal Dev    |----->| Cloud Provider   |
+  | Code     |       | Platform (IDP)  |      | (AWS/GCP/Azure)  |
+  |          |       |                 |      |                  |
+  | git push |       | - Service       |      | - Kubernetes     |
+  |          |       |   Catalog       |      | - Databases      |
+  | Self-    |       | - Golden Paths  |      | - Networking     |
+  | Service  |<------| - CI/CD         |      | - Storage        |
+  | Portal   |       | - Observability |      | - IAM            |
+  +----------+       | - Docs          |      +------------------+
+                     +-----------------+
+                           |
+                     Reduces Cognitive
+                     Load on Developers</div>
+
+      <h3>Why Now? The Cloud Complexity Explosion</h3>
+      <p>AWS alone has over 200 services. A typical modern application might use EKS for compute, RDS for relational data, DynamoDB for NoSQL, S3 for objects, SQS for queuing, Lambda for serverless functions, CloudFront for CDN, Route53 for DNS, ACM for certificates, IAM for access control, CloudWatch for monitoring, and KMS for encryption. That's twelve services for one application. And that's before adding CI/CD, feature flags, secret management, and cost optimization.</p>
+      <p>The complexity has exceeded what individual developers can reasonably manage. In 2015, a senior developer could plausibly understand the full stack from code to production. In 2026, that's no longer realistic. The surface area is simply too large. Platform engineering is the organizational response to this complexity explosion.</p>
+
+      <h3>When Do You Need a Platform Team?</h3>
+      <p>Not every organization needs a dedicated platform team. Here's a rough heuristic:</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Org Size</th><th>Engineering Teams</th><th>Platform Approach</th></tr>
+          <tr><td>Startup (5-20 eng)</td><td>1-3</td><td>No dedicated platform team. Senior engineers set conventions. Use managed services heavily.</td></tr>
+          <tr><td>Growth (20-80 eng)</td><td>3-10</td><td>1-2 platform engineers embedded. Start with CI/CD and deployment standardization.</td></tr>
+          <tr><td>Scale-up (80-300 eng)</td><td>10-30</td><td>Dedicated platform team (4-8 people). Build IDP, golden paths, self-service infra.</td></tr>
+          <tr><td>Enterprise (300+ eng)</td><td>30+</td><td>Platform organization (multiple teams). Platform as a product with PM, design, and engineering.</td></tr>
+        </table>
+      </div>
+
+      <h3>Platform Team Anti-Patterns</h3>
+      <p>Before we dive into the technical details in subsequent modules, let's catalog the ways platform teams fail. Knowing the failure modes is as important as knowing the success patterns.</p>
+      <ol>
+        <li><strong>The Ivory Tower:</strong> Building a platform without talking to developers. You'll create something technically impressive that nobody uses because it doesn't solve real problems.</li>
+        <li><strong>The Ticket Queue:</strong> Becoming an ops team that just fulfills infrastructure requests. If developers still need to file tickets for basic tasks, you haven't built a platform. You've built a help desk.</li>
+        <li><strong>The Big Bang:</strong> Trying to build the entire platform before launching anything. Ship the smallest valuable increment. A working CI pipeline for one language is better than a half-built IDP for all languages.</li>
+        <li><strong>The Technology Showcase:</strong> Choosing tools because they're interesting rather than because they solve developer problems. Your Kubernetes migration doesn't matter if developers can't ship features.</li>
+        <li><strong>The Missing Feedback Loop:</strong> Not measuring adoption, satisfaction, or developer productivity. Without metrics, you're guessing at impact.</li>
+      </ol>
+
+      <div class="callout callout-success">
+        <div class="callout-title">The Golden Rule of Platform Engineering</div>
+        <p>If a developer needs to understand the implementation details of your platform to use it, your abstraction is leaking. The best platform capabilities are boring to use. Push code, it deploys. Need a database, click a button. Check metrics, they're there. No Slack threads required.</p>
+      </div>
+
+      <h4>Measuring Platform Success</h4>
+      <p>The DORA metrics (Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery) remain the gold standard for measuring software delivery performance. A successful platform should measurably improve all four. Additionally, track platform-specific metrics: time to first deployment for new engineers, number of support tickets per developer per month, percentage of teams on the golden path, and developer satisfaction scores (measured quarterly via surveys).</p>
+      <p>Platform engineering is not just a technical discipline. It's an organizational strategy. In the following modules, we'll go deep into each component of a world-class platform, from IDPs and CI/CD to Kubernetes, observability, and beyond. Every module is written from the perspective of what a VP or Staff+ engineer needs to know to make sound platform decisions.</p>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 2 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-2" data-module="2">
+    <div class="module-header" onclick="toggleModule(2)">
+      <input type="checkbox" class="module-checkbox" data-module="2" onclick="event.stopPropagation(); toggleCheckbox(2)">
+      <div class="module-number">2</div>
+      <span class="module-title-text">Internal Developer Platforms (IDP)</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>What Makes a Good IDP?</h3>
+      <p>An Internal Developer Platform is the sum of all the technology and tooling that a platform team provides to developers. It's not a single product you install. It's an integrated set of capabilities that, taken together, create a self-service developer experience. The best IDPs share common characteristics: they are <strong>self-service</strong> (no tickets needed), <strong>opinionated but flexible</strong> (golden paths with escape hatches), <strong>composable</strong> (built from best-of-breed components), and <strong>observable</strong> (you can see what's happening at every stage).</p>
+      <p>Think of an IDP as having five layers: the <strong>developer portal</strong> (the UI), <strong>service catalog</strong> (what exists), <strong>golden paths</strong> (how to create things), <strong>infrastructure orchestration</strong> (how things are provisioned), and <strong>observability integration</strong> (how to see what's happening). Each layer builds on the ones below it.</p>
+
+      <h3>Backstage Deep Dive</h3>
+      <p>Backstage, originally developed at Spotify, is the most widely adopted open-source framework for building developer portals. It was born from Spotify's experience managing 2,000+ microservices with hundreds of engineering teams. The core problem: nobody could find anything. Who owns this service? Where are the docs? What's the deployment status? What APIs does it expose? Backstage answers all of these questions through a unified portal.</p>
+
+      <h4>Architecture</h4>
+      <p>Backstage is a React frontend with a Node.js backend. It uses a plugin architecture that's core to its extensibility. The backend connects to a PostgreSQL database for the software catalog and can integrate with virtually any external system through plugins.</p>
+
+      <div class="ascii-diagram">
+  Backstage Architecture
+  =======================
+
+  +-------------------+     +-------------------+
+  |   React Frontend  |     |  Plugin Frontend  |
+  |   (Core UI)       |     |  (Custom Views)   |
+  +--------+----------+     +--------+----------+
+           |                          |
+           +----------+  +-----------+
+                      |  |
+              +-------v--v--------+
+              |  Backstage Backend |
+              |  (Node.js)         |
+              +---+---+---+---+---+
+                  |   |   |   |
+        +---------+   |   |   +---------+
+        |             |   |             |
+  +-----v-----+ +----v---v--+ +--------v-------+
+  | PostgreSQL | | GitHub    | | Cloud Provider |
+  | (Catalog)  | | (SCM)     | | APIs           |
+  +------------+ +-----------+ +----------------+</div>
+
+      <h4>The Software Catalog</h4>
+      <p>The software catalog is Backstage's most important feature. It provides a centralized registry of all software components, APIs, resources, and their relationships. Every entity in the catalog is described by a YAML descriptor file that lives alongside the code:</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>catalog-info.yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">apiVersion</span>: backstage.io/v1alpha1
+<span class="at">kind</span>: Component
+<span class="at">metadata</span>:
+  <span class="at">name</span>: <span class="st">payment-service</span>
+  <span class="at">description</span>: <span class="st">Handles payment processing and billing</span>
+  <span class="at">annotations</span>:
+    <span class="st">github.com/project-slug</span>: <span class="st">myorg/payment-service</span>
+    <span class="st">backstage.io/techdocs-ref</span>: <span class="st">dir:.</span>
+    <span class="st">pagerduty.com/service-id</span>: <span class="st">P1234AB</span>
+    <span class="st">datadog.com/dashboard-url</span>: <span class="st">https://app.datadoghq.com/dash/12345</span>
+  <span class="at">tags</span>:
+    - <span class="st">python</span>
+    - <span class="st">grpc</span>
+    - <span class="st">payments</span>
+  <span class="at">links</span>:
+    - <span class="at">url</span>: <span class="st">https://runbooks.internal/payment-service</span>
+      <span class="at">title</span>: <span class="st">Runbook</span>
+      <span class="at">icon</span>: <span class="st">dashboard</span>
+<span class="at">spec</span>:
+  <span class="at">type</span>: <span class="st">service</span>
+  <span class="at">lifecycle</span>: <span class="st">production</span>
+  <span class="at">owner</span>: <span class="st">team-payments</span>
+  <span class="at">system</span>: <span class="st">billing</span>
+  <span class="at">dependsOn</span>:
+    - <span class="st">resource:payments-db</span>
+    - <span class="st">component:user-service</span>
+  <span class="at">providesApis</span>:
+    - <span class="st">payment-api</span>
+  <span class="at">consumesApis</span>:
+    - <span class="st">stripe-api</span></code></div>
+      </div>
+
+      <h4>The Scaffolder (Golden Path Templates)</h4>
+      <p>The Scaffolder lets platform teams define templates that developers use to create new services, libraries, or infrastructure. This is where "golden paths" come to life. Instead of copying an old repo and deleting half the files, developers fill out a form and get a fully configured, production-ready service.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>template.yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">apiVersion</span>: scaffolder.backstage.io/v1beta3
+<span class="at">kind</span>: Template
+<span class="at">metadata</span>:
+  <span class="at">name</span>: <span class="st">python-grpc-service</span>
+  <span class="at">title</span>: <span class="st">Python gRPC Service</span>
+  <span class="at">description</span>: <span class="st">Creates a new Python gRPC service with CI/CD, observability, and database setup</span>
+<span class="at">spec</span>:
+  <span class="at">owner</span>: <span class="st">platform-team</span>
+  <span class="at">type</span>: <span class="st">service</span>
+  <span class="at">parameters</span>:
+    - <span class="at">title</span>: <span class="st">Service Details</span>
+      <span class="at">required</span>: [<span class="st">name</span>, <span class="st">owner</span>, <span class="st">system</span>]
+      <span class="at">properties</span>:
+        <span class="at">name</span>:
+          <span class="at">title</span>: <span class="st">Service Name</span>
+          <span class="at">type</span>: <span class="st">string</span>
+          <span class="at">pattern</span>: <span class="st">'^[a-z][a-z0-9-]*$'</span>
+        <span class="at">owner</span>:
+          <span class="at">title</span>: <span class="st">Owner Team</span>
+          <span class="at">type</span>: <span class="st">string</span>
+          <span class="at">ui:field</span>: <span class="st">OwnerPicker</span>
+        <span class="at">system</span>:
+          <span class="at">title</span>: <span class="st">System</span>
+          <span class="at">type</span>: <span class="st">string</span>
+          <span class="at">ui:field</span>: <span class="st">EntityPicker</span>
+    - <span class="at">title</span>: <span class="st">Infrastructure</span>
+      <span class="at">properties</span>:
+        <span class="at">database</span>:
+          <span class="at">title</span>: <span class="st">Database Type</span>
+          <span class="at">type</span>: <span class="st">string</span>
+          <span class="at">enum</span>: [<span class="st">postgres</span>, <span class="st">mysql</span>, <span class="st">none</span>]
+          <span class="at">default</span>: <span class="st">postgres</span>
+  <span class="at">steps</span>:
+    - <span class="at">id</span>: <span class="st">fetch-template</span>
+      <span class="at">name</span>: <span class="st">Fetch Skeleton</span>
+      <span class="at">action</span>: <span class="st">fetch:template</span>
+      <span class="at">input</span>:
+        <span class="at">url</span>: <span class="st">./skeleton</span>
+        <span class="at">values</span>:
+          <span class="at">name</span>: <span class="st">${{ parameters.name }}</span>
+    - <span class="at">id</span>: <span class="st">publish</span>
+      <span class="at">name</span>: <span class="st">Create GitHub Repository</span>
+      <span class="at">action</span>: <span class="st">publish:github</span>
+      <span class="at">input</span>:
+        <span class="at">repoUrl</span>: <span class="st">github.com?owner=myorg&repo=${{ parameters.name }}</span>
+    - <span class="at">id</span>: <span class="st">register</span>
+      <span class="at">name</span>: <span class="st">Register in Catalog</span>
+      <span class="at">action</span>: <span class="st">catalog:register</span>
+      <span class="at">input</span>:
+        <span class="at">repoContentsUrl</span>: <span class="st">${{ steps.publish.output.repoContentsUrl }}</span>
+        <span class="at">catalogInfoPath</span>: <span class="st">/catalog-info.yaml</span></code></div>
+      </div>
+
+      <h3>Build vs. Buy: The IDP Decision Matrix</h3>
+      <p>Should you build your IDP on Backstage, buy a commercial solution like Port or Humanitec, or build something entirely custom? This decision depends on your team's capabilities, timeline, and specific needs.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Factor</th><th>Backstage (Open Source)</th><th>Port / Cortex (Commercial)</th><th>Humanitec (Commercial)</th></tr>
+          <tr><td>Initial Setup Cost</td><td>High (significant engineering investment)</td><td>Low (SaaS, quick start)</td><td>Medium (integration needed)</td></tr>
+          <tr><td>Customizability</td><td>Unlimited (you own the code)</td><td>High (API-driven, flexible model)</td><td>Medium (opinionated platform)</td></tr>
+          <tr><td>Maintenance Burden</td><td>High (upgrades, plugins, hosting)</td><td>Low (managed service)</td><td>Low (managed service)</td></tr>
+          <tr><td>Software Catalog</td><td>Excellent (core feature)</td><td>Excellent (core feature)</td><td>Good (focused on infra)</td></tr>
+          <tr><td>Infrastructure Orchestration</td><td>Plugin-based (varies)</td><td>Good (scorecards, actions)</td><td>Excellent (core feature)</td></tr>
+          <tr><td>Best For</td><td>Large orgs with platform engineers</td><td>Mid-size orgs wanting quick wins</td><td>Orgs focused on infra self-service</td></tr>
+        </table>
+      </div>
+
+      <h3>IDP Maturity Model</h3>
+      <p>Not every organization starts at the same level. Here's a maturity model for IDP adoption:</p>
+      <ol>
+        <li><strong>Level 0 - Ad Hoc:</strong> No standardized tooling. Each team manages its own CI/CD, infrastructure, and deployment. Knowledge lives in individual heads. New service creation takes days or weeks.</li>
+        <li><strong>Level 1 - Standardized:</strong> Common CI/CD pipeline exists. Basic deployment automation. Shared infrastructure templates. Service creation takes hours to a day.</li>
+        <li><strong>Level 2 - Self-Service:</strong> Developer portal exists. Golden path templates for common patterns. Self-service infrastructure provisioning. Service creation takes minutes.</li>
+        <li><strong>Level 3 - Optimized:</strong> Full IDP with software catalog, automated compliance, cost visibility, and integrated observability. Developer satisfaction is measured and improved. Service creation is measured in minutes with full production readiness.</li>
+        <li><strong>Level 4 - Autonomous:</strong> Platform capabilities are AI-augmented. Automated remediation, predictive scaling, intelligent routing. The platform continuously improves itself based on usage patterns.</li>
+      </ol>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Real-World Example: Zalando</div>
+        <p>Zalando's platform team serves 500+ engineering teams. Their IDP includes automated Kubernetes namespace provisioning, a service catalog with 2,000+ microservices, golden path templates for Java and Python services, integrated CI/CD with automated security scanning, and self-service database provisioning. New developers can deploy their first service to production within their first day. That's the benchmark.</p>
+      </div>
+
+      <h3>The Service Catalog: Your Single Source of Truth</h3>
+      <p>A service catalog answers the most fundamental questions in a microservices architecture: What services exist? Who owns them? What do they depend on? Are they healthy? Where are the docs? Without a catalog, these questions devolve into Slack threads, tribal knowledge, and archaeological digs through GitHub.</p>
+      <p>An effective service catalog must be <strong>automatically populated</strong> (not manually maintained), <strong>always up-to-date</strong> (synced from source control and runtime), <strong>relationship-aware</strong> (shows dependencies and dependents), and <strong>actionable</strong> (links directly to dashboards, runbooks, and deployment tools). If developers have to manually update the catalog, it will rot within weeks. Automate everything.</p>
+
+      <h4>Golden Paths in Practice</h4>
+      <p>A golden path is more than a template. It's a complete, supported workflow that takes a developer from "I have an idea" to "my service is running in production." A well-designed golden path includes: a project template with sensible defaults (logging, health checks, metrics instrumentation, Dockerfile, CI/CD config), automated repository creation with branch protection rules, CI/CD pipeline configuration, infrastructure provisioning (database, cache, message queue), observability setup (dashboards, alerts, SLO definitions), documentation scaffolding, and catalog registration. The key is that all of this happens in one click. The developer fills out a form (service name, team, language, database type) and everything else is automated.</p>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 3 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-3" data-module="3">
+    <div class="module-header" onclick="toggleModule(3)">
+      <input type="checkbox" class="module-checkbox" data-module="3" onclick="event.stopPropagation(); toggleCheckbox(3)">
+      <div class="module-number">3</div>
+      <span class="module-title-text">CI/CD Pipeline Architecture</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>The Modern CI/CD Landscape</h3>
+      <p>CI/CD is the backbone of any platform. It's the system that transforms developer intent (a git push) into running software (a production deployment). Getting this right has an outsized impact on developer productivity. A slow or unreliable pipeline is a daily tax on every engineer in the organization.</p>
+      <p>The CI/CD landscape has consolidated significantly. GitHub Actions has become the dominant player for GitHub-hosted repositories, with GitLab CI leading for GitLab shops. Jenkins, while still widely deployed, is increasingly viewed as legacy. CircleCI and Travis CI have lost significant market share. The trend is clear: CI/CD is moving toward tighter integration with source control platforms.</p>
+
+      <h3>GitHub Actions Deep Dive</h3>
+      <p>GitHub Actions is the most popular CI/CD platform for good reason: it's integrated directly into GitHub, has a massive marketplace of pre-built actions, supports matrix builds, reusable workflows, and composite actions, and offers generous free-tier resources.</p>
+
+      <h4>Production-Ready Workflow</h4>
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>.github/workflows/deploy.yml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">name</span>: <span class="st">Build, Test &amp; Deploy</span>
+
+<span class="kw">on</span>:
+  <span class="at">push</span>:
+    <span class="at">branches</span>: [<span class="st">main</span>]
+  <span class="at">pull_request</span>:
+    <span class="at">branches</span>: [<span class="st">main</span>]
+
+<span class="at">concurrency</span>:
+  <span class="at">group</span>: <span class="st">${{ github.workflow }}-${{ github.ref }}</span>
+  <span class="at">cancel-in-progress</span>: <span class="kw">true</span>
+
+<span class="at">env</span>:
+  <span class="at">REGISTRY</span>: <span class="st">ghcr.io</span>
+  <span class="at">IMAGE_NAME</span>: <span class="st">${{ github.repository }}</span>
+
+<span class="at">jobs</span>:
+  <span class="at">test</span>:
+    <span class="at">runs-on</span>: <span class="st">ubuntu-latest</span>
+    <span class="at">strategy</span>:
+      <span class="at">matrix</span>:
+        <span class="at">python-version</span>: [<span class="st">"3.11"</span>, <span class="st">"3.12"</span>]
+    <span class="at">steps</span>:
+      - <span class="at">uses</span>: <span class="st">actions/checkout@v4</span>
+      - <span class="at">uses</span>: <span class="st">actions/setup-python@v5</span>
+        <span class="at">with</span>:
+          <span class="at">python-version</span>: <span class="st">${{ matrix.python-version }}</span>
+          <span class="at">cache</span>: <span class="st">'pip'</span>
+      - <span class="at">run</span>: <span class="st">pip install -r requirements.txt -r requirements-test.txt</span>
+      - <span class="at">run</span>: <span class="st">pytest --cov=src --cov-report=xml -v</span>
+      - <span class="at">uses</span>: <span class="st">codecov/codecov-action@v4</span>
+        <span class="kw">if</span>: <span class="st">matrix.python-version == '3.12'</span>
+
+  <span class="at">security-scan</span>:
+    <span class="at">runs-on</span>: <span class="st">ubuntu-latest</span>
+    <span class="at">steps</span>:
+      - <span class="at">uses</span>: <span class="st">actions/checkout@v4</span>
+      - <span class="at">uses</span>: <span class="st">aquasecurity/trivy-action@master</span>
+        <span class="at">with</span>:
+          <span class="at">scan-type</span>: <span class="st">'fs'</span>
+          <span class="at">severity</span>: <span class="st">'CRITICAL,HIGH'</span>
+          <span class="at">exit-code</span>: <span class="st">'1'</span>
+
+  <span class="at">build-and-push</span>:
+    <span class="at">needs</span>: [<span class="st">test</span>, <span class="st">security-scan</span>]
+    <span class="kw">if</span>: <span class="st">github.event_name == 'push' &amp;&amp; github.ref == 'refs/heads/main'</span>
+    <span class="at">runs-on</span>: <span class="st">ubuntu-latest</span>
+    <span class="at">permissions</span>:
+      <span class="at">contents</span>: <span class="st">read</span>
+      <span class="at">packages</span>: <span class="st">write</span>
+    <span class="at">outputs</span>:
+      <span class="at">image-digest</span>: <span class="st">${{ steps.build.outputs.digest }}</span>
+    <span class="at">steps</span>:
+      - <span class="at">uses</span>: <span class="st">actions/checkout@v4</span>
+      - <span class="at">uses</span>: <span class="st">docker/setup-buildx-action@v3</span>
+      - <span class="at">uses</span>: <span class="st">docker/login-action@v3</span>
+        <span class="at">with</span>:
+          <span class="at">registry</span>: <span class="st">${{ env.REGISTRY }}</span>
+          <span class="at">username</span>: <span class="st">${{ github.actor }}</span>
+          <span class="at">password</span>: <span class="st">${{ secrets.GITHUB_TOKEN }}</span>
+      - <span class="at">id</span>: <span class="st">build</span>
+        <span class="at">uses</span>: <span class="st">docker/build-push-action@v5</span>
+        <span class="at">with</span>:
+          <span class="at">push</span>: <span class="kw">true</span>
+          <span class="at">cache-from</span>: <span class="st">type=gha</span>
+          <span class="at">cache-to</span>: <span class="st">type=gha,mode=max</span>
+          <span class="at">tags</span>: <span class="st">${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}</span>
+
+  <span class="at">deploy-staging</span>:
+    <span class="at">needs</span>: <span class="st">build-and-push</span>
+    <span class="at">runs-on</span>: <span class="st">ubuntu-latest</span>
+    <span class="at">environment</span>: <span class="st">staging</span>
+    <span class="at">steps</span>:
+      - <span class="at">uses</span>: <span class="st">actions/checkout@v4</span>
+      - <span class="at">run</span>: |
+          <span class="cm"># Update Kubernetes manifest with new image tag</span>
+          sed -i <span class="st">"s|image:.*|image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|"</span> \
+            k8s/staging/deployment.yaml
+      - <span class="at">uses</span>: <span class="st">azure/k8s-set-context@v4</span>
+        <span class="at">with</span>:
+          <span class="at">kubeconfig</span>: <span class="st">${{ secrets.KUBE_CONFIG_STAGING }}</span>
+      - <span class="at">run</span>: <span class="st">kubectl apply -f k8s/staging/</span></code></div>
+      </div>
+
+      <h4>Composite Actions vs Reusable Workflows</h4>
+      <p>GitHub Actions provides two mechanisms for code reuse, and understanding the distinction is important for platform teams. <strong>Composite actions</strong> combine multiple steps into a single action that can be referenced from any workflow. They're ideal for encapsulating a common sequence -- like "set up our Python environment with the right version, install dependencies, configure our internal PyPI mirror." <strong>Reusable workflows</strong> are entire workflow definitions that can be called from other workflows. They're better for standardizing complete pipelines -- like "our standard Python CI pipeline with linting, testing, security scanning, and artifact publishing."</p>
+      <p>The key architectural difference: composite actions run inline within the calling job (sharing the same runner, filesystem, and environment variables), while reusable workflows run as separate jobs (with their own runner and isolated filesystem). For platform teams, the typical pattern is to provide reusable workflows for standard pipelines and composite actions for common setup sequences.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>.github/actions/setup-python-env/action.yml (composite action)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">name</span>: <span class="st">'Setup Python Environment'</span>
+<span class="at">description</span>: <span class="st">'Standard Python setup with internal PyPI and caching'</span>
+<span class="at">inputs</span>:
+  <span class="at">python-version</span>:
+    <span class="at">description</span>: <span class="st">'Python version to use'</span>
+    <span class="at">default</span>: <span class="st">'3.12'</span>
+<span class="at">runs</span>:
+  <span class="at">using</span>: <span class="st">'composite'</span>
+  <span class="at">steps</span>:
+    - <span class="at">uses</span>: <span class="st">actions/setup-python@v5</span>
+      <span class="at">with</span>:
+        <span class="at">python-version</span>: <span class="st">${{ inputs.python-version }}</span>
+        <span class="at">cache</span>: <span class="st">'pip'</span>
+    - <span class="at">shell</span>: <span class="st">bash</span>
+      <span class="at">run</span>: |
+        pip config set global.index-url https://pypi.internal.myorg.com/simple/
+        pip config set global.trusted-host pypi.internal.myorg.com
+        pip install -r requirements.txt
+    - <span class="at">shell</span>: <span class="st">bash</span>
+      <span class="at">run</span>: <span class="st">echo "PYTHONPATH=${{ github.workspace }}/src" >> $GITHUB_ENV</span></code></div>
+      </div>
+
+      <h4>Reusable Workflows</h4>
+      <p>One of the most powerful features of GitHub Actions for platform teams is reusable workflows. Instead of duplicating CI/CD configuration across hundreds of repositories, you define workflows once in a central repository and reference them from individual repos. This is how you enforce organizational standards without mandating them.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>.github/workflows/call-shared.yml (in consuming repo)</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">name</span>: <span class="st">CI</span>
+<span class="kw">on</span>: [<span class="st">push</span>, <span class="st">pull_request</span>]
+<span class="at">jobs</span>:
+  <span class="at">ci</span>:
+    <span class="at">uses</span>: <span class="st">myorg/platform-workflows/.github/workflows/python-ci.yml@v2</span>
+    <span class="at">with</span>:
+      <span class="at">python-version</span>: <span class="st">"3.12"</span>
+      <span class="at">enable-security-scan</span>: <span class="kw">true</span>
+    <span class="at">secrets</span>: <span class="kw">inherit</span></code></div>
+      </div>
+
+      <h3>Deployment Strategies</h3>
+      <p>Choosing the right deployment strategy is a critical platform decision. Each strategy trades off between speed, safety, and complexity.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Strategy</th><th>Rollback Speed</th><th>Risk</th><th>Complexity</th><th>Best For</th></tr>
+          <tr><td>Rolling Update</td><td>Minutes</td><td>Medium</td><td>Low</td><td>Stateless services, K8s default</td></tr>
+          <tr><td>Blue-Green</td><td>Seconds</td><td>Low</td><td>Medium</td><td>Critical services, instant rollback needed</td></tr>
+          <tr><td>Canary</td><td>Seconds</td><td>Very Low</td><td>High</td><td>High-traffic services, gradual validation</td></tr>
+          <tr><td>Progressive (Flagger)</td><td>Automatic</td><td>Very Low</td><td>High</td><td>Automated canary with metric-based promotion</td></tr>
+        </table>
+      </div>
+
+      <h3>CI/CD Security: Supply Chain Protection</h3>
+      <p>Your CI/CD pipeline is one of the most privileged systems in your organization. It has credentials to deploy to production, access to secrets, and the ability to modify running services. Securing it is non-negotiable.</p>
+
+      <div class="callout callout-error">
+        <div class="callout-title">Supply Chain Attack Surface</div>
+        <p>The SolarWinds attack demonstrated that CI/CD pipelines are high-value targets. Any compromise in your build pipeline can inject malicious code into every artifact you produce. SLSA (Supply-chain Levels for Software Artifacts) provides a framework for hardening your pipeline. At minimum, aim for SLSA Level 2: automated build process with provenance attestation.</p>
+      </div>
+
+      <h4>Pipeline Security Checklist</h4>
+      <ul>
+        <li><strong>Pin action versions by SHA</strong>, not by tag. Tags can be moved; SHAs cannot. Use <code>actions/checkout@abc123def</code> instead of <code>actions/checkout@v4</code>.</li>
+        <li><strong>Use OIDC for cloud authentication</strong> instead of long-lived secrets. GitHub Actions supports OIDC federation with AWS, GCP, and Azure.</li>
+        <li><strong>Scan dependencies</strong> with Dependabot, Snyk, or Trivy in every PR.</li>
+        <li><strong>Sign artifacts</strong> with Sigstore/cosign. This creates verifiable provenance for your container images.</li>
+        <li><strong>Limit permissions</strong> using the <code>permissions</code> key. Default to read-only and explicitly grant write access only where needed.</li>
+        <li><strong>Require code review</strong> for workflow file changes. A compromised workflow can exfiltrate secrets.</li>
+      </ul>
+
+      <h3>Monorepo CI Challenges</h3>
+      <p>If your organization uses a monorepo (or is considering one), CI/CD becomes significantly more complex. The core challenge: when a PR modifies files in <code>/services/payment/</code>, you don't want to build and test every service in the repository. You need <strong>affected-target detection</strong>.</p>
+      <p>Tools like <code>nx affected</code>, Turborepo's pipeline caching, and Bazel's build graph analysis solve this problem at different levels of sophistication. The platform team's job is to provide this infrastructure so that individual teams don't need to think about it. A well-configured monorepo CI should build only what changed, cache everything that didn't, and run tests in parallel across as many machines as needed.</p>
+      <p>The practical challenge goes deeper than just "build what changed." You need to handle <strong>transitive dependencies</strong> -- if the shared payment-types library changes, every service that imports it must be rebuilt and retested. This requires building a dependency graph of your repository. Nx and Bazel do this natively. For other setups, you can build a lightweight dependency graph using tools like <code>madge</code> (JavaScript), <code>pydeps</code> (Python), or custom scripts that parse import statements. At Shopify, their monorepo CI system analyzes Ruby dependency trees to determine which test suites to run, reducing average CI time from 45 minutes to under 8 minutes.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>scripts/affected-services.sh — Simple affected detection</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="cm">#!/bin/bash</span>
+<span class="cm"># Detect which services are affected by changes in a PR</span>
+<span class="cm"># Uses git diff against the base branch</span>
+
+CHANGED_FILES=$(<span class="fn">git</span> diff --name-only origin/main...HEAD)
+
+<span class="cm"># Direct changes: services whose files were modified</span>
+DIRECT=$(<span class="fn">echo</span> <span class="st">"$CHANGED_FILES"</span> | grep <span class="st">'^services/'</span> | cut -d/ -f2 | sort -u)
+
+<span class="cm"># Shared library changes: trigger dependent services</span>
+<span class="kw">if</span> <span class="fn">echo</span> <span class="st">"$CHANGED_FILES"</span> | grep -q <span class="st">'^libs/'</span>; <span class="kw">then</span>
+  CHANGED_LIBS=$(<span class="fn">echo</span> <span class="st">"$CHANGED_FILES"</span> | grep <span class="st">'^libs/'</span> | cut -d/ -f2 | sort -u)
+  <span class="kw">for</span> lib <span class="kw">in</span> $CHANGED_LIBS; <span class="kw">do</span>
+    <span class="cm"># Find services that depend on this library</span>
+    grep -rl <span class="st">"\"@myorg/$lib\""</span> services/*/package.json | \
+      cut -d/ -f2 >> /tmp/affected
+  <span class="kw">done</span>
+  TRANSITIVE=$(<span class="fn">sort</span> -u /tmp/affected)
+<span class="kw">fi</span>
+
+<span class="cm"># Infra changes: trigger everything</span>
+<span class="kw">if</span> <span class="fn">echo</span> <span class="st">"$CHANGED_FILES"</span> | grep -qE <span class="st">'^(Dockerfile|.github/|infra/)'</span>; <span class="kw">then</span>
+  <span class="fn">echo</span> <span class="st">"ALL"</span>
+  <span class="kw">exit</span> <span class="nr">0</span>
+<span class="kw">fi</span>
+
+<span class="fn">echo</span> <span class="st">"$DIRECT $TRANSITIVE"</span> | tr <span class="st">' '</span> <span class="st">'\n'</span> | sort -u</code></div>
+      </div>
+
+      <h4>Secrets Management in CI/CD</h4>
+      <p>Secrets in CI/CD pipelines are a common attack vector. The best practices have converged around a few key patterns. First, <strong>use OIDC federation</strong> instead of long-lived credentials. GitHub Actions can assume AWS IAM roles directly via OIDC, eliminating the need to store AWS access keys as repository secrets. Second, <strong>use environment-level secrets</strong> in GitHub Actions. A secret scoped to the "production" environment requires manual approval before a workflow can access it, creating a human gate for production deployments. Third, <strong>never echo secrets</strong> in logs -- GitHub Actions masks known secrets, but dynamic secrets assembled at runtime can leak. Fourth, <strong>rotate secrets regularly</strong> and use short-lived tokens wherever possible. A leaked CI secret that expires in 1 hour is far less dangerous than one that lasts forever.</p>
+
+      <h3>Pipeline Performance Optimization</h3>
+      <p>Pipeline speed directly correlates with developer productivity. Every minute added to a CI pipeline is multiplied by the number of PRs per day across the organization. At 100 PRs/day, a 5-minute improvement saves over 8 hours of developer wait time daily.</p>
+      <ul>
+        <li><strong>Dependency caching:</strong> Cache pip, npm, Maven, and Gradle dependencies between runs. This alone can save 2-5 minutes per build.</li>
+        <li><strong>Docker layer caching:</strong> Use BuildKit cache mounts and GitHub Actions cache backend. Rebuilding only changed layers can reduce Docker builds from 10 minutes to 30 seconds.</li>
+        <li><strong>Test parallelization:</strong> Use pytest-xdist, Jest workers, or Go's built-in parallel testing. Split test suites across multiple CI runners.</li>
+        <li><strong>Selective testing:</strong> Only run tests for changed packages and their dependents. Tools like Nx and Bazel provide this natively.</li>
+        <li><strong>Self-hosted runners:</strong> For large organizations, self-hosted runners on dedicated hardware can be 2-5x faster than GitHub-hosted runners due to better CPU, more RAM, and local caching.</li>
+      </ul>
+
+      <div class="callout callout-success">
+        <div class="callout-title">Benchmark Target</div>
+        <p>Elite performers (per DORA) deploy on demand with a lead time of less than one hour. Your CI pipeline should complete in under 10 minutes for the critical path (lint, test, build, security scan). If it takes longer, treat it as a platform bug and invest in optimization.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 4 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-4" data-module="4">
+    <div class="module-header" onclick="toggleModule(4)">
+      <input type="checkbox" class="module-checkbox" data-module="4" onclick="event.stopPropagation(); toggleCheckbox(4)">
+      <div class="module-number">4</div>
+      <span class="module-title-text">Infrastructure as Code</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>Why IaC Is Non-Negotiable</h3>
+      <p>Infrastructure as Code is the practice of managing and provisioning infrastructure through machine-readable definition files rather than physical hardware configuration or interactive configuration tools. In 2026, this isn't a nice-to-have. It's table stakes. If your infrastructure isn't defined in code, it's defined by whoever clicked buttons in the AWS console last, and you'll never know exactly what state it's in.</p>
+      <p>IaC provides three critical capabilities: <strong>reproducibility</strong> (create identical environments), <strong>auditability</strong> (every change is a PR with review and history), and <strong>scalability</strong> (provision 100 environments as easily as one).</p>
+
+      <h3>Terraform Deep Dive</h3>
+      <p>Terraform remains the dominant IaC tool, with the largest ecosystem of providers and the deepest community knowledge. Despite HashiCorp's controversial BSL license change in 2023 (and the resulting OpenTofu fork), Terraform continues to be the default choice for most organizations.</p>
+
+      <h4>State Management</h4>
+      <p>Terraform state is the most important (and most dangerous) concept in the Terraform ecosystem. The state file is a JSON document that maps your Terraform configuration to real-world resources. It's how Terraform knows that <code>aws_instance.web</code> in your config corresponds to <code>i-abc123def</code> in AWS.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>backend.tf — Remote state with S3 and DynamoDB locking</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="kw">terraform</span> {
+  <span class="at">backend</span> <span class="st">"s3"</span> {
+    <span class="at">bucket</span>         = <span class="st">"myorg-terraform-state"</span>
+    <span class="at">key</span>            = <span class="st">"services/payment-service/terraform.tfstate"</span>
+    <span class="at">region</span>         = <span class="st">"us-east-1"</span>
+    <span class="at">encrypt</span>        = <span class="kw">true</span>
+    <span class="at">dynamodb_table</span> = <span class="st">"terraform-locks"</span>
+    <span class="at">kms_key_id</span>     = <span class="st">"alias/terraform-state"</span>
+  }
+
+  <span class="at">required_providers</span> {
+    <span class="at">aws</span> = {
+      <span class="at">source</span>  = <span class="st">"hashicorp/aws"</span>
+      <span class="at">version</span> = <span class="st">"~> 5.40"</span>
+    }
+  }
+}</code></div>
+      </div>
+
+      <div class="callout callout-error">
+        <div class="callout-title">State File Horror Story</div>
+        <p>A team at a major fintech company accidentally ran <code>terraform destroy</code> on their production state file. They had no state file backups, no S3 versioning enabled, and no DynamoDB locking. They lost their entire production database cluster. It took 14 hours to recover from backups, during which the platform was completely down. <strong>Always</strong> enable S3 versioning, DynamoDB locking, and KMS encryption on your state bucket. Always.</p>
+      </div>
+
+      <h4>Module Design Patterns</h4>
+      <p>Well-designed Terraform modules are the building blocks of a scalable IaC practice. A good module encapsulates a reusable infrastructure pattern with sensible defaults and clear input/output contracts.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>modules/rds-postgres/main.tf</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="kw">resource</span> <span class="st">"aws_db_instance"</span> <span class="st">"main"</span> {
+  <span class="at">identifier</span>     = <span class="st">"${var.service_name}-${var.environment}"</span>
+  <span class="at">engine</span>         = <span class="st">"postgres"</span>
+  <span class="at">engine_version</span> = <span class="st">"16.2"</span>
+  <span class="at">instance_class</span> = <span class="fn">var</span>.instance_class
+
+  <span class="at">allocated_storage</span>     = <span class="fn">var</span>.allocated_storage
+  <span class="at">max_allocated_storage</span> = <span class="fn">var</span>.allocated_storage * <span class="nr">3</span>
+  <span class="at">storage_encrypted</span>     = <span class="kw">true</span>
+  <span class="at">kms_key_id</span>            = <span class="fn">var</span>.kms_key_arn
+
+  <span class="at">db_name</span>  = <span class="fn">var</span>.database_name
+  <span class="at">username</span> = <span class="st">"admin"</span>
+  <span class="at">password</span> = <span class="fn">random_password</span>.<span class="at">master</span>.<span class="at">result</span>
+
+  <span class="at">multi_az</span>               = <span class="fn">var</span>.environment == <span class="st">"production"</span>
+  <span class="at">backup_retention_period</span> = <span class="fn">var</span>.environment == <span class="st">"production"</span> ? <span class="nr">30</span> : <span class="nr">7</span>
+  <span class="at">deletion_protection</span>    = <span class="fn">var</span>.environment == <span class="st">"production"</span>
+
+  <span class="at">vpc_security_group_ids</span> = [<span class="fn">aws_security_group</span>.<span class="at">rds</span>.<span class="at">id</span>]
+  <span class="at">db_subnet_group_name</span>   = <span class="fn">aws_db_subnet_group</span>.<span class="at">main</span>.<span class="at">name</span>
+
+  <span class="at">performance_insights_enabled</span> = <span class="kw">true</span>
+  <span class="at">monitoring_interval</span>         = <span class="nr">60</span>
+  <span class="at">monitoring_role_arn</span>          = <span class="fn">var</span>.monitoring_role_arn
+
+  <span class="at">tags</span> = <span class="fn">merge</span>(<span class="fn">var</span>.tags, {
+    Service     = <span class="fn">var</span>.service_name
+    Environment = <span class="fn">var</span>.environment
+    ManagedBy   = <span class="st">"terraform"</span>
+  })
+}</code></div>
+      </div>
+
+      <h4>Workspace and Environment Strategy</h4>
+      <p>Terraform workspaces are one of the most misunderstood features. They allow you to maintain multiple state files within the same configuration directory, typically used for managing identical infrastructure across environments (dev, staging, production). However, many teams have been burned by workspaces because they make it easy to accidentally apply production changes when you thought you were in dev.</p>
+      <p>The recommended pattern for most organizations is to use <strong>directory-based separation</strong> rather than workspaces. Have a separate directory (and therefore separate state file) for each environment. This is more verbose but eliminates an entire class of operator errors. Workspaces still make sense for certain patterns, like managing per-tenant infrastructure in a multi-tenant SaaS application, where the configuration is truly identical and the blast radius of a mistake is limited to a single tenant.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>Directory-based environment structure</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="cm"># Recommended: directory-based separation</span>
+infra/
+  modules/           <span class="cm"># Shared modules</span>
+    rds-postgres/
+    eks-cluster/
+    vpc/
+  environments/
+    dev/
+      main.tf        <span class="cm"># module "db" { source = "../../modules/rds-postgres" }</span>
+      backend.tf     <span class="cm"># S3 key: "env/dev/terraform.tfstate"</span>
+      terraform.tfvars
+    staging/
+      main.tf
+      backend.tf     <span class="cm"># S3 key: "env/staging/terraform.tfstate"</span>
+      terraform.tfvars
+    production/
+      main.tf
+      backend.tf     <span class="cm"># S3 key: "env/production/terraform.tfstate"</span>
+      terraform.tfvars</code></div>
+      </div>
+
+      <h4>Drift Detection</h4>
+      <p>Infrastructure drift occurs when the actual state of your cloud resources diverges from what's defined in your Terraform configuration. Someone clicked a button in the AWS console. An auto-scaling policy modified instance counts. A security team manually updated a security group. Drift is inevitable in organizations of any size, and ignoring it erodes the value of IaC entirely.</p>
+      <p>Set up scheduled <code>terraform plan</code> runs (via CI/CD or tools like Spacelift, env0, or Terraform Cloud) that detect drift and notify your team. At Shopify, infrastructure drift alerts are treated like production incidents -- if Terraform state doesn't match reality, someone investigates within 24 hours. The fix is either to update the Terraform config to match reality or to run <code>terraform apply</code> to force reality back to match the config.</p>
+
+      <h3>Atlantis: PR-Based Terraform Workflows</h3>
+      <p>Atlantis is an open-source tool that automates Terraform via pull requests. When a developer opens a PR that modifies Terraform files, Atlantis automatically runs <code>terraform plan</code> and posts the output as a PR comment. Reviewers can see exactly what infrastructure changes will be made before they approve. Once approved, a comment like <code>atlantis apply</code> executes the changes.</p>
+      <p>This workflow is powerful because it brings the same code review rigor to infrastructure changes that we already apply to application code. No more "I ran terraform apply from my laptop and something went wrong." Every change is planned, reviewed, and applied through a controlled process.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>atlantis.yaml — Project configuration</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">version</span>: <span class="nr">3</span>
+<span class="at">automerge</span>: <span class="kw">false</span>
+<span class="at">parallel_plan</span>: <span class="kw">true</span>
+<span class="at">parallel_apply</span>: <span class="kw">false</span>
+<span class="at">projects</span>:
+  - <span class="at">name</span>: <span class="st">payment-service-prod</span>
+    <span class="at">dir</span>: <span class="st">infra/environments/production</span>
+    <span class="at">workflow</span>: <span class="st">production</span>
+    <span class="at">apply_requirements</span>:
+      - <span class="st">approved</span>
+      - <span class="st">mergeable</span>
+  - <span class="at">name</span>: <span class="st">payment-service-dev</span>
+    <span class="at">dir</span>: <span class="st">infra/environments/dev</span>
+    <span class="at">workflow</span>: <span class="st">default</span>
+
+<span class="at">workflows</span>:
+  <span class="at">production</span>:
+    <span class="at">plan</span>:
+      <span class="at">steps</span>:
+        - <span class="at">run</span>: <span class="st">terragrunt plan -input=false -out=$PLANFILE</span>
+    <span class="at">apply</span>:
+      <span class="at">steps</span>:
+        - <span class="at">run</span>: <span class="st">terragrunt apply $PLANFILE</span></code></div>
+      </div>
+
+      <h3>Pulumi: Real Programming Languages for IaC</h3>
+      <p>Pulumi takes a fundamentally different approach from Terraform: instead of a domain-specific language (HCL), you write infrastructure in TypeScript, Python, Go, or C#. This means you get loops, conditionals, functions, classes, type checking, IDE support, and the full power of a real programming language.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>infra/main.py — Pulumi EKS cluster</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="kw">import</span> <span class="nb">pulumi</span>
+<span class="kw">import</span> <span class="nb">pulumi_aws</span> <span class="kw">as</span> <span class="nb">aws</span>
+<span class="kw">import</span> <span class="nb">pulumi_eks</span> <span class="kw">as</span> <span class="nb">eks</span>
+
+<span class="cm"># Create a production-ready EKS cluster</span>
+cluster = eks.<span class="fn">Cluster</span>(
+    <span class="st">"platform-cluster"</span>,
+    vpc_id=vpc.id,
+    subnet_ids=[s.id <span class="kw">for</span> s <span class="kw">in</span> private_subnets],
+    instance_type=<span class="st">"m6i.xlarge"</span>,
+    desired_capacity=<span class="nr">3</span>,
+    min_size=<span class="nr">2</span>,
+    max_size=<span class="nr">10</span>,
+    node_root_volume_size=<span class="nr">100</span>,
+    enabled_cluster_log_types=[
+        <span class="st">"api"</span>, <span class="st">"audit"</span>, <span class="st">"authenticator"</span>,
+        <span class="st">"controllerManager"</span>, <span class="st">"scheduler"</span>,
+    ],
+)
+
+<span class="cm"># Export the kubeconfig</span>
+pulumi.<span class="fn">export</span>(<span class="st">"kubeconfig"</span>, cluster.kubeconfig)</code></div>
+      </div>
+
+      <h3>GitOps with ArgoCD</h3>
+      <p>GitOps is the practice of using Git as the single source of truth for declarative infrastructure and applications. ArgoCD is the most popular GitOps operator for Kubernetes. It continuously monitors a Git repository and automatically synchronizes the desired state (defined in Git) with the actual state (running in the cluster).</p>
+
+      <div class="ascii-diagram">
+  GitOps Flow with ArgoCD
+  ========================
+
+  Developer        Git Repo         ArgoCD          Kubernetes
+  +--------+     +----------+    +-----------+    +-----------+
+  |        |     |          |    |           |    |           |
+  | Commit |---->| manifests|    | Reconcile |    | Desired   |
+  | change |     | updated  |--->| Loop      |--->| State     |
+  |        |     |          |    | (3 min)   |    | Applied   |
+  +--------+     +----------+    +-----------+    +-----------+
+                                      |
+                                      v
+                                 Drift Detection
+                                 + Auto-Sync</div>
+
+      <h3>Infrastructure Testing</h3>
+      <p>Infrastructure code deserves the same testing rigor as application code. Terratest (Go-based) and the Terraform testing framework (built-in since 1.6) let you write automated tests that provision real infrastructure, validate it works, and tear it down. Policy-as-code tools like OPA (Open Policy Agent) and HashiCorp Sentinel let you define organizational policies (e.g., "all S3 buckets must have encryption enabled") and enforce them at plan time.</p>
+
+      <div class="callout">
+        <div class="callout-title">IaC Tool Selection Guide</div>
+        <p>Choose <strong>Terraform</strong> if you need multi-cloud support, have a large community of HCL-literate engineers, or need the broadest provider ecosystem. Choose <strong>Pulumi</strong> if your teams are strong in TypeScript/Python and want full programming language capabilities. Choose <strong>CDK/CDKTF</strong> if you're AWS-heavy and want to use TypeScript with CloudFormation under the hood. Choose <strong>OpenTofu</strong> if you need open-source Terraform without BSL licensing concerns.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 5 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-5" data-module="5">
+    <div class="module-header" onclick="toggleModule(5)">
+      <input type="checkbox" class="module-checkbox" data-module="5" onclick="event.stopPropagation(); toggleCheckbox(5)">
+      <div class="module-number">5</div>
+      <span class="module-title-text">Kubernetes in Production</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>Kubernetes: The Operating System of the Cloud</h3>
+      <p>Kubernetes has won the container orchestration war. It's the default platform for running containerized workloads at scale, and understanding how to operate it in production is essential for any platform engineer. But let's be clear: <strong>Kubernetes is not always the right answer</strong>. If you have fewer than 10 services, your team doesn't have K8s expertise, and you're running straightforward web applications, managed services like AWS ECS or even Heroku might be better choices. K8s shines when you have many services, need sophisticated scheduling, or require portable workloads across clouds.</p>
+
+      <h3>Managed vs. Self-Hosted</h3>
+      <p>Unless you're Google, run a managed Kubernetes service. EKS, GKE, and AKS handle the control plane, etcd management, upgrades, and HA for you. The operational burden of self-hosted Kubernetes is enormous and rarely justified.</p>
+
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Feature</th><th>EKS (AWS)</th><th>GKE (Google)</th><th>AKS (Azure)</th></tr>
+          <tr><td>Control Plane Cost</td><td>$73/month per cluster</td><td>Free (Standard), $73 (Enterprise)</td><td>Free</td></tr>
+          <tr><td>Max Pods per Node</td><td>110 (with VPC CNI: depends on instance)</td><td>110</td><td>250</td></tr>
+          <tr><td>Autopilot Mode</td><td>Fargate (serverless pods)</td><td>GKE Autopilot (fully managed)</td><td>Virtual Nodes</td></tr>
+          <tr><td>Upgrade Experience</td><td>Manual or managed (add-on)</td><td>Excellent (auto-upgrade channels)</td><td>Good (auto-upgrade)</td></tr>
+          <tr><td>Service Mesh</td><td>App Mesh (being deprecated)</td><td>Anthos Service Mesh (Istio)</td><td>Open Service Mesh</td></tr>
+          <tr><td>Best For</td><td>AWS-heavy shops</td><td>K8s-native, multi-cloud</td><td>Azure/Microsoft shops</td></tr>
+        </table>
+      </div>
+
+      <h3>Resource Management</h3>
+      <p>Misconfigured resource requests and limits are the number one cause of K8s performance issues and cost overruns. Every container in Kubernetes can specify CPU and memory <strong>requests</strong> (guaranteed minimum) and <strong>limits</strong> (hard maximum).</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>deployment.yaml — Production resource configuration</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">apiVersion</span>: apps/v1
+<span class="at">kind</span>: Deployment
+<span class="at">metadata</span>:
+  <span class="at">name</span>: <span class="st">payment-service</span>
+<span class="at">spec</span>:
+  <span class="at">replicas</span>: <span class="nr">3</span>
+  <span class="at">strategy</span>:
+    <span class="at">type</span>: <span class="st">RollingUpdate</span>
+    <span class="at">rollingUpdate</span>:
+      <span class="at">maxSurge</span>: <span class="nr">1</span>
+      <span class="at">maxUnavailable</span>: <span class="nr">0</span>
+  <span class="at">template</span>:
+    <span class="at">spec</span>:
+      <span class="at">topologySpreadConstraints</span>:
+        - <span class="at">maxSkew</span>: <span class="nr">1</span>
+          <span class="at">topologyKey</span>: <span class="st">topology.kubernetes.io/zone</span>
+          <span class="at">whenUnsatisfiable</span>: <span class="st">DoNotSchedule</span>
+          <span class="at">labelSelector</span>:
+            <span class="at">matchLabels</span>:
+              <span class="at">app</span>: <span class="st">payment-service</span>
+      <span class="at">containers</span>:
+        - <span class="at">name</span>: <span class="st">app</span>
+          <span class="at">image</span>: <span class="st">ghcr.io/myorg/payment-service:v2.3.1</span>
+          <span class="at">resources</span>:
+            <span class="at">requests</span>:
+              <span class="at">cpu</span>: <span class="st">"250m"</span>
+              <span class="at">memory</span>: <span class="st">"512Mi"</span>
+            <span class="at">limits</span>:
+              <span class="at">cpu</span>: <span class="st">"1000m"</span>
+              <span class="at">memory</span>: <span class="st">"1Gi"</span>
+          <span class="at">readinessProbe</span>:
+            <span class="at">httpGet</span>:
+              <span class="at">path</span>: <span class="st">/healthz</span>
+              <span class="at">port</span>: <span class="nr">8080</span>
+            <span class="at">initialDelaySeconds</span>: <span class="nr">5</span>
+            <span class="at">periodSeconds</span>: <span class="nr">10</span>
+          <span class="at">livenessProbe</span>:
+            <span class="at">httpGet</span>:
+              <span class="at">path</span>: <span class="st">/healthz</span>
+              <span class="at">port</span>: <span class="nr">8080</span>
+            <span class="at">initialDelaySeconds</span>: <span class="nr">15</span>
+            <span class="at">periodSeconds</span>: <span class="nr">20</span>
+            <span class="at">failureThreshold</span>: <span class="nr">3</span>
+          <span class="at">env</span>:
+            - <span class="at">name</span>: <span class="st">DB_PASSWORD</span>
+              <span class="at">valueFrom</span>:
+                <span class="at">secretKeyRef</span>:
+                  <span class="at">name</span>: <span class="st">payment-db-credentials</span>
+                  <span class="at">key</span>: <span class="st">password</span></code></div>
+      </div>
+
+      <h4>Autoscaling: HPA, VPA, and KEDA</h4>
+      <p><strong>HPA (Horizontal Pod Autoscaler)</strong> adds or removes pod replicas based on CPU, memory, or custom metrics. It's the default autoscaling mechanism and works well for stateless services. <strong>VPA (Vertical Pod Autoscaler)</strong> adjusts the CPU and memory requests of individual pods based on historical usage. It's useful for right-sizing, but be cautious in production since it restarts pods to apply changes. <strong>KEDA (Kubernetes Event-Driven Autoscaling)</strong> extends HPA with event-driven scaling based on external metrics like SQS queue depth, Kafka lag, or Prometheus queries. It's essential for queue-based workloads.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>hpa.yaml — HPA with custom metrics</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">apiVersion</span>: autoscaling/v2
+<span class="at">kind</span>: HorizontalPodAutoscaler
+<span class="at">metadata</span>:
+  <span class="at">name</span>: <span class="st">payment-service-hpa</span>
+<span class="at">spec</span>:
+  <span class="at">scaleTargetRef</span>:
+    <span class="at">apiVersion</span>: apps/v1
+    <span class="at">kind</span>: Deployment
+    <span class="at">name</span>: <span class="st">payment-service</span>
+  <span class="at">minReplicas</span>: <span class="nr">3</span>
+  <span class="at">maxReplicas</span>: <span class="nr">50</span>
+  <span class="at">behavior</span>:
+    <span class="at">scaleUp</span>:
+      <span class="at">stabilizationWindowSeconds</span>: <span class="nr">60</span>
+      <span class="at">policies</span>:
+        - <span class="at">type</span>: <span class="st">Percent</span>
+          <span class="at">value</span>: <span class="nr">100</span>
+          <span class="at">periodSeconds</span>: <span class="nr">60</span>
+    <span class="at">scaleDown</span>:
+      <span class="at">stabilizationWindowSeconds</span>: <span class="nr">300</span>  <span class="cm"># Wait 5 min before scaling down</span>
+      <span class="at">policies</span>:
+        - <span class="at">type</span>: <span class="st">Percent</span>
+          <span class="at">value</span>: <span class="nr">10</span>
+          <span class="at">periodSeconds</span>: <span class="nr">60</span>
+  <span class="at">metrics</span>:
+    - <span class="at">type</span>: <span class="st">Resource</span>
+      <span class="at">resource</span>:
+        <span class="at">name</span>: <span class="st">cpu</span>
+        <span class="at">target</span>:
+          <span class="at">type</span>: <span class="st">Utilization</span>
+          <span class="at">averageUtilization</span>: <span class="nr">70</span>
+    - <span class="at">type</span>: <span class="st">Pods</span>
+      <span class="at">pods</span>:
+        <span class="at">metric</span>:
+          <span class="at">name</span>: <span class="st">http_requests_per_second</span>
+        <span class="at">target</span>:
+          <span class="at">type</span>: <span class="st">AverageValue</span>
+          <span class="at">averageValue</span>: <span class="st">"1000"</span></code></div>
+      </div>
+
+      <p>A critical production lesson: always configure <strong>scaleDown stabilization windows</strong>. Without them, your pods will flap up and down in response to short traffic spikes. The <code>behavior</code> section lets you control how aggressively the HPA scales in each direction. Scale up quickly (double capacity every 60 seconds if needed) but scale down slowly (remove only 10% every 60 seconds, after a 5-minute stabilization window). This prevents premature scale-down during traffic fluctuations.</p>
+
+      <h4>Namespace Strategy and Multi-Tenancy</h4>
+      <p>Namespace design is an underappreciated platform decision. The two main approaches are <strong>namespace-per-team</strong> and <strong>namespace-per-service</strong>. Namespace-per-team is simpler to manage and aligns with organizational boundaries -- the payments team gets the <code>payments</code> namespace. Namespace-per-service provides better isolation but creates more administrative overhead. Most organizations start with namespace-per-team and graduate to namespace-per-service as they grow. Regardless of your choice, enforce resource quotas on every namespace. Without quotas, a single runaway service can starve the entire cluster of CPU or memory.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>namespace-quota.yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">apiVersion</span>: v1
+<span class="at">kind</span>: ResourceQuota
+<span class="at">metadata</span>:
+  <span class="at">name</span>: <span class="st">team-payments-quota</span>
+  <span class="at">namespace</span>: <span class="st">payments</span>
+<span class="at">spec</span>:
+  <span class="at">hard</span>:
+    <span class="at">requests.cpu</span>: <span class="st">"20"</span>
+    <span class="at">requests.memory</span>: <span class="st">40Gi</span>
+    <span class="at">limits.cpu</span>: <span class="st">"40"</span>
+    <span class="at">limits.memory</span>: <span class="st">80Gi</span>
+    <span class="at">pods</span>: <span class="st">"100"</span>
+    <span class="at">persistentvolumeclaims</span>: <span class="st">"20"</span>
+    <span class="at">services.loadbalancers</span>: <span class="st">"5"</span></code></div>
+      </div>
+
+      <h4>Helm Charts vs. Kustomize</h4>
+      <p>Helm and Kustomize represent two philosophies for managing Kubernetes manifests. <strong>Helm</strong> uses Go templating to generate manifests from parameterized charts. It's powerful, has a massive ecosystem of community charts, and supports lifecycle management (install, upgrade, rollback). The downside: Helm templates can become unreadable spaghetti of <code>{{ if .Values.something }}</code> conditionals. <strong>Kustomize</strong> uses overlay-based patching -- you write plain YAML and apply patches for different environments. It's simpler, produces readable output, and is built into kubectl. The downside: complex customizations require many small patch files. The pragmatic choice for most platform teams: use Helm for third-party applications (ingress controllers, monitoring stacks, databases) where community charts save enormous effort, and Kustomize for your own applications where you control the base manifests.</p>
+
+      <h3>Networking: Ingress and Service Types</h3>
+      <p>Kubernetes networking is one of the most confusing aspects for newcomers. Every pod gets its own IP address. Pods can communicate with any other pod directly (flat networking). Services provide stable DNS names and load balancing across pods. But getting traffic from outside the cluster to your services requires an Ingress resource and an Ingress controller.</p>
+      <p>The three main Ingress controllers are <strong>NGINX Ingress Controller</strong> (the default, battle-tested, handles most use cases), <strong>Traefik</strong> (auto-discovers services, great for dynamic routing), and <strong>AWS ALB Ingress Controller</strong> (provisions actual AWS ALBs, best for AWS-native shops). For production, configure TLS termination at the ingress level using cert-manager with Let's Encrypt for automatic certificate provisioning. Use Network Policies to restrict pod-to-pod communication -- by default, any pod can talk to any other pod in the cluster, which is a significant security risk. At minimum, deny all ingress traffic by default and explicitly allow only the connections each service needs.</p>
+
+      <h3>Service Mesh: Do You Actually Need One?</h3>
+      <p>A service mesh (Istio, Linkerd) provides traffic management, observability, and security at the network layer without modifying application code. It sounds great in theory. In practice, it adds significant complexity, latency, and operational overhead. The honest answer: most organizations under 50 services don't need a service mesh. Start with standard K8s networking and add a mesh only when you have concrete requirements (mTLS everywhere, canary routing, circuit breaking) that can't be met by simpler solutions.</p>
+      <p>If you do need a mesh, <strong>Linkerd</strong> is the simpler choice. It's lightweight (Rust-based proxy), has minimal configuration, and provides the core features (mTLS, observability, traffic splitting) without the complexity of Istio. <strong>Istio</strong> is more powerful but significantly harder to operate -- its control plane has multiple components, configuration is verbose, and debugging mesh issues requires deep expertise. At Lyft, switching from Istio to Envoy-based direct configuration reduced their service mesh operational incidents by 70%.</p>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">When NOT to Use Kubernetes</div>
+        <p>K8s is overkill if: you have fewer than 5 services, your team has no container experience, you're running simple CRUD apps, your workloads are primarily batch processing (consider AWS Batch or Step Functions), or you're a startup that should be shipping features instead of operating infrastructure. Don't use Kubernetes because it's on your resume. Use it because your scale and complexity demand it.</p>
+      </div>
+
+      <h3>Secrets Management in K8s</h3>
+      <p>Kubernetes Secrets are base64-encoded, not encrypted. Anyone with API access can read them. For production workloads, integrate with an external secret manager: AWS Secrets Manager, HashiCorp Vault, or GCP Secret Manager. Use the External Secrets Operator to sync external secrets into K8s automatically. Never commit secrets to Git, even encrypted ones. Use sealed-secrets or external-secrets-operator instead.</p>
+
+      <h3>K8s Cost Optimization</h3>
+      <p>Kubernetes cost management is a discipline unto itself. Common waste patterns include: over-provisioned resource requests (CPU requested but never used), idle namespaces from abandoned services, persistent volumes attached to stopped pods, and load balancers for internal-only services. Tools like Kubecost, Opencost, and cloud-native cost analyzers can surface these issues. The platform team should provide cost visibility per team and per service, ideally integrated into the developer portal.</p>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 6 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-6" data-module="6">
+    <div class="module-header" onclick="toggleModule(6)">
+      <input type="checkbox" class="module-checkbox" data-module="6" onclick="event.stopPropagation(); toggleCheckbox(6)">
+      <div class="module-number">6</div>
+      <span class="module-title-text">Observability at Scale</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>Beyond Monitoring: What Observability Actually Means</h3>
+      <p>Monitoring tells you <em>when</em> something is wrong. Observability tells you <em>why</em>. In a distributed system with hundreds of services, you can't predict every failure mode. You need systems that let you ask arbitrary questions about your infrastructure and applications without deploying new instrumentation. That's observability.</p>
+      <p>The three traditional pillars are <strong>metrics</strong> (numerical measurements over time), <strong>logs</strong> (discrete events), and <strong>traces</strong> (request flows across services). Modern observability adds a fourth pillar: <strong>profiling</strong> (continuous CPU and memory profiling to understand performance at the code level).</p>
+
+      <h3>OpenTelemetry: The Standard</h3>
+      <p>OpenTelemetry (OTel) has become the de facto standard for instrumentation. It provides vendor-neutral APIs, SDKs, and tools for generating telemetry data. The key insight: instrument once with OTel, and send data to any backend (Datadog, Grafana, Honeycomb, Jaeger). This decouples your instrumentation from your observability vendor, which is critical for avoiding lock-in.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>otel-collector-config.yaml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">receivers</span>:
+  <span class="at">otlp</span>:
+    <span class="at">protocols</span>:
+      <span class="at">grpc</span>:
+        <span class="at">endpoint</span>: <span class="st">"0.0.0.0:4317"</span>
+      <span class="at">http</span>:
+        <span class="at">endpoint</span>: <span class="st">"0.0.0.0:4318"</span>
+  <span class="at">prometheus</span>:
+    <span class="at">config</span>:
+      <span class="at">scrape_configs</span>:
+        - <span class="at">job_name</span>: <span class="st">'kubernetes-pods'</span>
+          <span class="at">kubernetes_sd_configs</span>:
+            - <span class="at">role</span>: <span class="st">pod</span>
+
+<span class="at">processors</span>:
+  <span class="at">batch</span>:
+    <span class="at">timeout</span>: <span class="st">10s</span>
+    <span class="at">send_batch_size</span>: <span class="nr">1024</span>
+  <span class="at">memory_limiter</span>:
+    <span class="at">limit_mib</span>: <span class="nr">512</span>
+    <span class="at">check_interval</span>: <span class="st">5s</span>
+  <span class="at">resource</span>:
+    <span class="at">attributes</span>:
+      - <span class="at">key</span>: <span class="st">environment</span>
+        <span class="at">value</span>: <span class="st">production</span>
+        <span class="at">action</span>: <span class="st">upsert</span>
+
+<span class="at">exporters</span>:
+  <span class="at">otlp/grafana</span>:
+    <span class="at">endpoint</span>: <span class="st">"tempo.monitoring:4317"</span>
+    <span class="at">tls</span>:
+      <span class="at">insecure</span>: <span class="kw">true</span>
+  <span class="at">prometheusremotewrite</span>:
+    <span class="at">endpoint</span>: <span class="st">"http://mimir.monitoring:9090/api/v1/push"</span>
+  <span class="at">loki</span>:
+    <span class="at">endpoint</span>: <span class="st">"http://loki.monitoring:3100/loki/api/v1/push"</span>
+
+<span class="at">service</span>:
+  <span class="at">pipelines</span>:
+    <span class="at">traces</span>:
+      <span class="at">receivers</span>: [<span class="st">otlp</span>]
+      <span class="at">processors</span>: [<span class="st">memory_limiter</span>, <span class="st">batch</span>, <span class="st">resource</span>]
+      <span class="at">exporters</span>: [<span class="st">otlp/grafana</span>]
+    <span class="at">metrics</span>:
+      <span class="at">receivers</span>: [<span class="st">otlp</span>, <span class="st">prometheus</span>]
+      <span class="at">processors</span>: [<span class="st">memory_limiter</span>, <span class="st">batch</span>]
+      <span class="at">exporters</span>: [<span class="st">prometheusremotewrite</span>]
+    <span class="at">logs</span>:
+      <span class="at">receivers</span>: [<span class="st">otlp</span>]
+      <span class="at">processors</span>: [<span class="st">memory_limiter</span>, <span class="st">batch</span>]
+      <span class="at">exporters</span>: [<span class="st">loki</span>]</code></div>
+      </div>
+
+      <h3>Datadog vs. Grafana Stack</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Dimension</th><th>Datadog</th><th>Grafana Stack (LGTM)</th></tr>
+          <tr><td>Deployment Model</td><td>SaaS only</td><td>Self-hosted or Grafana Cloud</td></tr>
+          <tr><td>Cost at Scale</td><td>Expensive ($23+/host/month base)</td><td>Free (self-hosted) or moderate (Cloud)</td></tr>
+          <tr><td>Setup Complexity</td><td>Low (agent-based, just works)</td><td>High (Loki, Grafana, Tempo, Mimir)</td></tr>
+          <tr><td>Metrics</td><td>Excellent (custom metrics, APM)</td><td>Prometheus/Mimir (excellent)</td></tr>
+          <tr><td>Logs</td><td>Good (expensive at volume)</td><td>Loki (cost-effective, label-based)</td></tr>
+          <tr><td>Traces</td><td>Excellent (APM built-in)</td><td>Tempo (good, growing)</td></tr>
+          <tr><td>Dashboards</td><td>Good (built-in)</td><td>Excellent (Grafana is the gold standard)</td></tr>
+          <tr><td>Alert Fatigue</td><td>Good anomaly detection</td><td>Manual threshold tuning</td></tr>
+          <tr><td>Vendor Lock-in</td><td>High (proprietary agent, query language)</td><td>Low (OSS, standard protocols)</td></tr>
+        </table>
+      </div>
+
+      <h3>SLOs, SLIs, and Error Budgets</h3>
+      <p>Service Level Objectives (SLOs) are the foundation of reliability engineering. An SLO is a target for a Service Level Indicator (SLI). For example: "99.9% of HTTP requests should return a non-error response within 200ms." The SLI is the measurement (request success rate). The SLO is the target (99.9%). The error budget is the inverse: if your SLO is 99.9%, your error budget is 0.1% -- that's about 43 minutes of downtime per month.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>slo-definition.yaml — Sloth SLO definition</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="at">apiVersion</span>: sloth.slok.dev/v1
+<span class="at">kind</span>: PrometheusServiceLevel
+<span class="at">metadata</span>:
+  <span class="at">name</span>: <span class="st">payment-service-availability</span>
+<span class="at">spec</span>:
+  <span class="at">service</span>: <span class="st">payment-service</span>
+  <span class="at">slos</span>:
+    - <span class="at">name</span>: <span class="st">requests-availability</span>
+      <span class="at">objective</span>: <span class="nr">99.9</span>
+      <span class="at">description</span>: <span class="st">"99.9% of payment requests succeed"</span>
+      <span class="at">sli</span>:
+        <span class="at">events</span>:
+          <span class="at">error_query</span>: <span class="st">sum(rate(http_requests_total{service="payment",code=~"5.."}[{{.window}}]))</span>
+          <span class="at">total_query</span>: <span class="st">sum(rate(http_requests_total{service="payment"}[{{.window}}]))</span>
+      <span class="at">alerting</span>:
+        <span class="at">page_alert</span>:
+          <span class="at">labels</span>:
+            <span class="at">severity</span>: <span class="st">critical</span>
+            <span class="at">team</span>: <span class="st">payments</span>
+        <span class="at">ticket_alert</span>:
+          <span class="at">labels</span>:
+            <span class="at">severity</span>: <span class="st">warning</span></code></div>
+      </div>
+
+      <h3>Alerting Best Practices</h3>
+      <p>Alert fatigue is real. If your on-call engineers get 50 alerts a night and ignore most of them, your alerting system is worse than useless -- it's actively harmful because it trains people to ignore alerts. The fix is SLO-based alerting: alert on error budget burn rate, not individual metrics. If your payment service's error budget is burning at 10x the sustainable rate, that's an alert. A single 500 error is not.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">The Alerting Pyramid</div>
+        <p><strong>Page-worthy (wake someone up):</strong> Error budget burning at >14x rate (will exhaust in <2 hours). Revenue-impacting outage. Data loss risk.<br>
+        <strong>Ticket-worthy (next business day):</strong> Error budget burning at >3x rate. Gradual performance degradation. Disk filling up.<br>
+        <strong>Dashboard-only (informational):</strong> Single instance unhealthy. Temporary latency spike. Pod restart.</p>
+      </div>
+
+      <h3>Grafana Dashboard Design</h3>
+      <p>A well-designed Grafana dashboard is worth more than a thousand alerts. The problem is that most Grafana dashboards are terrible -- 40 panels crammed onto one page, half of them showing metrics nobody understands, with no clear hierarchy of information. The best dashboards follow the <strong>USE method</strong> (Utilization, Saturation, Errors) for infrastructure and the <strong>RED method</strong> (Rate, Errors, Duration) for services.</p>
+      <p>Structure your dashboards in layers. The top-level dashboard is the <strong>service overview</strong>: request rate, error rate, latency percentiles (P50, P95, P99), and SLO burn rate. One glance tells you if the service is healthy. Below that, have a <strong>detailed dashboard</strong> with per-endpoint breakdowns, dependency health, resource utilization, and cache hit rates. Finally, have a <strong>debugging dashboard</strong> with low-level metrics like GC pauses, thread pool utilization, and connection pool stats. Most on-call engineers should never need to go past the overview dashboard unless something is actually wrong.</p>
+
+      <div class="callout">
+        <div class="callout-title">Dashboard Anti-Patterns</div>
+        <p><strong>The Wall of Graphs:</strong> If your dashboard has more than 12 panels, it's trying to do too much. Split it into focused dashboards linked by drill-down.<br>
+        <strong>The Vanity Dashboard:</strong> Request count going up doesn't mean anything without context. Always show rates, not totals. Always show percentiles, not averages.<br>
+        <strong>The Stale Dashboard:</strong> If nobody looked at a dashboard in 30 days, delete it. Dashboards are not documentation; they're operational tools that require maintenance.<br>
+        <strong>Missing Time Context:</strong> Always include deployment markers and annotation overlays on your dashboards. The most common debugging question is "did something change recently?" and a vertical line showing when the last deploy happened answers it instantly.</p>
+      </div>
+
+      <h3>Log Aggregation at Scale</h3>
+      <p>Logs are the most expensive telemetry signal to store and query. At 100+ services each emitting structured JSON logs, you can easily generate terabytes per day. The platform team must make deliberate decisions about log retention, sampling, and indexing. Loki's approach (index only labels, store log lines in cheap object storage) is dramatically cheaper than Elasticsearch's full-text indexing, but it trades query flexibility for cost. Most organizations find that Loki's label-based queries (<code>{service="payment",level="error"}</code>) cover 90% of debugging use cases.</p>
+      <p>Establish logging standards across the organization: use structured JSON, include request IDs for correlation, include trace IDs for linking to distributed traces, and use consistent severity levels. The platform team should provide logging libraries that enforce these standards automatically, so individual developers don't need to think about log format.</p>
+
+      <h3>Distributed Tracing Patterns</h3>
+      <p>In a microservices architecture, a single user request might traverse 10+ services. Without distributed tracing, debugging performance issues or errors across service boundaries is nearly impossible. OpenTelemetry's trace context propagation (W3C Trace Context headers) is the standard. Every service in the request path adds its span to the trace, creating a complete picture of the request's journey through the system.</p>
+      <p>The platform team should provide auto-instrumentation for common frameworks (Express, Flask, Spring Boot, gRPC) so that developers get tracing out of the box without writing instrumentation code. OpenTelemetry auto-instrumentation libraries make this straightforward for most languages.</p>
+
+      <div class="ascii-diagram">
+  Distributed Trace (simplified)
+  ================================
+
+  Client Request  ───────────────────────────────────────────────  250ms total
+  |
+  ├─ API Gateway  ──────────────────────────────────────────────   5ms
+  |
+  ├─ Auth Service ──────────                                      30ms
+  |
+  ├─ Payment Service ───────────────────────                     120ms
+  |   |
+  |   ├─ DB Query ──────                                          40ms
+  |   |
+  |   └─ Stripe API ──────────────                                65ms
+  |
+  └─ Notification Service ─────                                   25ms
+      |
+      └─ SQS Publish ───                                          10ms</div>
+
+      <p>The trace above immediately reveals that the Stripe API call is the bottleneck -- 65ms of a 250ms request. Without tracing, you'd be guessing. With it, you know exactly where to optimize. The key implementation detail: make sure your trace sampling strategy is right. Tracing 100% of requests in production is prohibitively expensive. Sample 1-5% of normal traffic, but always trace 100% of error responses and slow requests (those exceeding your P99 target). This ensures you have traces for every interesting request without drowning in data.</p>
+
+      <h3>Observability-Driven Development</h3>
+      <p>The emerging practice of observability-driven development (ODD) means thinking about observability <em>before</em> writing code, not after. When designing a new feature, ask: "How will I know if this is working correctly in production? What metrics, logs, and traces do I need?" This shifts observability from an afterthought to a design requirement. Platform teams enable ODD by providing easy-to-use instrumentation libraries, standardized dashboards that auto-populate when new services register, and SLO templates that give teams a starting point for defining their reliability targets.</p>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 7 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-7" data-module="7">
+    <div class="module-header" onclick="toggleModule(7)">
+      <input type="checkbox" class="module-checkbox" data-module="7" onclick="event.stopPropagation(); toggleCheckbox(7)">
+      <div class="module-number">7</div>
+      <span class="module-title-text">SRE Practices & Incident Management</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>SRE Principles: The Google Way, Distilled</h3>
+      <p>Site Reliability Engineering, as defined by Google, is "what happens when you ask a software engineer to design an operations function." The core principles are: <strong>embrace risk</strong> (100% reliability is neither possible nor desirable), <strong>eliminate toil</strong> (manual, repetitive work should be automated), <strong>simplicity</strong> (simpler systems are more reliable), and <strong>error budgets</strong> (use the error budget to balance reliability and velocity).</p>
+      <p>The most important SRE concept for platform leaders is the <strong>error budget</strong>. It fundamentally changes the reliability conversation from "we must never have outages" to "we have a budget for failures, and we spend it on shipping features." When the error budget is healthy, teams should ship faster. When it's depleted, teams should focus on reliability work. This creates a self-correcting system.</p>
+
+      <h3>Toil: Measuring and Reducing It</h3>
+      <p>Toil is work that is manual, repetitive, automatable, reactive, and devoid of enduring value. Every SRE team should measure the percentage of time spent on toil. Google's target is no more than 50% toil; the rest should be engineering work that reduces future toil.</p>
+
+      <h4>Common Sources of Toil in Platform Engineering</h4>
+      <ul>
+        <li>Manually provisioning databases, namespaces, or certificates</li>
+        <li>Manually scaling services during traffic spikes</li>
+        <li>Manually rotating secrets or certificates</li>
+        <li>Responding to alerts that don't require human judgment</li>
+        <li>Manually running deployment pipelines or rollbacks</li>
+        <li>Copy-pasting configurations between environments</li>
+      </ul>
+      <p>Each of these is a candidate for automation. The platform team's explicit goal should be to systematically eliminate these toil sources through self-service tooling, automation, and better defaults.</p>
+
+      <h3>On-Call Rotation Design</h3>
+      <p>A well-designed on-call rotation is critical for team sustainability. Poorly designed on-call leads to burnout, attrition, and worse reliability (tired engineers make worse decisions).</p>
+
+      <div class="callout">
+        <div class="callout-title">On-Call Best Practices</div>
+        <p><strong>Rotation length:</strong> 1 week, with handoff during business hours (not Friday at 5pm).<br>
+        <strong>Team size:</strong> Minimum 6 people in the rotation so no one is on-call more than every 6 weeks.<br>
+        <strong>Compensation:</strong> On-call should be compensated. Period. Whether it's extra PTO, cash, or comp time, people who carry pagers deserve recognition.<br>
+        <strong>Escalation:</strong> Primary on-call has 15 minutes to acknowledge. If unacknowledged, escalate to secondary. If secondary doesn't respond in 15 minutes, escalate to engineering manager.<br>
+        <strong>Follow-the-sun:</strong> For global teams, route pages to the on-call in the awake timezone. Nobody should be woken up at 3am if there's a teammate in a timezone where it's 11am.</p>
+      </div>
+
+      <h3>Incident Management Framework</h3>
+      <p>When things go wrong (and they will), having a structured incident management process is the difference between a 30-minute resolution and a 6-hour fire drill. The <strong>Incident Commander (IC)</strong> model, popularized by PagerDuty and Blameless, assigns clear roles during an incident.</p>
+
+      <div class="ascii-diagram">
+  Incident Response Roles
+  ========================
+
+  +-------------------+
+  | Incident Commander|  Coordinates overall response
+  |    (IC)           |  Makes decisions on mitigation
+  +--------+----------+  Owns communication cadence
+           |
+    +------+------+
+    |             |
+  +-v---------+ +-v-----------+
+  | Technical  | | Comms Lead  |  Updates stakeholders
+  | Lead       | |             |  Manages status page
+  | (fixes it) | | (tells      |  Drafts customer comms
+  +-----+------+ |  everyone)  |
+        |        +-------------+
+  +-----v------+
+  | Subject    |  Domain experts pulled
+  | Matter     |  in as needed
+  | Experts    |
+  +------------+</div>
+
+      <h4>Incident Severity Classification</h4>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Severity</th><th>Impact</th><th>Response Time</th><th>Communication</th><th>Example</th></tr>
+          <tr><td>SEV-1 (Critical)</td><td>Complete outage or data loss</td><td>15 minutes</td><td>Executive notification, status page, customer comms</td><td>Payment processing down</td></tr>
+          <tr><td>SEV-2 (Major)</td><td>Significant degradation</td><td>30 minutes</td><td>Engineering leadership, status page</td><td>50% error rate on checkout</td></tr>
+          <tr><td>SEV-3 (Minor)</td><td>Partial degradation</td><td>4 hours</td><td>Team channel notification</td><td>Slow dashboard loading</td></tr>
+          <tr><td>SEV-4 (Low)</td><td>Cosmetic or minor issue</td><td>Next business day</td><td>Ticket created</td><td>Typo in error message</td></tr>
+        </table>
+      </div>
+
+      <h3>Blameless Postmortems</h3>
+      <p>The postmortem is the most important artifact of any incident. Done well, it prevents recurrence and builds organizational knowledge. Done poorly (or not at all), the same incidents repeat endlessly.</p>
+      <p>A blameless postmortem focuses on <em>systems and processes</em>, not <em>people</em>. "The deployment went out without adequate testing" is blameless. "John deployed without testing" is not. The distinction matters because blame discourages honesty, and dishonest postmortems don't prevent recurrences.</p>
+
+      <h4>Postmortem Template</h4>
+      <ul>
+        <li><strong>Title and date:</strong> Descriptive title, incident date, and severity</li>
+        <li><strong>Summary:</strong> 2-3 sentence description of what happened and the impact</li>
+        <li><strong>Timeline:</strong> Minute-by-minute account from detection to resolution</li>
+        <li><strong>Root cause:</strong> Technical root cause (often multiple contributing factors)</li>
+        <li><strong>Impact:</strong> Quantified impact (users affected, revenue lost, duration)</li>
+        <li><strong>What went well:</strong> Things that worked during the response</li>
+        <li><strong>What went poorly:</strong> Things that slowed down the response</li>
+        <li><strong>Action items:</strong> Specific, assigned, time-bound tasks to prevent recurrence. Each action item must have an owner and a due date.</li>
+        <li><strong>Lessons learned:</strong> Broader takeaways for the organization</li>
+      </ul>
+
+      <div class="callout callout-error">
+        <div class="callout-title">Postmortem Anti-Pattern: The Action Item Graveyard</div>
+        <p>The most common failure mode for postmortems is generating action items that never get completed. If your postmortem action items aren't tracked in the same system as your regular work (Jira, Linear, etc.) and aren't reviewed weekly, they will rot. Assign owners, set deadlines, and review completion in your regular team standup. An incomplete action item from a postmortem is a ticking time bomb.</p>
+      </div>
+
+      <h3>SRE Team Structures</h3>
+      <p>There are three common models for organizing SRE teams, and each has tradeoffs. The <strong>centralized model</strong> has a single SRE team that supports all product teams. This works well at smaller organizations (under 200 engineers) because it concentrates expertise and creates consistent practices. The downside: the SRE team becomes a bottleneck, and they lack deep context on any individual product. The <strong>embedded model</strong> places SREs directly on product teams. They build deep domain knowledge and have strong relationships with developers. The downside: practices diverge across teams, and SREs can become glorified ops people who just respond to pages. The <strong>hybrid model</strong> (used by Google, Netflix, and most large platform organizations) has a central SRE platform team that builds shared tooling and defines standards, plus embedded SREs on critical product teams who apply those standards with domain-specific knowledge.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">SLO-Based Alerting in Practice</div>
+        <p>The shift from threshold-based alerting ("alert if CPU > 90%") to SLO-based alerting ("alert if error budget burn rate exceeds 14x") is the single most impactful change you can make to your alerting system. With SLO-based alerting, you only get paged when users are actually affected at a rate that threatens your reliability targets. A brief CPU spike that doesn't impact error rates or latency? No alert. A subtle data corruption bug that causes 0.5% of requests to return wrong results? Alert, because it's silently draining your error budget. Tools like Sloth, Google's SLO burn-rate alerting rules, and Nobl9 implement this pattern.</p>
+      </div>
+
+      <h3>Chaos Engineering</h3>
+      <p>Chaos engineering is the practice of deliberately injecting failures into your system to verify that your resilience mechanisms work. Netflix pioneered this with Chaos Monkey (randomly killing production instances), but the field has matured significantly. Modern chaos engineering is <strong>hypothesis-driven</strong>: "We believe that if we kill 2 of 3 payment service replicas, the remaining replica will handle traffic without errors." You define the steady state, introduce the perturbation, and measure whether the steady state was maintained.</p>
+      <p>Tools like Litmus (Kubernetes-native), Gremlin (commercial), and AWS Fault Injection Simulator make it straightforward to run chaos experiments. Start with non-production environments, graduate to production during low-traffic windows, and eventually run continuous chaos in production. The most common first experiment: kill a random pod and verify that the service recovers within 30 seconds without user impact. If that fails, you've found a real problem that would have eventually caused an outage.</p>
+
+      <h3>Runbooks That Actually Get Used</h3>
+      <p>A runbook is a documented procedure for handling a specific operational scenario. Most runbooks are written once and never read because they're outdated, hard to find, or too vague to be useful. Effective runbooks are: <strong>linked directly from alerts</strong> (every PagerDuty alert should have a runbook URL), <strong>tested regularly</strong> (during game days or chaos engineering experiments), <strong>maintained by the on-call rotation</strong> (the person who used the runbook updates it), and <strong>structured for a stressed human at 3am</strong> (numbered steps, copy-pasteable commands, clear decision trees).</p>
+      <p>Integrate runbooks into your IDP. When a developer clicks on an alert in the developer portal, the relevant runbook should be one click away. Tools like Backstage TechDocs, Notion, or Confluence can host runbooks, but the key is discoverability and freshness.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>runbook-template.md — Structured runbook format</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="cm"># Runbook: Payment Service High Error Rate</span>
+<span class="cm">## Alert: payment-service-error-budget-burn</span>
+
+<span class="st">### 1. Verify the alert</span>
+<span class="cm"># Check current error rate in Grafana:</span>
+<span class="fn">open</span> https://grafana.internal/d/payment-overview
+
+<span class="st">### 2. Check recent deployments</span>
+kubectl -n payments rollout history deployment/payment-service
+<span class="cm"># If a deployment happened in the last 30 minutes, consider rollback:</span>
+kubectl -n payments rollout undo deployment/payment-service
+
+<span class="st">### 3. Check dependency health</span>
+<span class="cm"># Stripe API status:</span>
+curl -s https://status.stripe.com/api/v2/status.json | jq .status
+<span class="cm"># Database connection pool:</span>
+kubectl -n payments exec deploy/payment-service -- \
+  curl -s localhost:8080/debug/connpool | jq .
+
+<span class="st">### 4. Check pod health</span>
+kubectl -n payments get pods -l app=payment-service
+kubectl -n payments top pods -l app=payment-service
+
+<span class="st">### 5. Escalation</span>
+<span class="cm"># If unresolved after 15 minutes, escalate to #incident-payments</span>
+<span class="cm"># Page the payments team tech lead via PagerDuty</span></code></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 8 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-8" data-module="8">
+    <div class="module-header" onclick="toggleModule(8)">
+      <input type="checkbox" class="module-checkbox" data-module="8" onclick="event.stopPropagation(); toggleCheckbox(8)">
+      <div class="module-number">8</div>
+      <span class="module-title-text">Build Systems & Developer Productivity</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>Why Build Systems Matter for Platform Engineering</h3>
+      <p>The build system is the foundation of the developer inner loop: edit, build, test, repeat. Every second added to the build-test cycle is multiplied by every developer, every iteration, every day. At scale, build performance isn't a nice-to-have -- it's a competitive advantage. Google, Meta, and other large tech companies invest heavily in build infrastructure because they understand that developer productivity compounds.</p>
+
+      <h3>Bazel Deep Dive</h3>
+      <p>Bazel, originally developed at Google (where it's known as Blaze), is the most powerful build system available for large codebases. It's designed for correctness, reproducibility, and speed. Bazel's key features: <strong>hermetic builds</strong> (builds depend only on declared inputs, ensuring reproducibility), <strong>content-based caching</strong> (only rebuild what changed, based on file contents not timestamps), <strong>remote execution</strong> (distribute builds across a cluster of machines), and <strong>multi-language support</strong> (Java, Go, Python, C++, TypeScript, and more through rules).</p>
+
+      <h4>When to Use Bazel</h4>
+      <p>Bazel makes sense when your codebase exceeds what language-specific tools can handle efficiently. If your Go monorepo takes 20 minutes to test, if your Java project has 500+ modules, or if you have a polyglot monorepo with shared protobuf definitions, Bazel is likely the right choice. For smaller codebases, the learning curve and configuration overhead may not be justified.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>BUILD.bazel — Go service with gRPC</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="fn">load</span>(<span class="st">"@io_bazel_rules_go//go:def.bzl"</span>, <span class="st">"go_binary"</span>, <span class="st">"go_library"</span>, <span class="st">"go_test"</span>)
+<span class="fn">load</span>(<span class="st">"@rules_oci//oci:defs.bzl"</span>, <span class="st">"oci_image"</span>, <span class="st">"oci_push"</span>)
+
+<span class="fn">go_library</span>(
+    <span class="at">name</span> = <span class="st">"payment_lib"</span>,
+    <span class="at">srcs</span> = <span class="fn">glob</span>([<span class="st">"*.go"</span>]),
+    <span class="at">importpath</span> = <span class="st">"github.com/myorg/platform/services/payment"</span>,
+    <span class="at">visibility</span> = [<span class="st">"//visibility:private"</span>],
+    <span class="at">deps</span> = [
+        <span class="st">"//proto/payment:payment_go_proto"</span>,
+        <span class="st">"//lib/observability"</span>,
+        <span class="st">"//lib/database"</span>,
+        <span class="st">"@org_golang_google_grpc//:go_default_library"</span>,
+    ],
+)
+
+<span class="fn">go_binary</span>(
+    <span class="at">name</span> = <span class="st">"payment"</span>,
+    <span class="at">embed</span> = [<span class="st">":payment_lib"</span>],
+    <span class="at">visibility</span> = [<span class="st">"//visibility:public"</span>],
+)
+
+<span class="fn">go_test</span>(
+    <span class="at">name</span> = <span class="st">"payment_test"</span>,
+    <span class="at">srcs</span> = <span class="fn">glob</span>([<span class="st">"*_test.go"</span>]),
+    <span class="at">embed</span> = [<span class="st">":payment_lib"</span>],
+    <span class="at">deps</span> = [<span class="st">"@com_github_stretchr_testify//assert"</span>],
+)
+
+<span class="fn">oci_image</span>(
+    <span class="at">name</span> = <span class="st">"image"</span>,
+    <span class="at">base</span> = <span class="st">"@distroless_base"</span>,
+    <span class="at">entrypoint</span> = [<span class="st">"/payment"</span>],
+    <span class="at">tars</span> = [<span class="st">":payment_layer"</span>],
+)</code></div>
+      </div>
+
+      <h4>Remote Caching and Remote Execution</h4>
+      <p>Remote caching is the single most impactful Bazel feature for developer productivity. When developer A builds a target, the build outputs are stored in a shared cache (typically backed by a service like Buildbarn, BuildBuddy, or Google's Remote Build Execution). When developer B builds the same target with the same inputs, the outputs are fetched from cache instead of rebuilding. This can reduce build times from minutes to seconds.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>.bazelrc — Remote caching configuration</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="cm"># Remote caching with BuildBuddy</span>
+<span class="at">build</span> <span class="st">--remote_cache=grpcs://remote.buildbuddy.io</span>
+<span class="at">build</span> <span class="st">--remote_header=x-buildbuddy-api-key=YOUR_API_KEY</span>
+<span class="at">build</span> <span class="st">--remote_upload_local_results=true</span>
+<span class="at">build</span> <span class="st">--remote_download_toplevel</span>
+
+<span class="cm"># Remote execution (for CI)</span>
+<span class="at">build:ci</span> <span class="st">--remote_executor=grpcs://remote.buildbuddy.io</span>
+<span class="at">build:ci</span> <span class="st">--jobs=100</span>
+
+<span class="cm"># Performance optimizations</span>
+<span class="at">build</span> <span class="st">--experimental_remote_merkle_tree_cache</span>
+<span class="at">build</span> <span class="st">--experimental_remote_cache_compression</span></code></div>
+      </div>
+
+      <h3>Turborepo for JavaScript/TypeScript Monorepos</h3>
+      <p>If your organization runs a JavaScript or TypeScript monorepo, Turborepo (acquired by Vercel) is the standard choice. It provides task scheduling with dependency awareness, local and remote caching, and parallel execution. It's significantly simpler than Bazel for JS-only codebases.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>turbo.json</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code>{
+  <span class="st">"$schema"</span>: <span class="st">"https://turbo.build/schema.json"</span>,
+  <span class="st">"globalDependencies"</span>: [<span class="st">"**/.env.*local"</span>],
+  <span class="st">"pipeline"</span>: {
+    <span class="st">"build"</span>: {
+      <span class="st">"dependsOn"</span>: [<span class="st">"^build"</span>],
+      <span class="st">"outputs"</span>: [<span class="st">"dist/**"</span>, <span class="st">".next/**"</span>, <span class="st">"!.next/cache/**"</span>]
+    },
+    <span class="st">"test"</span>: {
+      <span class="st">"dependsOn"</span>: [<span class="st">"build"</span>],
+      <span class="st">"outputs"</span>: [<span class="st">"coverage/**"</span>],
+      <span class="st">"inputs"</span>: [<span class="st">"src/**/*.tsx"</span>, <span class="st">"src/**/*.ts"</span>, <span class="st">"test/**/*.ts"</span>]
+    },
+    <span class="st">"lint"</span>: {
+      <span class="st">"outputs"</span>: []
+    },
+    <span class="st">"dev"</span>: {
+      <span class="st">"cache"</span>: <span class="kw">false</span>,
+      <span class="st">"persistent"</span>: <span class="kw">true</span>
+    }
+  }
+}</code></div>
+      </div>
+
+      <h3>Monorepo vs. Polyrepo</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Factor</th><th>Monorepo</th><th>Polyrepo</th></tr>
+          <tr><td>Code Sharing</td><td>Trivial (just import)</td><td>Requires publishing packages</td></tr>
+          <tr><td>Atomic Changes</td><td>Easy (one PR changes everything)</td><td>Requires coordinated releases</td></tr>
+          <tr><td>CI Complexity</td><td>High (need affected-target detection)</td><td>Low (each repo has its own CI)</td></tr>
+          <tr><td>IDE Performance</td><td>Can degrade at scale</td><td>Always fast per-repo</td></tr>
+          <tr><td>Ownership</td><td>Requires CODEOWNERS files</td><td>Clear by repository</td></tr>
+          <tr><td>Onboarding</td><td>Clone once, everything is there</td><td>Need to find and clone many repos</td></tr>
+        </table>
+      </div>
+
+      <h3>Developer Productivity Metrics</h3>
+      <p>You can't improve what you don't measure. The <strong>DORA metrics</strong> (Deployment Frequency, Lead Time for Changes, Change Failure Rate, Mean Time to Recovery) measure software delivery performance at the team level. The <strong>SPACE framework</strong> (Satisfaction, Performance, Activity, Communication, Efficiency) provides a more holistic view of developer productivity that includes subjective experience.</p>
+
+      <div class="callout">
+        <div class="callout-title">The Inner Loop Benchmark</div>
+        <p>The developer inner loop (edit, build, test, see result) should take under 10 seconds for incremental changes. If it takes longer, developers lose flow state, context-switch to Slack, and productivity drops dramatically. Measure your inner loop time and treat it as a critical SLI. Tools like devcontainers, hot-reload frameworks, and local build caching directly improve this metric.</p>
+      </div>
+
+      <h3>Developer Environment Standardization</h3>
+      <p>Reproducible development environments eliminate the "works on my machine" problem. <strong>Dev Containers</strong> (VS Code) define development environments as Docker containers with all dependencies pre-installed. <strong>GitHub Codespaces</strong> provide cloud-hosted development environments that spin up in seconds. <strong>Gitpod</strong> offers a similar experience with more flexibility on hosting. The platform team should provide pre-configured dev environments for every supported stack, so a new developer can go from git clone to running tests in under 5 minutes.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>.devcontainer/devcontainer.json</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code>{
+  <span class="st">"name"</span>: <span class="st">"Payment Service Dev"</span>,
+  <span class="st">"image"</span>: <span class="st">"ghcr.io/myorg/devcontainer-python:3.12"</span>,
+  <span class="st">"features"</span>: {
+    <span class="st">"ghcr.io/devcontainers/features/docker-in-docker:2"</span>: {},
+    <span class="st">"ghcr.io/devcontainers/features/kubectl-helm-minikube:1"</span>: {}
+  },
+  <span class="st">"forwardPorts"</span>: [<span class="nr">8080</span>, <span class="nr">5432</span>, <span class="nr">6379</span>],
+  <span class="st">"postCreateCommand"</span>: <span class="st">"make setup"</span>,
+  <span class="st">"customizations"</span>: {
+    <span class="st">"vscode"</span>: {
+      <span class="st">"extensions"</span>: [
+        <span class="st">"ms-python.python"</span>,
+        <span class="st">"ms-python.vscode-pylance"</span>,
+        <span class="st">"ms-azuretools.vscode-docker"</span>
+      ],
+      <span class="st">"settings"</span>: {
+        <span class="st">"python.defaultInterpreterPath"</span>: <span class="st">"/usr/local/bin/python"</span>,
+        <span class="st">"python.testing.pytestEnabled"</span>: <span class="kw">true</span>
+      }
+    }
+  }
+}</code></div>
+      </div>
+
+      <p>The critical insight about dev environments: <strong>the platform team owns the base images</strong>. Individual teams customize on top with service-specific dependencies, but the platform team maintains the language-runtime base images with approved compiler versions, security patches, and standard tooling pre-installed. This creates a layer of consistency while preserving team autonomy. At Shopify, their dev container images are rebuilt nightly with the latest security patches and pushed to an internal registry. When a developer opens a codespace, they automatically get the latest secure environment.</p>
+
+      <h3>Reducing Inner Loop Time: A Practical Guide</h3>
+      <p>The developer inner loop (edit, build, test, see result) is where developers spend most of their time. Every optimization here has outsized impact. The key strategies:</p>
+      <ul>
+        <li><strong>Hot reload:</strong> For interpreted languages (Python, Node.js, Ruby), use file watchers that automatically restart the server on file changes. Tools like nodemon, uvicorn --reload, and guard eliminate the manual restart step entirely.</li>
+        <li><strong>Incremental compilation:</strong> For compiled languages (Go, Rust, Java), use incremental build tools. Go's build cache is excellent by default. For Java, Gradle's incremental compilation is much faster than Maven. For Rust, use <code>cargo watch</code> with incremental compilation enabled.</li>
+        <li><strong>Local test filtering:</strong> Run only the tests affected by your change. <code>pytest -k "test_payment"</code> runs only matching tests. <code>jest --onlyChanged</code> runs tests for changed files. <code>go test ./services/payment/...</code> runs tests only in the changed package.</li>
+        <li><strong>Mock external dependencies:</strong> Calls to external APIs, databases, and message queues should be mockable locally. Docker Compose files that spin up local Postgres, Redis, and localstack (mock AWS) in seconds are table stakes for a modern platform.</li>
+        <li><strong>Preview environments:</strong> For frontend changes, deploy preview environments on every PR (Vercel, Netlify, or custom K8s-based preview envs). This eliminates the need to run the full stack locally for UI changes.</li>
+      </ul>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">Measuring What Matters</div>
+        <p>Don't rely solely on DORA metrics. They measure team-level delivery performance but miss individual developer experience. Complement DORA with <strong>developer surveys</strong> (quarterly, anonymous, measuring satisfaction and friction points), <strong>inner loop timing</strong> (how long from saving a file to seeing the result), <strong>CI wait time</strong> (time from pushing a commit to seeing green/red), and <strong>environment setup time</strong> (time from cloning a repo to running the first test). These subjective and objective measures together paint a complete picture of developer productivity.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 9 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-9" data-module="9">
+    <div class="module-header" onclick="toggleModule(9)">
+      <input type="checkbox" class="module-checkbox" data-module="9" onclick="event.stopPropagation(); toggleCheckbox(9)">
+      <div class="module-number">9</div>
+      <span class="module-title-text">Feature Flags & Progressive Delivery</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>Why Feature Flags Are a Platform Capability</h3>
+      <p>Feature flags decouple deployment from release. You deploy code to production continuously, but you control who sees new features through flags. This is transformative because it means deployment becomes routine (just merging code) and release becomes a business decision (flipping a flag). For platform teams, feature flags are infrastructure that enables progressive delivery, experimentation, and safe rollouts.</p>
+      <p>Without feature flags, your deployment pipeline <em>is</em> your release process. Every deployment is a release. Every release is all-or-nothing. With feature flags, you can deploy ten times a day and gradually roll out features to 1%, then 5%, then 25%, then 100% of users, monitoring metrics at each stage.</p>
+
+      <h3>Feature Flag Architecture</h3>
+
+      <div class="ascii-diagram">
+  Feature Flag Evaluation Flow
+  ==============================
+
+  Application                 Flag Service           Dashboard
+  +-----------+             +-------------+        +-----------+
+  |           |   SDK Init  |             |        |           |
+  | if flag   |------------>| Flag Store  |<-------| Targeting |
+  | enabled?  |             | (Redis/DB)  |        | Rules     |
+  |           |<------------|             |        |           |
+  | Show new  |  Evaluate   | Audit Log   |        | Kill      |
+  | feature   |             |             |        | Switches  |
+  +-----------+             +-------------+        +-----------+
+       |
+       v                    Streaming Updates
+  Local Cache               (SSE/WebSocket)
+  (in-memory)</div>
+
+      <h3>LaunchDarkly vs. Unleash vs. Flagsmith</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Feature</th><th>LaunchDarkly</th><th>Unleash</th><th>Flagsmith</th></tr>
+          <tr><td>Hosting</td><td>SaaS only</td><td>Self-hosted or Cloud</td><td>Self-hosted or Cloud</td></tr>
+          <tr><td>Cost</td><td>Expensive ($10/seat/mo+)</td><td>Free (OSS) or paid</td><td>Free (OSS) or paid</td></tr>
+          <tr><td>SDK Quality</td><td>Excellent (15+ languages)</td><td>Good (10+ languages)</td><td>Good (10+ languages)</td></tr>
+          <tr><td>Targeting Rules</td><td>Excellent (segments, rules, %)</td><td>Good (strategies)</td><td>Good (segments)</td></tr>
+          <tr><td>Experimentation</td><td>Built-in A/B testing</td><td>Basic</td><td>Basic</td></tr>
+          <tr><td>Audit Trail</td><td>Excellent</td><td>Good</td><td>Good</td></tr>
+          <tr><td>Evaluation Speed</td><td>~1ms (local eval)</td><td>~1ms (local eval)</td><td>~5ms (API-based)</td></tr>
+          <tr><td>Best For</td><td>Enterprise, experimentation</td><td>Self-hosted, privacy-focused</td><td>Startups, simplicity</td></tr>
+        </table>
+      </div>
+
+      <h4>Flag Implementation Pattern</h4>
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>Python — Feature flag evaluation with OpenFeature</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="kw">from</span> <span class="nb">openfeature</span> <span class="kw">import</span> api
+<span class="kw">from</span> <span class="nb">openfeature.contrib.provider.flagd</span> <span class="kw">import</span> FlagdProvider
+
+<span class="cm"># Initialize the OpenFeature SDK with flagd provider</span>
+api.<span class="fn">set_provider</span>(FlagdProvider(
+    host=<span class="st">"flagd.platform.svc.cluster.local"</span>,
+    port=<span class="nr">8013</span>,
+    tls=<span class="kw">True</span>,
+))
+
+client = api.<span class="fn">get_client</span>()
+
+<span class="kw">def</span> <span class="fn">checkout</span>(user, cart):
+    <span class="cm"># Evaluation context for targeting rules</span>
+    context = {
+        <span class="st">"user_id"</span>: user.id,
+        <span class="st">"email"</span>: user.email,
+        <span class="st">"country"</span>: user.country,
+        <span class="st">"plan"</span>: user.subscription_plan,
+        <span class="st">"beta_tester"</span>: user.is_beta,
+    }
+
+    <span class="cm"># Boolean flag: is the new checkout flow enabled?</span>
+    <span class="kw">if</span> client.<span class="fn">get_boolean_value</span>(
+        <span class="st">"new-checkout-flow"</span>,
+        default_value=<span class="kw">False</span>,
+        evaluation_context=context,
+    ):
+        <span class="kw">return</span> <span class="fn">new_checkout_flow</span>(user, cart)
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="fn">legacy_checkout_flow</span>(user, cart)
+
+    <span class="cm"># String flag: which payment provider variant?</span>
+    provider = client.<span class="fn">get_string_value</span>(
+        <span class="st">"payment-provider-variant"</span>,
+        default_value=<span class="st">"stripe-v2"</span>,
+        evaluation_context=context,
+    )
+    <span class="kw">return</span> <span class="fn">process_payment</span>(provider, cart)</code></div>
+      </div>
+
+      <h3>Types of Feature Flags</h3>
+      <p>Not all flags are created equal. Understanding the different types helps you manage them properly:</p>
+      <ul>
+        <li><strong>Release Flags:</strong> Enable/disable new features during rollout. Short-lived (days to weeks). Should be removed after full rollout. Example: <code>new-checkout-flow</code>.</li>
+        <li><strong>Operational Flags:</strong> Control system behavior in production. Long-lived. Used for graceful degradation. Example: <code>enable-recommendation-engine</code> (turn off during high load).</li>
+        <li><strong>Experiment Flags:</strong> A/B testing variants. Medium-lived (weeks to months). Tied to analytics. Example: <code>pricing-page-variant</code> (A/B/C test different pricing layouts).</li>
+        <li><strong>Permission Flags:</strong> Gate features by user segment. Long-lived. Example: <code>premium-feature-dashboard</code> (only for paid users).</li>
+      </ul>
+
+      <div class="callout callout-warning">
+        <div class="callout-title">Flag Debt: The Silent Killer</div>
+        <p>Feature flags that outlive their purpose become technical debt. Every flag adds a code path that must be tested, understood, and maintained. A codebase with 500 stale flags is a minefield of unexpected behavior. Implement a <strong>flag lifecycle policy</strong>: every release flag must have an expiry date. After 30 days, if the flag is still in code, an automated PR is created to remove it. Track flag age on a dashboard. Treat flags older than 90 days as bugs.</p>
+      </div>
+
+      <h3>Progressive Delivery with Feature Flags</h3>
+      <p>Progressive delivery combines feature flags with automated analysis to create self-healing releases. The pattern: deploy new code with a flag defaulting to off. Enable the flag for 1% of traffic. Automatically compare error rates, latency, and business metrics between the flag-on and flag-off populations. If metrics are healthy, automatically increase to 5%, 25%, 50%, 100%. If metrics degrade, automatically roll back the flag to 0%.</p>
+      <p>This is the holy grail of continuous delivery: fully automated, metrics-driven releases that require zero human intervention for successful deployments and automatically protect users from bad deployments. Tools like Flagger (for Kubernetes), LaunchDarkly (with metric integration), and custom solutions can implement this pattern.</p>
+
+      <div class="ascii-diagram">
+  Progressive Delivery Timeline
+  ================================
+
+  Deploy    1%     5%     25%    50%    100%
+  __|_______|______|______|______|________|__
+            |      |      |      |        |
+         Analyze Analyze Analyze Analyze  Done!
+         metrics metrics metrics metrics
+            |
+         If error rate > baseline:
+         AUTO-ROLLBACK to 0%
+         Page on-call engineer
+         Create incident ticket</div>
+
+      <p>The implementation detail that matters: <strong>statistical significance</strong>. You can't compare a 1% sample to the 99% control group and draw meaningful conclusions about error rate differences. You need enough traffic at each stage to achieve statistical significance before promoting. For a service handling 10,000 requests per minute, 1% gives you 100 requests per minute -- enough to detect a 5% error rate increase with confidence within 10-15 minutes. For lower-traffic services, you may need to keep the canary running for hours before promoting. Build this math into your progressive delivery automation.</p>
+
+      <h3>Trunk-Based Development with Flags</h3>
+      <p>Feature flags are the enabling mechanism for trunk-based development at scale. Without flags, long-lived feature branches are the only way to hide incomplete work. With flags, developers merge to main every day (or multiple times per day), and incomplete features are simply gated behind flags that default to off. This eliminates merge conflicts, reduces integration risk, and keeps the main branch always deployable.</p>
+      <p>The workflow is straightforward: developer creates a feature flag for their new capability, wraps new code paths in flag checks, merges small increments to main daily, and when the feature is complete and tested, gradually rolls out via the flag dashboard. The feature branch never existed -- all work happened on main, protected by the flag. This is how Netflix, Google, and most high-performing engineering organizations operate, and it's a night-and-day improvement over gitflow for teams that adopt it.</p>
+
+      <h4>Percentage Rollouts and Canary Patterns</h4>
+      <p>The power of percentage rollouts is that they let you validate changes with real traffic before committing to a full release. The key technical detail: percentage rollouts must be <strong>sticky</strong>. If user Alice falls into the 5% cohort, she should consistently see the new experience on every request, not randomly flip between old and new. This is typically implemented by hashing the user ID with the flag name and using the hash to determine the cohort. This ensures consistency without requiring server-side session state.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>Sticky percentage rollout implementation</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="kw">import</span> <span class="nb">hashlib</span>
+
+<span class="kw">def</span> <span class="fn">is_in_rollout</span>(user_id: <span class="nb">str</span>, flag_name: <span class="nb">str</span>, percentage: <span class="nb">int</span>) -> <span class="nb">bool</span>:
+    <span class="cm">"""Sticky percentage rollout using consistent hashing."""</span>
+    hash_input = <span class="st">f"</span>{flag_name}<span class="st">:</span>{user_id}<span class="st">"</span>.<span class="fn">encode</span>()
+    hash_value = <span class="nb">int</span>(hashlib.<span class="fn">sha256</span>(hash_input).<span class="fn">hexdigest</span>(), <span class="nr">16</span>)
+    bucket = hash_value % <span class="nr">100</span>  <span class="cm"># 0-99</span>
+    <span class="kw">return</span> bucket < percentage
+
+<span class="cm"># User "alice" is consistently in or out for each flag</span>
+<span class="fn">is_in_rollout</span>(<span class="st">"alice"</span>, <span class="st">"new-checkout"</span>, <span class="nr">5</span>)   <span class="cm"># Always True or always False</span>
+<span class="fn">is_in_rollout</span>(<span class="st">"alice"</span>, <span class="st">"new-checkout"</span>, <span class="nr">50</span>)  <span class="cm"># Same answer every time</span></code></div>
+      </div>
+
+      <h3>Kill Switches for Incidents</h3>
+      <p>Operational flags serve as kill switches during incidents. When your recommendation service is overloaded and dragging down the checkout page, a single flag toggle can disable recommendations without a code deployment. This is faster, safer, and more reversible than any code change. Every external dependency should have a kill switch. Your platform should make it trivial to add one.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>kill-switch-pattern.py</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="kw">def</span> <span class="fn">get_recommendations</span>(user_id: <span class="nb">str</span>) -> <span class="nb">list</span>:
+    <span class="cm"># Kill switch: if recommendation service is struggling,</span>
+    <span class="cm"># return cached/default recommendations instead</span>
+    <span class="kw">if</span> <span class="kw">not</span> flags.<span class="fn">is_enabled</span>(<span class="st">"enable-live-recommendations"</span>):
+        <span class="kw">return</span> <span class="fn">get_cached_recommendations</span>(user_id)
+
+    <span class="kw">try</span>:
+        <span class="kw">return</span> recommendation_client.<span class="fn">get</span>(
+            user_id,
+            timeout_ms=<span class="nr">200</span>,  <span class="cm"># aggressive timeout</span>
+        )
+    <span class="kw">except</span> (<span class="nb">TimeoutError</span>, <span class="nb">ServiceUnavailableError</span>):
+        metrics.<span class="fn">increment</span>(<span class="st">"recommendations.fallback"</span>)
+        <span class="kw">return</span> <span class="fn">get_cached_recommendations</span>(user_id)</code></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODULE 10 -->
+  <!-- ============================================================ -->
+  <div class="module" id="module-10" data-module="10">
+    <div class="module-header" onclick="toggleModule(10)">
+      <input type="checkbox" class="module-checkbox" data-module="10" onclick="event.stopPropagation(); toggleCheckbox(10)">
+      <div class="module-number">10</div>
+      <span class="module-title-text">Database Migrations at Scale</span>
+      <span class="module-chevron">&#9662;</span>
+    </div>
+    <div class="module-body">
+
+      <h3>Why Database Migrations Are the Hardest Problem</h3>
+      <p>Every other topic in this course has a reasonable "undo" button. Bad deployment? Roll back. Bad config? Revert. Bad feature flag? Toggle it off. But database migrations? If you've dropped a column, that data is gone. If you've locked a table with 500 million rows, your application is down until the migration completes. Database migrations at scale are the highest-stakes operation in software engineering, and they deserve the deepest respect.</p>
+      <p>The fundamental tension is this: your database schema needs to evolve (new features require new columns, tables, indexes), but your database is a shared, stateful resource that serves live traffic. Any schema change that takes locks, rewrites data, or changes constraints can potentially bring down your application. The techniques in this module exist to resolve that tension.</p>
+
+      <h3>The Expand-and-Contract Pattern</h3>
+      <p>The expand-and-contract pattern (also called "parallel change") is the gold standard for zero-downtime schema migrations. Instead of making a breaking change in one step, you break it into three safe steps:</p>
+      <ol>
+        <li><strong>Expand:</strong> Add the new column/table alongside the old one. Both coexist. Application writes to both.</li>
+        <li><strong>Migrate:</strong> Backfill existing data from old to new. Application reads from new, writes to both.</li>
+        <li><strong>Contract:</strong> Remove the old column/table once all code paths use the new one. This is the only step that removes something, and by this point, nothing depends on it.</li>
+      </ol>
+
+      <div class="ascii-diagram">
+  Expand-and-Contract: Renaming a Column
+  =========================================
+
+  Phase 1: EXPAND               Phase 2: MIGRATE           Phase 3: CONTRACT
+  +-------------------+        +-------------------+      +-------------------+
+  | users             |        | users             |      | users             |
+  |-------------------|        |-------------------|      |-------------------|
+  | name     VARCHAR  |        | name     VARCHAR  |      | full_name VARCHAR |
+  | full_name VARCHAR | -----> | full_name VARCHAR | ---->|                   |
+  |   (new, nullable) |        |   (backfilled)    |      | (name removed)    |
+  +-------------------+        +-------------------+      +-------------------+
+
+  App writes to BOTH           App reads full_name        App uses full_name
+  App reads name               Backfill name->full_name   only</div>
+
+      <h3>MySQL: pt-online-schema-change and gh-ost</h3>
+      <p>MySQL's <code>ALTER TABLE</code> can lock the table for the duration of the change on older versions and certain operations. For tables with millions of rows, this can mean minutes or hours of downtime. Two tools solve this problem:</p>
+      <p><strong>pt-online-schema-change</strong> (Percona Toolkit) creates a new table with the desired schema, copies data in chunks, uses triggers to capture changes made during the copy, and then swaps the tables atomically. It's battle-tested and widely used, but the trigger-based approach adds overhead to write operations during the migration.</p>
+      <p><strong>gh-ost</strong> (GitHub Online Schema Tool) takes a different approach: instead of triggers, it reads the binary log to capture changes. This is less intrusive because it doesn't modify the source table's write path. gh-ost also supports throttling, cut-over control, and testing migrations without actually executing them.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>bash — gh-ost migration example</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="cm"># Add an index to a 500M-row table with zero downtime</span>
+gh-ost \
+  --host=<span class="st">"primary.db.internal"</span> \
+  --database=<span class="st">"payments"</span> \
+  --table=<span class="st">"transactions"</span> \
+  --alter=<span class="st">"ADD INDEX idx_created_status (created_at, status)"</span> \
+  --chunk-size=<span class="nr">1000</span> \
+  --max-load=<span class="st">"Threads_running=25"</span> \
+  --critical-load=<span class="st">"Threads_running=50"</span> \
+  --throttle-control-replicas=<span class="st">"replica1.db.internal,replica2.db.internal"</span> \
+  --max-lag-millis=<span class="nr">1500</span> \
+  --cut-over=<span class="st">default</span> \
+  --execute
+
+<span class="cm"># Key flags explained:</span>
+<span class="cm"># --chunk-size: rows copied per iteration (tune for your write load)</span>
+<span class="cm"># --max-load: pause migration if MySQL threads exceed threshold</span>
+<span class="cm"># --critical-load: abort migration if threads exceed this</span>
+<span class="cm"># --max-lag-millis: pause if replica lag exceeds this</span>
+<span class="cm"># --cut-over: how to swap tables (default = atomic rename)</span></code></div>
+      </div>
+
+      <h3>PostgreSQL: pg_repack and Logical Replication</h3>
+      <p>PostgreSQL handles many ALTER TABLE operations without exclusive locks (adding a column with no default, adding an index with <code>CREATE INDEX CONCURRENTLY</code>). However, some operations still require a full table rewrite: changing a column type, adding a NOT NULL constraint with a default to an existing column (pre-PG11), or doing a full table VACUUM.</p>
+      <p><strong>pg_repack</strong> reorganizes tables online without exclusive locks. It's useful for reclaiming space (after deleting many rows) and for schema changes that would otherwise lock the table.</p>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>sql — Safe PostgreSQL migration patterns</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="cm">-- SAFE: Add column without default (no rewrite)</span>
+<span class="kw">ALTER TABLE</span> <span class="nb">orders</span> <span class="kw">ADD COLUMN</span> <span class="nb">shipping_method</span> <span class="nb">VARCHAR</span>(<span class="nr">50</span>);
+
+<span class="cm">-- SAFE: Add index concurrently (no lock)</span>
+<span class="kw">CREATE INDEX CONCURRENTLY</span> <span class="nb">idx_orders_status</span>
+  <span class="kw">ON</span> <span class="nb">orders</span> (<span class="nb">status</span>, <span class="nb">created_at</span>);
+
+<span class="cm">-- SAFE in PG11+: Add column with default (no rewrite)</span>
+<span class="kw">ALTER TABLE</span> <span class="nb">orders</span>
+  <span class="kw">ADD COLUMN</span> <span class="nb">priority</span> <span class="nb">INTEGER</span> <span class="kw">DEFAULT</span> <span class="nr">0</span> <span class="kw">NOT NULL</span>;
+
+<span class="cm">-- DANGEROUS: Changing column type (requires rewrite + lock)</span>
+<span class="cm">-- DON'T: ALTER TABLE orders ALTER COLUMN amount TYPE NUMERIC(12,2);</span>
+<span class="cm">-- DO: Use expand-and-contract pattern instead:</span>
+<span class="kw">ALTER TABLE</span> <span class="nb">orders</span> <span class="kw">ADD COLUMN</span> <span class="nb">amount_v2</span> <span class="nb">NUMERIC</span>(<span class="nr">12</span>,<span class="nr">2</span>);
+<span class="cm">-- Then backfill, switch reads, drop old column</span>
+
+<span class="cm">-- DANGEROUS: Adding NOT NULL to existing column</span>
+<span class="cm">-- DON'T: ALTER TABLE orders ALTER COLUMN shipping_method SET NOT NULL;</span>
+<span class="cm">-- DO: Add a CHECK constraint first (validated in background)</span>
+<span class="kw">ALTER TABLE</span> <span class="nb">orders</span>
+  <span class="kw">ADD CONSTRAINT</span> <span class="nb">chk_shipping_not_null</span>
+  <span class="kw">CHECK</span> (<span class="nb">shipping_method</span> <span class="kw">IS NOT NULL</span>) <span class="kw">NOT VALID</span>;
+
+<span class="kw">ALTER TABLE</span> <span class="nb">orders</span>
+  <span class="kw">VALIDATE CONSTRAINT</span> <span class="nb">chk_shipping_not_null</span>;</code></div>
+      </div>
+
+      <h3>Migration Tools: Flyway vs. Liquibase</h3>
+      <div class="table-wrapper">
+        <table>
+          <tr><th>Feature</th><th>Flyway</th><th>Liquibase</th></tr>
+          <tr><td>Migration Format</td><td>SQL files (simple, explicit)</td><td>XML/YAML/JSON/SQL (abstract)</td></tr>
+          <tr><td>Rollback</td><td>Manual (write your own undo SQL)</td><td>Auto-generated (for some changes)</td></tr>
+          <tr><td>Diff Support</td><td>No</td><td>Yes (compare schemas)</td></tr>
+          <tr><td>Learning Curve</td><td>Low (just write SQL)</td><td>Medium (DSL to learn)</td></tr>
+          <tr><td>Best For</td><td>Teams that want control</td><td>Teams that want abstraction</td></tr>
+        </table>
+      </div>
+
+      <h3>Rails and Django Migration Pitfalls</h3>
+      <p>Framework-level migration tools (Rails ActiveRecord migrations, Django migrations) are convenient but dangerous at scale. They hide the SQL being generated, making it easy to accidentally create a migration that locks a table for minutes.</p>
+
+      <div class="callout callout-error">
+        <div class="callout-title">Rails Migration Horror Stories</div>
+        <p><strong>The 20-minute lock:</strong> A Rails developer ran <code>add_column :orders, :status, :string, default: 'pending'</code> on a 200M-row table. In Rails/MySQL, this rewrites the entire table while holding an exclusive lock. The orders table was locked for 20 minutes. No orders could be placed. Revenue impact: $800K.<br><br>
+        <strong>The fix:</strong> Use <code>strong_migrations</code> gem (Rails) or <code>django-safemigrate</code> (Django) to catch dangerous migration patterns during development. These gems analyze your migrations and block operations that would take locks on large tables. They're the cheapest investment you can make in database safety.</p>
+      </div>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>Gemfile — Safe migration tooling for Rails</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="cm"># Gemfile</span>
+<span class="fn">gem</span> <span class="st">'strong_migrations'</span>
+
+<span class="cm"># config/initializers/strong_migrations.rb</span>
+StrongMigrations.<span class="fn">start_after</span> = <span class="nr">20240101000000</span>
+
+<span class="cm"># These operations will be blocked:</span>
+<span class="cm"># - Adding a column with a default value (pre-Rails 7/PG11)</span>
+<span class="cm"># - Adding an index non-concurrently</span>
+<span class="cm"># - Changing a column type</span>
+<span class="cm"># - Removing a column that's still referenced</span>
+<span class="cm"># - Adding a NOT NULL constraint without a default</span></code></div>
+      </div>
+
+      <h3>Data Backfills at Scale</h3>
+      <p>After adding a new column (the "expand" phase), you need to backfill existing rows. For a 500M-row table, this is itself a significant operation. Key principles for safe backfills:</p>
+      <ul>
+        <li><strong>Batch processing:</strong> Update rows in batches of 1,000-10,000, not all at once. A single UPDATE of 500M rows will lock the entire table and overwhelm your transaction log.</li>
+        <li><strong>Throttling:</strong> Add sleep between batches to avoid overwhelming the database. Monitor replication lag and pause if it exceeds thresholds.</li>
+        <li><strong>Idempotency:</strong> Backfill scripts must be safe to run multiple times. Use <code>WHERE new_column IS NULL</code> to skip already-backfilled rows.</li>
+        <li><strong>Progress tracking:</strong> Log progress so you can resume if the backfill is interrupted. Store the last processed ID.</li>
+      </ul>
+
+      <div class="code-block-wrapper">
+        <div class="code-block-header"><span>Python — Safe batched backfill</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <div class="code-block"><code><span class="kw">import</span> <span class="nb">time</span>
+<span class="kw">import</span> <span class="nb">logging</span>
+
+<span class="nb">logger</span> = logging.<span class="fn">getLogger</span>(<span class="st">"backfill"</span>)
+BATCH_SIZE = <span class="nr">5000</span>
+SLEEP_SECONDS = <span class="nr">0.5</span>
+
+<span class="kw">def</span> <span class="fn">backfill_full_name</span>(conn):
+    <span class="st">"""Backfill full_name from first_name + last_name."""</span>
+    cursor = conn.<span class="fn">cursor</span>()
+    total_updated = <span class="nr">0</span>
+
+    <span class="kw">while</span> <span class="kw">True</span>:
+        cursor.<span class="fn">execute</span>(<span class="st">"""
+            UPDATE users
+            SET full_name = first_name || ' ' || last_name
+            WHERE id IN (
+                SELECT id FROM users
+                WHERE full_name IS NULL
+                ORDER BY id
+                LIMIT %s
+            )
+            RETURNING id
+        """</span>, (BATCH_SIZE,))
+
+        updated = cursor.<span class="at">rowcount</span>
+        conn.<span class="fn">commit</span>()
+        total_updated += updated
+
+        <span class="nb">logger</span>.<span class="fn">info</span>(<span class="st">f"Backfilled {total_updated} rows"</span>)
+
+        <span class="kw">if</span> updated &lt; BATCH_SIZE:
+            <span class="nb">logger</span>.<span class="fn">info</span>(<span class="st">"Backfill complete!"</span>)
+            <span class="kw">break</span>
+
+        <span class="cm"># Check replica lag before continuing</span>
+        lag = <span class="fn">get_replica_lag</span>(conn)
+        <span class="kw">if</span> lag > <span class="nr">2.0</span>:  <span class="cm"># seconds</span>
+            <span class="nb">logger</span>.<span class="fn">warning</span>(<span class="st">f"Replica lag {lag}s, pausing..."</span>)
+            <span class="kw">while</span> <span class="fn">get_replica_lag</span>(conn) > <span class="nr">1.0</span>:
+                time.<span class="fn">sleep</span>(<span class="nr">5</span>)
+
+        time.<span class="fn">sleep</span>(SLEEP_SECONDS)</code></div>
+      </div>
+
+      <h3>Multi-Region Migration Coordination</h3>
+      <p>If your database is replicated across regions, schema migrations become even more complex. You need to ensure that the migration is applied to the primary first, then replicated to all secondaries before deploying application code that depends on the new schema. In a blue-green database setup, the migration and application deployment must be carefully choreographed to avoid windows where the application expects a schema that doesn't exist yet on some replicas.</p>
+
+      <div class="callout callout-success">
+        <div class="callout-title">The Database Migration Checklist</div>
+        <p>Before running any migration in production:<br>
+        1. Run the migration against a production-sized copy of the database. Measure lock time and duration.<br>
+        2. Check for exclusive locks. If the migration takes any lock for more than 1 second, use an online schema change tool.<br>
+        3. Have a rollback plan. For expand operations, the rollback is dropping the new column. For contract operations, there is no rollback -- make sure you're ready.<br>
+        4. Schedule migrations during low-traffic periods. Even zero-downtime tools create some additional load.<br>
+        5. Monitor replication lag during and after the migration. Pause if lag exceeds your SLO threshold.<br>
+        6. Communicate with the team. Even zero-downtime migrations can cause unexpected behavior if application code isn't aware of the schema change.</p>
+      </div>
+
+      <h3>Lessons from the Trenches</h3>
+      <p>Database migrations are where theory meets the unforgiving reality of production data. The companies that do this well share common traits: they have a migration review process (every migration PR is reviewed by a DBA or platform engineer), they use automated safety checks (strong_migrations, squawk for Postgres), they practice migrations on staging databases with production-scale data, and they treat migration failures as incidents with full postmortems. The platform team's role is to make safe migrations easy and dangerous migrations impossible. Provide tooling, guardrails, documentation, and expert review. The cost of getting this wrong is too high to leave it to chance.</p>
+
+    </div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-stats">
+    <span id="completed-count">0</span> of 10 modules completed
+  </div>
+  <div class="footer-celebration" id="footer-celebration">
+    All 10 Modules Complete — You're Ready to Build World-Class Developer Platforms.
+  </div>
+  <div class="footer-sub">Platform Engineering — Mustafa Furniturewala — June 2026</div>
+</footer>
+
+<script>
+const STORAGE_KEY = 'platform-engineering-course-progress';
+const TOTAL_MODULES = 10;
+
+function loadProgress() { try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : {}; } catch { return {}; } }
+function saveProgress(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {} }
+
+function toggleModule(num) { const m = document.getElementById('module-' + num); if (m) m.classList.toggle('expanded'); }
+
+function toggleCheckbox(num) { const p = loadProgress(); const cb = document.querySelector('.module-checkbox[data-module="' + num + '"]'); if (!cb) return; p[num] = cb.checked; saveProgress(p); updateUI(); }
+
+function updateUI() {
+  const p = loadProgress(); let c = 0;
+  for (let i = 1; i <= TOTAL_MODULES; i++) {
+    const cb = document.querySelector('.module-checkbox[data-module="' + i + '"]');
+    const nl = document.querySelector('.nav-module-link[data-module="' + i + '"]');
+    if (cb) cb.checked = !!p[i];
+    if (nl) { if (p[i]) { nl.classList.add('completed'); c++; } else { nl.classList.remove('completed'); } }
+  }
+  const pb = document.getElementById('progress-bar'); if (pb) pb.style.width = ((c / TOTAL_MODULES) * 100) + '%';
+  const nc = document.getElementById('nav-completion'); if (nc) nc.textContent = c + '/' + TOTAL_MODULES;
+  const cc = document.getElementById('completed-count'); if (cc) cc.textContent = c;
+  const fc = document.getElementById('footer-celebration'); if (fc) { if (c === TOTAL_MODULES) fc.classList.add('visible'); else fc.classList.remove('visible'); }
+}
+
+function updateActiveModule() {
+  const mods = document.querySelectorAll('.module');
+  const links = document.querySelectorAll('.nav-module-link');
+  let active = '1';
+  mods.forEach(m => { if (m.getBoundingClientRect().top <= 120) active = m.dataset.module; });
+  links.forEach(l => { if (l.dataset.module === active) l.classList.add('active'); else l.classList.remove('active'); });
+}
+
+function copyCode(btn) {
+  const w = btn.closest('.code-block-wrapper');
+  const cb = w.querySelector('.code-block');
+  navigator.clipboard.writeText(cb.textContent).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); }).catch(() => { const t = document.createElement('textarea'); t.value = cb.textContent; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 2000); });
+}
+
+function handleSearch(query) {
+  const results = document.getElementById('search-results');
+  if (!query || query.length < 2) { results.innerHTML = ''; return; }
+  const q = query.toLowerCase();
+  const items = [];
+  document.querySelectorAll('.module').forEach(mod => {
+    const num = mod.dataset.module;
+    const title = mod.querySelector('.module-title-text').textContent;
+    const body = mod.querySelector('.module-body');
+    if (!body) return;
+    const text = body.textContent;
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx !== -1) {
+      const start = Math.max(0, idx - 40);
+      const end = Math.min(text.length, idx + query.length + 40);
+      let snippet = (start > 0 ? '...' : '') + text.substring(start, end) + (end < text.length ? '...' : '');
+      snippet = snippet.replace(new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), '<mark>$1</mark>');
+      items.push('<div class="search-result-item" onclick="document.getElementById(\'module-' + num + '\').classList.add(\'expanded\'); document.getElementById(\'module-' + num + '\').scrollIntoView({behavior:\'smooth\', block:\'start\'})"><strong>Module ' + num + ': ' + title + '</strong><br>' + snippet + '</div>');
+    }
+  });
+  results.innerHTML = items.length ? items.join('') : '<div class="no-results">No results found</div>';
+}
+
+document.getElementById('hamburger').addEventListener('click', () => document.getElementById('nav-modules').classList.toggle('open'));
+document.querySelectorAll('.nav-module-link').forEach(l => l.addEventListener('click', () => document.getElementById('nav-modules').classList.remove('open')));
+let st; window.addEventListener('scroll', () => { if (st) cancelAnimationFrame(st); st = requestAnimationFrame(updateActiveModule); });
+updateUI(); updateActiveModule();
+</script>
+
+</body>
+</html>
