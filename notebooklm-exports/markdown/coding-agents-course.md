@@ -1,0 +1,5159 @@
+# Coding Agents — Using AI to Build Software 10x Faster
+
+⚡ 2026 Edition
+
+# Coding Agents —
+Using AI to Build Software 10x Faster
+
+The most comprehensive guide to the coding agent ecosystem. From Claude Code hooks and MCP servers to Cursor Composer, Kiro's spec-driven workflow, and beyond — learn how to leverage the full power of autonomous AI coding agents in production.
+
+📚
+
+8 Modules
+
+✅
+
+128 Lessons
+
+⏱
+
+~18 hours
+
+🔄
+
+Updated Q2 2026
+
+💻
+
+Hands-on code
+
+### Your Progress
+
+0 / 128
+
+0 lessons complete 128 remaining
+
+## The Coding Agent Landscape (2026)
+
+### 1.1 — What Are Coding Agents (vs Autocomplete vs Copilots)
+
+The terminology in AI-assisted development has blurred badly. "Copilot," "assistant," and "agent" are used interchangeably in marketing copy but describe fundamentally different architectures with radically different capability ceilings.
+
+| Category | Autocomplete / Inline | Copilot / Chat Assistant | Coding Agent |
+| --- | --- | --- | --- |
+| Interaction model | Predicts the next few tokens as you type | Chat interface; you describe, it responds | Receives a goal; autonomously plans and executes multi-step tasks |
+| Tool use | None — pure text generation | Limited: may call search or read a file on request | Full: reads/writes files, runs shell commands, calls APIs, spawns sub-agents |
+| Context awareness | Current file + small window | Files you paste in; some IDEs auto-attach | Actively crawls the entire codebase, git history, docs, and external MCP servers |
+| Iteration | Accept/reject one completion at a time | Back-and-forth conversation; you apply changes manually | Self-correcting loop: runs tests, reads error output, patches and retries |
+| Scope | Single expression or block | Single file, function, or explanation | Entire features, refactors, debugging sessions spanning dozens of files |
+| Examples | GitHub Copilot inline, Tabnine | ChatGPT, Claude.ai chat, Copilot Chat | Claude Code, Cursor Composer, Devin, Kiro, Windsurf |
+| Required human input per task | Continuous — every token | High — every step | Low — describe goal once, review output |
+
+**Key insight**
+
+The critical difference is *autonomous tool use in a loop*. An agent can read a file, write code, run `pytest`, see the failure, read the stack trace, edit the code again, and re-run — all without human intervention. This is qualitatively different from autocomplete or even sophisticated chat.
+
+Think of the progression as:
+
+-   **Autocomplete:** a very smart Tab key
+-   **Chat assistant:** a knowledgeable pair-programmer who types for you on request
+-   **Coding agent:** a junior-to-senior software engineer who takes a ticket and comes back with a PR
+
+The agent category became commercially viable in 2025 when context windows hit 200K tokens and latency dropped enough to make multi-step tool-use loops feel responsive. By mid-2026, the category has consolidated around 6–8 major players with distinct positioning.
+
+1.1 — What Are Coding Agents: understand the three-tier distinction between autocomplete, assistant, and agent
+
+---
+
+### 1.2 — Claude Code
+
+Claude Code is Anthropic's official command-line coding agent. It runs entirely in your terminal, operates on your local filesystem, and is designed around extended agentic sessions. Unlike IDE-integrated tools, Claude Code is model-first: the terminal is the interface and the LLM drives everything.
+
+#### Core architecture
+
+-   **Terminal-native:** runs inside your existing shell, works in any directory, integrates with your existing toolchain without installing a new IDE
+-   **Agentic by default:** not just answering questions — reads files, runs bash, edits code, then checks the result
+-   **Extended thinking:** for architecture and hard algorithmic tasks, Claude Code can invoke Claude 3.7 Sonnet's extended thinking mode, trading latency for far deeper reasoning
+-   **MCP ecosystem:** connect external tools (databases, browsers, APIs, linear, Jira, GitHub) via the Model Context Protocol
+-   **Plugin system (2026):** distributable .plugin bundles that package CLAUDE.md instructions + MCP configs + custom slash commands + hooks
+
+#### Pricing (as of June 2026)
+
+| Plan | Price | What's included |
+| --- | --- | --- |
+| Claude.ai Pro | $20/mo | Claude Code access + claude.ai, limited usage |
+| Claude.ai Max | $100/mo | 5× usage limits, priority access |
+| Claude.ai Max (High) | $200/mo | 20× usage limits, best for heavy agents |
+| API (pay-as-you-go) | Per token | Claude 3.7 Sonnet: $3/M input, $15/M output; Claude 3.5 Haiku: $0.80/M input, $4/M output |
+| Bedrock / Vertex | Per token | Same models via AWS/GCP with enterprise contracts |
+
+**API key vs subscription**
+
+If you set `ANTHROPIC_API_KEY` in your environment, Claude Code bills directly to your API account. If you authenticate via `claude login`, it uses your claude.ai subscription quota. For heavy agentic workflows (full refactors, multi-file generation), the API route often works out cheaper than a flat subscription.
+
+1.2 — Claude Code: architecture, pricing tiers, and terminal-native design philosophy
+
+---
+
+### 1.3 — Claude Code: Latest Features (Q2 2026)
+
+Anthropic has been shipping rapid improvements to Claude Code. The June 2026 release cycle brought several major additions that meaningfully change how you build automation on top of it.
+
+#### PostToolUse `duration_ms`
+
+Every `PostToolUse` hook callback now receives a `duration_ms` field in its JSON payload, telling you exactly how long the tool call took. This is useful for performance monitoring, cost attribution (long bash runs = expensive), and debugging slow operations.
+
+```
+# Example hook output structure with duration_ms
+{
+  "type": "PostToolUse",
+  "tool_name": "Bash",
+  "tool_input": {"command": "npm run test"},
+  "tool_response": {"stdout": "...", "exit_code": 0},
+  "duration_ms": 14823
+}
+```
+
+#### hookSpecificOutput.updatedToolOutput
+
+PostToolUse hooks can now return `hookSpecificOutput.updatedToolOutput` to rewrite the tool's output before the model sees it. This is powerful: you can strip noise from long test outputs, inject structured summaries, add timestamps, or filter sensitive data out of bash output before it goes into the context window.
+
+```
+#!/usr/bin/env python3
+import json, sys
+
+data = json.loads(sys.stdin.read())
+output = data.get("tool_response", {}).get("stdout", "")
+
+# Truncate extremely long outputs to save tokens
+if len(output) > 5000:
+    output = output[:2000] + "\n... [truncated, showing first 2000 chars] ...\n" + output[-1000:]
+    result = {
+        "hookSpecificOutput": {
+            "updatedToolOutput": {"stdout": output}
+        }
+    }
+    print(json.dumps(result))
+```
+
+#### Improved headless MCP
+
+Running Claude Code in headless / non-interactive mode (`claude -p "..."`) now has significantly better MCP server stability. MCP connections are maintained across tool calls in the same session, and the `--mcp-config` flag lets you specify a custom MCP config file path for CI/CD environments where you don't want to use the global `~/.claude/` config.
+
+#### Plugin system
+
+The new .plugin format is a zip-like bundle containing a manifest, CLAUDE.md, MCP server configs, and hook scripts. Teams can distribute a single `.plugin` file that provisions an entire Claude Code environment with one command:
+
+```
+claude plugin install ./my-team-tools.plugin
+```
+
+#### Hook matchers — comma-separated tool lists
+
+Hook matchers in `settings.json` now accept comma-separated tool names instead of requiring one entry per tool. This drastically simplifies configs where you want a hook to fire for multiple tools:
+
+```
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash,Write,Edit",
+        "hooks": [{"type": "command", "command": "python3 ~/.claude/hooks/audit_logger.py"}]
+      }
+    ]
+  }
+}
+```
+
+1.3 — Claude Code latest features: duration\_ms, updatedToolOutput, headless MCP, plugin system, comma matchers
+
+---
+
+### 1.4 — Cursor
+
+Cursor is the IDE that most directly threatens VS Code's market position. Built by Anysphere (valued at ~$9B as of early 2026), it is a VS Code fork with deep AI integration at every layer — not bolted on, but architecturally integrated.
+
+#### What makes Cursor different
+
+-   **Composer 2.5:** multi-file generation and editing with a persistent "plan" pane. You describe a feature; Composer maps which files to touch, previews diffs across all of them, and applies them in one click.
+-   **Codebase indexing:** Cursor embeds your entire repo into a vector store and uses semantic search to automatically include relevant context in every request — without you specifying files.
+-   **Tab (inline completion):** a fine-tuned autocomplete that understands edits-in-progress, not just completions. It can predict a multi-line edit when you make one change.
+-   **Agent mode:** Composer can be switched to "agent" mode where it runs terminal commands, reads error output, and iterates — similar to Claude Code but inside the IDE.
+-   **Model flexibility:** Cursor supports Claude 3.7 Sonnet, GPT-4o, Gemini 1.5 Pro, and their own fine-tuned Cursor-Small model for fast inline completions.
+
+#### Pricing
+
+| Plan | Price | Key limits |
+| --- | --- | --- |
+| Hobby (free) | $0 | 2,000 completions/mo, 50 slow premium requests |
+| Pro | $20/mo | Unlimited completions, 500 fast premium requests/mo |
+| Business | $40/seat/mo | Team management, SSO, centralized billing |
+
+**Best for**
+
+Developers who live in an IDE and want the smoothest possible transition from VS Code. Cursor's muscle memory transfer from VS Code is nearly zero-cost — your extensions, keybindings, and themes carry over. The agent is less powerful than Claude Code in headless / automation contexts but far more ergonomic for interactive development.
+
+1.4 — Cursor: Composer 2.5, codebase indexing, Tab predictions, $9B valuation, $20/mo Pro
+
+---
+
+### 1.5 — GitHub Copilot
+
+GitHub Copilot is the grandfather of the category — launched in 2021, it has the largest user base and the most enterprise penetration. By mid-2026 it has evolved from a simple inline completer into a multi-mode agent platform.
+
+#### Modes
+
+-   **Inline completion:** the original — context-aware code completion inside VS Code, JetBrains, Neovim, and others
+-   **Copilot Chat:** sidebar conversation, explain code, generate tests, ask about your repo
+-   **Copilot Agent mode (2025+):** multi-step agentic execution within VS Code — can edit multiple files, run terminal commands, and iterate
+-   **Copilot Workspace:** GitHub-native; takes an Issue and produces a full PR with implementation plan, code changes, and tests
+
+#### Billing changes — June 2026
+
+GitHub introduced **usage-based flex billing** in June 2026. Instead of paying a flat per-seat fee for a fixed request quota, premium model requests (Claude 3.7 Sonnet, GPT-4o in agent mode) are now metered. Copilot Individual still includes a base quota of "standard" completions; expensive multi-step agent runs draw from a separate token pool.
+
+| Plan | Price | Notes |
+| --- | --- | --- |
+| Free (GitHub accounts) | $0 | 2,000 completions/mo + 50 chat msgs; GPT-4o Mini only |
+| Individual | $10/mo | Unlimited standard completions; premium model requests billed additionally |
+| Business | $19/seat/mo | Team management, policy controls, audit logs |
+| Copilot Max (Enterprise) | $39/seat/mo | All premium models unlimited, Copilot Workspace, IP indemnity |
+
+**Watch the flex billing costs**
+
+Agent mode with Claude 3.7 Sonnet can consume a surprising amount of premium credits — especially on long sessions. Set spending limits in your GitHub organization billing settings before rolling out agent mode to a team.
+
+1.5 — GitHub Copilot: inline + agent mode, flex billing June 2026, Copilot Max plan at $39/seat
+
+---
+
+### 1.6 — Windsurf / Devin Desktop
+
+Codeium rebranded to Windsurf in late 2024 and has continued iterating rapidly. By 2026, Windsurf offers both an IDE (VS Code fork) and a bundled integration with Devin — Cognition's autonomous SWE agent — making it the only player in the market that combines a local IDE with a fully autonomous cloud agent in a single subscription.
+
+#### Windsurf IDE
+
+-   VS Code fork with "Cascade" — their multi-file agentic composer, equivalent to Cursor's Composer
+-   Flows: automated multi-step tasks that can spawn browser actions, terminal runs, and code edits in sequence
+-   Deep context with their Codeium indexing engine (separate from the LLM, very fast)
+-   Supports GPT-4o, Claude 3.7 Sonnet, Gemini 1.5 Pro, and their own Windsurf-8B model for fast local completions
+
+#### Devin Desktop (bundled)
+
+Devin Desktop runs inside Windsurf and gives access to Cognition's Devin agent for tasks you want to fully delegate. You describe a task; Devin spins up a sandboxed Linux environment, browses the web if needed, writes code, runs tests, and pushes commits.
+
+#### Pricing
+
+| Plan | Price | Notes |
+| --- | --- | --- |
+| Free | $0 | Limited Cascade flows, no Devin |
+| Pro | $15/mo | Unlimited Cascade, some Devin credits included |
+| Teams | $30/seat/mo | Shared Devin allocation, team settings |
+
+1.6 — Windsurf/Devin Desktop: Codeium rebranded, Cascade flows, bundled Devin integration
+
+---
+
+### 1.7 — Devin (Cognition)
+
+Devin was the first product to market itself as a fully autonomous "AI software engineer" — capable of taking a JIRA ticket and producing a merged PR with no human intervention on the intermediate steps. Launched in March 2024 to massive hype, it has matured significantly by 2026.
+
+#### How Devin works
+
+-   Spins up a fresh Linux VM with a full development environment (Node, Python, Git, browser)
+-   Browses the web to find documentation, StackOverflow answers, or API references
+-   Writes, tests, debugs, and commits code — all autonomously
+-   You can watch a live screen-share of what Devin is doing and intervene with messages
+-   Integrates with GitHub, Linear, Slack, and Jira for ticket ingestion and PR creation
+
+#### Realistic expectations (2026)
+
+Devin performs well on:
+
+-   Isolated, well-specified tickets with clear acceptance criteria
+-   Adding tests to existing code
+-   Bug fixes with a clear reproduction step
+-   Small feature additions in familiar frameworks (React, FastAPI, Next.js)
+
+Devin struggles with:
+
+-   Large, ambiguous tasks with deep architectural implications
+-   Proprietary codebases with complex internal abstractions
+-   Tasks requiring product judgment or customer context
+
+#### Pricing
+
+| Plan | Price | ACUs (Agent Compute Units) |
+| --- | --- | --- |
+| Starter | ~$20/mo | Small allocation for experimentation |
+| Teams | $500/mo | ~250 ACUs; roughly 250 hours of agent time |
+| Enterprise | Custom | Unlimited with SLA, on-premise options |
+
+1.7 — Devin: autonomous SWE agent, VM-based, ~$20/mo entry, strengths and realistic limitations
+
+---
+
+### 1.8 — Amazon Kiro
+
+Amazon Kiro is arguably the most architecturally distinctive product in the 2026 coding agent landscape. Rather than starting from a chat interface or terminal, Kiro centers the workflow around **specification documents** — structured Markdown files that define requirements, design decisions, and implementation tasks before a line of code is written.
+
+#### The spec-driven workflow
+
+Kiro's workflow is explicitly designed around a three-document pipeline:
+
+```
+.kiro/specs/my-feature/
+├── requirements.md    # "What" — user stories, acceptance criteria
+├── design.md          # "How" — architecture, data models, API contracts
+└── tasks.md           # "When" — implementation checklist, ordered steps
+```
+
+You describe a feature to Kiro, it generates all three documents, you review and edit them, then you "run" the spec — Kiro executes the tasks list as an agent, referencing the requirements and design documents for context at every step.
+
+#### Why specs matter
+
+**Specification as the artifact**
+
+Traditional agents lose context over long sessions. Kiro's approach persists the plan as durable Markdown files in your repo. When you come back tomorrow, or when a teammate picks up the session, the full context is in version control — reviewable, editable, and durable. This is a genuine architectural advantage for team workflows.
+
+#### Hooks (Kiro)
+
+Kiro has its own hook system — automated actions triggered by file saves, test runs, or task completions. Common uses: run linter on save, generate OpenAPI docs after endpoint changes, notify Slack when a spec is marked complete.
+
+#### Steering files
+
+Similar to CLAUDE.md, Kiro supports `.kiro/steering/` — Markdown files that persist across all sessions and provide project-wide context to the agent: tech stack, coding conventions, deploy procedures.
+
+#### Key facts
+
+-   **Replaces:** Amazon Q Developer (end-of-support April 2027 — Kiro is the migration path)
+-   **Models:** Claude 3.7 Sonnet (default), Claude 3.5 Haiku, Amazon Nova Pro
+-   **iOS app:** Kiro has an iOS companion app for reviewing specs and approving tasks on mobile
+-   **MCP support:** full MCP integration, same protocol as Claude Code
+
+#### Pricing
+
+| Plan | Price | Notes |
+| --- | --- | --- |
+| Free Preview | $0 | Limited; available during public preview period |
+| Kiro Pro | $19/mo | Standard usage, full spec workflow |
+| Kiro Pro Max | $100/mo | Heavy usage, priority models, team features |
+| Enterprise | Custom | VPC deployment, SSO, compliance features |
+
+1.8 — Amazon Kiro: spec-driven workflow, requirements.md → design.md → tasks.md, replaces Q Developer April 2027, Kiro Pro Max $100/mo, iOS app
+
+---
+
+### 1.9 — Google Jules
+
+Google Jules is an **asynchronous** coding agent — the key design distinction. Rather than sitting in an interactive session waiting for your next message, Jules takes a GitHub issue or task description, goes away, works on it in the background (usually 5–20 minutes), and comes back with a proposed branch and PR.
+
+#### Core design choices
+
+-   **Async-first:** you assign work and come back later. Jules is not an interactive pairing tool.
+-   **GitHub-native:** deeply integrated with GitHub Issues, PRs, Actions. You can assign an Issue to Jules the same way you'd assign it to a human.
+-   **Gemini 2.5 Pro:** powered by Google's best coding model with a 1M token context window — can ingest very large codebases in a single context.
+-   **Plan transparency:** before executing, Jules posts a plan comment on the Issue so you can redirect it before it writes a line of code.
+-   **Parallel execution:** Jules can work on multiple issues simultaneously, unlike interactive agents that require your attention.
+
+#### Best use cases
+
+-   Bug fixes with clear reproduction steps and a failing test
+-   Dependency upgrades (e.g., "upgrade all packages to their latest compatible version")
+-   Test coverage additions
+-   Documentation updates
+-   Refactoring tasks with clear before/after criteria
+
+**Availability**
+
+Jules was in limited public beta as of Q2 2026, invite-only. Check [jules.google.com](https://jules.google.com) for access. Pricing was not publicly announced — likely metered per issue or per hour of compute.
+
+1.9 — Google Jules: async coding agent, GitHub-native issue assignment, Gemini 2.5 Pro, plan-first approach
+
+---
+
+### 1.10 — Antigravity 2.0
+
+Antigravity is Google's IDE — a browser-based development environment powered by Gemini. Version 2.0, announced at Google I/O 2026, integrates Gemini 2.5 Flash as the primary coding model (with Flash's speed optimized for interactive use) and Gemini 2.5 Pro available for heavy thinking tasks.
+
+#### Key features
+
+-   **Cloud-native:** no local install; your workspace lives in Google Cloud. Instant environment cloning, no setup time.
+-   **Gemini 2.5 Flash:** sub-second response times for inline completions, making it feel more like a native IDE than a cloud tool
+-   **1M context window:** Gemini 2.5 Pro can hold your entire monorepo in context — relevant for very large codebases
+-   **Google Cloud integration:** one-click deploys to Cloud Run, GKE, Firebase; integrated Cloud SQL browser; BigQuery query runner
+-   **Canvas mode:** visual flow editor for building data pipelines and workflows alongside code
+
+#### Limitations
+
+-   Requires internet connection; not suitable for air-gapped or on-premise development
+-   Browser-based means limited native tool integration vs. local IDEs
+-   Best on GCP-hosted projects; awkward for AWS/Azure primary workloads
+-   Still maturing — rough edges in extension ecosystem vs. VS Code forks
+
+1.10 — Antigravity 2.0: Google's browser IDE, Gemini 2.5 Flash speed, 1M context, GCP-native deployment
+
+---
+
+### 1.11 — Full Tool Comparison (June 2026)
+
+| Tool | Type | Price | Primary Model | Strengths | Weaknesses | Best For |
+| --- | --- | --- | --- | --- | --- | --- |
+| Claude Code | Terminal agent | $20–$200/mo or API | Claude 3.7 Sonnet | Best reasoning, MCP ecosystem, hooks, automation pipeline, extended thinking | Terminal-only (no IDE UI), steeper learning curve | Power users, CI/CD pipelines, complex refactors |
+| Cursor | IDE (VS Code fork) | $0–$40/seat/mo | Claude 3.7 / GPT-4o | Best inline UX, Composer multi-file, low migration cost from VS Code | Less powerful than Claude Code for headless automation | Individual devs who want IDE integration |
+| GitHub Copilot | IDE plugin + agent | $0–$39/seat/mo | GPT-4o / Claude | Widest IDE support, GitHub Workspace integration, enterprise penetration | Agent mode less mature than Claude Code/Cursor; flex billing unpredictable | Enterprise teams on GitHub, broad IDE coverage |
+| Windsurf | IDE + cloud agent | $0–$30/seat/mo | Claude / GPT-4o | Cascade flows, Devin Desktop bundled, good price/value | Smaller ecosystem than Cursor, less polish | Teams wanting both IDE + async agent in one sub |
+| Devin | Autonomous agent | ~$20/mo entry | Proprietary (Claude-based) | Most autonomous, browses web, full Linux VM, good on isolated tickets | Expensive per-task, poor on ambiguous work, slow | Delegating well-defined tickets, async execution |
+| Amazon Kiro | Spec-driven IDE | $0–$100/mo | Claude 3.7 Sonnet | Best for planned features, spec persistence, team workflows, iOS app | Upfront spec creation overhead, overkill for quick tasks | Teams doing planned feature development |
+| Google Jules | Async GitHub agent | TBD (beta) | Gemini 2.5 Pro | Async, parallel work, GitHub-native, 1M context | Beta/limited access, async-only (no interactive session) | Bug fixes, test gen, async delegation |
+| Antigravity | Browser IDE | GCP pricing | Gemini 2.5 Flash/Pro | No setup, cloud-native, GCP integration, 1M context | Requires internet, browser limitations, GCP-centric | GCP teams, quick cloud projects |
+
+1.11 — Full comparison table: all tools, pricing, models, strengths, weaknesses
+
+---
+
+### 1.12 — The Market Shift Toward the "Agent" Category
+
+In 2021, the market was "AI autocomplete." By 2023, it was "AI chat for code." By 2025, every major player had pivoted to "agent" — but the word was used loosely. By 2026, the market has started to stratify into genuinely different capability tiers.
+
+Three forces drove the shift to agents:
+
+1.  **Context windows:** 200K+ tokens means the agent can hold entire codebases in memory, not just a few files
+2.  **Tool use maturity:** LLMs learned to reliably call tools (bash, file I/O, APIs) and parse their outputs
+3.  **Latency reduction:** Claude 3.7 Sonnet is fast enough that multi-step tool loops complete in seconds rather than minutes
+
+The economic argument is straightforward: if a developer earns $200K/year (~$100/hr fully loaded), saving 4 hours/week is worth $20K/year — dwarfing any agent subscription cost. The market is responding accordingly, with total coding agent revenue estimated at $4–6B annually by end of 2026.
+
+1.12 — Market shift: three forces driving the agent category, economic rationale
+
+---
+
+### 1.13 — Q2 2026 Second Wave: Parallel Orchestration
+
+The defining capability of the Q2 2026 wave is **parallel agent orchestration** — running multiple coding agents simultaneously on different tasks, then merging their output.
+
+Claude Code's `--dangerously-skip-permissions` headless mode plus git worktrees makes this practical:
+
+```
+#!/bin/bash
+# Parallel agent pattern: 3 agents working on different features simultaneously
+
+BASE_BRANCH="main"
+TASKS=("add-payment-api" "refactor-auth-module" "add-test-coverage")
+
+for task in "${TASKS[@]}"; do
+  git worktree add /tmp/agent-$task -b $task $BASE_BRANCH
+  (
+    cd /tmp/agent-$task
+    claude -p "Complete task: $task. Follow CLAUDE.md conventions." \
+      --dangerously-skip-permissions \
+      --output-format json \
+      > /tmp/agent-$task.json
+  ) &
+done
+
+wait  # wait for all background agents
+echo "All agents complete. Review branches and open PRs."
+```
+
+This "agentic fleet" pattern can compress a day of sequential work into an hour of parallel execution. The bottleneck shifts from coding time to review time — which is itself being addressed with AI review tools.
+
+**Cost warning**
+
+3 parallel Claude 3.7 Sonnet agents running 30-minute sessions each will consume roughly 3–5M tokens. At $3/M input + $15/M output, estimate $30–75 per parallel run. Budget accordingly and use cheaper models (Claude 3.5 Haiku at $0.80/M) for less complex sub-tasks.
+
+1.13 — Q2 2026 second wave: parallel orchestration with worktrees, cost estimates
+
+---
+
+### 1.14 — Decision Tree: How to Choose the Right Tool
+
+Q1: Do you primarily work in a terminal or IDE?
+
+Terminal → continue to Q2  |  IDE → continue to Q3
+
+Q2 (terminal): Do you need CI/CD automation or scripted pipelines?
+
+Yes → Claude Code (API mode, headless)
+No → Claude Code (interactive)
+
+Q3 (IDE): Are you already on VS Code?
+
+Yes → Cursor (zero migration cost) or GitHub Copilot (stay in VS Code)
+No → continue to Q4
+
+Q4: Is your team on AWS / planning to use Amazon services heavily?
+
+Yes → evaluate Amazon Kiro (especially for planned feature workflows)
+No → continue to Q5
+
+Q5: Do you want to fully delegate tasks and check results later?
+
+Yes → Google Jules (async) or Devin (more autonomous)
+No → continue to Q6
+
+Q6: Are you on Google Cloud?
+
+Yes → try Antigravity 2.0
+No → Cursor or Windsurf based on price preference
+
+**The pragmatic answer for most developers**
+
+Start with **Claude Code** for deep work and complex sessions + **Cursor** for interactive IDE work. These two complement each other: Cursor for the ergonomics of writing code interactively, Claude Code for headless automation, pipelines, and complex multi-file refactors.
+
+1.14 — Decision tree: systematically choose the right tool based on workflow, cloud, and delegation needs
+
+---
+
+### 1.15 — Pricing Strategy for Teams
+
+Coding agent costs can scale surprisingly if you don't structure them. Here's a framework for team pricing decisions:
+
+#### Usage tiers
+
+-   **Light users (1–2 hrs/day of agent work):** Claude.ai Pro ($20/mo) or Cursor Pro ($20/mo) is sufficient
+-   **Medium users (3–6 hrs/day):** Claude.ai Max ($100/mo) or Cursor Pro with API key for heavy Composer sessions
+-   **Heavy users / pipelines (6+ hrs or CI runs):** Anthropic API directly — you pay for what you use with no subscription overhead
+
+#### Hybrid strategy
+
+Many teams run a hybrid: flat subscription for interactive developers, API billing for automated pipelines (nightly codebase audits, automated test generation, etc.). This avoids the situation where your CI pipeline burns through a Pro subscription quota meant for interactive work.
+
+#### Caching strategy
+
+Anthropic's **prompt caching** can reduce costs by 60–90% on repeated large-context calls. If you're passing the same CLAUDE.md + codebase context repeatedly, enable prompt caching on your API calls. Cached tokens cost $0.30/M (vs $3/M uncached).
+
+```
+# Python SDK — enable prompt caching on a large system prompt
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=4096,
+    system=[
+        {
+            "type": "text",
+            "text": open("CLAUDE.md").read() + "\n\n" + codebase_context,
+            "cache_control": {"type": "ephemeral"}  # cache this large block
+        }
+    ],
+    messages=[{"role": "user", "content": user_task}]
+)
+```
+
+1.15 — Pricing strategy: usage tiers, hybrid subscription + API, prompt caching for 60–90% savings
+
+---
+
+### 1.16 — Rolling Out Coding Agents at an Organization
+
+Rolling out coding agents at scale requires more than just buying subscriptions. Common failure modes include: agents with no context about internal conventions producing code that doesn't match standards; developers unsure when to use the agent vs. code manually; security concerns about agents reading sensitive code.
+
+#### Rollout phases
+
+1.  **Pilot (2–4 weeks):** 3–5 power users across different teams. Goal: identify what works, what fails, what needs customization.
+2.  **CLAUDE.md / steering file creation:** document coding standards, naming conventions, architectural patterns, forbidden libraries. This is the most high-leverage investment.
+3.  **MCP server setup:** connect agents to internal tools (ticket systems, internal docs, databases). ROI multiplies when the agent can read a JIRA ticket and the relevant design doc in one session.
+4.  **Broader rollout (per-team):** roll out with team-specific CLAUDE.md files. Frontend team gets different context than backend team.
+5.  **Pipeline integration:** automate test generation, documentation updates, and code review as CI steps.
+
+#### Security considerations
+
+-   Don't put API keys, passwords, or PII in CLAUDE.md or MCP server prompts
+-   Use `--permission-mode` to restrict what the agent can do in production environments
+-   Review what data leaves the network — Anthropic's API receives your code; check your data processing addendum
+-   For regulated industries: Bedrock or Vertex deployments keep data in your AWS/GCP environment
+
+1.16 — Org rollout: 5-phase plan, CLAUDE.md investment, MCP servers, security considerations
+
+---
+
+### 1.17 — The Agent-First Mindset Shift
+
+The biggest productivity gains from coding agents don't come from using them like a faster autocomplete. They come from restructuring how you think about development tasks.
+
+#### Old mindset (developer-first)
+
+-   Break task into small coding steps
+-   Write each function, test, and config manually
+-   Ask the AI when stuck
+
+#### Agent-first mindset
+
+-   Write a precise spec of the desired outcome
+-   Give the agent the full context (existing code patterns, what you've tried, acceptance criteria)
+-   Delegate the entire task; review the output
+-   Iterate on the spec, not the code
+
+The agent-first developer's primary job shifts from *writing code* to *writing good specifications and reviewing output*. This is a genuine career skill change — the developers who thrive are those who get good at clarity of thought and precise communication, not just syntax.
+
+**The 10x claim**
+
+"10x faster" is not about typing speed. It is about eliminating the long tail of implementation work: writing boilerplate, adding tests, updating documentation, fixing linting errors, updating imports. These tasks individually take minutes but collectively consume hours per day. Agents handle the entire tail, freeing you for judgment and design.
+
+1.17 — Agent-first mindset: shift from writing code to writing specs and reviewing output
+
+---
+
+### 1.18 — ROI Calculation for Coding Agents
+
+Here is a concrete ROI model you can adapt for your team:
+
+| Variable | Example value |
+| --- | --- |
+| Developer fully-loaded cost | $200,000/year ($100/hr) |
+| Hours saved per developer per week | 5 hours (conservative) |
+| Value of time saved per developer/year | 5 hrs × 50 weeks × $100 = $25,000 |
+| Claude Code cost per developer/year | $1,200 ($100/mo Max) or ~$600 API for medium users |
+| Net value per developer/year | $25,000 − $1,200 = $23,800 |
+| ROI for 10-person team | $238,000 net value from ~$12,000 spend = 20× ROI |
+
+Even at 2 hours saved per week (very conservative), the ROI is 8–10×. The productivity gains compound when agents are used in pipelines (automated test generation, nightly refactor passes) where the cost is pure API tokens with no developer time at all.
+
+1.18 — ROI calculation: 20× ROI example for 10-person team, compounding pipeline gains
+
+## How Coding Agents Actually Work
+
+### 2.1 — LLM + Tool Use + Code Execution Loop
+
+Coding agents are built on a deceptively simple loop: the LLM generates text (including tool calls), tools execute in the real world, results flow back to the LLM, and the cycle repeats until the task is done or the model decides it's complete.
+
+┌─────────────────────────────────────────────────────────────┐ │ CODING AGENT CORE LOOP │ └─────────────────────────────────────────────────────────────┘ ┌──────────┐ system prompt + ┌──────────────────────┐ │ │ conversation │ │ │ Human │──────────────────────▶│ LLM (Claude 3.7) │ │ (goal) │ │ │ └──────────┘ └──────────┬───────────┘ │ ┌─────────────────▼─────────────────┐ │ Model output (one of): │ │ 1. Text response → done │ │ 2. Tool call: read\_file(path) │ │ 3. Tool call: bash("npm test") │ │ 4. Tool call: write\_file(...) │ └─────────────┬─────────────────────┘ │ tool call ┌─────────────▼─────────────────────┐ │ Tool Executor (local process) │ │ • Filesystem (read/write) │ │ • Bash/shell subprocess │ │ • MCP server calls │ │ • Web fetch │ └─────────────┬─────────────────────┘ │ tool result ┌─────────────▼─────────────────────┐ │ Append result to conversation │ │ → back to LLM for next step │ └───────────────────────────────────┘
+
+The loop continues until one of:
+
+-   The model generates a final text response with no tool calls
+-   A tool returns an error that can't be recovered from
+-   The context window fills up (triggers compaction or stops)
+-   The user interrupts with Ctrl+C
+-   A configured turn limit is reached
+
+#### Why this matters practically
+
+Every tool call is a round trip to the LLM. A 20-step task (read file, write code, run tests, fix error, run tests again...) may cost 20 LLM calls. Each call adds to the conversation context. This is why context window management and cost control are real engineering concerns — not just theoretical.
+
+2.1 — LLM + Tool Use Loop: understand the core agentic cycle and when it terminates
+
+---
+
+### 2.2 — Context Window Management
+
+The context window is the agent's working memory. For Claude 3.7 Sonnet it is 200,000 tokens — roughly 150,000 words, or a medium-sized novel. This sounds enormous but depletes quickly in coding sessions.
+
+#### What fills the context window
+
+| Source | Typical token cost |
+| --- | --- |
+| System prompt (CLAUDE.md + tool definitions) | 5,000–20,000 tokens |
+| Large file reads (full source file) | 500–5,000 tokens each |
+| Bash output (test runs, build logs) | 1,000–50,000+ tokens |
+| Conversation history (multi-turn session) | Accumulates over time |
+| Git diff (large PR) | 5,000–100,000 tokens |
+
+#### Compaction
+
+When the context gets large, Claude Code automatically runs `/compact` — it summarizes the conversation so far into a compressed representation, discarding the detailed tool call history but preserving key decisions. You can also trigger this manually:
+
+```
+# Manual compact mid-session
+/compact
+
+# Or compact with a specific summary focus
+/compact "Focus on what we've built in the payment module"
+```
+
+#### Strategies to control context growth
+
+-   Use `head` and `tail` to read only relevant parts of large files
+-   Use `grep` to find specific lines rather than reading whole files
+-   Truncate long bash output with PostToolUse hooks (see Lesson 3.11)
+-   Break very long sessions into sub-sessions with handoff notes
+-   Use `--context-window-budget` flag to cap token usage and get a warning before overrun
+
+2.2 — Context window management: what fills it, compaction, and strategies to extend sessions
+
+---
+
+### 2.3 — Plan → Code → Test → Fix Cycle
+
+A mature coding agent doesn't just generate code — it follows a professional software development process. Claude Code, when given a well-specified task, naturally follows this cycle:
+
+#### Phase 1: Plan
+
+The agent reads relevant files, checks the existing code structure, identifies dependencies, and formulates a step-by-step plan. It often outputs this plan as visible reasoning before writing a single line of code. You can encourage this explicitly:
+
+```
+Before coding, please:
+1. Read the existing auth module at src/auth/
+2. Read the tests at tests/auth/
+3. Write out your implementation plan
+4. Only then start implementing
+```
+
+#### Phase 2: Code
+
+Implementation — writing files, creating new modules, modifying existing functions. Claude Code uses the `Write` and `Edit` tools for this, showing diffs before applying them in interactive mode.
+
+#### Phase 3: Test
+
+The agent runs the test suite automatically. It reads the test command from CLAUDE.md, package.json scripts, or a Makefile. A good agent will:
+
+-   Run tests after each significant code change
+-   Not declare "done" until tests pass
+-   Read test output carefully, not just the pass/fail count
+
+#### Phase 4: Fix
+
+When tests fail, the agent reads the stack trace, locates the failing assertion, traces back to the root cause, and edits the code. This loop can run 3–10 times on complex tasks — and this is normal and expected behavior for a capable agent.
+
+**Tip: Add test commands to CLAUDE.md**
+
+Put your exact test commands in CLAUDE.md so the agent knows how to run your test suite without guessing. `Run tests with: pytest tests/ -x --tb=short` is worth 10 seconds of CLAUDE.md writing and saves the agent from trying `npm test`, `make test`, and `python -m pytest` in sequence.
+
+2.3 — Plan→Code→Test→Fix cycle: the four phases, how to encourage planning, the test-fix loop
+
+---
+
+### 2.4 — MCP (Model Context Protocol) Architecture
+
+MCP is an open protocol (published by Anthropic, now an industry standard) that defines how LLMs connect to external tools and data sources. It is the "USB standard" for AI tool integration — write one MCP server, connect it to any MCP-compatible agent.
+
+┌─────────────────────────────────────────────────────────────┐ │ MCP ARCHITECTURE │ └─────────────────────────────────────────────────────────────┘ ┌──────────────┐ JSON-RPC 2.0 ┌─────────────────────┐ │ MCP Client │◄─────over stdio──────▶│ MCP Server │ │ (Claude │ or HTTP/SSE │ (your tool) │ │ Code) │ └──────────┬──────────┘ └──────────────┘ │ ┌─────────▼──────────┐ │ Resources exposed: │ │ • tools (callable) │ │ • resources (data) │ │ • prompts (tmpl) │ └────────────────────┘ Example MCP servers: ┌────────────────┐ ┌────────────────┐ ┌────────────────────┐ │ github-mcp │ │ postgres-mcp │ │ browserbase-mcp │ │ • list\_repos │ │ • query() │ │ • navigate() │ │ • create\_pr │ │ • schema() │ │ • screenshot() │ │ • list\_issues │ │ • tables() │ │ • extract() │ └────────────────┘ └────────────────┘ └────────────────────┘
+
+#### Transport types
+
+-   **stdio (local):** Claude Code spawns the MCP server as a child process. Communication over stdin/stdout. Best for local tools, lowest latency.
+-   **HTTP + SSE (remote):** MCP server runs as an HTTP service. Claude Code connects via Server-Sent Events. Best for shared team servers, hosted integrations.
+
+#### What MCP enables that normal tool use can't
+
+Normal tool use (bash, file read) is limited to what's on your local machine. MCP extends the agent's reach to: your GitHub repositories, your team's Notion workspace, your production database (read-only), your Jira board, your Slack workspace, your design system (Figma), and any other system you build a server for.
+
+2.4 — MCP architecture: protocol basics, transport types (stdio vs HTTP/SSE), what it enables
+
+---
+
+### 2.5 — How Agents Read and Understand Codebases
+
+When you say "refactor the auth module," the agent doesn't magically know your codebase. It has to discover it — and the strategies it uses matter for both quality and cost.
+
+#### Discovery strategies
+
+1.  **Directory listing:** `ls -R` or `find . -type f -name "*.py"` to map the project structure
+2.  **Targeted grep:** search for function names, class definitions, import patterns to locate relevant code fast
+3.  **Entry point tracing:** start from main.py / index.ts / app.js and follow imports
+4.  **Test file reading:** tests often document the expected behavior of code better than the code itself
+5.  **Git history:** `git log --oneline -20` and `git diff main...HEAD` to understand recent changes
+
+#### How Claude Code prioritizes
+
+Claude Code reads files strategically, not sequentially. Given a task, it will:
+
+-   Read CLAUDE.md first for project context
+-   Use `find` and `grep` to locate relevant files
+-   Read only the specific functions/classes needed, not entire large files
+-   Follow the import chain to understand dependencies
+
+**Help the agent with CLAUDE.md**
+
+The single highest-leverage thing you can put in CLAUDE.md is a "Project structure" section: `src/api/ — FastAPI endpoints; src/models/ — SQLAlchemy models; src/services/ — business logic; tests/ — pytest tests matching src/ structure`. This saves the agent 3–5 discovery tool calls per session.
+
+2.5 — How agents read codebases: discovery strategies, Claude Code's prioritization, CLAUDE.md help
+
+---
+
+### 2.6 — Retrieval Augmented Generation for Code
+
+RAG (Retrieval Augmented Generation) in the coding context means augmenting the LLM's context with relevant code snippets found via semantic search — rather than including the entire codebase.
+
+#### How Cursor implements it
+
+Cursor indexes your repo by chunking files into ~1,000 token pieces and embedding them with a code-specific embedding model. When you make a request, Cursor semantically searches the index for the top-K most relevant chunks and includes them in the model's context.
+
+#### How Claude Code approaches it differently
+
+Claude Code does *not* automatically index and embed your codebase. Instead, it uses active exploration (grep, find, read) — a "symbolic" rather than semantic approach. This means:
+
+-   **Pro:** No upfront indexing cost, no embedding staleness, works on any codebase size
+-   **Con:** Relies on the model making good search choices; can miss semantically related code with different naming
+
+You can add RAG to Claude Code via MCP — for example, a custom MCP server that wraps a vector database of your codebase and exposes a `semantic_search(query)` tool.
+
+```
+# Example: simple RAG MCP server using chromadb
+from mcp.server import FastMCP
+import chromadb
+
+mcp = FastMCP("codebase-rag")
+client = chromadb.Client()
+collection = client.get_collection("codebase")
+
+@mcp.tool()
+def semantic_search(query: str, n_results: int = 5) -> str:
+    """Search the codebase semantically for relevant code."""
+    results = collection.query(query_texts=[query], n_results=n_results)
+    output = []
+    for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
+        output.append(f"File: {meta['path']}\n{doc}\n---")
+    return "\n".join(output)
+```
+
+2.6 — RAG for code: Cursor's embedding approach, Claude Code's symbolic exploration, building RAG via MCP
+
+---
+
+### 2.7 — Token Economics: Cost Table for Common Operations
+
+Understanding what different operations cost in tokens (and dollars) helps you optimize agent sessions and choose the right model for each task.
+
+| Operation | Approx tokens | Claude 3.7 Sonnet cost | Claude 3.5 Haiku cost |
+| --- | --- | --- | --- |
+| Read a 100-line Python file | ~800 input | $0.0024 | $0.00064 |
+| Write a 50-line function | ~400 output | $0.006 | $0.0016 |
+| Run pytest, 50 tests, read output | ~2,000 input | $0.006 | $0.0016 |
+| Full 30-min coding session | ~80,000 mixed | ~$1.20 | ~$0.32 |
+| Extended thinking (architecture task) | ~200,000 mixed | ~$4.50 (includes thinking) | N/A |
+| Headless CI pipeline run | ~30,000 mixed | ~$0.50 | ~$0.14 |
+| Read 1,000-line codebase (full) | ~8,000 input | $0.024 | $0.0064 |
+| Generate 200-line TypeScript module | ~1,600 output | $0.024 | $0.0064 |
+
+#### Model selection strategy
+
+-   **Claude 3.7 Sonnet:** complex reasoning, architecture decisions, debugging hard bugs, code review
+-   **Claude 3.5 Haiku:** boilerplate generation, simple refactors, test generation, formatting tasks — same quality for easy tasks at 80% lower cost
+-   **Extended thinking:** reserve for genuinely hard architectural problems — the cost is 2–5× but the reasoning depth is qualitatively different
+
+```
+# Switch model in Claude Code session
+/model claude-haiku-4-5      # switch to Haiku for cheap tasks
+/model claude-sonnet-4-5     # back to Sonnet for complex work
+
+# Or set per-session via CLI flag
+claude --model claude-haiku-4-5 -p "Generate CRUD endpoints for User model"
+```
+
+2.7 — Token economics: cost table for common ops, model selection strategy, when to use Haiku vs Sonnet
+
+---
+
+### 2.8 — Safety: Sandboxing and Permission Models
+
+A coding agent with shell access can do real damage — delete files, push bad commits, call APIs with side effects. Both Claude Code and other agents implement layered permission models to prevent accidents.
+
+#### Claude Code permission model
+
+-   **Interactive mode (default):** asks for confirmation before any write operation, shell command, or external call
+-   **\--permission-mode acceptEdits:** auto-accepts file edits but still asks for shell commands
+-   **\--permission-mode bypassPermissions:** skips all confirmations (use only in sandboxed CI environments)
+-   **\--allowedTools:** restrict which tools the agent can use (e.g., `--allowedTools "Read,Grep,Bash(read-only)"`)
+-   **\--disallowedTools:** explicitly block specific tools
+
+#### Sandboxing approaches
+
+| Approach | How | Best for |
+| --- | --- | --- |
+| Docker container | Run agent inside a container with mounted project directory | CI/CD pipelines, automated tasks |
+| Git worktree | Agent works on a worktree branch; changes isolated until PR | Feature development, safe experimentation |
+| Read-only filesystem | Mount codebase read-only; agent can only write to /tmp | Audit and review tasks |
+| Network isolation | Block external network except known APIs | Highly sensitive codebases |
+
+```
+# Run Claude Code in a Docker container (safe environment)
+docker run --rm \
+  -v $(pwd):/workspace \
+  -w /workspace \
+  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
+  node:20 \
+  npx @anthropic-ai/claude-code \
+    --dangerously-skip-permissions \
+    -p "Add input validation to all API endpoints"
+```
+
+2.8 — Safety: permission modes, sandboxing with Docker/worktrees, --allowedTools and --disallowedTools
+
+---
+
+### 2.9 — Agent vs Assistant Mode Differences
+
+Claude Code (and most coding tools) can operate in different modes that represent fundamentally different interaction patterns:
+
+| Characteristic | Assistant / Chat Mode | Agent / Agentic Mode |
+| --- | --- | --- |
+| Persistence | Stateless — each message is isolated | Stateful — maintains session, memory, in-progress work |
+| Autonomy | Responds to each input and waits | Executes multiple steps before returning control |
+| Tool use | Occasional, user-directed | Frequent, self-directed as part of task execution |
+| Error handling | Reports errors and asks what to do | Attempts to fix errors autonomously |
+| When to use | Questions, explanations, quick tasks | Complete features, refactors, multi-file work |
+
+In Claude Code specifically:
+
+-   **Default (interactive):** agentic — runs tool loops autonomously, pausing only for confirmation of dangerous actions
+-   **Headless (`-p` flag):** fully agentic with no pauses — runs to completion autonomously
+-   **API without tools:** pure assistant — responds in one shot, no tool use
+
+2.9 — Agent vs assistant mode: stateful vs stateless, autonomy levels, when to use each
+
+---
+
+### 2.10 — Multi-Step Reasoning and Chain of Thought
+
+Coding agents don't just write code from a single forward pass. They reason through problems using chain-of-thought — visible or internal — before committing to an approach.
+
+#### Extended thinking (Claude 3.7 Sonnet)
+
+Claude 3.7 Sonnet supports extended thinking — a mode where the model produces internal reasoning ("thinking") tokens before its final response. These thinking tokens are visible in the API response but not shown to end users by default. The effect is significant: tasks that require deep reasoning (algorithm design, debugging subtle async race conditions, refactoring complex inheritance hierarchies) see substantial quality improvements with extended thinking enabled.
+
+```
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Enable extended thinking for a hard architecture task
+response = client.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=16000,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 10000  # allow up to 10K thinking tokens
+    },
+    messages=[{
+        "role": "user",
+        "content": """Our distributed job queue has a subtle deadlock
+        under concurrent cancellation. Here's the relevant code:
+        [paste code]. Diagnose the root cause and propose a fix."""
+    }]
+)
+
+# response.content[0] is the thinking block (internal reasoning)
+# response.content[1] is the actual answer
+print(response.content[1].text)
+```
+
+#### Practical guidance
+
+-   Enable extended thinking for: architecture decisions, performance bottlenecks, race conditions, complex algorithm design
+-   Don't enable for: boilerplate generation, simple CRUD, test generation, formatting — the extra cost isn't warranted
+-   In Claude Code: use `/think` prefix or enable in settings to toggle extended thinking on/off
+
+2.10 — Multi-step reasoning: chain of thought, extended thinking API, when to enable it
+
+---
+
+### 2.11 — Error Handling and Retry Loops
+
+A sophisticated coding agent doesn't give up when something fails — it implements structured retry logic. Understanding how agents handle errors helps you debug agent sessions that seem to spin without progress.
+
+#### The error handling hierarchy
+
+1.  **Syntax errors:** agent reads the error, fixes the offending line, re-runs. Usually 1–2 iterations.
+2.  **Test failures:** agent reads the assertion message, locates the expected vs. actual values, traces back to the source. Usually 2–5 iterations.
+3.  **Import errors / missing dependencies:** agent runs `pip install` or `npm install` automatically if it has write access to the environment.
+4.  **Deeper bugs (logic errors, race conditions):** agent may add debug logging, run a minimal reproduction, then fix. Can take 5–15 iterations.
+5.  **Environmental issues (wrong Python version, missing env vars):** agent will surface these and either fix them or ask the user.
+
+#### When agents loop without progress
+
+Sometimes an agent loops on the same error, making small variations that don't fix the root cause. Signs:
+
+-   Same test keeps failing after 5+ fix attempts
+-   Agent is adding workarounds instead of fixing the root cause
+-   Context window is filling up with repetitive fix attempts
+
+When this happens: interrupt (Ctrl+C), compact the context (`/compact`), and re-prompt with more specific guidance about what you think the root cause is.
+
+**Infinite loop risk**
+
+A poorly specified task with an unreachable success condition can cause an agent to loop indefinitely (or until your token budget runs out). Always specify success criteria clearly: "the tests in tests/payment/ must all pass" is better than "fix the payment module."
+
+2.11 — Error handling: retry loop hierarchy, when agents loop without progress, how to intervene
+
+---
+
+### 2.12 — Memory: Session, Project, Cross-Session
+
+Coding agents have multiple distinct memory systems, each with different durability and scope.
+
+| Memory type | Where stored | Scope | How to use |
+| --- | --- | --- | --- |
+| In-context (session) | Conversation history in the current context window | Current session only — gone when session ends | Everything you've said and done in the current session |
+| Project memory | CLAUDE.md in the project root (and .claude/ directory) | All sessions in the project | Coding standards, architecture, commands, patterns. Read at session start. |
+| Global memory | ~/.claude/CLAUDE.md | All projects on the machine | Personal preferences, global standards, API keys references |
+| Conversation log | ~/.claude/conversations/ | Persistent, searchable | You can /resume past sessions; agent can reference prior context |
+| External (MCP) | Your Notion/Confluence/database via MCP | Persistent, team-wide | Product specs, architectural decisions, runbooks accessible to agent |
+
+#### Practical memory strategy
+
+Think of memory as a hierarchy:
+
+-   `~/.claude/CLAUDE.md` → "this is how I always work" (personal style, preferred patterns)
+-   `project/CLAUDE.md` → "this is how this project works" (structure, conventions, commands)
+-   In-session conversation → "this is what we've decided in this session"
+-   External MCP → "this is what the broader team knows"
+
+2.12 — Memory types: in-context, project (CLAUDE.md), global, conversation log, external via MCP
+
+---
+
+### 2.13 — Parallel Sub-Agents
+
+Advanced agent architectures use one "orchestrator" agent to spawn multiple "sub-agents" that work in parallel on different parts of a task. Claude Code supports this via the Claude Agent SDK (see Lessons 3.17–3.18).
+
+┌────────────────────────────────────────────────────────────┐ │ PARALLEL SUB-AGENT ORCHESTRATION │ └────────────────────────────────────────────────────────────┘ ┌──────────────────┐ │ Orchestrator │ │ (Claude Sonnet) │ └────────┬─────────┘ │ breaks task into subtasks ┌──────────────┼──────────────┐ │ │ │ ┌──────────▼───┐ ┌───────▼──────┐ ┌──▼───────────────┐ │ Sub-agent 1 │ │ Sub-agent 2 │ │ Sub-agent 3 │ │ (Haiku) │ │ (Haiku) │ │ (Haiku) │ │ Write tests │ │ Write API │ │ Write migrations │ │ for module │ │ endpoints │ │ │ └──────────────┘ └──────────────┘ └──────────────────┘ │ │ │ └──────────────┼──────────────┘ │ merge results ┌────────▼─────────┐ │ Orchestrator │ │ reviews, merges │ │ fixes conflicts │ └──────────────────┘
+
+Key implementation notes:
+
+-   Sub-agents should work on independent code paths to avoid merge conflicts
+-   Use cheaper models (Haiku) for sub-agents doing mechanical work; keep Sonnet for the orchestrator doing planning and review
+-   The Claude Agent SDK `create_sub_agent()` function handles process isolation
+-   Each sub-agent gets its own context window; they don't share memory (by default)
+
+2.13 — Parallel sub-agents: orchestrator pattern, model selection, independent code paths, SDK approach
+
+---
+
+### 2.14 — How Tool Calls Work Technically
+
+Tool calls are defined in the API request as JSON schema. The model returns a structured `tool_use` block when it wants to call a tool. The client executes the tool, returns a `tool_result` block, and the conversation continues.
+
+```
+# How Claude expresses a tool call (simplified)
+# The model returns this in its response:
+{
+  "type": "tool_use",
+  "id": "toolu_01AbcDef",
+  "name": "bash",
+  "input": {
+    "command": "pytest tests/payment/ -x --tb=short 2>&1 | head -100"
+  }
+}
+
+# Your code executes the bash command and returns:
+{
+  "type": "tool_result",
+  "tool_use_id": "toolu_01AbcDef",
+  "content": "FAILED tests/payment/test_stripe.py::test_charge_card - AssertionError: Expected 200, got 402"
+}
+
+# This result is appended to the conversation; model continues
+```
+
+#### Tool definition schema
+
+```
+tools = [
+    {
+        "name": "read_file",
+        "description": "Read the contents of a file at the given path.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Absolute or relative path to the file"
+                },
+                "start_line": {
+                    "type": "integer",
+                    "description": "Optional: line number to start reading from"
+                },
+                "end_line": {
+                    "type": "integer",
+                    "description": "Optional: line number to stop reading at"
+                }
+            },
+            "required": ["path"]
+        }
+    }
+]
+```
+
+2.14 — Tool calls technically: tool\_use/tool\_result blocks, tool definition JSON schema, conversation structure
+
+---
+
+### 2.15 — SWE-bench, HumanEval, and What Benchmarks Mean
+
+Coding agent benchmarks attempt to measure real-world coding capability. The two most cited are SWE-bench Verified and HumanEval, but they measure very different things.
+
+#### HumanEval
+
+164 Python function completion problems from a docstring. Tests: can the model write a function given a specification? It's a measure of single-function code generation quality. Most frontier models score 85–95%+ — it's largely solved and no longer discriminates between top models.
+
+#### SWE-bench Verified
+
+500 real GitHub issues from popular Python repos (Django, Flask, requests, etc.). The agent must: clone the repo, understand the bug, write a fix, and pass the existing test suite. This is far closer to real-world coding work.
+
+| System | SWE-bench Verified score (as of Q2 2026) | Notes |
+| --- | --- | --- |
+| Claude Code (claude-sonnet-4-5) | ~72% | Best single-agent score on Verified subset |
+| Devin 2.0 | ~55% | Multi-agent system |
+| OpenHands (CodeAct) | ~53% | Open-source framework |
+| GitHub Copilot Workspace | ~45% | Approximate; not officially reported |
+
+**Benchmark skepticism**
+
+SWE-bench scores correlate with but don't directly predict performance on *your* codebase. Proprietary codebases with unusual abstractions, heavy metaprogramming, or non-standard frameworks will see lower performance than these numbers suggest. Use benchmarks for directional comparison, not absolute predictions.
+
+2.15 — Benchmarks: HumanEval (solved), SWE-bench Verified (real-world), 2026 scores, healthy skepticism
+
+## Claude Code Deep Dive
+
+### 3.1 — Installation
+
+Claude Code is distributed as an npm package. It requires Node.js 18+ and runs on macOS, Linux, and Windows (via WSL).
+
+```
+# Install globally (recommended)
+npm install -g @anthropic-ai/claude-code
+
+# Verify installation
+claude --version
+
+# Install specific version
+npm install -g @anthropic-ai/claude-code@1.0.0
+
+# Update to latest
+npm update -g @anthropic-ai/claude-code
+```
+
+#### Requirements
+
+-   Node.js 18.0.0 or higher (`node --version`)
+-   npm 8+ or yarn/pnpm equivalent
+-   Git (for /review and git integration features)
+-   An Anthropic API key or claude.ai Pro/Max subscription
+
+#### Platform notes
+
+-   **macOS:** works natively. Install Node.js via `brew install node` or from nodejs.org.
+-   **Linux:** works natively. Use nvm for Node.js version management in case system Node is old.
+-   **Windows:** use WSL2 (Ubuntu recommended). Native Windows support is limited — WSL gives the best experience.
+-   **CI/Docker:** use `node:20-alpine` or `node:20-slim` as base image.
+
+```
+# Docker base for CI usage
+FROM node:20-alpine
+RUN npm install -g @anthropic-ai/claude-code
+ENV ANTHROPIC_API_KEY=""
+WORKDIR /workspace
+```
+
+3.1 — Installation: npm install -g, Node.js requirements, platform notes, Docker setup
+
+---
+
+### 3.2 — Setup and Authentication
+
+Claude Code supports two authentication modes. Choose based on how you'll use it.
+
+#### Mode 1: claude.ai subscription
+
+```
+# Authenticate with your claude.ai account (opens browser)
+claude login
+
+# Check authentication status
+claude auth status
+
+# Logout
+claude logout
+```
+
+This mode uses your claude.ai Pro/Max/Team subscription quota. Best for individual developers on a flat monthly plan.
+
+#### Mode 2: Anthropic API key
+
+```
+# Set API key (add to ~/.zshrc or ~/.bashrc for persistence)
+export ANTHROPIC_API_KEY="sk-ant-api03-..."
+
+# Claude Code will automatically detect and use this key
+claude
+
+# Or pass per-invocation (for scripts)
+ANTHROPIC_API_KEY="sk-ant-..." claude -p "Generate tests for auth module"
+```
+
+API key mode bills per token, bypasses subscription quotas, and is required for CI/CD pipelines.
+
+#### Initial configuration
+
+```
+# Run initial setup (creates ~/.claude/ directory)
+claude /doctor
+
+# This checks:
+# - Authentication status
+# - Node.js version
+# - ~/.claude/ directory structure
+# - MCP server configurations
+# - Any known issues
+```
+
+3.2 — Setup: claude login vs ANTHROPIC\_API\_KEY, when to use each, /doctor command
+
+---
+
+### 3.3 — The .claude/ Directory Structure
+
+Claude Code stores its configuration, history, and customizations in `~/.claude/` (global) and `.claude/` (per-project). Understanding this structure is essential for advanced customization.
+
+```
+~/.claude/                          # Global Claude Code config
+├── CLAUDE.md                       # Global memory/instructions
+├── settings.json                   # Global settings (model, theme, hooks)
+├── hooks/                          # Global hook scripts
+│   ├── pre_tool_use.py
+│   └── post_tool_use.py
+├── commands/                       # Global custom slash commands
+│   └── deploy.md
+├── conversations/                  # Session history (searchable)
+│   ├── 2026-06-20_auth-refactor.jsonl
+│   └── 2026-06-21_payment-api.jsonl
+└── mcp_servers.json               # Global MCP server configs
+
+.claude/                            # Per-project config (in project root)
+├── CLAUDE.md → ../CLAUDE.md       # Symlink OR separate project file
+├── settings.json                   # Project-level settings (overrides global)
+├── hooks/                          # Project-specific hooks
+│   └── run_tests.sh
+└── commands/                       # Project-specific slash commands
+    ├── deploy-staging.md
+    └── generate-migration.md
+```
+
+#### Settings precedence
+
+Project `.claude/settings.json` overrides global `~/.claude/settings.json`. This means you can set different models, hooks, and permissions per project.
+
+3.3 — .claude/ directory: full structure, global vs project scope, settings precedence
+
+---
+
+### 3.4 — CLAUDE.md Files: The Most Important Configuration
+
+CLAUDE.md is the highest-leverage configuration in Claude Code. It is read at the start of every session and loaded into the system prompt. A well-crafted CLAUDE.md can save the agent 5–10 exploratory tool calls per session and dramatically improve output quality.
+
+#### What to include
+
+-   Project structure overview (directory purpose map)
+-   Tech stack and versions
+-   How to run tests, start the dev server, build, deploy
+-   Coding conventions (naming, file organization, patterns to follow)
+-   Things to avoid (deprecated APIs, patterns that break things)
+-   Key architectural decisions and their rationale
+
+#### Full example CLAUDE.md
+
+```
+# Project: PayFlow — Payment Processing API
+
+## Tech Stack
+- Python 3.12 + FastAPI 0.111 + SQLAlchemy 2.0
+- PostgreSQL 16 (via asyncpg)
+- Redis 7 (Celery task queue)
+- Pytest 8 with pytest-asyncio
+- Docker Compose for local dev
+
+## Project Structure
+src/
+├── api/          # FastAPI routers (one file per domain)
+├── models/       # SQLAlchemy ORM models
+├── schemas/      # Pydantic v2 request/response schemas
+├── services/     # Business logic (no DB access in routers)
+├── tasks/        # Celery async tasks
+└── core/         # Config, database, dependencies
+
+tests/
+├── api/          # Integration tests (uses TestClient)
+├── services/     # Unit tests (mock DB)
+└── conftest.py   # Shared fixtures
+
+## Commands
+- Run tests: pytest tests/ -x --tb=short
+- Run single test: pytest tests/api/test_payments.py::test_charge -v
+- Start dev server: docker compose up -d && uvicorn src.main:app --reload
+- Apply migrations: alembic upgrade head
+- Create migration: alembic revision --autogenerate -m "description"
+- Format code: ruff format . && ruff check --fix .
+
+## Conventions
+- All money values stored in cents (integer), never float
+- Use `Decimal` for intermediate calculations
+- API errors use HTTPException with structured `detail` dict
+- All DB access goes through `src/services/` — never in routers
+- Routers call services; services call repositories
+- Every new endpoint needs: request schema, response schema, test
+
+## Do NOT
+- Import SQLAlchemy models in Pydantic schemas (use IDs only)
+- Use `datetime.now()` — always use `datetime.now(timezone.utc)`
+- Commit secrets or API keys
+- Use `SELECT *` in queries — always select specific columns
+
+## Key Architectural Decisions
+- We use repository pattern: Service → Repository → DB
+  (don't add query logic directly to service methods)
+- Celery tasks are fire-and-forget; results stored in DB not Redis
+- All external API calls (Stripe, etc.) wrapped in src/integrations/
+```
+
+**Team CLAUDE.md strategy**
+
+Commit the project CLAUDE.md to your repository. When a new developer onboards, Claude Code immediately has full project context. When standards change, update CLAUDE.md — all future sessions will use the new rules. It's living documentation that actually gets read (by the agent).
+
+3.4 — CLAUDE.md: what to include, full real-world example, team strategy for committed CLAUDE.md
+
+---
+
+### 3.5 — Built-in Slash Commands
+
+Claude Code has a set of built-in slash commands that trigger specific behaviors. These are typed in the interactive prompt during a session.
+
+| Command | What it does |
+| --- | --- |
+| /init | Generate a CLAUDE.md for the current project by scanning files |
+| /review | Review the current git diff — lists changed files, explains changes, flags concerns |
+| /compact | Summarize and compress the conversation to free context window space |
+| /compact "focus" | Compact with a specified area to prioritize in the summary |
+| /doctor | Run diagnostics: check auth, Node version, MCP connections, known issues |
+| /cost | Show token usage and estimated cost for the current session |
+| /model | Switch the model mid-session (/model claude-haiku-4-5) |
+| /clear | Clear the conversation history and start a fresh context |
+| /quit | Exit Claude Code |
+| /help | Show available commands and usage |
+
+#### Practical usage patterns
+
+```
+# Start a new project → generate CLAUDE.md
+cd my-new-project
+claude
+> /init
+
+# After a long session, check cost and compact
+> /cost
+> Session cost: ~$1.24 (420K tokens)
+> /compact
+
+# Before a PR, review your changes
+> /review
+
+# Switch to cheaper model for a quick task
+> /model claude-haiku-4-5
+> Generate docstrings for all functions in src/utils.py
+> /model claude-sonnet-4-5
+```
+
+3.5 — Slash commands: /init, /review, /compact, /doctor, /cost, /model and practical usage patterns
+
+---
+
+### 3.6 — Custom Slash Commands
+
+You can define your own slash commands as Markdown files in `.claude/commands/` (project) or `~/.claude/commands/` (global). The filename becomes the command name; the file content is a prompt template.
+
+```
+# .claude/commands/generate-migration.md
+Generate an Alembic database migration for the following schema change.
+
+Steps:
+1. Read the current models in src/models/ to understand existing schema
+2. Read the latest migration in alembic/versions/ to understand current state
+3. Generate the migration using: alembic revision --autogenerate -m "$ARGUMENTS"
+4. Read the generated migration file
+5. Verify it looks correct (check upgrade() and downgrade() functions)
+6. If it looks wrong, explain what's incorrect and suggest manual corrections
+
+Arguments: $ARGUMENTS
+```
+
+```
+# .claude/commands/pr-review.md
+Review the current git diff as a senior engineer would.
+
+For each changed file:
+1. Explain what the change does
+2. Flag potential bugs or edge cases
+3. Flag missing test coverage
+4. Suggest improvements (but don't implement them automatically)
+5. Rate overall PR readiness: Ready / Needs Work / Blocked
+
+Run: git diff main...HEAD to see all changes
+Also check: git diff --stat main...HEAD for a summary
+```
+
+Use these in sessions as: `/generate-migration "add user_preferences table"` or `/pr-review`
+
+**$ARGUMENTS**
+
+The `$ARGUMENTS` placeholder in a command file is replaced with anything you type after the command name. This makes commands flexible templates rather than fixed prompts.
+
+3.6 — Custom slash commands: Markdown files in .claude/commands/, $ARGUMENTS, real examples
+
+---
+
+### 3.7 — Multi-Turn Coding Sessions
+
+The most powerful Claude Code usage is a sustained, multi-turn session where you iteratively build a feature. Understanding how to structure these sessions separates 2× from 10× productivity gains.
+
+#### Session anatomy
+
+1.  **Context loading:** agent reads CLAUDE.md, explores project structure (1–3 minutes)
+2.  **Planning:** you describe the goal; agent produces a plan (ask for this explicitly)
+3.  **Execution:** agent codes, tests, fixes in a loop
+4.  **Checkpoints:** you review output, redirect if needed
+5.  **Finalization:** run /review, check /cost, compact or close
+
+#### Effective redirection mid-session
+
+```
+# If agent is going in the wrong direction:
+Actually, let's approach this differently. Instead of [approach X],
+use [approach Y] because [reason]. Don't undo what you've done —
+just pivot from here.
+
+# If agent keeps looping on an error:
+Stop trying to fix this. The root cause is that [X].
+Read the file [Y] to understand why. Then fix it from that angle.
+
+# If you want to add constraints:
+Good progress. Two additional requirements:
+1. This must work with the existing UserRepository interface
+2. All new DB queries must use the async session (not sync)
+Continue from where you are.
+```
+
+**The session sweet spot**
+
+Sessions under 60 minutes with clear task scope are the most efficient. Very long sessions (3+ hours) accumulate context that slows the agent and increases the chance of confusing itself. For big features: break into sessions by layer (data model session → API session → tests session → integration session).
+
+3.7 — Multi-turn sessions: anatomy, effective redirection, session length sweet spot
+
+---
+
+### 3.8 — Git Integration and /review
+
+Claude Code has deep git integration — it can understand commit history, compare branches, generate commit messages, and perform thorough code reviews.
+
+```
+# Review current uncommitted changes
+/review
+
+# Ask the agent to write a commit message
+Write a conventional commit message for these changes.
+
+# Ask for branch comparison
+What has changed between main and this branch? What's the intent?
+
+# Automated PR description generation
+Generate a PR description for these changes including:
+- Summary of what changed
+- Why this change was made
+- Testing notes
+- Any breaking changes
+```
+
+#### Pre-commit hooks with Claude Code
+
+```
+#!/bin/bash
+# .git/hooks/pre-commit — run Claude Code review before commit
+# Exits non-zero if serious issues found
+
+DIFF=$(git diff --cached)
+if [ -z "$DIFF" ]; then
+  exit 0
+fi
+
+echo "$DIFF" | claude -p "
+Review this diff for:
+1. Security vulnerabilities (fail if found)
+2. Obvious bugs (fail if found)
+3. Missing error handling on external calls
+
+Output ONLY: PASS or FAIL:
+" --output-format text | grep -q "^PASS$"
+```
+
+3.8 — Git integration: /review, commit messages, PR descriptions, pre-commit hook example
+
+---
+
+### 3.9 — MCP Servers: Configuration Examples
+
+MCP servers extend Claude Code with external tool access. Configure them in `~/.claude/settings.json` or `.claude/settings.json`.
+
+```
+// ~/.claude/settings.json — MCP server configuration
+{
+  "mcpServers": {
+    // GitHub integration — list repos, create PRs, comment on issues
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    },
+
+    // PostgreSQL — query your database (read-only recommended)
+    "postgres": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "DATABASE_URL": "postgresql://user:pass@localhost/mydb"
+      }
+    },
+
+    // Filesystem with restricted access (safer than default)
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y", "@modelcontextprotocol/server-filesystem",
+        "/Users/you/projects"   // restrict to this path only
+      ]
+    },
+
+    // Linear — task management
+    "linear": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@linear/mcp-server"],
+      "env": {
+        "LINEAR_API_KEY": "${LINEAR_API_KEY}"
+      }
+    },
+
+    // Custom internal tool server
+    "internal-tools": {
+      "type": "http",
+      "url": "https://mcp.internal.company.com",
+      "headers": {
+        "Authorization": "Bearer ${INTERNAL_MCP_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+**Environment variable interpolation**
+
+Use `${VAR_NAME}` in MCP server configs to reference environment variables. This keeps secrets out of your settings files — the values are pulled from the shell environment at runtime.
+
+3.9 — MCP servers: full settings.json examples for GitHub, PostgreSQL, Linear, custom HTTP servers
+
+---
+
+### 3.10 — Hooks: PreToolUse, PostToolUse, PostToolUseFailure
+
+Hooks let you intercept and react to Claude Code's tool calls. They are shell commands or scripts that receive tool call data via stdin (as JSON) and can return data via stdout to influence behavior.
+
+#### Hook types
+
+| Hook type | When it fires | Can block? | Can modify? |
+| --- | --- | --- | --- |
+| PreToolUse | Before a tool call executes | Yes — return exit code 1 to block | Can modify tool input (limited) |
+| PostToolUse | After a tool call completes successfully | No | Yes — can rewrite tool output via updatedToolOutput |
+| PostToolUseFailure | After a tool call fails/errors | No | Can modify error message |
+
+#### Complete hook configuration
+
+```
+// .claude/settings.json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/safety_check.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write,Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/format_on_write.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .claude/hooks/log_failures.py"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### PreToolUse safety check example
+
+```
+#!/usr/bin/env python3
+# .claude/hooks/safety_check.py
+# Block dangerous bash commands before they execute
+
+import json, sys, re
+
+data = json.loads(sys.stdin.read())
+command = data.get("tool_input", {}).get("command", "")
+
+BLOCKED_PATTERNS = [
+    r"rm\s+-rf\s+/",
+    r"DROP\s+TABLE",
+    r"git\s+push.*--force.*main",
+    r"curl.*\|\s*sh",
+    r"wget.*\|\s*bash",
+]
+
+for pattern in BLOCKED_PATTERNS:
+    if re.search(pattern, command, re.IGNORECASE):
+        print(json.dumps({
+            "decision": "block",
+            "reason": f"Blocked: matches safety pattern '{pattern}'"
+        }))
+        sys.exit(1)
+
+# Allow the command
+sys.exit(0)
+```
+
+#### PostToolUse auto-format example
+
+```
+#!/bin/bash
+# .claude/hooks/format_on_write.sh
+# Auto-format files after Claude writes them
+
+INPUT=$(cat)
+FILE=$(echo "$INPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))")
+
+if [[ "$FILE" == *.py ]]; then
+    ruff format "$FILE" 2>/dev/null
+    ruff check --fix "$FILE" 2>/dev/null
+elif [[ "$FILE" == *.ts || "$FILE" == *.tsx ]]; then
+    npx prettier --write "$FILE" 2>/dev/null
+fi
+```
+
+3.10 — Hooks: three hook types, full settings.json config, safety check and auto-format examples
+
+---
+
+### 3.11 — NEW: PostToolUse hookSpecificOutput.updatedToolOutput and duration\_ms
+
+Two major hook features landed in the June 2026 release. These enable powerful output manipulation and performance monitoring patterns.
+
+#### updatedToolOutput — rewriting what the model sees
+
+A PostToolUse hook can now return `hookSpecificOutput.updatedToolOutput` to replace the tool's output before the model reads it. This is a powerful capability:
+
+-   Truncate excessively long bash output to save tokens
+-   Add structured summaries after raw output
+-   Filter sensitive data (API keys, PII) from output before it enters the context
+-   Inject metadata (timestamps, file sizes, etc.)
+
+```
+#!/usr/bin/env python3
+# .claude/hooks/smart_truncate.py
+# Intelligently truncate long outputs and inject summaries
+
+import json, sys, re
+
+data = json.loads(sys.stdin.read())
+stdout = data.get("tool_response", {}).get("stdout", "")
+stderr = data.get("tool_response", {}).get("stderr", "")
+duration_ms = data.get("duration_ms", 0)
+
+result = {"hookSpecificOutput": {}}
+
+# Truncate long stdout
+if len(stdout) > 8000:
+    lines = stdout.split("\n")
+    error_lines = [l for l in lines if "ERROR" in l or "FAILED" in l or "error" in l.lower()]
+
+    truncated = "\n".join(lines[:50])
+    truncated += f"\n\n[... {len(lines)-50} lines truncated ...]\n"
+
+    if error_lines:
+        truncated += "\n=== ERRORS FOUND ===\n" + "\n".join(error_lines[:20])
+
+    truncated += f"\n=== EXECUTION TIME: {duration_ms}ms ==="
+
+    result["hookSpecificOutput"]["updatedToolOutput"] = {"stdout": truncated}
+
+# Filter sensitive data from any output
+combined = stdout + stderr
+if re.search(r"sk-ant-api\d{2}-[A-Za-z0-9]+", combined):
+    # Found what looks like an API key — redact it
+    sanitized = re.sub(r"sk-ant-api\d{2}-[A-Za-z0-9-]+", "[REDACTED_API_KEY]", combined)
+    result["hookSpecificOutput"]["updatedToolOutput"] = {"stdout": sanitized}
+
+if result["hookSpecificOutput"]:
+    print(json.dumps(result))
+```
+
+#### duration\_ms — performance monitoring
+
+```
+#!/usr/bin/env python3
+# .claude/hooks/perf_logger.py
+# Log slow operations for performance analysis
+
+import json, sys, datetime
+
+data = json.loads(sys.stdin.read())
+tool_name = data.get("tool_name", "unknown")
+duration_ms = data.get("duration_ms", 0)
+command = data.get("tool_input", {}).get("command", "")[:100]
+
+# Log any operation over 5 seconds
+if duration_ms > 5000:
+    log_entry = {
+        "timestamp": datetime.datetime.utcnow().isoformat(),
+        "tool": tool_name,
+        "duration_ms": duration_ms,
+        "command_preview": command
+    }
+    with open("/tmp/claude_slow_ops.jsonl", "a") as f:
+        f.write(json.dumps(log_entry) + "\n")
+```
+
+3.11 — New hook features: updatedToolOutput for output rewriting, duration\_ms for perf monitoring
+
+---
+
+### 3.12 — Hook Matchers with Comma-Separated Values
+
+The June 2026 update also simplified hook matcher syntax. Previously, you needed separate hook entries for each tool. Now you can use comma-separated tool names in a single matcher.
+
+```
+// Old syntax (before June 2026) — verbose, one entry per tool
+{
+  "hooks": {
+    "PostToolUse": [
+      {"matcher": "Write", "hooks": [{"type": "command", "command": "python3 audit.py"}]},
+      {"matcher": "Edit",  "hooks": [{"type": "command", "command": "python3 audit.py"}]},
+      {"matcher": "Bash",  "hooks": [{"type": "command", "command": "python3 audit.py"}]}
+    ]
+  }
+}
+
+// New syntax (June 2026+) — comma-separated, much cleaner
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write,Edit,Bash",
+        "hooks": [{"type": "command", "command": "python3 audit.py"}]
+      }
+    ]
+  }
+}
+
+// You can also use "*" to match ALL tools
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [{"type": "command", "command": "python3 universal_logger.py"}]
+      }
+    ]
+  }
+}
+```
+
+#### Matcher pattern combinations
+
+```
+// Different hooks for different tool groups
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash,Python",
+        "hooks": [{"type": "command", "command": "python3 .claude/hooks/shell_safety.py"}]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write,Edit,MultiEdit",
+        "hooks": [{"type": "command", "command": "bash .claude/hooks/format.sh"}]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": "python3 .claude/hooks/truncate_output.py"}]
+      }
+    ]
+  }
+}
+```
+
+3.12 — Hook matchers: comma-separated syntax, wildcard "\*", combining patterns for different tool groups
+
+---
+
+### 3.13 — Headless Mode: claude -p "prompt"
+
+Headless mode runs Claude Code non-interactively — perfect for CI/CD pipelines, cron jobs, and scripted automation. The `-p` flag (or `--print`) specifies the prompt and exits after completion.
+
+```
+# Basic headless usage
+claude -p "Review this file for security issues: $(cat src/auth.py)"
+
+# Pipe input
+cat error.log | claude -p "Summarize the errors and suggest fixes"
+
+# Full headless pipeline example
+claude \
+  --print "Generate comprehensive tests for the UserService class.
+           Read src/services/user.py first.
+           Write tests to tests/services/test_user.py." \
+  --dangerously-skip-permissions \
+  --output-format text
+
+# With specific model and timeout
+claude \
+  --print "Audit all SQL queries in src/ for injection vulnerabilities" \
+  --model claude-sonnet-4-5 \
+  --max-turns 30 \
+  --output-format json
+
+# In a CI script
+#!/bin/bash
+set -e
+
+echo "Running Claude Code test generation..."
+claude -p "
+Look at all files changed in this PR (git diff main...HEAD).
+For any changed functions that don't have corresponding test coverage,
+generate tests and add them to the appropriate test files.
+Run pytest to verify all tests pass before finishing.
+" --dangerously-skip-permissions
+
+echo "Test generation complete"
+git diff --stat  # show what changed
+```
+
+**\--dangerously-skip-permissions in CI**
+
+The flag name exists to make you think twice. In CI, it is the right call — you're running in a controlled environment and interrupting for every file write would make automation impossible. In local development, prefer the interactive mode that asks for confirmation.
+
+3.13 — Headless mode: -p flag, piping input, CI usage, --dangerously-skip-permissions rationale
+
+---
+
+### 3.14 — Output Formats: text, json, stream-json
+
+Claude Code's headless mode supports three output formats for different consumption patterns.
+
+```
+# --output-format text (default for headless)
+# Returns only the final text response, no metadata
+claude -p "What is the main class in src/main.py?" --output-format text
+# Output: The main class is `Application` which inherits from `FastAPI`...
+
+# --output-format json
+# Returns a JSON object with result, cost, turn count, etc.
+claude -p "List all API endpoints" --output-format json
+# Output:
+# {
+#   "type": "result",
+#   "result": "The API has the following endpoints:\n- POST /auth/login\n...",
+#   "cost_usd": 0.0034,
+#   "input_tokens": 2847,
+#   "output_tokens": 312,
+#   "num_turns": 3
+# }
+
+# --output-format stream-json
+# Streams newline-delimited JSON events in real time
+# Useful for progress monitoring in long-running tasks
+claude -p "Refactor the entire auth module" \
+  --output-format stream-json \
+  --dangerously-skip-permissions | while read line; do
+    echo "$line" | python3 -c "
+import json, sys
+event = json.load(sys.stdin)
+if event.get('type') == 'tool_use':
+    print(f\"  → {event['name']}: {str(event.get('input',''))[:60]}\")
+elif event.get('type') == 'result':
+    print(f\"Done! Cost: \${event.get('cost_usd', 0):.4f}\")
+"
+done
+```
+
+#### Parsing json output in scripts
+
+```
+#!/bin/bash
+# Extract just the text result from JSON output
+RESULT=$(claude -p "Summarize src/README.md" --output-format json)
+TEXT=$(echo "$RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin)['result'])")
+echo "$TEXT"
+
+# Check cost after a session
+COST=$(echo "$RESULT" | python3 -c "import json,sys; print(json.load(sys.stdin).get('cost_usd', 'N/A'))")
+echo "Session cost: \$$COST"
+```
+
+3.14 — Output formats: text, json (with cost metadata), stream-json for real-time progress monitoring
+
+---
+
+### 3.15 — --allowedTools and --permission-mode
+
+Fine-grained control over what the agent is allowed to do — critical for security in automated contexts.
+
+```
+# Restrict to read-only tools — safe for audit tasks
+claude -p "Find all places where we use deprecated async patterns" \
+  --allowedTools "Read,Grep,Bash(read-only),LS"
+
+# Allow only file editing, no shell commands
+claude -p "Add type annotations to all functions in src/" \
+  --allowedTools "Read,Write,Edit,MultiEdit,Glob,Grep"
+
+# Block specific tools (allow everything else)
+claude -p "Refactor the payment service" \
+  --disallowedTools "Bash"
+
+# Permission modes
+# default: interactive — asks before write/bash
+claude -p "task" --permission-mode default
+
+# acceptEdits: auto-accepts file changes, asks for bash
+claude -p "task" --permission-mode acceptEdits
+
+# bypassPermissions: skip all confirmations (CI use)
+claude -p "task" --permission-mode bypassPermissions
+
+# Combine for precise control
+claude -p "Generate database migrations" \
+  --allowedTools "Read,Bash,Write" \
+  --permission-mode bypassPermissions \
+  --max-turns 20
+```
+
+3.15 — Permissions: --allowedTools, --disallowedTools, three permission modes, combining for precise control
+
+---
+
+### 3.16 — stdin/stdout Piping
+
+Claude Code is designed as a good Unix citizen — it reads from stdin and writes to stdout, enabling powerful pipeline compositions.
+
+```
+# Pipe file content to Claude
+cat src/complex_function.py | claude -p "Explain this code in plain English"
+
+# Pipe error output for analysis
+npm run build 2>&1 | claude -p "What caused these build errors? How do I fix them?"
+
+# Pipe git diff for review
+git diff HEAD~1 | claude -p "Review this diff. List any bugs or issues."
+
+# Pipe JSON data
+cat api_response.json | claude -p "Extract all user IDs from this JSON"
+
+# Chain with other tools
+cat *.py | wc -c | claude -p "Is this a large codebase? How many tokens roughly?"
+
+# Multi-file analysis
+find src/ -name "*.ts" | xargs cat | \
+  claude -p "Find all TODO comments and create a prioritized list"
+
+# Use heredoc for multi-line prompts with piped context
+cat database_schema.sql | claude -p "$(cat <<'PROMPT'
+Given this database schema:
+1. Identify potential performance issues
+2. Suggest indexes that would improve query performance
+3. Flag any missing foreign key constraints
+Format as a Markdown report.
+PROMPT
+)"
+```
+
+**Token limits on piped content**
+
+Piping large files works but consumes input tokens. A 10,000 line file piped in is ~80,000 tokens — significant at $3/M. For large codebases, prefer having the agent use its Grep/Read tools to selectively read files rather than piping everything in.
+
+3.16 — stdin/stdout piping: Unix-native patterns, pipe chains, heredoc multi-line prompts, token cost awareness
+
+---
+
+### 3.17 — Claude Agent SDK: Python
+
+The Claude Agent SDK provides a programmatic interface to build agents that go beyond the CLI. Use it when you need custom tool definitions, orchestration logic, or integration with existing Python systems.
+
+```
+pip install anthropic
+```
+
+```
+#!/usr/bin/env python3
+"""
+Example: Python agent with custom tools using the Anthropic SDK.
+This agent can read files and run code analysis.
+"""
+
+import anthropic
+import subprocess
+import os
+
+client = anthropic.Anthropic()
+
+# Define custom tools
+tools = [
+    {
+        "name": "read_file",
+        "description": "Read the contents of a file",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "File path to read"}
+            },
+            "required": ["path"]
+        }
+    },
+    {
+        "name": "run_command",
+        "description": "Run a shell command and return output",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "command": {"type": "string", "description": "Shell command to execute"}
+            },
+            "required": ["command"]
+        }
+    },
+    {
+        "name": "write_file",
+        "description": "Write content to a file",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string"},
+                "content": {"type": "string"}
+            },
+            "required": ["path", "content"]
+        }
+    }
+]
+
+def execute_tool(tool_name: str, tool_input: dict) -> str:
+    """Execute a tool call and return the result as a string."""
+    if tool_name == "read_file":
+        try:
+            with open(tool_input["path"]) as f:
+                return f.read()
+        except FileNotFoundError:
+            return f"Error: File not found: {tool_input['path']}"
+
+    elif tool_name == "run_command":
+        result = subprocess.run(
+            tool_input["command"],
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+        output = result.stdout
+        if result.stderr:
+            output += f"\nSTDERR:\n{result.stderr}"
+        return output or "(no output)"
+
+    elif tool_name == "write_file":
+        os.makedirs(os.path.dirname(tool_input["path"]), exist_ok=True)
+        with open(tool_input["path"], "w") as f:
+            f.write(tool_input["content"])
+        return f"Wrote {len(tool_input['content'])} characters to {tool_input['path']}"
+
+    return f"Unknown tool: {tool_name}"
+
+
+def run_agent(task: str, max_turns: int = 20) -> str:
+    """Run an agent loop until task complete or max turns reached."""
+    messages = [{"role": "user", "content": task}]
+
+    for turn in range(max_turns):
+        response = client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=4096,
+            tools=tools,
+            messages=messages
+        )
+
+        # Check if done
+        if response.stop_reason == "end_turn":
+            # Extract final text response
+            for block in response.content:
+                if block.type == "text":
+                    return block.text
+            return "Task completed (no text output)"
+
+        # Process tool calls
+        messages.append({"role": "assistant", "content": response.content})
+
+        tool_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                print(f"  Tool: {block.name}({list(block.input.keys())})")
+                result = execute_tool(block.name, block.input)
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result
+                })
+
+        messages.append({"role": "user", "content": tool_results})
+
+    return "Max turns reached"
+
+
+if __name__ == "__main__":
+    result = run_agent(
+        "Read the file src/main.py, analyze its structure, "
+        "then write a brief summary to docs/main_summary.md"
+    )
+    print(result)
+```
+
+3.17 — Agent SDK Python: tool definitions, execute\_tool function, agent loop with max\_turns, full working example
+
+---
+
+### 3.18 — Claude Agent SDK: TypeScript
+
+```
+npm install @anthropic-ai/sdk
+```
+
+```
+// agent.ts — TypeScript coding agent with custom tools
+import Anthropic from "@anthropic-ai/sdk";
+import { execSync } from "child_process";
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { dirname } from "path";
+
+const client = new Anthropic();
+
+type Tool = Anthropic.Messages.Tool;
+type MessageParam = Anthropic.Messages.MessageParam;
+type ContentBlock = Anthropic.Messages.ContentBlock;
+
+const tools: Tool[] = [
+  {
+    name: "read_file",
+    description: "Read contents of a file",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        path: { type: "string", description: "File path" },
+      },
+      required: ["path"],
+    },
+  },
+  {
+    name: "run_command",
+    description: "Run a shell command",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        command: { type: "string" },
+      },
+      required: ["command"],
+    },
+  },
+  {
+    name: "write_file",
+    description: "Write content to a file",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        path: { type: "string" },
+        content: { type: "string" },
+      },
+      required: ["path", "content"],
+    },
+  },
+];
+
+function executeTool(name: string, input: Record): string {
+  switch (name) {
+    case "read_file":
+      try {
+        return readFileSync(input.path, "utf-8");
+      } catch (e) {
+        return `Error reading file: ${e}`;
+      }
+
+    case "run_command":
+      try {
+        return execSync(input.command, {
+          encoding: "utf-8",
+          timeout: 30000,
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+      } catch (e: any) {
+        return `Command failed: ${e.message}\n${e.stderr || ""}`;
+      }
+
+    case "write_file":
+      mkdirSync(dirname(input.path), { recursive: true });
+      writeFileSync(input.path, input.content, "utf-8");
+      return `Wrote ${input.content.length} chars to ${input.path}`;
+
+    default:
+      return `Unknown tool: ${name}`;
+  }
+}
+
+async function runAgent(task: string, maxTurns = 20): Promise {
+  const messages: MessageParam[] = [{ role: "user", content: task }];
+
+  for (let turn = 0; turn < maxTurns; turn++) {
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 4096,
+      tools,
+      messages,
+    });
+
+    if (response.stop_reason === "end_turn") {
+      const textBlock = response.content.find((b) => b.type === "text");
+      return textBlock?.type === "text" ? textBlock.text : "Done";
+    }
+
+    // Add assistant response to history
+    messages.push({ role: "assistant", content: response.content });
+
+    // Execute tool calls
+    const toolResults: Anthropic.Messages.ToolResultBlockParam[] = [];
+    for (const block of response.content) {
+      if (block.type === "tool_use") {
+        console.log(`  → Tool: ${block.name}`);
+        const result = executeTool(block.name, block.input as Record);
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: block.id,
+          content: result,
+        });
+      }
+    }
+
+    messages.push({ role: "user", content: toolResults });
+  }
+
+  return "Max turns reached";
+}
+
+// Main
+(async () => {
+  const result = await runAgent(
+    "Read package.json, check the Node version requirement, " +
+    "then generate a GitHub Actions workflow file at .github/workflows/ci.yml " +
+    "that runs npm test on Node versions 18, 20, and 22."
+  );
+  console.log(result);
+})();
+```
+
+3.18 — Agent SDK TypeScript: typed tool definitions, executeTool function, async agent loop, full working example
+
+---
+
+### 3.19 — Extended Thinking for Architecture Tasks
+
+Extended thinking in Claude Code is activated for tasks that benefit from deep deliberation. In the interactive CLI, prefix your message with `/think` or enable it via settings for specific task types.
+
+```
+# In Claude Code interactive session:
+> /think Design the database schema for a multi-tenant SaaS application
+  with organizations, users, projects, and fine-grained role-based access control.
+  We'll be on PostgreSQL with ~1M rows per tenant at peak scale.
+
+# In settings.json — always use extended thinking for architecture keywords:
+{
+  "thinking": {
+    "enabled": true,
+    "budget_tokens": 8000,
+    "triggers": ["design", "architect", "schema", "why is", "debug", "race condition"]
+  }
+}
+```
+
+#### Via the API
+
+```
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=16000,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 12000
+    },
+    system="""You are a senior software architect.
+    Think deeply about tradeoffs before recommending an approach.""",
+    messages=[{
+        "role": "user",
+        "content": """We're building a real-time collaborative document editor
+        (like Google Docs). Recommend an architecture for:
+        - Operational Transforms vs CRDTs for conflict resolution
+        - WebSocket connection management for 100K concurrent users
+        - Persistence strategy (hot/warm/cold storage tiers)
+        - How to handle offline editing and sync
+
+        We're on AWS, using TypeScript/Node.js, and targeting < 100ms latency."""
+    }]
+)
+
+# Print thinking blocks (internal reasoning)
+for block in response.content:
+    if block.type == "thinking":
+        print("=== THINKING ===")
+        print(block.thinking[:500] + "...")
+    elif block.type == "text":
+        print("=== RESPONSE ===")
+        print(block.text)
+```
+
+**When extended thinking shines**
+
+The quality difference is most pronounced when the task has non-obvious tradeoffs — not just "what's the right syntax" but "what's the right approach given these constraints." Architecture design, debugging subtle async bugs, and security review are the sweet spots.
+
+3.19 — Extended thinking: /think prefix, settings triggers, API with budget\_tokens, architecture use cases
+
+---
+
+### 3.20 — Claude Code Best Practices Summary
+
+A distilled reference of the patterns that produce the best results with Claude Code:
+
+CLAUDE.md first
+
+Always create a detailed CLAUDE.md before your first session on a project. /init is a good starting point; refine it based on what the agent gets wrong.
+
+Specify success criteria
+
+"Add auth to the API" is vague. "Add JWT auth to all /api/v2 endpoints; the tests in tests/auth/ must all pass when you're done" is actionable.
+
+Start sessions focused
+
+One feature or one module per session. Don't ask for "refactor the entire codebase" — scope it, then chain sessions.
+
+Use /compact proactively
+
+Run /compact when the session hits 100K tokens rather than waiting for automatic compaction. You control what summary is kept.
+
+Check /cost regularly
+
+A 3-hour session can easily hit $5–15. Know your costs so you can optimize model choice and session length.
+
+Use hooks for guardrails
+
+PreToolUse hooks that block dangerous bash patterns pay for themselves the first time they prevent an accident.
+
+Interrupt, don't wait
+
+If the agent is going in the wrong direction, stop it (Ctrl+C) and redirect. Letting it finish a wrong approach wastes tokens and time.
+
+Model match to task
+
+Use Haiku for bulk/mechanical tasks (test gen, docs). Save Sonnet for reasoning-heavy work. Use extended thinking only for genuine hard problems.
+
+**The meta-skill**
+
+The best Claude Code users are good at noticing when the agent is confused and correcting it early, rather than hoping it figures it out. Watch the first few tool calls — if the agent is reading the wrong files or misunderstanding the task, correct it immediately. Five seconds of clarification beats five minutes of wrong-direction work.
+
+3.20 — Best practices: CLAUDE.md first, specify success criteria, scope sessions, use hooks, model matching
+
+## Effective Prompting for Code
+
+### 4.1 — Specification-Driven Prompting Template
+
+The single most effective prompting pattern for coding agents is the specification template: give the agent a structured description of what you want, the constraints it must work within, and the success criteria. This replaces vague instructions with a contract.
+
+#### The SPEC template
+
+```
+## Task
+[One sentence describing the specific thing to build/fix/change]
+
+## Context
+[What the agent needs to know that isn't obvious from the code]
+- Current behavior: [what it does now]
+- Desired behavior: [what it should do]
+- Why: [brief rationale, especially if non-obvious]
+
+## Files to focus on
+- [path/to/file.py] — [why it's relevant]
+- [path/to/other.ts] — [what to do with it]
+
+## Constraints
+- Must work with existing [interface/API/schema] — don't break it
+- Must use [specific library/pattern/approach]
+- Do NOT change [specific thing that's off-limits]
+
+## Success criteria
+- [ ] [Specific, testable outcome 1]
+- [ ] [Specific, testable outcome 2]
+- [ ] All existing tests in tests/[relevant path] pass
+- [ ] No new TypeScript errors (run: tsc --noEmit)
+```
+
+#### Filled example
+
+```
+## Task
+Add rate limiting to all /api/v2/payments endpoints.
+
+## Context
+- Current behavior: No rate limiting — any IP can make unlimited requests
+- Desired behavior: Max 100 requests/minute per IP; 429 with Retry-After header on limit
+- Why: Fraud prevention and DDoS protection before Q3 launch
+
+## Files to focus on
+- src/api/payments.py — FastAPI router, add rate limit dependency here
+- src/core/dependencies.py — add the rate limiter dependency here
+- src/core/config.py — add RATE_LIMIT_PER_MINUTE config var
+- tests/api/test_payments.py — add rate limit tests here
+
+## Constraints
+- Must use Redis for the rate limit counter (we already have Redis in docker-compose)
+- Must preserve existing request/response schemas exactly
+- Do NOT modify the Stripe webhook endpoints — they're in src/api/webhooks.py
+
+## Success criteria
+- [ ] GET/POST/DELETE /api/v2/payments all have 100/min rate limit
+- [ ] Returns 429 with {"error": "rate_limit_exceeded", "retry_after": N} body
+- [ ] Returns Retry-After header (seconds)
+- [ ] Rate limit key is per-IP (use X-Forwarded-For if present, else client IP)
+- [ ] Tests cover: normal flow, hitting limit, reset after window
+- [ ] pytest tests/api/test_payments.py passes
+```
+
+4.1 — Spec-driven prompting: SPEC template with Task/Context/Files/Constraints/Success criteria, filled example
+
+---
+
+### 4.2 — Iterative vs One-Shot Generation
+
+Knowing when to use a single large prompt vs. iterating with smaller steps is a key skill that separates effective agent users from frustrated ones.
+
+#### One-shot: when to use it
+
+-   The task is bounded and well-specified (writing a single module, adding a specific feature)
+-   You trust the agent to make good implementation decisions without guidance
+-   You're willing to review everything at the end
+-   The task is < 500 lines of code output
+
+#### Iterative: when to use it
+
+-   You're not sure of the right approach and want to validate direction early
+-   The task involves architecture decisions you want input on
+-   The output needs to match a specific style or pattern from your codebase
+-   The task crosses many domains (API + DB + tests + docs) — iterate per domain
+
+#### Iterative pattern example
+
+```
+# Step 1: Get the design before implementing
+"Before writing any code, propose the data model for a notification system.
+Show me the schema (tables/fields) and the key relationships.
+Don't write code yet — just the design."
+
+# Step 2: Review and adjust, then implement
+"The design looks good. Two changes:
+1. Add a 'priority' field to notifications (low/medium/high/critical)
+2. Rename 'user_id' to 'recipient_id' for clarity
+Now implement the SQLAlchemy models."
+
+# Step 3: Add the API layer
+"Models look right. Now add the FastAPI endpoints for:
+GET /notifications/ — list with pagination
+PATCH /notifications/{id} — mark read
+DELETE /notifications/{id} — delete"
+
+# Step 4: Tests
+"Good. Now write pytest tests for all three endpoints.
+Use the fixture pattern from tests/conftest.py."
+```
+
+4.2 — Iterative vs one-shot: when to use each, four-step iterative pattern example
+
+---
+
+### 4.3 — Giving Context vs Letting the Agent Explore
+
+There's a genuine tension in agent prompting: give too much context upfront and you waste tokens on irrelevant detail; give too little and the agent spends time exploring.
+
+#### High-context prompt (for small focused tasks)
+
+```
+# Paste the relevant code directly — saves exploration time
+Here is the UserService class:
+
+```python
+[paste code]
+```
+
+The `create_user` method needs to:
+1. Check that email is unique (query Users table)
+2. Hash the password using bcrypt
+3. Create and return the User object
+
+Don't read any other files — work only with what I've given you.
+Write the updated `create_user` method.
+```
+
+#### Low-context / exploration prompt (for large tasks)
+
+```
+# Let the agent discover the codebase structure
+I need you to add comprehensive logging to this application.
+Before making any changes:
+1. Explore the project structure (ls -la, find . -name "*.py")
+2. Read the existing logging setup if any (check for logging.py, config.py)
+3. Read 2-3 of the main service files to understand the patterns
+4. Read CLAUDE.md for project conventions
+Then propose a logging strategy and implement it.
+```
+
+#### The hybrid approach
+
+```
+# Give strategic context, let agent explore details
+The goal is to refactor the authentication module to support OAuth2.
+Key things to know:
+- Current auth is in src/auth/ (JWT-based, cookie storage)
+- We're adding Google and GitHub OAuth
+- Users are in src/models/user.py — the User model needs oauth_provider field
+
+Please explore src/auth/ and src/models/ to understand the current structure,
+then propose your implementation plan before coding.
+```
+
+4.3 — Context vs exploration: high-context for focused tasks, low-context for large tasks, hybrid approach
+
+---
+
+### 4.4 — Testing-First Prompting
+
+One of the most powerful prompting patterns is to instruct the agent to write tests first, then implement to make them pass. This forces precise specification and naturally produces well-tested code.
+
+```
+# Test-first prompt pattern
+Write failing tests first, then implement the code to make them pass.
+
+Feature: Shopping cart calculation engine
+
+Tests to write first (in tests/test_cart.py):
+1. test_empty_cart_total_is_zero
+2. test_single_item_subtotal
+3. test_quantity_multiplied_correctly
+4. test_discount_percentage_applied
+5. test_discount_cannot_exceed_subtotal
+6. test_tax_applied_after_discount
+7. test_shipping_free_over_threshold (free shipping over $50)
+8. test_shipping_charged_under_threshold
+9. test_full_order_total_correct
+10. test_coupon_code_reduces_total
+
+After writing all tests (they should fail),
+implement CartCalculator in src/cart.py to make them pass.
+Run pytest tests/test_cart.py after implementation.
+```
+
+#### Why test-first works with agents
+
+-   Tests act as a precise, machine-readable specification — the agent knows exactly what success means
+-   The test-run feedback loop gives the agent objective signal (pass/fail) to iterate on
+-   You get test coverage automatically rather than having to prompt for it separately
+-   Edge cases surface in the tests before they surface in production
+
+**Red-green-refactor with agents**
+
+The test-first pattern mirrors TDD's red-green-refactor cycle, but with an agent doing the implementation. You write the tests (or describe them), the agent writes them + makes them pass. Your job is reviewing the tests for completeness, not writing the implementation code.
+
+4.4 — Testing-first prompting: write tests before implementation, why it works with agents, red-green with AI
+
+---
+
+### 4.5 — Architecture Prompting
+
+Architecture questions require different prompting than implementation tasks. The goal is to get the agent to reason about tradeoffs, not just write code.
+
+```
+# Architecture prompt template
+I need your recommendation on the architecture for [system/feature].
+Please think through this carefully before answering.
+
+Context:
+- [Current state of the system]
+- [Scale requirements: users, data volume, request rate]
+- [Technology constraints: language, cloud provider, existing stack]
+- [Operational constraints: team size, maintenance capacity]
+
+Specifically, help me decide between:
+Option A: [first approach]
+Option B: [second approach]
+Option C: [third approach if applicable]
+
+For your recommendation, please cover:
+1. Which option you recommend and why
+2. The key tradeoffs of your choice vs the alternatives
+3. What would make you recommend a different option
+4. The implementation path — what do we build first
+```
+
+#### Real example: caching architecture
+
+```
+I need your recommendation on a caching strategy for our API.
+
+Context:
+- FastAPI backend, PostgreSQL database
+- ~50K registered users, ~5K DAU
+- Most-read data: user profiles, product catalog (10K products), pricing
+- Pricing changes every 15 minutes (from external feed)
+- User profiles change infrequently (weekly average)
+- Current P95 response time: 180ms, target: <50ms
+
+Help me decide between:
+Option A: Redis cache with TTL (simple, we already have Redis for rate limiting)
+Option B: In-memory LRU cache per process (faster, no network hop, harder to invalidate)
+Option C: Cache at the CDN/edge layer (Cloudflare, for static-ish data)
+
+Consider: cache invalidation strategy, cost, operational complexity,
+and our team of 3 backend engineers.
+```
+
+4.5 — Architecture prompting: structured tradeoff template, real caching example, how to elicit reasoning
+
+---
+
+### 4.6 — Anti-Patterns: Vague Prompts, Over-Constraining, Prompt Soup
+
+There are well-documented failure modes in coding agent prompting. Recognizing them lets you self-correct before wasting a long session on wrong-direction work.
+
+#### Anti-pattern 1: The Vague Prompt
+
+```
+# BAD — too vague, agent will make assumptions that miss your intent
+"Improve the performance of the application."
+"Make the code better."
+"Fix the bug in the payment module."
+"Add tests."
+
+# GOOD — specific, measurable, bounded
+"The GET /api/v2/products endpoint is taking 800ms at P95.
+Profile it (add timing logs, read the query in src/services/product.py),
+identify the bottleneck, and fix it. Target: < 100ms P95.
+Run locust -f tests/load/test_products.py to verify."
+```
+
+#### Anti-pattern 2: Over-Constraining
+
+```
+# BAD — micromanaging the implementation, leaving no room for better approaches
+"Add a cache. Use Redis. Use the redis-py library.
+Use a TTL of exactly 300 seconds. Store as JSON strings.
+Key format must be 'user:{id}:profile'. Use connection pooling.
+Set max connections to 10. Handle connection errors by returning None."
+
+# GOOD — specify the outcome, let agent choose the implementation
+"Add caching to the user profile lookup.
+It should be fast (< 5ms cache hit), consistent (invalidated on profile update),
+and not add complexity we can't maintain.
+We already use Redis for rate limiting — prefer using that."
+```
+
+#### Anti-pattern 3: Prompt Soup
+
+```
+# BAD — too many unrelated things in one prompt, agent tries to do all of them
+"Add auth, and also fix the bug on line 42 of payments.py,
+and refactor the models to use dataclasses instead of dicts,
+and add pagination to the users endpoint,
+and update the README, and also I think there might be a N+1 query issue."
+
+# GOOD — one thing at a time, or explicitly structured multi-part
+"We have three separate tasks. Please complete them in order:
+1. Fix the KeyError on line 42 of payments.py (read the traceback in error.log)
+2. Once tests pass for #1: add pagination to GET /api/v2/users
+3. Once #2 works: update the README's API reference section
+Start with task 1 and confirm before moving to 2."
+```
+
+#### Anti-pattern 4: The Moving Target
+
+Changing requirements mid-implementation ("actually, let's do it differently") mid-session causes the agent to try to un-do and redo work, often creating merge conflicts and inconsistencies. If you realize you want a different approach, say so explicitly: *"Stop. Don't continue with what you were doing. The new direction is X. Start fresh from the current state."*
+
+4.6 — Anti-patterns: vague prompts, over-constraining, prompt soup, the moving target — with before/after examples
+
+---
+
+### 4.7 — 10 Real Prompt Examples with Expected Outcomes
+
+These are real prompts that consistently produce high-quality output with Claude Code.
+
+#### 1\. Bug fix with context
+
+```
+The function `process_refund` in src/services/payment.py is throwing:
+    AttributeError: 'NoneType' object has no attribute 'amount'
+when a refund is requested for a cancelled subscription.
+
+Read the function, trace why `subscription` is None in that code path,
+and fix it. The fix should handle cancelled subscriptions gracefully
+(return early with a specific error, don't crash).
+Add a test for this case in tests/services/test_payment.py.
+```
+
+#### 2\. Greenfield API endpoint
+
+```
+Add a POST /api/v2/export/csv endpoint that:
+- Accepts: {"model": "users"|"orders"|"products", "filters": {...}}
+- Streams a CSV file response (don't load all data in memory)
+- Requires admin authentication (use the existing admin_required dependency)
+- Rate limited to 5 requests/hour per user
+Follow the patterns in src/api/reports.py for the streaming pattern.
+Write tests that verify: response headers, CSV structure, auth required, rate limit.
+```
+
+#### 3\. Refactor for testability
+
+```
+The OrderService class in src/services/order.py is hard to unit test because
+it creates database sessions internally and calls Stripe directly.
+
+Refactor it to:
+1. Accept database session and Stripe client as constructor arguments (dependency injection)
+2. Keep the same public interface (method signatures unchanged)
+3. Update the FastAPI router in src/api/orders.py to inject the dependencies
+4. Update existing tests to use mock session and mock Stripe client
+
+Do NOT change the business logic — only the dependency wiring.
+```
+
+#### 4\. Performance investigation
+
+```
+The dashboard page is slow (3-5 seconds to load). It calls GET /api/v2/dashboard.
+
+1. Read src/api/dashboard.py and src/services/dashboard.py
+2. Add query timing logs to identify which DB query is slowest
+3. Run the endpoint manually: curl http://localhost:8000/api/v2/dashboard
+4. Read the timing output
+5. Fix the slowest query (likely needs an index or query restructure)
+6. Verify improvement: the endpoint should return in < 500ms
+```
+
+#### 5\. Type safety upgrade
+
+```
+Add TypeScript strict mode to this project.
+Steps:
+1. Update tsconfig.json: set "strict": true
+2. Run: tsc --noEmit to see all type errors
+3. Fix them systematically, file by file, starting with src/types/
+4. Do not use `any` as a fix — find the proper types
+5. Run the full test suite after to confirm nothing broke
+```
+
+#### 6\. Database migration
+
+```
+Add a `metadata` JSONB column to the `orders` table.
+
+1. Add the column to the Order model in src/models/order.py (nullable, default {})
+2. Generate the Alembic migration: alembic revision --autogenerate -m "add_order_metadata"
+3. Read the generated migration to verify it looks correct
+4. Update the OrderCreate and OrderResponse Pydantic schemas to include metadata
+5. Apply the migration: alembic upgrade head
+6. Verify with: psql $DATABASE_URL -c "SELECT column_name FROM information_schema.columns WHERE table_name='orders';"
+```
+
+#### 7\. Security audit
+
+```
+Perform a security review of the authentication module (src/auth/).
+
+Check for:
+1. SQL injection vulnerabilities in any raw queries
+2. JWT token expiry settings (should be <= 24h for access tokens)
+3. Password hashing algorithm (should be bcrypt or argon2, NOT md5/sha1)
+4. Any endpoints missing authentication that should have it
+5. CORS configuration (read src/core/config.py and src/main.py)
+6. Secrets hardcoded in source files
+
+Output a Markdown report with findings categorized as Critical/High/Medium/Low.
+```
+
+#### 8\. Documentation generation
+
+```
+Generate API documentation for all endpoints in src/api/.
+
+For each endpoint, document:
+- HTTP method and path
+- Authentication required (yes/no, what type)
+- Request body schema (if POST/PUT/PATCH)
+- Response schema with field descriptions
+- Error responses (4xx, 5xx)
+- Example request and response (curl + JSON)
+
+Read each router file, then write the documentation to docs/api-reference.md.
+Use the same format as the existing docs/webhooks.md as a style reference.
+```
+
+#### 9\. Test coverage increase
+
+```
+Our test coverage is at 52% (run: pytest --cov=src --cov-report=term-missing).
+Target is 80%.
+
+1. Run the coverage report to see which files have the lowest coverage
+2. Focus on: src/services/ (most critical business logic)
+3. Write tests to cover the uncovered lines, prioritizing:
+   - Error paths (exception handling)
+   - Edge cases (empty inputs, None values, boundary conditions)
+4. After adding tests, verify coverage increased: pytest --cov=src
+Do NOT write tests that don't add value (trivial getters, __str__ methods).
+```
+
+#### 10\. Dependency upgrade
+
+```
+Upgrade FastAPI from 0.95 to 0.111.
+
+1. Read CHANGELOG at https://fastapi.tiangolo.com/release-notes/ for breaking changes between 0.95 and 0.111
+2. Update pyproject.toml / requirements.txt
+3. Run pip install -r requirements.txt
+4. Run the test suite: pytest tests/ -x
+5. Fix any failures caused by the upgrade (likely response_model_exclude_unset changes)
+6. Update the app startup code if __init__ signature changed
+7. Final check: pytest tests/ (all pass)
+```
+
+4.7 — 10 real prompt examples: bug fix, greenfield API, refactor, perf, TypeScript, migration, security, docs, coverage, upgrade
+
+---
+
+### 4.8 — CLAUDE.md as Persistent Prompting
+
+CLAUDE.md is not just configuration — it is persistent prompting. Every session starts with CLAUDE.md in the system prompt. This means you can use it to establish persistent behaviors that don't need to be stated each session.
+
+#### Prompt patterns to put in CLAUDE.md
+
+```
+# CLAUDE.md — Persistent prompting section
+
+## Behavior Guidelines
+- Always run tests after making code changes. Don't report "done" until tests pass.
+- When you encounter an ambiguity, ask me before proceeding (don't guess).
+- When you discover a bug that's not in your current task, document it in a
+  comment (# BUG: description) but don't fix it — stay focused on the task.
+- Prefer editing existing files over creating new ones.
+- Never delete code without telling me what you're removing and why.
+
+## Output format preferences
+- When explaining what you did, use bullet points, not paragraphs
+- Show the diff of significant changes with context
+- For test output, show only failures (not full verbose output)
+
+## Quality gates
+Before saying you're done, verify:
+- [ ] Tests pass (run the test command)
+- [ ] No linting errors (run: ruff check .)
+- [ ] No TypeScript errors if you touched .ts files (run: tsc --noEmit)
+- [ ] Changed functions have docstrings
+```
+
+**CLAUDE.md as team alignment**
+
+When you commit CLAUDE.md, you're encoding team standards in a form that both humans and AI agents respect. "Run tests before declaring done" in CLAUDE.md is more reliably enforced than a code review checklist item, because the agent reads it at the start of every session.
+
+4.8 — CLAUDE.md as prompting: behavior guidelines, output preferences, quality gates, team alignment
+
+---
+
+### 4.9 — Using Images and Screenshots in Prompts
+
+Claude's vision capabilities are valuable in coding contexts — you can share screenshots of bugs, UI mockups to implement, architecture diagrams, or error dialogs.
+
+#### In Claude Code interactive mode
+
+```
+# Drag and drop an image file into the Claude Code terminal
+# Or use the @ mention for file inclusion
+@/path/to/screenshot.png
+Implement this UI mockup as a React component.
+The color scheme should match our design system (src/styles/tokens.css).
+```
+
+#### Via the API
+
+```
+import anthropic, base64
+
+client = anthropic.Anthropic()
+
+with open("ui_mockup.png", "rb") as f:
+    image_data = base64.standard_b64encode(f.read()).decode("utf-8")
+
+response = client.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=4096,
+    messages=[{
+        "role": "user",
+        "content": [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/png",
+                    "data": image_data,
+                }
+            },
+            {
+                "type": "text",
+                "text": """Implement this UI mockup as a React TypeScript component.
+                Requirements:
+                - Use Tailwind CSS for styling
+                - Extract colors from the mockup
+                - Make it responsive (mobile-first)
+                - Add TypeScript props interface
+                Write the complete component to src/components/Dashboard.tsx"""
+            }
+        ]
+    }]
+)
+```
+
+#### Effective screenshot prompting
+
+-   **Bug screenshots:** capture the full error screen including URL bar and browser console if applicable
+-   **Mockups:** include notes on the image about interactive behavior (hover states, click targets)
+-   **Diagrams:** use them for architecture explanation; Claude can generate code that matches a system diagram
+
+4.9 — Images in prompts: Claude Code @ mention, API base64 encoding, UI mockup → React component
+
+---
+
+### 4.10 — Prompting for Refactoring vs Greenfield
+
+Refactoring prompts require fundamentally different structure than greenfield generation prompts. The key difference: in refactoring, preserving behavior is a constraint; in greenfield, behavior is something you define.
+
+#### Greenfield prompt structure
+
+```
+# Greenfield: define everything, the agent has freedom
+Build a [Thing].
+
+It should:
+- [Core behavior 1]
+- [Core behavior 2]
+- [Core behavior 3]
+
+Technical requirements:
+- [Language/framework]
+- [Integration points]
+- [Data storage]
+
+Start by proposing the overall structure, then implement.
+```
+
+#### Refactoring prompt structure
+
+```
+# Refactoring: preserve behavior, change structure
+Refactor [Thing] to [new structure/pattern].
+
+MUST NOT CHANGE:
+- The public API (method signatures, return types)
+- The business rules in [specific function]
+- The database schema
+
+MUST CHANGE:
+- [specific structural change]
+- [specific pattern to adopt]
+
+Verification:
+- Run tests before starting (so we have baseline)
+- Run tests after each significant change
+- Final: all tests must pass with no functional changes
+```
+
+#### The behavioral contract
+
+```
+# For refactoring, always establish baseline first
+1. Run the current test suite and save the output
+2. Implement the refactoring
+3. Run the test suite again
+4. Any test that was passing before must still pass
+5. If a test breaks that was passing, stop and report it — don't "fix" the test
+   to match new behavior without confirming with me
+```
+
+4.10 — Refactor vs greenfield prompting: structural differences, behavioral contract, baseline-first refactoring
+
+---
+
+### 4.11 — Chain-of-Thought for Complex Algorithms
+
+For genuinely complex algorithmic problems — dynamic programming, graph algorithms, concurrent data structures — prompting the agent to reason step by step before coding produces dramatically better results.
+
+```
+# Chain-of-thought prompt for a hard algorithm
+Implement an algorithm to find the shortest path in a weighted directed graph
+with the following properties:
+- Nodes can have up to 10,000 outgoing edges
+- Edge weights can be negative (but no negative cycles)
+- We need to query shortest paths from a single source to all destinations
+
+Before writing any code:
+1. Identify which algorithm is most appropriate (Dijkstra, Bellman-Ford, SPFA?)
+   and why, given negative edge weights
+2. Analyze the time and space complexity
+3. Identify any edge cases (disconnected nodes, self-loops, zero-weight edges)
+4. Sketch the high-level implementation approach
+
+Then implement in Python with:
+- Type hints throughout
+- Comprehensive docstring explaining complexity
+- Unit tests covering normal case, negative weights, disconnected graph
+- Benchmark code to verify performance on 10K-node graph
+```
+
+#### When to use extended thinking vs chain-of-thought prompting
+
+| Situation | Approach |
+| --- | --- |
+| Hard algorithm, need to pick the right approach | Chain-of-thought in prompt ("reason before coding") |
+| Genuinely tricky architecture tradeoff | Extended thinking (enable budget_tokens) |
+| Complex bug with unclear root cause | Extended thinking + ask for reasoning visible |
+| Multi-step refactor with dependencies | Chain-of-thought ("plan all changes before making any") |
+| Simple implementation of known algorithm | Neither — just ask for the code |
+
+4.11 — Chain-of-thought for algorithms: reason-before-code pattern, extended thinking vs CoT prompt
+
+---
+
+### 4.12 — Error Recovery Prompts
+
+When an agent session goes sideways — wrong direction, looping errors, accumulated mess — these prompt patterns help you recover without starting from scratch.
+
+#### Redirecting a wrong-direction session
+
+```
+# Stop and restate
+Stop what you're doing. Here's the situation:
+- You implemented X, but I actually need Y
+- The approach you took won't work because [reason]
+- Don't try to fix what you've done — let's take stock
+
+Current state of the codebase: [describe what's been changed]
+What I actually need: [restate the real requirement]
+Approach I want: [new direction]
+
+From the current state, what's the fastest path to the right solution?
+```
+
+#### Breaking out of an error loop
+
+```
+# When the agent is looping on the same error
+You've been trying to fix this error for 5 attempts and it keeps failing.
+Let's step back.
+
+The error is: [exact error message]
+The test that's failing: [test name]
+What you've tried: [summary of approaches attempted]
+
+Instead of another small fix, let's understand the root cause.
+Read [specific file] and explain why this error is happening fundamentally.
+Then propose a fix from first principles — not another variation of what you've tried.
+```
+
+#### Recovering from a large broken state
+
+```
+# When many things are broken
+Run: git diff HEAD to see everything that's changed.
+Then run: pytest tests/ -x to see the first failure.
+
+Let's triage:
+1. What changed that broke things?
+2. Which changes are correct (should keep)?
+3. Which changes introduced the problems?
+
+After triaging, fix only what's broken. Don't refactor or improve
+anything while we're in a broken state — stabilize first.
+```
+
+4.12 — Error recovery prompts: redirecting wrong direction, breaking error loops, recovering broken state
+
+---
+
+### 4.13 — Context Window Budget Management
+
+Managing what's in the context window is a skill that separates efficient agent users from expensive ones. Every token costs money and occupies limited space.
+
+#### What drains your budget fastest
+
+1.  Large file reads (agent reads 1,000+ line files when it only needs 20 lines)
+2.  Verbose bash output (test runners with verbose output, large JSON responses)
+3.  Repetitive conversation (agent restating what it's about to do before each step)
+4.  Large pasted code blocks in your prompts
+
+#### Techniques to extend your context budget
+
+```
+# 1. Tell agent to read only specific sections
+Read only the `authenticate` and `create_token` methods in src/auth.py.
+Don't read the whole file.
+
+# 2. Ask for terse output
+Use minimal output. Don't explain what you're doing — just do it.
+Only report back if something fails or if you need clarification.
+
+# 3. Use grep instead of file reads
+Search for all uses of `UserRepository` across the codebase
+(grep -r "UserRepository" src/) rather than reading all files.
+
+# 4. Request summary instead of raw output
+Run the test suite. Don't show me the full output —
+summarize: total tests, passed, failed, and the failing test names only.
+
+# 5. Pre-compact at natural breakpoints
+After completing the auth module, run /compact before moving to the API layer.
+```
+
+#### Budget tracking
+
+```
+# Check token usage in a session
+/cost
+# Example output:
+# Session tokens: 87,432 input / 12,847 output
+# Estimated cost: $0.46
+# Context used: 43% of 200K window
+```
+
+4.13 — Context budget management: what drains budget fastest, 5 techniques to extend it, /cost tracking
+
+---
+
+### 4.14 — Prompting for Tests, Docs, and Comments
+
+Tests, documentation, and code comments are often the first things to lag behind in fast-moving development. Agents excel at these tasks — they're high-volume, pattern-consistent, and the quality bar is well-understood.
+
+#### Test generation prompts
+
+```
+# Comprehensive test suite for a module
+Generate tests for src/services/invoice.py.
+
+Coverage goals:
+- Every public method has at least one happy path test
+- Every method has at least one error/edge case test
+- Test the following specific scenarios:
+  * Invoice with 0 line items → should raise ValueError
+  * Invoice with discount > 100% → should raise ValueError
+  * create_invoice with duplicate invoice_number → should raise DuplicateError
+  * Email sending failure during invoice_send → should rollback, not raise
+
+Use the fixture pattern in tests/conftest.py (use `db_session` fixture).
+Mock external calls: mock stripe, mock email via `mocker.patch`.
+File: tests/services/test_invoice.py
+```
+
+#### Documentation prompts
+
+```
+# Docstrings for existing code
+Add Google-style docstrings to all public functions in src/services/.
+
+Format:
+```python
+def function_name(param: type) -> return_type:
+    """One-line summary.
+
+    Args:
+        param: Description of param and its valid values.
+
+    Returns:
+        Description of return value.
+
+    Raises:
+        ValueError: When param is invalid.
+        DatabaseError: When the operation fails.
+    """
+```
+
+Do NOT docstring:
+- Private methods (starting with _)
+- __init__ if it just sets attributes with no logic
+- Property getters with obvious names
+```
+
+#### Comment quality prompts
+
+```
+# Add explanatory comments (not obvious ones)
+Add comments to the rate_limit algorithm in src/core/rate_limit.py.
+
+Comment rules:
+- Explain WHY, not WHAT (the code shows what; comments explain why we chose this approach)
+- Mark any non-obvious algorithmic choices with a comment explaining the tradeoff
+- Add a comment at the top of any regex explaining what it matches (in plain English)
+- Do NOT add comments like `# increment counter` or `# return user` — those add noise
+```
+
+4.14 — Tests, docs, comments: specific prompts for each type, Google-style docstrings, why-not-what comments
+
+---
+
+### 4.15 — Building a Personal Prompt Library
+
+Your most effective prompts should be saved and reused. Over 3–6 months of agent use, you'll accumulate a library of prompts that reliably produce high-quality output for your specific codebase and workflow.
+
+#### Where to store prompts
+
+-   **Claude Code custom commands** (`.claude/commands/`): best for project-specific, frequently-used prompts
+-   **Global commands** (`~/.claude/commands/`): best for prompts that work across projects
+-   **CLAUDE.md**: persistent behaviors that should apply every session
+-   **Separate prompt file** (`~/.prompts/` with a simple search tool): for longer, categorized prompts
+
+#### Starter personal prompt library
+
+```
+# ~/.claude/commands/audit-security.md
+Perform a security audit of $ARGUMENTS (or the current project if none specified).
+Check:
+1. Injection vulnerabilities (SQL, command, LDAP)
+2. Authentication and authorization gaps
+3. Secrets in source code (API keys, passwords, tokens)
+4. Insecure direct object references
+5. Missing rate limiting on sensitive endpoints
+6. Dependency vulnerabilities (run: pip-audit or npm audit)
+Output: Markdown report categorized by severity (Critical/High/Medium/Low)
+```
+
+```
+# ~/.claude/commands/explain-file.md
+Explain the file $ARGUMENTS to me as if I'm a new developer joining the team.
+Cover:
+1. What is this file's responsibility in the system?
+2. What are the key classes/functions and what do they do?
+3. What are the most important things to know before modifying this file?
+4. Any gotchas, non-obvious behavior, or historical decisions worth knowing?
+```
+
+```
+# ~/.claude/commands/fix-and-test.md
+Fix the issue in $ARGUMENTS.
+Steps:
+1. Read the file and understand the current code
+2. Read the associated tests if they exist
+3. Identify the root cause of the issue
+4. Write a failing test that demonstrates the bug (red)
+5. Fix the bug (green)
+6. Verify no other tests broke
+7. Report: root cause, fix applied, test added
+```
+
+#### Prompt evolution system
+
+Track what prompts work and why:
+
+```
+# ~/.claude/prompt_notes.md — your prompt journal
+## What works
+- Adding explicit success criteria (tests that must pass) → agent knows when to stop
+- "Before coding, list your plan" → catches wrong direction early, saves wasted work
+- "Prefer editing existing files over creating new ones" → prevents file sprawl
+- "Do NOT use any" in TypeScript tasks → forces proper typing
+
+## What doesn't work
+- "Make this better" → too vague, always produces something different from intent
+- Very long prompts with everything → agent tries to do all of it, does none well
+- Asking for refactor + new feature in same prompt → creates tangled diffs
+
+## Best prompts per task type
+- Security audit: audit-security.md command
+- New API endpoint: use spec template in lesson 4.1
+- Bug fix: fix-and-test.md command
+- Architecture question: use /think + architecture template from 4.5
+```
+
+**The compound value of a prompt library**
+
+Each saved prompt is a productivity artifact that continues paying dividends. A prompt that took 20 minutes to craft and test, when used 50 times over the next year, effectively saves hours of re-prompting time while consistently producing the output quality you established the first time.
+
+4.15 — Personal prompt library: where to store prompts, starter library examples, prompt evolution tracking
+
+## Real-World Workflows
+
+### 5.1 Greenfield Project Creation
+
+Starting a new project with a coding agent is one of the highest-leverage use cases available. Instead of spending hours wiring up boilerplate, you describe what you want and the agent scaffolds a production-ready structure in minutes. The key is giving the agent complete context upfront: tech stack, folder structure, dependencies, and any conventions you care about.
+
+Here is a complete example conversation for starting a new Express.js REST API:
+
+```
+claude> Create a new Express.js REST API for a todo app with:
+- TypeScript
+- JWT authentication (access + refresh tokens)
+- SQLite with better-sqlite3
+- Tests with Vitest
+- OpenAPI docs with swagger-ui-express
+
+Structure it with:
+  src/routes/       — route handlers
+  src/middleware/   — auth, error, validation middleware
+  src/db/           — database setup and queries
+  src/types/        — TypeScript interfaces
+  src/config/       — environment config
+
+Use zod for request validation. Include a Makefile with:
+  make dev    — run with nodemon
+  make test   — run vitest
+  make build  — compile TypeScript
+```
+
+The agent will proceed to create each file in sequence. You will see it write `package.json` with exact versions, `tsconfig.json` with strict mode enabled, `src/db/index.ts` with WAL mode enabled for SQLite, `src/middleware/auth.ts` with JWT verify logic, and route files for todos and auth. It will also write a full Vitest test suite and a working OpenAPI spec.
+
+```
+# What the agent generates — src/middleware/auth.ts
+import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { config } from '../config';
+import type { JWTPayload } from '../types';
+
+export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  if (!header?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing token' });
+  }
+  try {
+    const payload = jwt.verify(
+      header.slice(7),
+      config.JWT_SECRET
+    ) as JWTPayload;
+    req.user = payload;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+```
+
+After the agent finishes, run `make dev` and you have a working server. The total elapsed time from empty directory to running API is typically under four minutes.
+
+-   Give the full tech stack and folder structure upfront — do not drip-feed requirements
+-   Specify conventions explicitly (strict TypeScript, zod validation, WAL mode) so you do not have to fix them later
+-   Ask for a Makefile or scripts section so the dev loop is standardized immediately
+-   Review generated `package.json` version pins before running — agents sometimes pin to old patch versions
+
+Greenfield Project Creation — scaffold a full project in one agent session
+
+### 5.2 Bug Fixing Workflow
+
+Bug fixing is where agents earn back their cost many times over. The pattern that works best is: describe the symptom precisely, paste the full error with stack trace, provide reproduction steps, and state expected versus actual behavior. Agents are extremely good at reading stack traces and tracing the error back through the call stack.
+
+```
+claude> My /api/users endpoint returns 500 when the email contains a + sign.
+Here is the error from the server log:
+
+  URIError: Failed to decode param '%2B'
+  at decodeURIComponent (<anonymous>)
+  at decode (/app/node_modules/express/lib/router/layer.js:89:12)
+
+Reproduction steps:
+  curl -X GET "http://localhost:3000/api/users?email=user%2Btest@example.com"
+
+Expected: returns user record for user+test@example.com
+Actual: 500 Internal Server Error
+
+The route is defined as: router.get('/users', getUsers)
+```
+
+The agent will identify that Express is double-decoding the query parameter because the + sign is being URL-encoded as %2B and then decoded twice. It will suggest using `req.query.email` directly (Express already decodes query params once) and add input sanitization via zod to catch malformed emails before they hit the database layer.
+
+For intermittent bugs, provide the agent with logs from multiple occurrences and ask it to identify the pattern. For race conditions, describe the concurrent operations involved. Agents handle async timing bugs well when given the event sequence.
+
+-   Always paste the full stack trace — not just the error message
+-   Include the exact curl command or test that triggers the bug
+-   State Node.js version, OS, and any relevant environment variables
+-   After the fix, ask the agent to write a regression test so the bug cannot re-appear
+
+Bug Fixing Workflow — provide stack trace, expected vs actual, get a fix + regression test
+
+### 5.3 Refactoring Large Codebases
+
+Refactoring is where context window management becomes critical. A 50,000-line codebase cannot fit in one context. The winning strategy is to refactor one module at a time, use `/compact` between large operations, and scope your prompt to a specific directory.
+
+```
+claude> Refactor src/services/payment.ts from callbacks to async/await.
+
+The file currently uses the pattern:
+  processPayment(amount, callback) {
+    stripe.charges.create({ amount }, (err, charge) => {
+      if (err) return callback(err);
+      db.save(charge, (err2, record) => {
+        callback(null, record);
+      });
+    });
+  }
+
+Rules:
+1. Preserve all existing function signatures in the public API
+2. Add proper TypeScript return types (Promise<T>)
+3. Use try/catch instead of error-first callbacks
+4. Do NOT refactor the tests yet — I will do that separately
+5. After refactoring, run: npx tsc --noEmit to verify no type errors
+```
+
+Scope constraints like "do NOT refactor the tests yet" are critical. Without them, the agent will cascade changes into test files, making the diff enormous and hard to review.
+
+For large-scale migrations (e.g., moving from CommonJS to ESM, or from class components to hooks), break it into phases: first add types, then migrate utilities, then services, then routes, then UI. Each phase should end with a passing test run.
+
+-   Use `/compact` after every 3-4 files to keep context lean
+-   Explicitly list what NOT to change to prevent cascade refactors
+-   Ask the agent to run the type checker after each file, not at the end
+-   For multi-day refactors, commit after each module so you have rollback points
+
+Refactoring Large Codebases — module-by-module strategy, /compact between steps
+
+### 5.4 Code Review with Agents
+
+Claude Code's `/review` command analyzes your current diff and produces a structured review covering logic errors, security issues, performance problems, and style inconsistencies. It is most useful as a pre-commit check before you request human review — it catches the mechanical issues so human reviewers can focus on design and business logic.
+
+```
+# Run review on your current staged changes
+claude /review
+
+# Review a specific file
+claude> Review src/auth/tokens.ts for security issues. Focus on:
+- Token expiry validation
+- Refresh token rotation
+- Timing attack vulnerabilities in comparisons
+- Whether JWTs are being verified with the correct algorithm
+```
+
+The agent will flag issues like comparing tokens with `===` instead of `crypto.timingSafeEqual`, or accepting the `none` JWT algorithm. These are the exact vulnerabilities that make it into production when code review is done quickly.
+
+-   Run `/review` before every PR — treat agent review as a mandatory pre-flight check
+-   Ask for focused reviews by domain: security, performance, or type safety separately
+-   For authentication code, always ask specifically about timing attacks and algorithm confusion
+-   Use agent review output as the starting point for your PR description
+
+Code Review with Agents — /review command, security + performance checklist
+
+### 5.5 Documentation Generation
+
+Generating documentation is a task agents do exceptionally well because it is primarily a reading and summarization task with clear output structure. The challenge is being specific about what you want — "write docs" produces mediocre output while specific prompts produce publication-ready results.
+
+```
+claude> Generate JSDoc for all exported functions in src/db/queries.ts.
+Requirements:
+- @param with types and descriptions for every parameter
+- @returns describing the return type and shape
+- @throws listing every error the function can throw
+- @example with a realistic usage example for each function
+- Do NOT add JSDoc to internal/private functions (prefixed with _)
+```
+
+```
+claude> Write a README.md for this project. Include:
+- One-line description
+- Prerequisites (Node version, SQLite)
+- Installation steps (copy-pasteable commands)
+- Environment variables table (name, required, default, description)
+- API endpoints table (method, path, auth required, description)
+- Development workflow (make commands)
+- How to run tests
+- Deployment to Fly.io (we use fly.toml already in the repo)
+Base everything on the actual code — do not invent features.
+```
+
+-   Specify JSDoc tags explicitly — agents skip @throws without being asked
+-   Ask for copy-pasteable examples, not generic ones
+-   Tell the agent to base everything on actual code — prevents hallucinated features in README
+-   Generate API docs in OpenAPI format for tooling compatibility
+
+Documentation Generation — JSDoc, README, OpenAPI from code
+
+### 5.6 Test Writing and Coverage Improvement
+
+Agents write tests well but need explicit guidance on coverage targets and edge cases. Left to their own devices, they write happy-path tests. The prompt needs to explicitly demand error cases, boundary conditions, and negative tests.
+
+```
+claude> Write comprehensive Vitest tests for src/auth.ts targeting 90% coverage.
+
+The file exports: login(), logout(), refreshToken(), validateSession()
+
+Include these test categories for each function:
+1. Happy path — valid inputs, expected output
+2. Invalid inputs — wrong types, missing fields
+3. Edge cases — empty strings, SQL injection attempts in email
+4. Error handling — database down, JWT secret missing
+5. Token expiry — expired access token, expired refresh token
+6. Race conditions — concurrent refresh token usage (simulate with Promise.all)
+
+Use vi.mock() for the database layer.
+Use vi.useFakeTimers() for token expiry tests.
+Run coverage: vitest run --coverage after writing tests.
+```
+
+After the agent writes tests, run coverage and paste the uncovered lines back to the agent: "These lines are not covered: 145-148, 201, 223-225. Write tests for them." This iterative approach reliably gets to 90%+ coverage.
+
+-   Explicitly list edge cases — agents skip them unless asked
+-   Ask for concurrent tests with Promise.all to catch race conditions
+-   Paste uncovered line numbers back after the first coverage run
+-   Ask the agent to explain what each test is checking — it reveals gaps in coverage logic
+
+Test Writing and Coverage Improvement — targeting 90%+ coverage with edge cases
+
+### 5.7 Data Migration Scripts
+
+Data migrations are high-stakes: a bug can corrupt production data. Agents are well-suited to writing migrations because migration scripts have a clear, standard structure, but you must enforce safety patterns explicitly in your prompt.
+
+```
+claude> Write a PostgreSQL migration script to add a `normalized_email` column to the users table.
+
+Requirements:
+1. Use a transaction — the entire migration must be atomic
+2. Add the column as nullable first
+3. Backfill with: UPDATE users SET normalized_email = LOWER(TRIM(email))
+4. Add a NOT NULL constraint AFTER the backfill
+5. Add a unique index CONCURRENTLY (so it does not lock the table)
+6. Include a down migration that drops the column and index
+7. Test with: SELECT COUNT(*) FROM users WHERE normalized_email IS NULL
+   — must return 0 before applying NOT NULL constraint
+8. Estimate rows affected and add a comment if table has >1M rows
+   suggesting running in batches of 10,000
+```
+
+```
+-- Generated migration
+BEGIN;
+
+ALTER TABLE users ADD COLUMN normalized_email TEXT;
+
+UPDATE users SET normalized_email = LOWER(TRIM(email));
+
+DO $$
+BEGIN
+  IF (SELECT COUNT(*) FROM users WHERE normalized_email IS NULL) > 0 THEN
+    RAISE EXCEPTION 'Backfill incomplete — % rows still NULL',
+      (SELECT COUNT(*) FROM users WHERE normalized_email IS NULL);
+  END IF;
+END $$;
+
+ALTER TABLE users ALTER COLUMN normalized_email SET NOT NULL;
+
+COMMIT;
+
+CREATE UNIQUE INDEX CONCURRENTLY idx_users_normalized_email
+  ON users (normalized_email);
+```
+
+-   Always require transactions for data mutations
+-   Ask for explicit pre-condition checks that raise exceptions on failure
+-   Use CONCURRENTLY for index creation on large tables
+-   Always ask for a down migration — you will need it
+
+Data Migration Scripts — safe, idempotent migration patterns via agent
+
+### 5.8 Internal Tool Building with Cloudflare
+
+Cloudflare Workers is the ideal deployment target for agent-built internal tools. The entire deployment surface is declarative (wrangler.toml), there is no infrastructure to manage, and the deploy command is a single `wrangler deploy`. An agent can go from prompt to deployed URL in under five minutes.
+
+```
+claude> Build an internal Slack webhook receiver that:
+- Accepts POST /webhook from Slack
+- Verifies the Slack signature using HMAC-SHA256
+- Logs every message to a D1 database table called slack_events
+- Returns 200 immediately (async processing)
+- Deploy to Cloudflare Workers
+
+Use TypeScript. Include wrangler.toml with D1 binding.
+The D1 database is already created — its ID is: abc-123-def
+```
+
+See Module 6 for the complete Cloudflare + agent workflow. The key insight is that Cloudflare's declarative config makes it an ideal agent target: there are no wizard-driven UIs for the agent to navigate, just files to write and one command to run.
+
+-   Provide existing resource IDs (D1 database ID, KV namespace ID) so the agent can wire bindings correctly
+-   Ask for the wrangler.toml explicitly — agents sometimes forget it
+-   Request signature verification for any external webhook — agents include it when asked
+
+Internal Tool Building with Cloudflare — from idea to deployed Worker in minutes
+
+### 5.9 Dependency Updates
+
+Keeping dependencies current is maintenance work that agents handle well. The key is giving the agent permission to run the test suite and iterate — a single prompt can handle an entire update cycle.
+
+```
+claude> Update all dependencies to their latest versions. Process:
+1. Run: npm outdated to see what needs updating
+2. Update each package one at a time (not all at once)
+3. After each update, run: npm test
+4. If tests fail, either:
+   a. Fix the breaking change if it is trivial (import rename, API change)
+   b. Or pin to the last working version and add a TODO comment
+5. After all updates, run: npx tsc --noEmit
+6. Report: list of updated packages, any that were pinned and why
+```
+
+The "one at a time" instruction is critical. Updating all packages simultaneously makes it impossible to isolate which package broke something. Agent-driven incremental updates with test runs between each package is far more reliable than `npm update --all`.
+
+-   Update one package at a time with a test run between each
+-   Ask the agent to explain any breaking changes it encounters
+-   Pin packages that require major refactors with a TODO and GitHub issue link
+-   Run the full type check after all updates — type definitions change independently
+
+Dependency Updates — update all packages, fix breaking changes, re-run tests
+
+### 5.10 Security Audit Workflow
+
+Agents can perform a first-pass security audit that catches the most common vulnerability classes. This is not a replacement for a professional penetration test, but it catches OWASP Top 10 issues that code review often misses.
+
+```
+claude> Audit this codebase for OWASP Top 10 vulnerabilities.
+
+Check specifically for:
+1. SQL Injection — raw string interpolation in queries
+2. XSS — unescaped user input in HTML responses
+3. Broken Authentication — weak JWT config, missing expiry
+4. Insecure Direct Object Reference — can user A access user B's data?
+5. Security Misconfiguration — debug mode in prod, CORS *
+6. Sensitive Data Exposure — passwords/tokens in logs, responses
+7. Missing input validation — no schema validation on request bodies
+8. Insecure Deserialization — eval() usage, untrusted JSON
+9. Rate limiting — missing on auth endpoints
+10. Dependency vulnerabilities — run: npm audit
+
+For each finding: severity (Critical/High/Medium/Low), file + line,
+description, and recommended fix. Format as a markdown table.
+```
+
+-   Ask for file and line number for each finding — vague findings are not actionable
+-   Run `npm audit` or `pip-audit` alongside the agent review — they catch dependency CVEs the agent misses
+-   Follow up on Critical findings immediately before moving on
+-   Store the audit output as a security review artifact in your repo
+
+Security Audit Workflow — OWASP top 10 scan, injection, XSS, auth audit
+
+### 5.11 Performance Optimization
+
+Agents are effective at performance optimization when you give them concrete data: actual timings, profiler output, or slow query logs. Abstract optimization requests produce generic advice. Concrete data produces specific fixes.
+
+```
+claude> This function is taking >200ms on average. Profile it and suggest optimizations.
+
+async function getUserFeed(userId: string): Promise<Post[]> {
+  const following = await db.getFollowing(userId);  // ~5ms
+  const posts: Post[] = [];
+  for (const followedId of following) {             // N iterations
+    const userPosts = await db.getRecentPosts(followedId);  // ~15ms each
+    posts.push(...userPosts);
+  }
+  return posts.sort((a, b) => b.createdAt - a.createdAt);
+}
+
+userId follows ~80 people on average.
+
+Current: 80 * 15ms = 1200ms in the loop alone.
+Target: under 50ms.
+
+Provide: Big-O analysis of current implementation, optimized version,
+and estimated time after optimization.
+```
+
+The agent will identify the N+1 query problem and rewrite using a single JOIN query or a batched `WHERE followedId IN (...)` query. It will also note that the sort is O(n log n) and suggest a cursor-based pagination approach to avoid sorting large result sets.
+
+-   Always provide actual timing data — agents optimize differently with concrete numbers
+-   Ask for Big-O analysis of both current and proposed implementations
+-   Request a benchmark script to verify the improvement after applying the fix
+-   Check for N+1 queries first — they account for the majority of slow endpoints
+
+Performance Optimization — profiling, Big-O analysis, optimization suggestions
+
+### 5.12 API Integration Workflow
+
+Connecting third-party APIs is tedious work that agents handle very well: reading docs, writing typed clients, handling auth, and managing rate limits. Provide the agent with the API documentation URL and your specific use case.
+
+```
+claude> Integrate the Stripe API for subscription billing.
+
+Read the Stripe Node.js SDK docs. We need:
+1. Create a customer on user signup
+2. Create a subscription with price ID: price_abc123
+3. Handle these webhooks: customer.subscription.updated,
+   customer.subscription.deleted, invoice.payment_failed
+4. Verify webhook signatures using STRIPE_WEBHOOK_SECRET env var
+5. Update our users table: subscription_status, stripe_customer_id
+
+Our user model: { id, email, name } in PostgreSQL via Prisma.
+Stripe SDK is already installed. Use TypeScript with full types.
+```
+
+-   Always ask for webhook signature verification — it is easy to forget
+-   Specify idempotency requirements — Stripe webhooks can be delivered multiple times
+-   Ask for error handling for rate limits (429) with exponential backoff
+-   Request a test mode toggle that uses Stripe test keys in development
+
+API Integration Workflow — connecting third-party APIs with error handling
+
+### 5.13 Database Schema Design
+
+Agents are effective database architects when given clear domain requirements. They understand normalization, indexing strategies, and common schema patterns. The output is better when you push back on first drafts and ask for alternatives.
+
+```
+claude> Design a PostgreSQL schema for a multi-tenant SaaS application.
+
+Requirements:
+- Organizations have many Users
+- Users belong to one Organization
+- Organizations have Subscriptions (one active at a time)
+- Users create Projects; Projects belong to Organizations
+- Projects have Tasks; Tasks can be assigned to Users
+- Every table needs: created_at, updated_at, soft deletes (deleted_at)
+- Row-level security: users should only see their Organization's data
+
+Deliver:
+1. CREATE TABLE statements with constraints
+2. Indexes for every foreign key and common query pattern
+3. RLS policies for the users table
+4. An ER diagram description
+5. Three things you would do differently at 10x scale
+```
+
+-   Ask for indexes explicitly — agents often skip them in initial schema designs
+-   Request RLS policies if using Supabase or PostgreSQL with multi-tenancy
+-   Ask "what would you do differently at 10x scale?" — reveals hidden assumptions
+-   Request the schema as a migration file, not just CREATE TABLE statements
+
+Database Schema Design — optimal schema from requirements, with indexes
+
+### 5.14 CI/CD Pipeline Setup
+
+Writing GitHub Actions workflows is mechanical work that agents do well. Provide your tech stack, deployment target, and required checks, and the agent produces a working YAML file.
+
+```
+claude> Write a GitHub Actions CI/CD workflow for this Node.js project.
+
+On every PR:
+- Run on: ubuntu-latest, Node 20
+- Install deps with: npm ci
+- Type check: npx tsc --noEmit
+- Lint: npx eslint src/
+- Test: npm test (Vitest)
+- Coverage check: fail if coverage drops below 80%
+
+On merge to main:
+- Run all above checks
+- Build: npm run build
+- Deploy to Fly.io using: flyctl deploy --remote-only
+- Requires secret: FLY_API_TOKEN
+
+Cache node_modules between runs using actions/cache.
+Use concurrency groups to cancel in-progress runs on new pushes.
+```
+
+-   Always ask for `npm ci` not `npm install` in CI — it respects package-lock.json
+-   Request concurrency groups to avoid parallel deploys of the same branch
+-   Ask for caching of node\_modules — saves 30-60 seconds per run
+-   Specify the Node version explicitly — "latest" drifts and breaks builds
+
+CI/CD Pipeline Setup — GitHub Actions workflows written by agent
+
+### 5.15 Environment Setup Scripts
+
+Onboarding a new developer is a workflow that agents can automate almost completely. A well-crafted setup script reduces "works on my machine" from a recurring problem to a solved one.
+
+```
+claude> Write a setup script for new developers joining this project.
+
+The script should:
+1. Check: Node 20+, PostgreSQL 15+, Redis 7+ are installed
+   — if not, print installation instructions for macOS (Homebrew) and Ubuntu (apt)
+2. Copy .env.example to .env if .env does not exist
+3. Install npm dependencies
+4. Create the local database: createdb todo_dev
+5. Run migrations: npm run db:migrate
+6. Seed development data: npm run db:seed
+7. Verify the app starts: npm run dev & sleep 3 & curl -f http://localhost:3000/health
+8. Print a success message with the local URL
+
+Make it idempotent — safe to run multiple times.
+Use bash. Color-code output: green for success, red for errors, yellow for warnings.
+```
+
+-   Require idempotency — setup scripts get run repeatedly during debugging
+-   Include version checks with helpful error messages, not just silent failures
+-   Ask for a health check at the end — verifies the whole stack works, not just that it installed
+-   Color-coded output makes the script 10x easier to scan when something goes wrong
+
+Environment Setup Scripts — reproducible developer onboarding
+
+### 5.16 Monorepo Management Patterns
+
+Monorepos add complexity that agents navigate well when given explicit context about the workspace structure. The most important thing is teaching the agent your package naming conventions so it creates new packages correctly.
+
+```
+claude> This is a pnpm workspace monorepo with this structure:
+  apps/
+    web/        — Next.js frontend (port 3000)
+    api/        — Fastify backend (port 3001)
+  packages/
+    db/         — Prisma schema + client (shared)
+    ui/         — React component library (shared)
+    types/      — Shared TypeScript types
+    config/     — Shared ESLint, tsconfig, Tailwind
+
+Add a new package: packages/email/
+- Uses Resend SDK for transactional email
+- Exports: sendWelcomeEmail(), sendPasswordReset(), sendInvoice()
+- Shared by both apps/web and apps/api
+- Follows the same structure as packages/db/
+
+Update the root pnpm-workspace.yaml and both apps' package.json to depend on @acme/email
+```
+
+-   Give the agent the complete workspace structure — it needs to understand what already exists
+-   Point to an existing package as a reference for conventions
+-   Ask the agent to update all consuming packages' dependencies, not just create the new package
+-   Verify the turbo.json or nx.json pipeline is updated if using a task runner
+
+Monorepo Management Patterns — workspace-aware prompting strategies
+
+### 5.17 The "Rubber Duck" Workflow
+
+Sometimes the most valuable thing you can do with an agent is explain a piece of code to it and let the explanation surface your own misunderstanding. This is the software equivalent of rubber duck debugging, but the duck talks back.
+
+```
+claude> I am going to explain how I think this authentication flow works.
+Tell me if my understanding is wrong, and point out any bugs.
+
+My understanding:
+1. User logs in → we generate access token (15min) + refresh token (7 days)
+2. Access token is stored in memory (React state)
+3. Refresh token is stored in an httpOnly cookie
+4. When access token expires, the frontend calls /auth/refresh
+5. /auth/refresh reads the cookie, validates it, issues a new access token
+6. If refresh token is expired, user must log in again
+
+Here is the actual /auth/refresh implementation: [paste code]
+
+What am I missing? Are there any security issues with this design?
+```
+
+This prompt consistently surfaces issues that code review misses: the agent will often point out that the refresh token is not being rotated on use (enabling token theft attacks), or that the cookie is missing the `SameSite=Strict` attribute, or that the in-memory access token approach fails on page refresh.
+
+-   Use this workflow when a bug is subtle and hard to reproduce
+-   The act of writing out your understanding often surfaces the bug before the agent responds
+-   Ask the agent to explain what WOULD happen if your understanding is wrong
+-   Follow up with: "What attack scenarios does this design not defend against?"
+
+The Rubber Duck Workflow — explain code to agent, surface hidden bugs
+
+### 5.18 When to Stop and Write Code Yourself
+
+Agents have real limitations. Recognizing when to take back the keyboard is as important as knowing when to delegate. Continuing to prompt an agent past these boundaries wastes time and produces worse code than writing it yourself.
+
+Write it yourself when: the problem requires deep domain knowledge the agent does not have (novel cryptographic protocols, custom hardware interfaces, highly optimized numeric algorithms). When you have tried three agent approaches and all three have the same fundamental flaw — the agent is stuck in a local optimum and needs a human to break the pattern. When the code requires understanding of your specific production system's behavior that is not documented anywhere the agent can read.
+
+Also write it yourself when you catch the agent confidently producing wrong code and explaining it plausibly. This is the most dangerous failure mode: hallucinated API methods that do not exist, incorrect algorithm implementations that look right. If you notice this pattern on a particular problem, stop prompting and write the code.
+
+-   If you have prompted the same problem three times with no progress, write it yourself
+-   Always verify API method names the agent uses actually exist in the current SDK version
+-   For cryptography, consensus protocols, and safety-critical code: write it yourself and use the agent only for test generation
+-   Keep a personal list of task types where agents fail for your stack — it is different for every project
+
+When to Stop and Write Code Yourself — recognizing agent limitations
+
+## Coding Agents + Cloudflare
+
+### 6.1 Why Cloudflare + Coding Agents Is the Perfect Match
+
+Cloudflare Workers is the ideal deployment target for agent-generated code for a simple reason: the entire surface is declarative. A `wrangler.toml` file describes every binding, route, and environment variable. The agent writes files, runs one command, and the thing is deployed. There is no AWS console wizard to navigate, no VPC configuration, no IAM role to create manually.
+
+Compare the manual workflow to the agent workflow. Manual Cloudflare setup for a new Worker with D1 and KV: create account, navigate to Workers dashboard, click through wizard, create KV namespace, copy namespace ID, create D1 database, copy database ID, write wrangler.toml with correct binding syntax, write the worker, run wrangler deploy, debug the binding names. Total time: 1.5-2 hours the first time you do it.
+
+Agent workflow: write one prompt describing what you want, paste in your existing resource IDs. The agent writes the wrangler.toml, writes the TypeScript worker, runs `wrangler deploy`, reads the error output if any, and fixes it. Total time: 3-6 minutes.
+
+The combination of declarative config, a single deploy command, and zero infrastructure management makes Cloudflare Workers the highest-ROI deployment target for agent-built tools in 2025.
+
+-   Agents excel at writing wrangler.toml — the syntax is well-represented in training data
+-   The single `wrangler deploy` command gives the agent a clear success signal
+-   Cloudflare's generous free tier means internal tools have near-zero infrastructure cost
+-   Workers' TypeScript support is first-class — no transpilation surprises
+
+Why Cloudflare + Coding Agents Is the Perfect Match — declarative, zero-infra
+
+### 6.2 Getting Started: Installing Wrangler via Agent
+
+The first time you use Cloudflare Workers with an agent, let the agent set up the entire project scaffold. This produces a working template you can reuse for every subsequent tool.
+
+```
+claude -p "Set up a new Cloudflare Worker project called url-shortener.
+
+Steps:
+1. npm create cloudflare@latest url-shortener -- --type=hello-world --ts
+2. cd url-shortener
+3. Update src/index.ts with a basic handler that:
+   - GET /:code → redirects to the long URL stored in KV
+   - POST /shorten → accepts {url, code} and stores in KV
+4. Update wrangler.toml to add a KV namespace binding named URL_STORE
+   (use preview_id for local dev, I will create the real namespace)
+5. Show me how to run it locally: wrangler dev
+6. Show me the deploy command"
+```
+
+```
+# Generated wrangler.toml
+name = "url-shortener"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "URL_STORE"
+id = "REPLACE_WITH_REAL_ID"
+preview_id = "REPLACE_WITH_PREVIEW_ID"
+
+[vars]
+ENVIRONMENT = "production"
+```
+
+-   Use `npm create cloudflare@latest` — it creates the correct project structure
+-   Ask for both local dev instructions and deploy command in the same prompt
+-   Specify `--ts` for TypeScript — the default is JavaScript
+-   Use preview\_id bindings for local development — agents know to add these
+
+Getting Started: Installing Wrangler via Agent — first Worker in 4 minutes
+
+### 6.3 Prompt Template: "Create a Cloudflare Worker That..."
+
+This is the most versatile prompt template in your toolkit. Fill in the blanks and the agent produces a complete, deployable Worker. The template forces you to specify all the inputs the agent needs to do it right the first time.
+
+```
+# The template
+claude> Create a Cloudflare Worker that [WHAT IT DOES].
+
+Bindings needed:
+- KV namespace: [NAME] for [PURPOSE]
+- D1 database: [NAME] for [PURPOSE]
+- Environment variable: [NAME] = [description]
+
+Routes:
+- [METHOD] [PATH] — [what it does]
+
+Edge cases to handle:
+- [case 1]
+- [case 2]
+
+Write TypeScript. Include wrangler.toml. Use Zod for request validation.
+```
+
+**Example 1: Rate-Limited API Proxy**
+
+```
+claude> Create a Cloudflare Worker that proxies requests to an upstream API
+with per-IP rate limiting.
+
+Bindings:
+- KV namespace: RATE_LIMITER — stores request counts per IP
+- Environment variable: UPSTREAM_URL — the API to proxy to
+- Environment variable: RATE_LIMIT — max requests per minute (default: 60)
+
+Routes:
+- ALL /* — proxy to UPSTREAM_URL, rate limit by CF-Connecting-IP header
+
+Rate limiting logic:
+- Key: ip:${ip}:${minuteWindow}
+- If count > RATE_LIMIT: return 429 with Retry-After header
+- Otherwise: increment count with 60s TTL, proxy request
+
+Preserve request method, headers, and body.
+Add X-RateLimit-Remaining header to successful responses.
+```
+
+**Example 2: Image Optimization Worker**
+
+```
+claude> Create a Cloudflare Worker that optimizes images using Cloudflare Images.
+
+Routes:
+- GET /img/:imageId?w=800&h=600&fit=cover
+  → serve optimized image via Cloudflare Images delivery URL
+
+Bindings:
+- Environment variable: CF_ACCOUNT_HASH — Cloudflare account hash for Images
+
+Features:
+- Parse width, height, fit query params
+- Validate: max 4000x4000, fit must be cover|contain|crop
+- Build Cloudflare Images URL with transformation params
+- Cache responses at the edge for 1 year (immutable assets)
+```
+
+-   Always specify bindings by name — the name becomes the TypeScript variable in `env`
+-   List edge cases explicitly — rate limit exceeded, missing params, upstream errors
+-   Request Zod validation for any worker that accepts user input
+-   Specify caching headers for any asset-serving worker — default is no cache
+
+Prompt Template: "Create a Cloudflare Worker That..." — 3 complete examples
+
+### 6.4 Building with D1 Databases
+
+Cloudflare D1 is a serverless SQLite database that lives at the edge. Agents write D1 Workers fluently — the API is simple, the SQL is standard, and the binding pattern is well-established.
+
+```
+claude> Build a link analytics service using Cloudflare D1.
+
+1. Create schema SQL:
+   - links table: id, original_url, short_code, created_at, user_id
+   - clicks table: id, link_id, ip_hash, country, user_agent, clicked_at
+
+2. wrangler.toml with D1 binding named ANALYTICS_DB
+
+3. Worker routes:
+   - POST /links — create short link, store in D1
+   - GET /:code — redirect + record click async (using ctx.waitUntil)
+   - GET /links/:id/stats — return click count, country breakdown, daily chart data
+
+4. Use prepared statements for all queries (prevent SQL injection)
+5. Hash the IP with SHA-256 before storing (privacy)
+6. Include wrangler commands to:
+   - Create the D1 database
+   - Run the schema migration
+   - Query the database locally
+```
+
+```
+# Wrangler commands the agent will show you
+wrangler d1 create analytics-db
+# Copy the database_id from output into wrangler.toml
+
+wrangler d1 execute analytics-db --local --file=schema.sql
+wrangler d1 execute analytics-db --file=schema.sql  # production
+
+# Query production database
+wrangler d1 execute analytics-db \
+  --command="SELECT COUNT(*) FROM clicks WHERE clicked_at > datetime('now', '-7 days')"
+```
+
+-   Always ask for prepared statements — D1 supports them and they prevent SQL injection
+-   Use `ctx.waitUntil()` for async operations like analytics recording — do not block the response
+-   Hash PII (IP addresses) before storing — hash is sufficient for rate limiting and deduplication
+-   Ask for both local (`--local`) and production migration commands
+
+Building with D1 Databases — schema, bindings, queries, deploy
+
+### 6.5 KV-Backed APIs
+
+Cloudflare KV is a global key-value store with eventual consistency. It is ideal for feature flags, session storage, caching, and configuration. Agents write KV-backed Workers in minutes.
+
+```
+claude> Build a feature flags service using Cloudflare KV.
+
+The service manages feature flags for a SaaS product.
+
+API:
+- GET /flags — return all flags as JSON
+- GET /flags/:name — return single flag {name, enabled, rollout_percentage, created_at}
+- PUT /flags/:name — create or update flag (requires X-Admin-Key header)
+- DELETE /flags/:name — delete flag (requires X-Admin-Key header)
+- GET /flags/check/:name?userId=abc — returns {enabled: boolean}
+  Logic: if rollout_percentage < 100, use hash(userId + flagName) % 100 to determine eligibility
+
+Bindings:
+- KV namespace: FLAGS
+- Environment variable: ADMIN_KEY (for write operations)
+
+Add a list cache: store all flag names in FLAGS key "index"
+so GET /flags does not require listing (KV list is slow).
+```
+
+-   Store an index key to avoid KV list operations — list is expensive and slow
+-   Use deterministic hashing for rollout percentages — same user always gets same result
+-   Set appropriate TTLs on cached values — KV reads are fast but stale data is a risk
+-   Protect write endpoints with a header secret — Workers have no built-in auth
+
+KV-Backed APIs — feature flags service with full code example
+
+### 6.6 Durable Objects via Agent
+
+Durable Objects are Cloudflare's primitive for stateful, single-threaded compute at the edge. They are the right tool for real-time collaboration, connection management, and any scenario where you need a single authoritative instance of state. Agents write Durable Objects when you specify the use case clearly.
+
+```
+claude> Create a Durable Object for real-time cursor tracking with WebSockets.
+
+Multiple browser clients connect to the same room and see each other's cursors.
+
+Durable Object: CursorRoom
+State: Map of connectionId -> {x, y, userId, color}
+
+WebSocket messages (JSON):
+- client sends: {type: "move", x: number, y: number}
+- server broadcasts to all other connections:
+  {type: "cursors", cursors: [{userId, x, y, color}]}
+- on connect: send current state of all cursors
+- on disconnect: remove from state, broadcast removal
+
+Worker route:
+- GET /room/:roomId/ws — upgrade to WebSocket, route to CursorRoom DO
+
+wrangler.toml: add Durable Object binding and migration.
+TypeScript with proper WebSocket types from @cloudflare/workers-types.
+```
+
+-   Durable Objects require a migration entry in wrangler.toml — ask the agent to include it
+-   Always handle WebSocket close and error events to clean up state
+-   Broadcast to all connections except the sender using a connections Set
+-   Use `this.ctx.waitUntil()` for any async cleanup that should not block message handling
+
+Durable Objects via Agent — real-time cursor tracking with WebSockets
+
+### 6.7 R2 File Storage Workflows
+
+Cloudflare R2 is S3-compatible object storage with no egress fees. Agents build file upload and serving workflows on R2 quickly — the binding API is simple and the multipart upload pattern is well-understood.
+
+```
+claude> Build a file upload API that stores files in R2 and serves them.
+
+Routes:
+- POST /upload
+  - Accept multipart/form-data with a "file" field
+  - Validate: max 10MB, allowed types: image/jpeg, image/png, application/pdf
+  - Generate a unique key: uploads/${randomUUID()}.${ext}
+  - Store in R2 bucket
+  - Return: {url: "https://files.example.com/${key}", key}
+
+- GET /files/:key
+  - Stream the file from R2
+  - Set correct Content-Type header
+  - Add Cache-Control: public, max-age=31536000 for images
+
+- DELETE /files/:key
+  - Requires Authorization: Bearer ${ADMIN_TOKEN} header
+  - Delete from R2
+
+Bindings:
+- R2 bucket: FILE_STORE
+- Environment variable: ADMIN_TOKEN
+- Environment variable: PUBLIC_BASE_URL = "https://files.example.com"
+```
+
+-   Validate file type by checking magic bytes, not just the Content-Type header
+-   Set immutable cache headers for files identified by content hash
+-   Stream R2 objects using `object.body` directly — do not buffer in memory
+-   Use `r2.head(key)` to check existence before serving to return proper 404s
+
+R2 File Storage Workflows — upload API with signed URLs
+
+### 6.8 Cloudflare AI Workers
+
+Cloudflare runs inference on models including Llama 3.1, Mistral, and image generation models directly in their network. Agents can wire up AI endpoints in minutes using the `@cf/` model namespace.
+
+```
+claude> Build a summarization API using Cloudflare's AI inference.
+
+Route: POST /summarize
+Body: {text: string, maxLength?: number}
+
+Steps:
+1. Validate input with Zod (text required, max 50,000 chars)
+2. Call the AI binding with model @cf/meta/llama-3.1-8b-instruct
+3. System prompt: "Summarize the following text concisely. Return only the summary."
+4. If maxLength is provided, add: "Keep the summary under {maxLength} words."
+5. Return: {summary: string, inputChars: number, model: string}
+
+Bindings:
+- AI binding (name: AI) — add to wrangler.toml as [ai] binding
+
+Add rate limiting: max 10 requests per minute per IP using a KV namespace.
+```
+
+```
+# Generated worker excerpt
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const { text, maxLength } = await request.json();
+
+    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+      messages: [
+        { role: 'system', content: 'Summarize the following text concisely.' },
+        { role: 'user', content: text }
+      ],
+      max_tokens: maxLength ? maxLength * 2 : 512,
+    });
+
+    return Response.json({
+      summary: response.response,
+      inputChars: text.length,
+      model: '@cf/meta/llama-3.1-8b-instruct'
+    });
+  }
+};
+```
+
+-   Add the `[ai]` section to wrangler.toml — the agent sometimes needs a reminder
+-   Rate limit AI endpoints aggressively — inference costs scale with usage
+-   Set `max_tokens` explicitly to control cost and latency
+-   Handle the case where AI returns an empty response or an error object
+
+Cloudflare AI Workers — llama-3.1-8b summarization endpoint
+
+### 6.9 Deploying with Wrangler Through Agent Commands
+
+One of the most powerful aspects of Claude Code is its ability to run shell commands and react to their output. When a deploy fails, the agent reads the error, diagnoses the issue, and fixes it — often without any input from you.
+
+```
+# Typical agent deploy loop
+claude> Deploy the worker to Cloudflare. Run wrangler deploy and fix any errors.
+
+# Agent runs: wrangler deploy
+# Output: Error: D1 binding ANALYTICS_DB not found in account.
+#         Available databases: [{"name":"analytics","id":"abc-123"}]
+
+# Agent automatically updates wrangler.toml:
+#   Changes id = "" to id = "abc-123"
+# Runs wrangler deploy again
+# Output: Deployed url-shortener.workers.dev
+
+# Agent reports: Deployed successfully to url-shortener.workers.dev
+```
+
+This feedback loop — run command, read output, fix, repeat — is where agents provide the most leverage. The alternative is you copying error messages from your terminal and pasting them back into a chat interface. The agent does this automatically.
+
+-   Give the agent explicit permission to run wrangler commands in your prompt
+-   Pre-create Cloudflare resources (D1 databases, KV namespaces) and paste their IDs in the prompt
+-   Check wrangler.toml after deployment — verify binding names match what the code uses
+-   Use `wrangler tail` after deploy to watch real-time logs during testing
+
+Deploying with Wrangler Through Agent Commands — wrangler deploy flow
+
+### 6.10 Building Internal Tools in Minutes
+
+The highest-ROI use of Cloudflare + agents is building internal tools that would previously require a full engineering sprint. Here are five complete examples you can adapt immediately.
+
+**1\. Slack Webhook Receiver + D1 Logger** — receives Slack event webhooks, verifies signatures, logs to D1. Useful for audit trails and debugging Slack integrations. Build time: 8 minutes.
+
+**2\. CSV → JSON Converter API** — POST a CSV file, receive JSON back. Handles different delimiters, quoted fields, header row detection. Deployed as a Worker, no servers, no maintenance. Build time: 5 minutes.
+
+**3\. Simple Auth Proxy** — sits in front of an internal tool (like Grafana or a staging environment), checks a shared secret or validates against a whitelist of emails via Google OAuth. Build time: 12 minutes including OAuth flow.
+
+**4\. Cron Job for Daily Reports** — uses Cloudflare's cron triggers to run every morning, query a D1 database, and POST a summary to a Slack webhook. Build time: 10 minutes.
+
+```
+# wrangler.toml for cron trigger
+[triggers]
+crons = ["0 9 * * 1-5"]  # 9am UTC, Monday-Friday
+
+# Worker handles both fetch (for testing) and scheduled events
+export default {
+  async fetch(request: Request, env: Env) {
+    // Manual trigger via GET /run-report
+    await runDailyReport(env);
+    return new Response('Report sent');
+  },
+  async scheduled(event: ScheduledEvent, env: Env) {
+    await runDailyReport(env);
+  }
+};
+```
+
+**5\. Webhook Relay with Retry Logic** — receives webhooks from any service, stores in KV, forwards to your internal endpoint, retries on failure with exponential backoff. Build time: 15 minutes.
+
+-   Keep internal tools single-purpose — one Worker per tool is easier to maintain
+-   Use environment variables for all endpoints and credentials — never hardcode
+-   Add a `GET /health` endpoint to every tool for easy monitoring
+-   Set up a custom workers.dev subdomain per tool for memorable URLs
+
+Building Internal Tools in Minutes — 5 complete one-off tool examples
+
+### 6.11 Cost Analysis
+
+The economics of agent-built Cloudflare Workers tools are remarkable. The cost breakdown for a tool handling 100,000 requests per day across 30 days (3 million requests/month):
+
+**Cloudflare Workers cost:** Free tier includes 100,000 requests/day. At 3 million requests/month: Workers Paid plan at $5/month, which includes 10 million requests. Additional requests at $0.30 per million. For 3 million: $5/month flat.
+
+**D1 database cost:** Free tier includes 5 million rows read/day and 100,000 rows written/day. A typical internal tool stays within free tier. Beyond that: $0.001 per 1 million rows read.
+
+**KV cost:** Free tier includes 100,000 reads/day. Workers Paid plan includes 10 million KV reads/month. Typically: $0/month for internal tools.
+
+**Claude Code cost to build the tool:** A typical internal tool build uses approximately 50,000-200,000 tokens. At claude-sonnet-4-5 pricing: roughly $0.15-$0.60 per tool build.
+
+**Total first month: ~$5.75.** Traditional engineering cost for the same tool: 4-8 hours at $150-300/hour = $600-2400. ROI on the first deployment: 100x-400x.
+
+-   Most internal tools fit entirely within Cloudflare's free tier
+-   The Workers Paid plan at $5/month is the right tier for production internal tools
+-   Claude Code token cost for building a tool is typically under $1
+-   The real cost is your time reviewing and approving the generated code
+
+Cost Analysis — agent API cost + Cloudflare cost for 100K req/day tool
+
+### 6.12 Secrets Management via Agent
+
+Cloudflare Workers secrets are encrypted environment variables stored separately from your wrangler.toml. Agents know to use `wrangler secret put` and will prompt you for values without storing them in files.
+
+```
+# Agent workflow for secrets
+claude> The worker needs these secrets set:
+- STRIPE_SECRET_KEY
+- DATABASE_PASSWORD
+- ADMIN_TOKEN
+
+Run wrangler secret put for each one and prompt me for the values.
+
+# Agent runs:
+wrangler secret put STRIPE_SECRET_KEY
+# Prompts: Enter a secret value: (you type, not visible)
+# Output: 🌀 Creating the secret for the Worker "payment-service"
+# Output: ✅ Success! Uploaded secret STRIPE_SECRET_KEY
+
+# Agent continues for each secret, then confirms all are set:
+wrangler secret list
+# Output: STRIPE_SECRET_KEY, DATABASE_PASSWORD, ADMIN_TOKEN
+```
+
+In your code, secrets are accessed identically to regular environment variables via the `env` parameter. The difference is that secrets are never logged, never appear in wrangler.toml, and cannot be read back via the API — only rotated or deleted.
+
+-   Never put secrets in wrangler.toml — use `wrangler secret put`
+-   Add all secret names to .env.example with placeholder values for documentation
+-   Use `wrangler secret list` to verify all required secrets are set after deployment
+-   Rotate secrets by running `wrangler secret put NAME` again — no downtime required
+
+Secrets Management via Agent — wrangler secret put, .env handling
+
+### 6.13 Custom Domains and Routing
+
+Every Worker gets a `*.workers.dev` URL for free. Custom domains require a Cloudflare-hosted zone, which you may already have if your domain is on Cloudflare.
+
+```
+# wrangler.toml for custom domain
+name = "my-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+routes = [
+  { pattern = "api.example.com/*", zone_name = "example.com" }
+]
+
+# Or for multiple routes:
+routes = [
+  { pattern = "api.example.com/v1/*", zone_name = "example.com" },
+  { pattern = "api.example.com/internal/*", zone_name = "example.com",
+    custom_domain = false }
+]
+```
+
+```
+claude> Configure this worker to serve on api.example.com.
+My domain example.com is already on Cloudflare.
+
+Add to wrangler.toml:
+- Custom domain: api.example.com
+- Route all traffic (/*) to this worker
+- Keep the workers.dev URL active for staging
+
+Then run wrangler deploy and verify the custom domain is active.
+```
+
+-   Domain must be on Cloudflare (using Cloudflare nameservers) for custom routing
+-   Use `custom_domain = true` for a dedicated domain, `routes` for path-based routing
+-   Keep workers.dev URL active for staging and testing — it cannot be disabled per-deployment
+-   HTTPS is automatic with Cloudflare — no certificate management needed
+
+Custom Domains and Routing — workers.dev, custom domain, routes config
+
+### 6.14 Monitoring and Logging
+
+Cloudflare provides built-in analytics for Workers and real-time log tailing. For production internal tools, set up Workers Analytics Engine for custom metrics.
+
+```
+# Real-time log tailing (runs in terminal during testing)
+wrangler tail my-worker
+
+# Filter logs
+wrangler tail my-worker --format=pretty --search="error"
+
+# Workers Analytics Engine binding in wrangler.toml
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "my_worker_events"
+
+# In worker code:
+env.ANALYTICS.writeDataPoint({
+  blobs: [request.url, request.method],
+  doubles: [Date.now()],
+  indexes: [new URL(request.url).pathname]
+});
+```
+
+```
+claude> Add structured logging to this worker using Workers Analytics Engine.
+
+Log these events:
+- Every request: method, path, status code, duration_ms
+- Every error: error message, stack trace (truncated to 1000 chars), request path
+- Rate limit hits: IP hash, endpoint
+
+Use the ANALYTICS binding I already have in wrangler.toml.
+Also add console.error() for errors so they appear in wrangler tail.
+Do not log request bodies or headers that might contain PII.
+```
+
+-   Use `wrangler tail` during initial deployment to catch errors in real time
+-   Workers Analytics Engine is free up to 100,000 data points per day
+-   Never log request bodies unless you are certain they contain no PII
+-   Set up a Cloudflare notification for worker error rate exceeding 1%
+
+Monitoring and Logging — Logpush, Workers Analytics setup via agent
+
+### 6.15 The Full Workflow: Idea to Production in One Session
+
+This lesson walks through a complete example: building a link analytics tool from scratch in a single Claude Code session. The point is not the specific tool — it is the rhythm of the workflow.
+
+**Minute 0-2: Prompt.** Write the full spec including routes, bindings, validation, and error handling. Paste in your Cloudflare account email for context.
+
+**Minute 2-8: Agent builds.** Agent creates the project structure, writes wrangler.toml, writes the TypeScript worker, writes the D1 schema, writes a test script. You are watching, not typing.
+
+**Minute 8-10: First deploy attempt.** Agent runs `wrangler deploy`. It fails because the D1 database does not exist yet. Agent runs `wrangler d1 create`, copies the ID, updates wrangler.toml, deploys again.
+
+**Minute 10-12: Schema migration.** Agent runs `wrangler d1 execute --file=schema.sql` against both local and production. Runs the test script, which fires a few test requests and queries D1 to verify records were written.
+
+**Minute 12-15: Review.** You review the generated code. You ask the agent to fix one thing: the IP is being stored unhashed. Agent updates the click recording function to use crypto.subtle.digest to SHA-256 hash the IP before storage.
+
+**Minute 15: Final deploy.** Agent deploys the fix. Production URL is live. Total time: 15 minutes from empty directory to production deployment.
+
+-   Write the full spec upfront — corrections mid-build are more expensive than clarifications upfront
+-   Let the agent handle deploy errors without interrupting — it fixes them faster alone
+-   Always do a privacy review before finalizing: what data are you storing, and is it necessary?
+-   Commit the generated code after the session — it is real code that needs version control
+
+Idea to Production in One Session — complete link analytics tool walkthrough
+
+## Agents for Tech Leaders
+
+### 7.1 Using Agents for Architectural Exploration and Prototyping
+
+One of the highest-leverage uses of coding agents for tech leaders is rapid architectural exploration. Instead of spending a week debating which approach to take in a design doc, build minimal working versions of all three candidates in an afternoon and benchmark the actual tradeoffs.
+
+```
+claude> Prototype 3 different approaches to real-time notifications.
+Build a minimal working server for each so I can benchmark them.
+
+Approach 1: WebSockets
+- Express + ws library
+- Server maintains connection map by userId
+- Send notification: server pushes to all connections for that userId
+
+Approach 2: Server-Sent Events (SSE)
+- Express with text/event-stream
+- No bidirectional communication needed
+- Reconnect handling built into browser EventSource
+
+Approach 3: Long Polling
+- Express endpoint that holds the connection open for 30s
+- Returns when a notification arrives or on timeout
+- Client immediately re-connects after receiving or timeout
+
+For each: measure memory per 1000 connections, reconnect behavior,
+and infrastructure complexity. Write a simple benchmark script
+that simulates 100 clients and measures server memory.
+```
+
+In 20-30 minutes you have three working implementations and real data. The design doc that would have taken a week of async debate is now a 10-minute benchmark review. This is a qualitatively different way of making architectural decisions — grounded in evidence rather than opinion.
+
+-   Build all three alternatives before choosing — sunk cost thinking kills good architecture
+-   Ask for a benchmark script in the same prompt — measurement beats intuition
+-   Share the prototypes with the team for feedback before finalizing the approach
+-   Keep the losing prototypes in a /spikes directory for future reference
+
+Architectural Exploration and Prototyping — build 3 options in one afternoon
+
+### 7.2 Rapid Prototyping for Product Decisions
+
+Product decisions that used to require a full sprint to prototype can now be done in an afternoon. This changes the economics of experimentation: you can test more ideas before committing to implementation.
+
+```
+claude> Build a working prototype of our proposed checkout flow so I can
+demo it to stakeholders tomorrow. Use hardcoded data — no real backend needed.
+
+The flow:
+1. Cart review page — show items, subtotals
+2. Shipping address form with inline validation
+3. Shipping method selector (Standard $5, Express $15, Overnight $30)
+4. Payment form (card number, expiry, CVV) — style like Stripe Elements
+5. Order confirmation with order number and expected delivery date
+
+Tech: plain HTML/CSS/JS, no framework. Must work offline.
+Make it look polished — this is a stakeholder demo.
+Deploy to Cloudflare Pages for a shareable URL.
+```
+
+This kind of prompt produces a clickable prototype in under an hour. Stakeholders see a working flow rather than a Figma mockup, which generates much more useful feedback. The prototype is throwaway code — the value is the feedback it generates.
+
+-   Explicitly say "hardcoded data — no real backend" to keep prototypes simple
+-   Deploy to a shareable URL (Cloudflare Pages, Vercel) so stakeholders can click it on their own device
+-   Ask for polished styling — rough prototypes get "but it looks ugly" feedback instead of product feedback
+-   Keep prototype code separate from production code to avoid confusion about what is "real"
+
+Rapid Prototyping for Product Decisions — working prototype for stakeholders
+
+### 7.3 Building Internal Tools Without Dedicated Engineering Resources
+
+The category of work that previously required a full sprint — or was perpetually deprioritized because "it is not customer-facing" — can now be done in an afternoon. This is one of the clearest economic arguments for agent adoption at the leadership level.
+
+Categories of internal tools that agents build well: data dashboards (read-only views into your database, no backend logic required); admin panels (CRUD interfaces for your data models, often 80% boilerplate); data migration and transformation scripts (one-time scripts that are expensive to spec as a full story); automated reports (query your DB, format as CSV or Slack message, run on a schedule); developer utilities (internal CLIs, deployment helpers, log analyzers).
+
+The common thread: these are all well-understood problem domains with clear inputs and outputs. Agents handle well-understood domains much better than novel ones. Internal tooling is almost entirely well-understood domain work.
+
+-   Maintain a backlog of internal tool ideas — things that are useful but never prioritized
+-   Set aside one Friday afternoon per month for agent-built internal tools
+-   Give internal tools to their primary users for requirements gathering — they know what they need
+-   Internal tools built this way are owned by the team, not a specific engineer — document them in CLAUDE.md
+
+Internal Tools Without Dedicated Engineering — what used to take a sprint
+
+### 7.4 Evaluating Agent Output Quality
+
+Reviewing agent-generated code requires a different mental model than reviewing human-written code. Human code reviews catch intent mismatches and design disagreements. Agent code review catches execution errors on a spec the agent understood correctly. Here is a structured checklist for reviewing agent output.
+
+**Agent Code Review Checklist**
+
+**Security**
+— No hardcoded secrets or API keys
+— Input validation on all user-controlled data
+— Authentication checks on all protected routes
+— SQL using parameterized queries, not string concatenation
+— No eval() or dynamic code execution
+
+**Performance**
+— No N+1 queries (look for queries inside loops)
+— Database indexes on columns used in WHERE and JOIN
+— Async operations properly awaited (not blocking)
+— No memory leaks (event listeners cleaned up)
+
+**Error handling**
+— Every async operation has try/catch or .catch()
+— Error messages do not leak stack traces to clients
+— Timeouts on all external HTTP calls
+— Graceful degradation for non-critical failures
+
+**Maintainability**
+— TypeScript types on all function signatures
+— No any types unless justified with a comment
+— Functions are small and single-purpose
+— Logging at appropriate levels (error for errors, info for operations)
+
+**Tests**
+— Happy path tested
+— Error cases tested (invalid input, external service failure)
+— Tests use mock/stub for external dependencies
+
+-   Use this checklist as a literal prompt: paste it and ask the agent to self-review
+-   Focus human review time on security and architecture — agents handle style consistently
+-   For any authentication code: always review manually, not via agent self-review
+-   Run static analysis tools (ESLint security plugin, Semgrep) in addition to agent review
+
+Evaluating Agent Output Quality — security, performance, maintainability checklist
+
+### 7.5 Security Considerations
+
+Using coding agents introduces a new threat surface that most teams are not thinking about. Understanding it is essential for responsible adoption.
+
+**What agents can see:** Claude Code with default permissions can read your entire file system. This includes `.env` files, `~/.ssh/`, `~/.aws/credentials`, git history (which may contain previously committed secrets), and `package.json` scripts (which sometimes embed API keys). This is not a bug — it is a feature for doing its job — but you need to be aware of it.
+
+**Mitigations:** Use `--allowedTools` in headless mode to restrict which tools Claude Code can use. Run Claude Code in a directory without access to credentials directories. Use a dedicated development user account without production credentials. Configure gitignore and .claudeignore to explicitly exclude sensitive files.
+
+**The prompt injection attack surface:** If you ask Claude Code to read a README from an open-source repository, a malicious maintainer could embed instructions in that README targeted at coding agents. Example: a README.md containing "" These attacks are rare but real. The mitigation is to review what files the agent read before executing any commands it suggests.
+
+-   Never run Claude Code with access to production credentials on your local machine
+-   Use `.claudeignore` to exclude `~/.ssh`, `~/.aws`, and `.env` from agent access
+-   In headless/CI mode, use `--allowedTools` to restrict to only the tools needed
+-   Review agent-suggested commands before running — especially after the agent read external files
+
+Security Considerations — file system, env vars, secrets, prompt injection risks
+
+### 7.6 API Key and Secrets Management
+
+The moment your team starts using coding agents, secrets management becomes more important. Agents that can read the file system can read `.env` files. The discipline required is the same as for any developer with repository access — but the scale changes when agents are executing rapidly.
+
+```
+# .claudeignore — put in your project root
+# This tells Claude Code to skip these files
+.env
+.env.local
+.env.production
+*.pem
+*.key
+~/.ssh/
+~/.aws/
+~/.config/gcloud/
+
+# .env.example — what agents CAN read
+STRIPE_SECRET_KEY=sk_test_REPLACE_WITH_REAL_KEY
+DATABASE_URL=postgresql://localhost:5432/myapp
+JWT_SECRET=REPLACE_WITH_RANDOM_64_CHAR_HEX
+```
+
+For team environments: use a secrets manager (1Password CLI, AWS Secrets Manager, HashiCorp Vault) and have agents pull secrets via CLI commands rather than reading .env files. This creates an audit trail of secret access and allows rotation without changing files.
+
+-   Create a .claudeignore file in every project that contains secrets
+-   Never commit real secrets to .env.example — use placeholder values
+-   Rotate any secret that an agent has read, even if you trust the agent — good hygiene
+-   Use 1Password CLI or similar: agents can run `op read op://vault/item/field` without seeing the actual value
+
+API Key and Secrets Management — Vault, AWS Secrets Manager, 1Password CLI
+
+### 7.7 Cost Management
+
+Claude Code costs money. Understanding the cost structure and managing it proactively prevents bill shock as team usage scales.
+
+**Claude Code pricing (as of mid-2025):** Claude Code Pro at $100/month per user includes a monthly usage allowance. Above the allowance, you pay API rates: roughly $3 per million input tokens and $15 per million output tokens for claude-sonnet-4-5. A heavy Claude Code session (building a complex feature) uses 100,000-500,000 tokens. That is $0.30-$1.50 per session on the standard tier.
+
+**Use `/cost` to track usage:** the `/cost` command in Claude Code shows the token cost of your current session. Use it before and after large operations to calibrate how much complex tasks cost.
+
+**When to use which model:**
+
+Use claude-haiku-3-5 for: simple code completion, formatting, documentation generation, test boilerplate.
+Use claude-sonnet-4-5 (default): most coding tasks, bug fixing, moderate complexity.
+Use claude-opus-4 (most expensive): complex architectural design, security audits, novel algorithm design.
+
+-   Check `/cost` at the end of each session to calibrate your spending
+-   Use `/compact` liberally — a leaner context window costs less per token
+-   Set a per-user monthly budget in your Claude Console organization settings
+-   The cost-per-feature-shipped is what matters, not cost-per-session — measure ROI, not raw spend
+
+Cost Management — /cost tracking, claude-sonnet vs claude-opus tradeoffs
+
+### 7.8 ROI Calculation Framework
+
+When making the case for Claude Code adoption to finance or leadership, you need a concrete ROI model. Here is a framework that has worked in practice.
+
+**ROI Formula**
+
+Time saved per task × tasks per month × developer hourly rate = Monthly value
+Monthly value ÷ Monthly Claude Code cost = ROI multiplier
+
+**Example calculation:**
+— Developer rate: $150/hour fully-loaded
+— Tasks per month where agent saves time: 40
+— Average time saved per task: 45 minutes (0.75 hours)
+— Monthly value: 40 × 0.75 × $150 = $4,500
+— Claude Code Pro cost: $100/month
+— ROI: $4,500 ÷ $100 = 45x
+
+Conservative estimate for a senior developer who uses Claude Code heavily: 20x-50x ROI in the first 90 days.
+
+The 45 minutes saved per task is conservative. For tasks like writing comprehensive tests for a module, the savings are 2-4 hours. For greenfield project setup, the savings are 3-6 hours. The calculation above assumes only the modest-savings tasks.
+
+-   Track time saved for 2 weeks before making the ROI case — real data beats estimates
+-   Include the time savings for interrupted focus, not just the task itself
+-   Present conservative estimates — 20x ROI is more credible than 100x ROI
+-   Track quality metrics too: test coverage, bug rate in agent-assisted PRs vs baseline
+
+ROI Calculation Framework — time saved × hourly rate, breakeven analysis
+
+### 7.9 When to Use Agents vs When to Hire
+
+Agents are not a substitute for engineering headcount in all scenarios. Understanding the decision boundary helps you make the right resource allocation decisions.
+
+**Decision Matrix**
+
+Use agents when: task is well-defined, one-time or infrequent, does not require deep domain knowledge of your specific systems, output is reviewable by a non-expert.
+
+Hire when: task requires ongoing ownership and iteration, involves deep knowledge of your production systems, requires stakeholder relationships, involves security-sensitive architecture decisions, is core to your product differentiation.
+
+Neither is always right. A startup with 3 engineers can use agents to punch above their weight on internal tooling, documentation, and testing. A 500-engineer org needs agents to amplify individuals, not replace headcount planning.
+
+-   Agents are multipliers on existing headcount, not substitutes for it
+-   The best use of agents frees engineers to do the higher-value work only they can do
+-   Do not delay hiring because "the agent can do it" — organizational knowledge and ownership matter
+-   Use agents to reduce the scope of what you hire for, not to avoid hiring entirely
+
+When to Use Agents vs When to Hire — decision matrix by task type
+
+### 7.10 Building Team Adoption Strategies
+
+Rolling out coding agents across a team requires the same change management you would apply to any significant tooling change. The teams that fail do a "big bang" rollout. The teams that succeed start with a pilot and expand based on demonstrated results.
+
+**Pilot program design:** Pick 3-5 champion developers — people who are curious, influential, and comfortable with new tools. Give them Claude Code Pro accounts and a specific mandate: use it heavily for 30 days and report back on what worked, what did not, and what you wish existed. Run a weekly 30-minute sync where champions share prompts that worked.
+
+**Success metrics to track during the pilot:** PRs merged per sprint (baseline vs pilot), time from PR open to merge, test coverage trend, self-reported time savings (simple weekly survey). Do not overfit to metrics — the goal is learning, not hitting a number.
+
+**Common objections and responses:** "I do not trust AI-generated code" — the code is reviewed before merge, same as any junior developer's code. "It will make me lazy and I will forget how to code" — agents handle boilerplate, you still design the system. "It writes bad code" — so did junior developers on your first project; the review process is the quality gate.
+
+-   Start with champions, not mandates — forced adoption produces shallow usage
+-   Create a shared prompt library in your team's CLAUDE.md from day one
+-   Run a monthly "show and tell" where developers share their best agent workflows
+-   Measure before you roll out — you need a baseline to demonstrate improvement
+
+Team Adoption Strategies — pilot program, champion developers, rollout plan
+
+### 7.11 Measuring Productivity Gains
+
+Productivity measurement for developer tools is notoriously hard to do well. The metrics that are easy to measure (lines of code, PRs per sprint) are also the ones most susceptible to gaming. Here is a measurement framework that balances rigor with practicality.
+
+**Leading indicators (weekly):** PRs merged per engineer per sprint, average PR size (larger PRs can mean more features per sprint OR more code to review — track both), time from first commit to merge (measures iteration speed), test coverage trend.
+
+**Lagging indicators (monthly):** Bugs per feature shipped, time spent on boilerplate vs feature work (survey), developer satisfaction score on "tools and workflow" item in quarterly survey.
+
+**Goodhart's Law warning:** When a measure becomes a target, it ceases to be a good measure. If you set a "PRs per sprint" target, developers will split work into smaller PRs. Track multiple metrics and look for convergent evidence of improvement rather than optimizing any single number.
+
+-   Establish baselines before rolling out — you cannot show improvement without a before
+-   Use self-reported time savings as a leading indicator — it is fast to collect and directionally accurate
+-   Track developer satisfaction separately from productivity — happy developers build better products
+-   Review the metrics quarterly with the team, not just leadership — creates accountability and shared ownership
+
+Measuring Productivity Gains — PRs/sprint, time-to-merge, morale surveys
+
+### 7.12 Legal and IP Considerations
+
+Agent-generated code raises questions that your legal team will eventually ask. Getting ahead of them is easier than retrofitting policy after a problem occurs.
+
+**Who owns agent-generated code?** In most jurisdictions, AI-generated code without significant human creative input may not be copyrightable. However, code that results from meaningful human direction (your prompts, your architecture decisions, your review) is generally considered a work of the human author. The safest position: treat agent-generated code the same as code a junior developer wrote under your technical direction — it is yours, you are responsible for it.
+
+**License compliance:** Agents can reproduce GPL-licensed code from their training data without being aware they are doing so. Run license scanners (FOSSA, Black Duck) on agent-generated code just as you would on any code that might have been copied from Stack Overflow.
+
+**Enterprise agreements:** Anthropic's Claude.ai Enterprise agreement includes data non-training clauses. If you are processing customer data or proprietary information in your prompts, use the Enterprise API with a DPA (Data Processing Agreement), not the consumer product.
+
+-   Include agent-generated code in your standard code review process — the review is what creates legal clarity
+-   Run FOSSA or similar on all agent-generated code before shipping to production
+-   Use the Enterprise API (with DPA) for any work involving customer data
+-   Document your review process — it establishes that humans are in the loop for IP purposes
+
+Legal and IP Considerations — ownership, license compliance, enterprise agreements
+
+### 7.13 Onboarding New Developers with Agents
+
+CLAUDE.md is not just a prompt file — it is a form of institutional knowledge that can dramatically accelerate developer onboarding. A well-written CLAUDE.md teaches the agent about your codebase conventions, which in turn makes it a better onboarding guide for new developers.
+
+```
+claude> I am a new developer joining this team. Please:
+1. Read the CLAUDE.md and explain our tech stack and conventions
+2. Read the README and explain how to set up my local environment
+3. Show me the most important files to understand first, in order
+4. Explain the data flow for a typical API request from route to database
+5. What are the 3 most common mistakes new developers make in this codebase?
+   (Look at git history for clues — check recent bug fix commits)
+```
+
+The agent will give a better onboarding tour than most wikis, because it synthesizes information across the entire codebase rather than relying on documentation that is almost always out of date. The question about common mistakes based on git history is particularly effective — it surfaces real patterns from your actual history.
+
+-   Treat CLAUDE.md as your primary onboarding document — keep it current
+-   Ask new developers to use this prompt on their first day and report gaps
+-   Encode team conventions in CLAUDE.md explicitly — agents follow written conventions reliably
+-   Use the agent's onboarding explanation to improve your actual onboarding docs
+
+Onboarding New Developers with Agents — CLAUDE.md as institutional knowledge
+
+### 7.14 The "10x Developer" Reframing
+
+The mythology of the 10x developer has always been about leverage: the ability to make decisions and create abstractions that multiply the output of everyone around them. Coding agents change what leverage looks like, but not the underlying dynamic.
+
+The developers who become more productive with agents are not the ones who generate more lines of code per hour. They are the ones who make better architectural decisions faster, because they can build and test alternatives quickly. They are the ones who write more comprehensive tests, because the agent handles test boilerplate. They are the ones who review other people's code more thoroughly, because they have more cognitive bandwidth for design questions.
+
+The skills that matter more in an agent-augmented world: system design (agents need a human to set the architecture), security review (agents miss subtle security issues), domain knowledge (agents do not know your business), communication (the people who can write precise prompts and clear requirements get more out of agents), code review (the quality gate on agent output is human judgment).
+
+-   Invest in system design skills — agents are good at implementing decisions, not making them
+-   Practice writing precise requirements — this skill transfers directly to better agent prompts
+-   Develop code review skills — you will review more code per day as agent output volume increases
+-   Build domain knowledge — the deeper you know the problem space, the better you can direct the agent
+
+The 10x Developer Reframing — from writing boilerplate to architecting + reviewing
+
+### 7.15 Building an Agent-First Culture
+
+An agent-first culture is not about mandating tool usage — it is about creating the conditions where agents are the natural first choice for appropriate tasks, and where sharing what works is normal and valued.
+
+**Psychological safety:** developers need to feel safe saying "I used an agent for this" without it being perceived as cheating or laziness. The framing matters: using agents is a craft skill, and using them well requires expertise. Celebrate good agent use the same way you celebrate a clever algorithm or a clean refactor.
+
+**Shared prompt libraries:** the most valuable prompts are team-specific — they encode your tech stack, your conventions, your common patterns. Store these in CLAUDE.md and in a shared wiki. A prompt that saves 2 hours for one developer saves 2 hours for every developer who uses it.
+
+**Agent usage in performance reviews:** treat effective agent usage as a positive signal, not something to hide. A developer who uses agents to ship features faster, with better test coverage, is making a positive contribution. The review question is not "did you use AI?" but "did you deliver high-quality, well-reviewed code?"
+
+-   Explicitly normalize agent use in your team norms — people hide tool usage when it feels stigmatized
+-   Create a #agent-wins Slack channel for sharing what worked
+-   Include "effective use of development tools including AI" in performance review criteria
+-   Have engineering leadership use agents visibly — adoption follows the behavior of role models
+
+Building an Agent-First Culture — psychological safety, shared prompt libraries
+
+## The Future of Coding Agents
+
+### 8.1 Multi-Agent Systems: Claude Agent SDK
+
+The Claude Agent SDK allows you to build systems where multiple agents collaborate on a task, each specializing in a different domain. The pattern is: an orchestrator agent breaks down a complex task and delegates to specialist agents that each have a focused capability.
+
+```
+import anthropic
+from typing import Optional
+
+client = anthropic.Anthropic()
+
+def orchestrator_agent(task: str) -> dict:
+    """Break down a coding task into subtasks for specialists."""
+    response = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=2048,
+        system="""You are an orchestrator. Break the given coding task into:
+        1. Implementation subtask (for the code writer agent)
+        2. Test subtask (for the test writer agent)
+        3. Documentation subtask (for the doc writer agent)
+        Return JSON: {implementation: str, tests: str, docs: str}""",
+        messages=[{"role": "user", "content": task}]
+    )
+    import json
+    return json.loads(response.content[0].text)
+
+def specialist_agent(task: str, role: str) -> str:
+    """A specialist agent focused on one type of output."""
+    response = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=4096,
+        system=f"You are a specialist {role}. Produce only your specialty.",
+        messages=[{"role": "user", "content": task}]
+    )
+    return response.content[0].text
+
+def run_pipeline(task: str):
+    # Step 1: Orchestrator breaks down the task
+    subtasks = orchestrator_agent(task)
+
+    # Step 2: Specialists run in parallel (in production, use asyncio)
+    implementation = specialist_agent(subtasks["implementation"], "code writer")
+    tests = specialist_agent(subtasks["tests"], "test writer")
+    docs = specialist_agent(subtasks["docs"], "documentation writer")
+
+    return {
+        "implementation": implementation,
+        "tests": tests,
+        "documentation": docs
+    }
+
+# Usage
+result = run_pipeline(
+    "Build a function that validates email addresses using RFC 5322 rules"
+)
+```
+
+This pattern scales to more complex pipelines: a code reviewer agent that checks the implementation and provides feedback, feeding a revision loop where the code writer agent revises based on reviewer feedback. The agents communicate via message passing — structured JSON passed as user messages to each specialist.
+
+-   Start with two agents (orchestrator + one specialist) before building complex pipelines
+-   Use structured output (JSON) for agent-to-agent communication — not prose
+-   Add a reviewer agent as the last step to catch issues before returning results
+-   Log every agent call with its input, output, and token cost for debugging
+
+Multi-Agent Systems: Claude Agent SDK — orchestrator + specialist agents
+
+### 8.2 Agents That Plan Sprints and Execute Autonomously
+
+The "PM agent" workflow takes a Product Requirements Document and outputs a sprint plan with tickets, acceptance criteria, and implementation tasks. This is one of the fastest-moving areas of agent capability in 2025-2026.
+
+```
+claude> Read this PRD and generate a sprint plan.
+
+PRD: [paste product requirements document]
+
+Output for each ticket:
+- Title (imperative mood, max 60 chars)
+- Description (what and why, not how)
+- Acceptance criteria (testable, specific)
+- Estimated complexity (S/M/L/XL using our story point scale)
+- Dependencies (which other tickets must be done first)
+- Suggested assignee type (backend, frontend, full-stack, infra)
+
+Generate tickets in priority order. Flag anything that needs
+architectural decision before implementation can start.
+Identify the critical path through the sprint.
+```
+
+The current limitation is that these agents still need human judgment for architectural decisions and for anything requiring knowledge of your specific production system's behavior. The value today is generating the first draft of the sprint plan in 5 minutes rather than 3 hours, and then a human does a focused review and edit session.
+
+-   Use agent-generated sprint plans as a starting point, not the final output
+-   Always have a human review estimates — agents systematically underestimate complex tasks
+-   The architectural decision flags are the most valuable output — do not skip them
+-   Feed the agent past sprint retrospectives to calibrate its estimates to your team's velocity
+
+Agents That Plan Sprints and Execute Autonomously — PM agent workflow
+
+### 8.3 Computer Use + Coding Agents
+
+Anthropic's computer use API allows agents to control a desktop environment: take screenshots, move the mouse, click, and type. Combined with coding capability, this enables agents that can test UIs by actually clicking through them, fill out forms, navigate browsers, and interact with tools that have no API.
+
+```
+# Example: Agent that tests a UI by clicking through it
+claude> Test the signup flow by actually clicking through the browser.
+
+Steps to verify:
+1. Navigate to http://localhost:3000/signup
+2. Fill in: name="Test User", email="test+{timestamp}@example.com",
+   password="SecurePass123!"
+3. Click "Create Account"
+4. Verify the confirmation email page appears
+5. Check the database: SELECT * FROM users WHERE email LIKE 'test+%'
+   — confirm the user was created
+6. Take a screenshot of each step
+7. Report any errors with the screenshot where they occurred
+```
+
+The current state of computer use in mid-2026 is reliable for structured, well-defined tasks like this signup flow test. It is unreliable for ambiguous tasks ("explore the app and find bugs") where the agent does not have a clear stopping condition. The reliability gap between structured and unstructured tasks is significant — design your computer use tasks to be structured.
+
+-   Use computer use for regression testing of UI flows — high value, well-defined
+-   Always specify explicit success criteria — vague tasks produce wandering agents
+-   Take screenshots at each step — they are your audit trail when something goes wrong
+-   Combine with E2E testing frameworks (Playwright) rather than replacing them — computer use is a complement
+
+Computer Use + Coding Agents — browser automation + UI testing
+
+### 8.4 Parallel Orchestration (Q2 2026 Wave)
+
+Running multiple coding agents in parallel on different parts of a codebase is a capability that became practical in early 2026. The pattern uses git worktrees to isolate each agent's working copy, preventing conflicts during parallel execution.
+
+```
+# Git worktree-based parallel agent pattern
+# Create isolated working copies for each agent
+git worktree add ../agent-auth feature/auth-refactor
+git worktree add ../agent-api feature/api-refactor
+git worktree add ../agent-tests feature/test-coverage
+
+# Run agents in parallel (each in their own worktree)
+claude -p "Refactor src/auth/ for better error handling" \
+  --cwd ../agent-auth &
+
+claude -p "Add input validation to all API routes in src/routes/" \
+  --cwd ../agent-api &
+
+claude -p "Write tests for uncovered functions in src/services/" \
+  --cwd ../agent-tests &
+
+wait  # Wait for all agents to finish
+
+# Review each branch, then merge
+git merge feature/auth-refactor
+git merge feature/api-refactor
+git merge feature/test-coverage
+```
+
+The cost tradeoff: running 5 agents in parallel costs 5x the tokens but reduces wall-clock time by roughly 4x (the orchestration overhead prevents perfect scaling). For time-sensitive work — a release deadline, an incident remediation — the time savings justify the cost multiplier. For routine work, sequential is usually more cost-effective.
+
+-   Use git worktrees for isolation — parallel agents writing to the same working copy cause conflicts
+-   Assign non-overlapping file scopes to each agent — src/auth/ vs src/api/ vs src/tests/
+-   Review each branch independently before merging — parallel agents can make incompatible decisions
+-   Reserve parallel orchestration for time-critical work — sequential is cheaper for routine tasks
+
+Parallel Orchestration (Q2 2026 Wave) — git worktrees, 5 agents simultaneously
+
+### 8.5 The Changing Role of Software Engineers
+
+The software engineer role is not disappearing — it is changing. Understanding what changes and what stays the same is essential for career planning and for building engineering teams that will be effective in an agent-augmented world.
+
+**What gets automated:** boilerplate generation (CRUD routes, model definitions, form validation); test generation (especially unit tests with clear inputs and outputs); documentation (JSDoc, README, API reference docs); data migration scripts (well-defined, reversible transformations); dependency updates and breaking change fixes; code formatting and style enforcement.
+
+**What stays human:** architectural decisions (what system design fits this problem and organization?); stakeholder communication (translating business requirements into technical constraints); novel problem solving (problems that do not have well-known solutions); security judgment (intuition about what could go wrong in ways the spec did not anticipate); ethical choices (what should we build, and what are the implications?); team leadership and mentorship.
+
+**The new hybrid role:** effective engineers in 2026 spend more time on the human-essential work and use agents for the automatable work. The job title is still "software engineer" but the daily activities have shifted significantly. Recognizing this shift and investing in the skills that remain human-essential is the most important career move you can make right now.
+
+-   Audit your last month of work: what percentage was boilerplate vs genuine problem-solving?
+-   Invest in system design skills — they become more valuable as implementation becomes commoditized
+-   Develop the ability to write precise specifications — the skill that makes agents most effective
+-   Build communication skills — translating between business and technical becomes more valuable, not less
+
+The Changing Role of Software Engineers — what gets automated vs what stays human
+
+### 8.6 What CTOs and VPs Need to Know About Agent Adoption at Scale
+
+Adopting coding agents across a 50+ engineer organization is a different challenge than individual adoption. The systemic questions are different from the individual questions.
+
+**The talent question:** should you hire engineers who are strong coders, or engineers who are strong at directing agents? In 2026, the answer is both — but the balance is shifting. The engineers who can write precise specifications, design systems, and do rigorous code review are now more valuable relative to the engineers who are fast at writing boilerplate. Adjust your hiring rubrics accordingly.
+
+**The infrastructure dependency:** agents need good CI/CD, comprehensive test coverage, and clean code to be effective. An organization with 40% test coverage and a broken build pipeline will not get as much value from agents as one with 80% coverage and green CI. Agent adoption is a forcing function for engineering excellence — use it as leverage to fix your infrastructure debt.
+
+**The "agent debt" problem:** code you generated with an agent but did not fully understand accumulates technical debt faster than code you wrote yourself. The mitigation is mandatory code review and a cultural norm that accepting a PR means understanding it. "The agent wrote it" is not an acceptable substitute for understanding what the code does.
+
+-   Update hiring criteria to weight specification writing and system design more heavily
+-   Use agent adoption as leverage to improve test coverage and CI/CD — they are prerequisites for agent effectiveness
+-   Establish explicit policy: accepting a PR means you understand the code, regardless of how it was written
+-   In regulated industries (fintech, healthcare), establish a documented review process for agent-generated code before it ships
+
+What CTOs/VPs Need to Know — talent, infrastructure, governance, agent debt
+
+### 8.7 Spec-Driven Development (Kiro's Approach as a Universal Pattern)
+
+Kiro (Amazon's AI IDE) popularized a three-phase workflow: Requirements → Design → Tasks. This pattern is not unique to Kiro — it is a general approach that works with any coding agent and consistently produces better results than jumping directly to implementation.
+
+```
+# Phase 1: Requirements
+claude> Write a formal requirements document for a user authentication system.
+Format as: MUST (non-negotiable), SHOULD (important), COULD (nice-to-have)
+Include: functional requirements, non-functional requirements (performance, security),
+constraints (must use our existing PostgreSQL database), out-of-scope items.
+
+# Phase 2: Design (after reviewing Phase 1 output)
+claude> Given these requirements, write a technical design document.
+Include: component diagram, data model, API contracts, error states,
+security considerations, and 3 open questions that need decisions before implementation.
+
+# Phase 3: Tasks (after reviewing Phase 2 output)
+claude> Break this design into implementation tasks. Each task should be:
+- Completable in under 4 hours
+- Independently testable
+- Have clear done criteria
+Order by dependency. Flag any task that requires a decision not yet made.
+```
+
+The benefits of this pattern extend beyond the agent workflow. The requirements phase forces clarity before any code is written. The design phase creates documentation that your team will actually reference. The tasks phase produces a sprint plan with real dependency visibility. Even if you threw away the agent and implemented everything manually, going through these phases would improve the outcome.
+
+-   Never skip the requirements phase — vague requirements produce vague code
+-   Review and edit each phase output before moving to the next — do not pipeline all three blindly
+-   The "open questions" in the design phase are the most valuable output — they prevent blocked PRs
+-   Combine with TDD: specs → failing tests → implementation is a powerful triple combination
+
+Spec-Driven Development as a Universal Pattern — requirements → design → tasks
+
+### 8.8 The Convergence: Every IDE Becoming an Agent Platform
+
+In 2025-2026, the coding agent capability that was pioneered by GitHub Copilot's autocomplete has expanded into every major development environment. The distinction between "IDE" and "agent platform" is dissolving.
+
+**VS Code / GitHub Copilot:** moved beyond autocomplete to Copilot Workspace for full-task completion, PR generation from issues, and multi-file editing. The 2025 Copilot Enterprise edition includes repository-aware context via RAG over your codebase.
+
+**JetBrains AI Assistant:** integrated into IntelliJ, PyCharm, WebStorm — all JetBrains IDEs. Particularly strong at Java/Kotlin refactoring and has better understanding of JVM-specific patterns than some competitors.
+
+**The terminal resurgence:** Claude Code's CLI-first approach sparked a wave of terminal-based agent tools. Developers who lived in Vim or Neovim found plugins like avante.nvim (AI sidebar in Neovim) and codecompanion.nvim that brought agent capabilities without leaving the terminal. This "terminal IDE" pattern is particularly popular in backend and systems programming communities.
+
+The competitive dynamic between these platforms is healthy for developers — capability improvements in one product force improvements across the ecosystem. The practical advice: pick the tool that integrates best with your existing workflow rather than switching workflows for the tool.
+
+-   Evaluate tools based on your actual workflow, not benchmark numbers
+-   The CLI tools (Claude Code, Aider) work in any environment — IDE plugins require the specific IDE
+-   Most teams end up using 2-3 tools in combination: one for agent tasks, one for autocomplete
+-   Invest in learning keyboard shortcuts for your agent tool — context switch time is the biggest productivity drag
+
+The Convergence: Every IDE Becoming an Agent Platform — VS Code, JetBrains, Vim
+
+### 8.9 Agent Benchmarks and Evals (2026 State)
+
+Benchmarks for coding agents have evolved rapidly as original benchmarks became saturated. Understanding what they measure — and what they do not — is essential for evaluating marketing claims.
+
+**SWE-bench Verified (2026 state):** the gold standard for real-world coding tasks. Tests agents on actual GitHub issues from popular open-source repositories. The agent must read the issue, navigate the codebase, write a fix, and pass the existing tests. Top scores as of mid-2026: Claude 3.7 Sonnet 70.3% (Anthropic's published result), Devin 2.0 approximately 55%, GPT-4o approximately 38%. Note that "verified" means a human verified the issue and test are well-formed — it is a harder and more reliable benchmark than the original SWE-bench.
+
+**HumanEval:** essentially saturated — top models score 95%+. No longer differentiates between models for serious evaluation purposes. Moving to HumanEval+ and EvalPlus which add more test cases and edge cases.
+
+**LiveCodeBench:** uses competitive programming problems published after model training cutoffs, making it harder to game via memorization. Tests genuine reasoning ability. More relevant for algorithmic problem-solving than for typical enterprise coding work.
+
+**What benchmarks do not measure:** code maintainability, adherence to team conventions, security soundness, ability to work within existing codebases without breaking things, handling of ambiguous requirements. These are exactly the properties that matter most in real production use — benchmark results and real-world performance diverge significantly.
+
+-   Treat benchmark numbers as rough ordering, not absolute performance claims
+-   Run your own evals on tasks representative of your actual work — vendor benchmarks optimize for vendor benchmarks
+-   SWE-bench Verified is the most credible public benchmark as of 2026
+-   Model selection should be based on your specific task distribution, not global benchmark scores
+
+Agent Benchmarks and Evals (2026) — SWE-bench, HumanEval, LiveCodeBench
+
+### 8.10 Open Source Alternatives
+
+Commercial coding agents are not the only option. A healthy open source ecosystem has emerged, offering cost advantages and self-hosting capability for organizations with privacy requirements or budget constraints.
+
+**Aider** (aider.chat): a CLI agent that works with any LLM API including OpenAI, Anthropic, Ollama (for local models), and more. Excellent git integration — every change is a clean commit. Strong at multi-file edits. The `--architect` flag uses a smarter model for planning and a cheaper one for implementation. Best for users who want flexibility in model choice and are comfortable in the terminal.
+
+**Continue.dev**: VS Code and JetBrains extension that brings Copilot-style completions using any LLM. Fully open source. Can be configured with local models via Ollama for air-gapped environments. Strong community with a library of shared "slash commands" for common tasks.
+
+**Cline (formerly Claude Dev)**: VS Code extension focused on Claude specifically. Agentic capabilities similar to Claude Code but within VS Code. Strong file system integration and browser tool support. Popular in the VS Code community as a Claude Code alternative for users who prefer GUI tools.
+
+**OpenHands (formerly OpenDevin)**: open source implementation of a Devin-like agent. Runs in a Docker sandbox for safety. Can execute code, browse the web, and manage files. The most capable open-source agent for autonomous task execution as of mid-2026.
+
+Cost comparison for 1000 requests/month:
+Claude Code Pro: $100/month flat
+Aider + Claude API: ~$15-50/month depending on task complexity
+Aider + local Llama 3.1 70B: hardware cost only (electricity + GPU amortization)
+OpenHands self-hosted: infrastructure cost + model API costs
+
+-   Try Aider if you want model flexibility and a smaller bill for lighter usage
+-   Use Continue.dev if your team is VS Code-first and wants self-hosted model options
+-   OpenHands for autonomous task execution with more control than commercial options
+-   Self-hosted options require more setup and maintenance — factor that into your total cost of ownership
+
+Open Source Alternatives — Aider, Continue.dev, Cline, OpenHands, cost compare
+
+### 8.11 2027 Predictions
+
+These are informed predictions, not guarantees. They are designed to help you think about where to invest your learning and your team's capabilities over the next 18 months.
+
+**Agents that own entire feature areas:** by 2027, it will be commonplace for agents to have ongoing responsibility for specific parts of a codebase — monitoring for issues, responding to bug reports with PRs, keeping dependencies updated, and generating release notes. The human role shifts further toward specification and review.
+
+**"Agent orchestration" as a job skill:** software engineer job descriptions in 2027 will routinely list "experience directing coding agents" as a required skill, similar to how they list "experience with cloud platforms" today. This is not a stretch prediction — it is already appearing in forward-looking job postings in 2026.
+
+**IDE market consolidation:** the current proliferation of agent tools will consolidate around 2-3 dominant platforms. Microsoft (VS Code + Copilot), JetBrains (for JVM/enterprise), and one terminal-native tool (Claude Code or its successor) are the likely survivors. Niche tools will consolidate into these platforms as plugins.
+
+**Regulatory frameworks:** as coding agents are used in safety-critical systems (medical devices, financial infrastructure, transportation), regulators will develop frameworks for AI-assisted code. The FDA's digital health guidance and the EU AI Act's high-risk system categories will both touch agent-generated code by 2027. Organizations in regulated industries should start developing their documentation practices now.
+
+**Open source catching up:** local model quality is improving rapidly. By 2027, a self-hosted open source agent on high-quality hardware will match today's Claude Sonnet performance for most coding tasks. This will significantly change the cost structure for organizations willing to invest in infrastructure.
+
+-   Invest in prompt engineering and specification writing now — these skills pay dividends regardless of how predictions land
+-   If you are in a regulated industry, start documenting your AI-assisted development process today
+-   Do not over-invest in any single tool — the platform landscape will shift significantly by 2027
+-   The skills that remain human-essential (architecture, communication, security judgment) are the right long-term investment
+
+2027 Predictions — agent ownership of features, regulatory frameworks
+
+### 8.12 Getting Started Today — Your Action Plan
+
+The best time to start using coding agents was a year ago. The second best time is today. Here is a concrete 30-day action plan based on where you are starting from.
+
+**Decision Tree: Where to Start**
+
+Individual developer → Claude Code Pro ($100/month), start with your current project's test coverage
+Small team (2-5 devs) → Claude Code Team plan, set up shared CLAUDE.md on day 1, weekly prompt sharing session
+Mid-size team (6-50) → Cursor Business OR Claude Code + team CLAUDE.md + MCP servers for your stack
+Enterprise (50+) → GitHub Copilot Enterprise for the long tail + Claude Code Pro for power users; pilot first, then rollout
+
+**30-Day Adoption Roadmap:**
+
+**Week 1 — Setup and first wins.** Install Claude Code. Set up CLAUDE.md with your project's tech stack, conventions, and common commands. Use it on one real task: write tests for a module with low coverage. Measure the time it took vs your estimate for doing it manually.
+
+**Week 2 — Workflow integration.** Use Claude Code for every PR you write this week. Use `/review` before every PR. Run `/cost` at the end of each day to understand your usage. Identify the two task types where it saved you the most time.
+
+**Week 3 — Expand and share.** Teach the two highest-ROI workflows to one colleague. Build one internal tool using the Cloudflare workflow from Module 6. Add the prompts that worked to your shared CLAUDE.md or team wiki.
+
+**Week 4 — Optimize and systematize.** Review what worked and what did not. Update your CLAUDE.md with the lessons learned. Set up the measurement baseline (PRs per sprint, time on boilerplate vs features). Make the case for team adoption using your own data.
+
+-   Start with test writing — it is high-value, low-risk, and gives you immediate signal on how agents work
+-   Set up CLAUDE.md on day 1 — it is the highest-leverage configuration step
+-   Share what works with at least one colleague in week 3 — adoption spreads through demonstration
+-   Measure before and after — your own data is more persuasive than any vendor case study
+
+Getting Started Today — 30-day adoption roadmap by team size

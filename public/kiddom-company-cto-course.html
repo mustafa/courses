@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiddom — The Business of K-12 Curriculum (CTO Course)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0d12;--bg-card:#13161e;--bg-card-hover:#1b1f2a;--accent:#7c5cfc;--accent-dim:#6d4ae0;--accent-glow:rgba(124,92,252,0.15);--gold:#14b8a6;--gold-glow:rgba(20,184,166,0.12);--text:#e3e6ec;--text-dim:#9aa3b2;--text-bright:#f8fafc;--border:#1f2430;--border-light:#333b4c;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;--font-mono:"SF Mono",Monaco,Menlo,Consolas,"Liberation Mono",monospace}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.75;font-size:17px;min-height:100vh}
+nav{position:sticky;top:0;z-index:100;background:rgba(11,13,18,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.nav-brand{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:-0.3px}
+.nav-brand span{color:var(--gold)}
+.nav-links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;white-space:nowrap;transition:all 0.2s}
+.nav-link:hover,.nav-link.active{color:var(--accent);background:var(--accent-glow)}
+.nav-progress{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);white-space:nowrap}
+.progress-bar{width:100px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:3px;transition:width 0.5s ease;width:0%}
+.hero{max-width:1200px;margin:0 auto;padding:80px 24px 50px}
+.hero h1{font-size:clamp(28px,4vw,44px);font-weight:800;color:var(--text-bright);line-height:1.15;margin-bottom:16px;letter-spacing:-1px}
+.hero h1 span{color:var(--accent)}
+.hero h1 em{color:var(--gold);font-style:normal}
+.hero-subtitle{font-size:18px;color:var(--text-dim);max-width:760px;margin-bottom:32px}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-size:14px;color:var(--text-dim)}
+.hero-meta span{display:flex;align-items:center;gap:6px}
+.hero-meta strong{color:var(--text)}
+.statbar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1200px;margin:0 auto 8px;padding:0 24px}
+.statbox{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.statbox .num{font-size:22px;font-weight:800;color:var(--text-bright);letter-spacing:-0.5px}
+.statbox .num small{font-size:13px;color:var(--gold);font-weight:600}
+.statbox .lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-dim);margin-top:4px}
+main{max-width:1200px;margin:0 auto;padding:32px 24px 80px}
+.module-section{margin-bottom:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg-card);transition:border-color 0.3s}
+.module-section:hover{border-color:var(--border-light)}
+.module-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;cursor:pointer;user-select:none;transition:background 0.2s}
+.module-header:hover{background:var(--bg-card-hover)}
+.module-header-left{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
+.progress-check{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.module-number{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;flex-shrink:0}
+.module-header h2{font-size:clamp(16px,2.5vw,20px);font-weight:700;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toggle-icon{color:var(--text-dim);font-size:14px;transition:transform 0.3s;flex-shrink:0}
+.toggle-icon.open{transform:rotate(90deg)}
+.module-content{display:none;padding:0 24px 32px;border-top:1px solid var(--border)}
+.module-content.open{display:block}
+.module-content h3{font-size:20px;font-weight:700;color:var(--accent);margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.module-content h3:first-child{margin-top:24px}
+.module-content h4{font-size:16px;font-weight:700;color:var(--gold);margin:24px 0 10px}
+.module-content p{margin-bottom:16px;color:var(--text)}
+.module-content ul,.module-content ol{margin:0 0 16px 24px;color:var(--text)}
+.module-content li{margin-bottom:8px}
+.module-content code{font-family:var(--font-mono);font-size:0.9em;background:rgba(124,92,252,0.1);color:var(--accent);padding:2px 6px;border-radius:4px}
+.module-content strong{color:var(--text-bright)}
+.key-term{color:var(--accent);font-weight:600;border-bottom:1px dotted var(--accent-dim)}
+.info-box{background:linear-gradient(135deg,rgba(124,92,252,0.08),rgba(124,92,252,0.03));border:1px solid rgba(124,92,252,0.25);border-left:4px solid var(--accent);border-radius:8px;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7}
+.info-box strong{color:var(--accent)}
+.deal-box{background:linear-gradient(135deg,rgba(20,184,166,0.09),rgba(20,184,166,0.03));border:1px solid rgba(20,184,166,0.28);border-left:4px solid var(--gold);border-radius:8px;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7}
+.deal-box strong{color:var(--gold)}
+.risk-box{background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.03));border:1px solid rgba(239,68,68,0.28);border-left:4px solid var(--danger);border-radius:8px;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7}
+.risk-box strong{color:var(--danger)}
+.comparison-table{overflow-x:auto;margin:24px 0;border-radius:8px;border:1px solid var(--border)}
+.comparison-table table,.module-content table{width:100%;border-collapse:collapse;font-size:14px}
+.comparison-table th,.module-content th{background:rgba(124,92,252,0.1);color:var(--accent);font-weight:600;text-align:left;padding:12px 16px;border-bottom:2px solid var(--border);white-space:nowrap}
+.comparison-table td,.module-content td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.comparison-table tr:hover,.module-content tr:hover{background:rgba(124,92,252,0.04)}
+.comparison-table td strong,.module-content td strong{color:var(--text-bright)}
+.ascii-diagram{margin:24px 0;background:#0c0f17;border:1px solid var(--border);border-radius:8px;overflow-x:auto}
+.ascii-diagram pre{font-family:var(--font-mono);font-size:13px;line-height:1.5;color:var(--accent);padding:24px;margin:0;white-space:pre;min-width:max-content}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px}
+.tag{font-size:12px;font-weight:600;padding:4px 12px;border-radius:9999px;background:rgba(124,92,252,0.12);color:var(--accent);border:1px solid rgba(124,92,252,0.25)}
+.tag.g{background:var(--gold-glow);color:var(--gold);border-color:rgba(20,184,166,0.3)}
+.disclaimer{max-width:1200px;margin:0 auto;padding:0 24px}
+.disclaimer .d-inner{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--text-dim);line-height:1.6}
+.footer{text-align:center;padding:40px 24px;color:var(--text-dim);font-size:13px;border-top:1px solid var(--border);max-width:1200px;margin:0 auto}
+.footer a{color:var(--accent);text-decoration:none}
+@media(max-width:768px){
+nav{padding:0 16px}
+.nav-links{display:none}
+.hero{padding:40px 16px 24px}
+.statbar{grid-template-columns:repeat(2,1fr);padding:0 16px}
+main{padding:24px 16px 60px}
+.module-header{padding:16px}
+.module-content{padding:0 16px 24px}
+.module-header h2{font-size:16px}
+.hero-meta{flex-direction:column;gap:8px}
+.ascii-diagram pre{font-size:11px;padding:16px}
+.comparison-table th,.comparison-table td,.module-content th,.module-content td{padding:8px 10px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<nav>
+<div class="nav-inner">
+<div class="nav-brand">Kiddom <span>— CTO Onboarding</span></div>
+<div class="nav-links">
+<a href="#module-1" class="nav-link">1. Kiddom 101</a>
+<a href="#module-2" class="nav-link">2. K-12 &amp; HQIM</a>
+<a href="#module-3" class="nav-link">3. The Product</a>
+<a href="#module-4" class="nav-link">4. Curriculum Moat</a>
+<a href="#module-5" class="nav-link">5. Competition</a>
+<a href="#module-6" class="nav-link">6. Architecture</a>
+<a href="#module-7" class="nav-link">7. Build / Buy</a>
+<a href="#module-8" class="nav-link">8. CTO Playbook</a>
+</div>
+<div class="nav-progress">
+<span id="progress-text">0/8</span>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+</div>
+</nav>
+
+<div class="hero">
+<h1>Kiddom: The Business of <span>K-12 Curriculum</span> &amp; <em>Learning Intelligence</em></h1>
+<p class="hero-subtitle">A CTO-level briefing for onboarding into Kiddom. Understand the company and its "human-first" thesis, how the K-12 curriculum economy actually buys and adopts, what the platform really is (curriculum + LMS + assessment + AI), who the competitors are across two converging markets, and the architecture a curriculum-plus-platform-plus-AI business must own to win. Built to take you from day-zero to a credible point of view in your first leadership conversations.</p>
+<div class="hero-meta">
+<span><strong>Audience:</strong> Incoming CTO / VP Eng</span>
+<span><strong>Duration:</strong> 2-3 hours</span>
+<span><strong>Modules:</strong> 8</span>
+<span><strong>Focus:</strong> Kiddom as a technology &amp; business asset</span>
+</div>
+</div>
+
+<div class="statbar">
+<div class="statbox"><div class="num">2015</div><div class="lbl">Founded (San Francisco)</div></div>
+<div class="statbox"><div class="num">~$56.5<small>M</small></div><div class="lbl">Total raised (est., 3 rounds)</div></div>
+<div class="statbox"><div class="num">$35<small>M</small></div><div class="lbl">Series C (Aug 2021)</div></div>
+<div class="statbox"><div class="num">Nov 2025</div><div class="lbl">CA statewide math adoption</div></div>
+</div>
+
+<div class="disclaimer">
+<div class="d-inner">
+<strong style="color:var(--gold)">⚑ On the numbers:</strong> Kiddom is a private company and does not disclose ARR, district counts, or seat numbers. Figures below are drawn from company press releases, Crunchbase/PitchBook/Tracxn, EdTech trade press (EdSurge, THE Journal, EdTech Digest), and state adoption notices. Funding totals and the ~$247M valuation are <em>estimates / point-in-time</em> and directional only. Architecture in Module 6 is a <em>reference model</em> for this class of platform — best-practice patterns, not Kiddom's confidential internals. Verify any specific number against a live source before quoting it internally or externally.
+</div>
+</div>
+
+<main>
+
+<!-- ===================== MODULE 1 ===================== -->
+<section class="module-section" id="module-1">
+  <div class="module-header" onclick="toggleModule(1)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 1</span>
+      <h2>Kiddom 101 — The Company &amp; the "Human-First" Thesis</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-1">▶</span>
+  </div>
+  <div class="module-content" id="content-1">
+
+    <p>Before you reason about Kiddom as a technology asset, understand what kind of company it actually is. Kiddom is not an "app" and not a content publisher in the traditional sense — it is a <strong>digital curriculum platform</strong> that fuses high-quality instructional materials with the software teachers use to plan, teach, assess, and analyze. The company's own framing has shifted over a decade from "teacher toolkit" to "digital curriculum platform" to, most recently, <span class="key-term">learning intelligence</span> — and that arc is the single most important thing to internalize, because it defines the technical mandate you'd inherit.</p>
+
+    <h3>The Founding Story</h3>
+
+    <p>Kiddom was founded in <strong>2015</strong> in San Francisco by two college roommates from the University of Illinois who reconnected years after graduation. <strong>Ahsan Rizvi</strong> (CEO) had bootstrapped an iOS math game; <strong>Abbas Manjee</strong> (Chief Academic Officer) had been a math teacher for over-age, under-credited youth in New York City and had built a digital gradebook for his own students (after an earlier stint as an investment-banking analyst at Merrill Lynch). Those two artifacts — a learning app and a teacher's gradebook — are the genetic material of the company: <strong>a product instinct fused with genuine classroom credibility</strong>. The CAO being a former teacher (not a marketing title — an actual practitioner) is a cultural fact you'll feel in every product decision.</p>
+
+    <p>The stated mission is deliberately <span class="key-term">"human-first"</span>: technology that gives teachers time and judgment back, rather than replacing them. That framing matters strategically in the AI era — Kiddom's entire AI posture (Module 3) is "AI that supports the teacher's decision," not "AI that teaches the kid." Keep that north star; it's a positioning moat as much as a values statement.</p>
+
+    <h3>The Strategic Arc: Gradebook → Curriculum → Learning Intelligence</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Era</th><th>What Kiddom was</th><th>The problem with it as a business</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>~2015-2018<br>Teacher toolkit</strong></td>
+            <td>A free/freemium standards-based gradebook + analytics that individual teachers adopted bottom-up.</td>
+            <td>Beloved by teachers, but <em>bottom-up free tools don't monetize</em> — no district contract, no defensibility, classic edtech trap.</td>
+          </tr>
+          <tr>
+            <td><strong>~2019-2023<br>Curriculum platform</strong></td>
+            <td>Pivot to delivering <strong>high-quality curriculum</strong> (Illustrative Mathematics, EL Education, OpenSciEd) digitally, sold top-down to districts.</td>
+            <td>Solves monetization (districts pay for curriculum) but creates <em>dependence on partner content</em> Kiddom doesn't own (Module 4).</td>
+          </tr>
+          <tr>
+            <td><strong>2024-present<br>Learning intelligence</strong></td>
+            <td>Curriculum + instruction + assessment + <strong>AI</strong> (Auto-Feedback, Practice Generator, and <strong>Atlas</strong>) layered on that adopted curriculum.</td>
+            <td>The current bet: make the <em>platform + data + AI</em> the moat, so Kiddom is more than a thin wrapper around someone else's content.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box">
+      <strong>💡 CTO Talking Point:</strong> The pivot from "teacher toolkit" to "district curriculum platform" is the most important business decision in Kiddom's history — it's what made it a real company. But it created the central tension of your job: <strong>Kiddom monetizes content it largely doesn't author</strong> (IM, EL Education, and OpenSciEd are nonprofits / open programs). The "learning intelligence" strategy is the answer — the platform, the data graph, the assessment engine, and the AI layer are the parts Kiddom <em>does</em> own and can defend. If you frame your mandate as "turn the platform and its data into the defensible asset on top of partner curriculum," you're speaking to the actual strategic problem, not just shipping features.
+    </div>
+
+    <h3>Funding, Ownership &amp; Valuation</h3>
+
+    <p>Kiddom has raised roughly <strong>$56.5M across three disclosed rounds</strong> (some trackers cite higher cumulative figures; treat the exact total as an estimate). The defining round was the <strong>Series C of $35M in August 2021</strong>, led by <strong>Altos Ventures</strong>, with participation from edtech-focused investors including <strong>Owl Ventures</strong> and <strong>Khosla Ventures</strong>, plus Cambria Group, A-Street, and Edovate Capital across rounds. A frequently-cited post-Series-C valuation lands near <strong>~$247M (2021 estimate — directional, not a fresh priced mark)</strong>.</p>
+
+    <ul>
+      <li><strong>Investor profile:</strong> Owl Ventures is the largest dedicated edtech fund in the world; their presence signals the company is being managed toward edtech-specific outcomes — district ARR, net revenue retention, and adoption wins — not generic SaaS vanity metrics.</li>
+      <li><strong>Capital posture:</strong> The Series C predates the 2022-2024 edtech funding winter and the <strong>ESSER funding cliff</strong> (the expiry of federal COVID relief money that inflated district budgets through ~2024). A company that raised in 2021 and is operating in 2026 has had to demonstrate <em>capital efficiency and real revenue</em>, not just growth — which shapes how you'll be asked to spend on engineering.</li>
+      <li><strong>No near-term IPO.</strong> Treat this as a private, milestone-driven company: patient-ish capital, but a board that wants to see the AI/learning-intelligence thesis convert into renewals and expansion.</li>
+    </ul>
+
+    <h3>Who Runs It</h3>
+
+    <ul>
+      <li><strong>Ahsan Rizvi</strong> — Co-Founder &amp; CEO. Product/engineering origin; M.S. Public Policy, B.S. Industrial Engineering (Illinois).</li>
+      <li><strong>Abbas Manjee</strong> — Co-Founder &amp; Chief Academic Officer. Former NYC math teacher; the academic-credibility anchor and the voice of "does this actually help teaching?" — your most important non-engineering partner.</li>
+      <li><strong>Kent Donges</strong> — Chief Revenue Officer; 30 years in education as teacher, principal, and sales leader. District go-to-market runs through here.</li>
+      <li>Plus functional leadership across legal, sales, and customer success / professional learning (the implementation muscle that makes district adoptions stick).</li>
+    </ul>
+
+    <p>Recurring public signal: Kiddom's co-founders have taken the stage at the <strong>ASU+GSV Summit</strong> (the industry's marquee edtech conference) on the theme of <span class="key-term">instructional coherence</span> — the idea that fragmented tools and content hurt learning, and a single coherent curriculum-plus-platform is the fix. That word, "coherence," is the company's strategic vocabulary; you'll want it in yours.</p>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 2 ===================== -->
+<section class="module-section" id="module-2">
+  <div class="module-header" onclick="toggleModule(2)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 2</span>
+      <h2>The K-12 Market &amp; the HQIM Movement</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-2">▶</span>
+  </div>
+  <div class="module-content" id="content-2">
+
+    <p>You cannot architect for this business without understanding how K-12 actually <em>buys</em> — because the buyer, the budget cycle, and the adoption mechanism dictate the product's hard constraints (accessibility, interoperability, evidence of alignment) far more than any user-experience preference. K-12 is one of the most distinctive B2B markets in technology, and the people who run Kiddom live and breathe its rules.</p>
+
+    <h3>The Buyer Is the District, Not the Teacher</h3>
+
+    <p>The Kiddom of 2015 sold to teachers; the Kiddom that became a company sells to <strong>districts</strong>. That changes everything:</p>
+
+    <ul>
+      <li><strong>Long, seasonal sales cycles.</strong> Decisions track the school-year and budget calendar. Pilots in spring, decisions in summer, deployment in fall. Revenue and load are both seasonal — and predictable.</li>
+      <li><strong>Procurement, not checkout.</strong> Purchases go through RFPs, committee review, board approval, and formal procurement. Your product must <em>pass requirements</em> (privacy, accessibility, interoperability) before it can be considered, regardless of how good it is.</li>
+      <li><strong>The decision-makers aren't the users.</strong> A superintendent, curriculum director, or school board chooses; teachers and students use. You build for two audiences with different success criteria.</li>
+      <li><strong>Budget cliffs are real.</strong> Federal <span class="key-term">ESSER</span> relief funds (which inflated edtech spending 2021-2024) have expired. Districts in 2026 are scrutinizing spend and consolidating tools — a tailwind for "one coherent platform" and a headwind for point solutions.</li>
+    </ul>
+
+    <h3>The HQIM Movement — Kiddom's Tailwind</h3>
+
+    <p>The single most important market force behind Kiddom is the rise of <span class="key-term">High-Quality Instructional Materials (HQIM)</span>. Over the last decade, a substantial body of research and advocacy (RAND, Chiefs for Change, and the nonprofit <strong>EdReports</strong> — effectively the "Consumer Reports of curriculum") established that <strong>the specific curriculum a school uses is a high-leverage, remarkably low-cost driver of student outcomes</strong>. Swapping a mediocre curriculum for a high-quality one is cheaper than almost any other intervention and can move achievement measurably.</p>
+
+    <p>This created a policy and purchasing shift that Kiddom is built to ride:</p>
+
+    <ul>
+      <li><strong>States publish HQIM lists and run adoptions.</strong> State boards vet curricula against frameworks and publish approved lists; districts are steered (sometimes funded, sometimes required) to choose from them. Getting <em>on</em> the list is a distribution unlock.</li>
+      <li><strong>Decade-long lock-in.</strong> Adoptions are infrequent and durable. California's 2025 math adoption was its <strong>first since 2014</strong> — the choices made now shape instruction for ~a decade. Winning an adoption is closer to winning a long-term contract than a sale.</li>
+      <li><strong>OER → supported digital HQIM.</strong> Much of the best curriculum (Illustrative Mathematics, EL Education, OpenSciEd) is <strong>openly licensed</strong>. The market problem was never "is good content available" — it's that raw open content is hard to implement, assess against, and keep coherent. Kiddom's wedge is turning open/HQIM content into a <em>supported, digital, assessable, AI-augmented</em> implementation.</li>
+    </ul>
+
+    <div class="deal-box">
+      <strong>🎯 Why this matters to a CTO:</strong> "Coherence" is not marketing fluff — it's the market's pain. The default state of a classroom is fragmentation: teachers pulling worksheets from Teachers-Pay-Teachers, Pinterest, and a dozen disconnected apps, none aligned to each other or to a coherent scope-and-sequence. The HQIM movement is a reaction to that fragmentation. Kiddom's technical thesis — one adopted curriculum, one assessment spine, one data graph, one AI layer grounded in <em>that</em> curriculum — is the engineering expression of the market's policy direction. Your architecture should make coherence a structural property, not a feature.
+    </div>
+
+    <h3>Market Size &amp; Shape</h3>
+
+    <ul>
+      <li>The global EdTech market is frequently sized around <strong>$120-160B (2024)</strong> with aggressive multi-year growth projections — but these top-line numbers mix consumer, corporate, and K-12, so treat them as context, not Kiddom's addressable market.</li>
+      <li>Kiddom's real TAM is narrower and more concrete: <strong>U.S. K-12 core instructional-materials + curriculum-platform spend</strong> — districts buying math, ELA, science, and social-studies programs plus the software to deliver them. This is a multi-billion-dollar, slow-moving, adoption-gated market dominated historically by a few large publishers (Module 5).</li>
+      <li>The growth vector Kiddom is betting on is the <strong>convergence</strong> of two budgets that used to be separate: the <em>curriculum/instructional-materials</em> budget and the <em>software/LMS</em> budget. Kiddom sits at the seam and wants both.</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 CTO Talking Point:</strong> The market rules become your non-negotiable requirements. Because the buyer is a district and the gate is a state adoption, three things are <strong>P0 constraints, not nice-to-haves</strong>: (1) <strong>accessibility</strong> conformance (WCAG / Section 508 — adoptions often require a VPAT); (2) <strong>data privacy</strong> compliance (FERPA, COPPA, state laws — districts will not sign without it); and (3) <strong>interoperability</strong> (rostering and SSO via Clever/ClassLink/OneRoster, LMS launch via LTI). A brilliant product that fails any one of these can't be sold. Frame these to your team as revenue-blocking requirements, because that's literally what they are.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 3 ===================== -->
+<section class="module-section" id="module-3">
+  <div class="module-header" onclick="toggleModule(3)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 3</span>
+      <h2>The Product — What Kiddom Actually Is</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-3">▶</span>
+  </div>
+  <div class="module-content" id="content-3">
+
+    <p>"Kiddom" is really <strong>four products fused into one platform</strong>: a digital curriculum, a lightweight LMS / instruction layer, an assessment-and-analytics engine, and — increasingly — an AI layer. Districts buy a single coherent thing; engineering maintains four distinct subsystems with different SLAs. Treat this module as the functional spec of the business.</p>
+
+    <div class="ascii-diagram">
+<pre>
+WHAT A DISTRICT BUYS WHEN IT BUYS "KIDDOM"
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  1. DIGITAL CURRICULUM  (the content)                         │
+  │     IM v.360 math · EL Education ELA · OpenSciEd science      │
+  │     Core Knowledge soc-studies · print + digital · EN / ES    │
+  └───────────────────────────┬──────────────────────────────────┘
+                              │ delivered & taught through...
+  ┌───────────────────────────┴──────────────────────────────────┐
+  │  2. INSTRUCTION / LMS LAYER                                   │
+  │     lesson planning · assignments · gradebook · Spotlight     │
+  │     (capture paper work → project to class) · rostering       │
+  └───────────────────────────┬──────────────────────────────────┘
+                              │ measured by...
+  ┌───────────────────────────┴──────────────────────────────────┐
+  │  3. ASSESSMENT &amp; ANALYTICS                                    │
+  │     embedded/formative assessment · standards-based grading   │
+  │     teacher + admin dashboards · ANet formative integration   │
+  └───────────────────────────┬──────────────────────────────────┘
+                              │ augmented by...
+  ┌───────────────────────────┴──────────────────────────────────┐
+  │  4. AI LAYER  ("learning intelligence")                       │
+  │     Kiddom Assistant · Auto-Feedback · Auto-Scoring ·         │
+  │     Practice Generator · Lesson Clipper · ATLAS (differentiate)│
+  └──────────────────────────────────────────────────────────────┘
+</pre>
+    </div>
+
+    <h3>1. The Curriculum</h3>
+
+    <p>The content spine is a set of <strong>high-quality, mostly open or nonprofit-authored programs</strong> that Kiddom delivers digitally (and in print). The flagship is <span class="key-term">Kiddom IM® v.360</span> — Illustrative Mathematics' 360 curriculum, with state-specific variants (e.g., <strong>Kiddom IM v.360 California</strong>, NYC, Maryland, Virginia editions) aligned to each state's standards and framework. Content ships <strong>print + digital, in English and Spanish</strong>, with teacher guides, multilingual-learner supports, digital manipulatives, and project-based experiences. ELA comes via <strong>EL Education</strong> and Odell; science via <strong>OpenSciEd</strong> and OpenStax; social studies via Core Knowledge; plus phonics, formative assessment, and supplemental partners (Module 4).</p>
+
+    <h3>2. The Instruction / LMS Layer</h3>
+
+    <p>This is the teacher's daily surface: planning against the scope-and-sequence, assigning work, a <strong>standards-based gradebook</strong>, and classroom tools. A representative differentiator is <span class="key-term">Spotlight</span> — capture <em>paper-based</em> student work from a device camera and project it to the class. That feature tells you something important about the product philosophy: <strong>Kiddom embraces the hybrid paper+digital reality of real classrooms</strong> rather than forcing everything online. Your architecture has to treat "a photo of a worksheet" as a first-class input, not an edge case.</p>
+
+    <h3>3. Assessment &amp; Analytics</h3>
+
+    <p>Assessment is <strong>embedded in the curriculum</strong>, not bolted on — the point is to connect "what was taught," "how students did," and "what to do next." Standards-based grading rolls evidence up to mastery; teacher and admin dashboards turn it into instructional and reporting signal. Kiddom integrates formative assessment via <strong>ANet (Achievement Network)</strong>. This subsystem is where Kiddom's "learning intelligence" claim is earned or lost — the data here is the fuel for the AI layer.</p>
+
+    <h3>4. The AI Layer — "Learning Intelligence"</h3>
+
+    <p>Since 2024 Kiddom has shipped a family of AI features, all sharing one design principle: <strong>grounded in the adopted high-quality curriculum, with the teacher in the loop</strong>. This is the "coherence" thesis applied to AI — the opposite of a generic chatbot that invents content from nowhere.</p>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Feature</th><th>What it does</th><th>Why it's framed as "coherent" / human-first</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Kiddom Assistant</strong></td><td>Answers curriculum questions and helps with non-teaching "work that pulls you away from students."</td><td>Grounded in the district's curriculum, not the open web.</td></tr>
+          <tr><td><strong>Auto-Feedback</strong></td><td>Generates draft, personalized comments on student work tuned to the assignment and learning goals.</td><td>Teacher reviews/edits before it reaches a student — a draft, not a verdict.</td></tr>
+          <tr><td><strong>Auto-Scoring</strong></td><td>Applies consistent scoring aligned to the lesson's criteria/rubric.</td><td>Consistency aid; the teacher retains authority over the grade.</td></tr>
+          <tr><td><strong>Practice Generator</strong></td><td>Produces tailored question sets in seconds, aligned to the current lesson.</td><td>Stays inside the curriculum's scope and standards.</td></tr>
+          <tr><td><strong>Lesson Clipper</strong> <span class="tag g">beta</span></td><td>Condenses a lesson to fit available class time without losing essentials.</td><td>Respects the authored lesson rather than replacing it.</td></tr>
+          <tr><td><strong>Atlas</strong> <span class="tag g">Fall 2026</span></td><td>Overnight, analyzes each class's formative data and generates next-day <em>differentiated</em> warm-ups and small-group plans.</td><td>Proactive differentiation grounded in IM v.360; teacher decides how to use it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>Atlas is the strategic centerpiece.</strong> Announced February 2026 (classroom availability Fall 2026, initially for <strong>Kiddom IM v.360</strong> customers), Atlas runs a <strong>nightly batch</strong> over each class's formative assessment data and classwork, identifies misconceptions and gaps, and produces <em>ready-to-teach differentiated materials and small-group instructions for the next day</em>. CEO Ahsan Rizvi frames it as "a shift from reactive to proactive instruction," and Kiddom reports early in-school results of <strong>up to ~18% gains versus peers</strong> (treat as an early, company-reported figure, not an independent study). Atlas is built with assessment/PD partners (ANet, Teaching Lab).</p>
+
+    <div class="info-box">
+      <strong>💡 CTO Talking Point:</strong> Atlas is the clearest expression of the entire company strategy, so understand its architecture shape: it's a <strong>nightly batch differentiation pipeline</strong> that joins (a) the canonical curriculum, (b) the standards graph, and (c) per-student formative data, then uses an LLM to generate grounded, teacher-reviewable materials. That means your highest-leverage technical assets are exactly the three things Kiddom owns — the content model, the standards alignment graph, and the assessment data. Atlas is only as good as those substrates. If asked "where does AI create durable value here?", the answer is <em>not</em> "we added a chatbot" — it's "we have a coherent, structured, proprietary corpus and longitudinal student-performance data that generic AI tools can't ground against."
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 4 ===================== -->
+<section class="module-section" id="module-4">
+  <div class="module-header" onclick="toggleModule(4)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 4</span>
+      <h2>The Curriculum &amp; Partner Moat — and Its Fault Line</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-4">▶</span>
+  </div>
+  <div class="module-content" id="content-4">
+
+    <p>This module covers the most distinctive — and most precarious — part of Kiddom's strategy: it builds a moat out of <strong>content it largely does not own</strong>. Getting this nuance exactly right will signal that you understand the business, not just the software.</p>
+
+    <h3>The "Premium Digital Partner" Model</h3>
+
+    <p>Kiddom partners with the nonprofit and open-curriculum authors whose programs the HQIM movement has anointed, and becomes their <strong>premium digital delivery + assessment + AI partner</strong>. The content's pedagogical authority comes from the partner (e.g., Illustrative Mathematics' brand <em>is</em> the credibility); Kiddom supplies the technology, the implementation support, and — increasingly — the AI and analytics layer on top.</p>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Partner</th><th>Subject</th><th>What Kiddom delivers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Illustrative Mathematics (IM)</strong></td><td>Math (K-12)</td><td>Flagship: <strong>Kiddom IM® v.360</strong> + state editions (CA, NYC, MD, VA). Kiddom is a named premium digital partner.</td></tr>
+          <tr><td><strong>EL Education</strong></td><td>ELA (K-8 / K-12)</td><td>Digital delivery of EL's language-arts curriculum; co-submitted for CA's 2026 ELA/ELD adoption.</td></tr>
+          <tr><td><strong>OpenSciEd / OpenStax</strong></td><td>Science</td><td>Open science curricula delivered digitally (added ~2024 alongside Labster, Slooh).</td></tr>
+          <tr><td><strong>Odell Education</strong></td><td>ELA</td><td>Secondary literacy program.</td></tr>
+          <tr><td><strong>Core Knowledge</strong></td><td>Social studies / ELA</td><td>e.g., "Bayou Bridges" social-studies content.</td></tr>
+          <tr><td><strong>ANet (Achievement Network)</strong></td><td>Assessment</td><td>Formative assessment integration; co-builder on Atlas.</td></tr>
+          <tr><td><strong>Amira · Unlock Phonics</strong></td><td>Early literacy</td><td>Reading/phonics supports.</td></tr>
+          <tr><td><strong>CenterPoint</strong></td><td>Assessment</td><td>IM-certified and EL-aligned assessment items.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>State Adoptions Are the Distribution Engine</h3>
+
+    <p>If partner curriculum is the content, <strong>state adoptions are the rights-equivalent distribution unlock</strong> — the closest thing in this business to Fanatics' exclusive league licenses. Getting a Kiddom program onto a state's approved HQIM list steers (and sometimes funds) district purchasing toward it for ~a decade. Recent wins:</p>
+
+    <ul>
+      <li><strong>California — Math (Nov 2025):</strong> <strong>Kiddom IM® v.360 California</strong> approved by the State Board of Education for K-8 math + Algebra 1, in California's <em>first math adoption cycle since 2014</em>. Aligned to CA Common Core, the 2023 Math Framework, CA ELD standards, and Environmental Principles; English + Spanish; print + digital. This is a marquee, decade-shaping win.</li>
+      <li><strong>California — ELA/ELD (2026 cycle):</strong> Kiddom + <strong>EL Education</strong> submitted a comprehensive program for California's 2026 English-Language-Arts / English-Language-Development adoption (in process).</li>
+      <li><strong>Maryland — Math:</strong> Kiddom + Illustrative Mathematics launched a Maryland math curriculum for <strong>2026-27</strong> K-12 implementation.</li>
+      <li><strong>Virginia — Math:</strong> a Virginia math program aligned to the 2023 standards.</li>
+    </ul>
+
+    <div class="deal-box">
+      <strong>🎯 Why adoptions are an engineering problem too:</strong> Each state adoption isn't just a sales win — it spawns a <strong>state-specific content variant</strong> (different standards alignment, different framework requirements, sometimes Spanish, always accessibility + alignment evidence). CA, NYC, MD, and VA editions of "the same" IM curriculum are real branching/versioning complexity. If your content model treats "the program" as a single blob, every new state adoption is a painful fork. If it treats <em>standards alignment and localization as composable layers over a canonical core</em>, each new adoption is configuration, not a rewrite. The scalability of Kiddom's growth engine is, quite literally, a content-architecture decision (Module 6).
+    </div>
+
+    <h3>The Fault Line: A Moat Built on Borrowed Content</h3>
+
+    <div class="risk-box">
+      <strong>⚠️ The partner-dependence vulnerability:</strong> Kiddom does <em>not</em> author IM, EL Education, or OpenSciEd — these are nonprofits / openly-licensed programs, and the same content is often available through <strong>other partners</strong>. Illustrative Mathematics, for example, also certifies <strong>Imagine Learning</strong> and <strong>Kendall Hunt</strong> as IM partners; a district can buy "IM math" without buying Kiddom. So the content is <em>not</em> the moat — it's table stakes. This is the strategic mirror of the grading dependency in a collectibles marketplace: you rely on an asset a partner controls. The defensible layer must be everything Kiddom builds <em>around</em> the content: the platform experience, the assessment-and-data spine, the state-adoption footprint and localization machinery, the implementation/PD relationship, and — above all — the <strong>AI layer grounded in proprietary student-performance data</strong>. Your core technical mandate is to make that wrapper so valuable that "IM through Kiddom" beats "IM through anyone else."
+    </div>
+
+    <div class="info-box">
+      <strong>💡 CTO Talking Point:</strong> The sharpest strategic question you could be asked is "what stops a partner from leaving, or a district from buying the same curriculum elsewhere?" The credible answer has three parts: (1) <strong>switching cost</strong> — once a district's rostering, gradebook, assessment history, and teacher workflows live in Kiddom, leaving is painful; (2) <strong>data compounding</strong> — Atlas and the analytics get better with every term of usage data, which competitors using the same content can't replicate; and (3) <strong>coherence</strong> — Kiddom delivers the content <em>plus</em> the assessment, analytics, and AI as one integrated system, where a bare-content reseller delivers a PDF. Name those three and you've shown you understand where the defensibility actually lives.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 5 ===================== -->
+<section class="module-section" id="module-5">
+  <div class="module-header" onclick="toggleModule(5)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 5</span>
+      <h2>The Competitive Landscape</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-5">▶</span>
+  </div>
+  <div class="module-content" id="content-5">
+
+    <p>Kiddom sits at the collision of <strong>two large, previously-separate markets</strong>: the Learning Management System (LMS) market and the instructional-materials / curriculum-publisher market. Plus a fast-moving swarm of AI insurgents. Knowing who owns what — and what each <em>can't</em> do — is essential to any strategy conversation.</p>
+
+    <h3>The Two Adjacent Markets Kiddom Bridges</h3>
+
+    <p><strong>The LMS axis (the "empty pipes"):</strong> <span class="key-term">Canvas (Instructure)</span>, <span class="key-term">Schoology (PowerSchool)</span>, and <span class="key-term">Google Classroom</span> own the workflow layer — assignments, gradebook, distribution — but are <strong>content-agnostic</strong>. They're powerful pipes with nothing flowing through them; the school still has to source and assemble curriculum separately. Google Classroom in particular is near-ubiquitous (Chromebook + Google Workspace districts) and effectively free, which sets a brutal baseline — Kiddom even integrates with it rather than fighting it head-on.</p>
+
+    <p><strong>The publisher axis (the "static content"):</strong> the legacy "big three" — <strong>HMH (Houghton Mifflin Harcourt)</strong>, <strong>Savvas</strong> (ex-Pearson K-12), and <strong>McGraw Hill</strong> — plus modern curriculum specialists like <strong>Great Minds</strong> (Eureka Math), <strong>Amplify</strong>, and <strong>Imagine Learning</strong>. These own deep content and district relationships, but their platforms are often <strong>weaker, more closed, and less coherent</strong> than a software-native experience, and several are tied to a single curriculum they author.</p>
+
+    <p><strong>Kiddom's wedge is the seam:</strong> <em>curriculum + platform fused</em> — a software-native experience wrapped around best-in-class HQIM. An LMS is pipes without content; a publisher is content without a great platform; Kiddom is trying to be both, with AI on top.</p>
+
+    <h3>Competitor Map</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Player</th><th>Type</th><th>Strength</th><th>How it pressures Kiddom</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Google Classroom</strong></td><td>LMS / workflow</td><td>Ubiquitous, free, Chromebook-native.</td><td>Sets a free baseline for the workflow layer; Kiddom must be worth paying <em>on top</em> of it (and integrates with it).</td></tr>
+          <tr><td><strong>Canvas (Instructure)</strong></td><td>LMS</td><td>Robust LMS, strong in larger districts &amp; higher-ed; LTI ecosystem.</td><td>Owns the platform layer in IT-sophisticated districts; Kiddom often must launch <em>inside</em> Canvas via LTI rather than replace it.</td></tr>
+          <tr><td><strong>Schoology (PowerSchool)</strong></td><td>LMS + SIS family</td><td>Bundled with PowerSchool's SIS/grad footprint.</td><td>Incumbency through the SIS relationship; data-graph advantage Kiddom lacks.</td></tr>
+          <tr><td><strong>HMH · Savvas · McGraw Hill</strong></td><td>Legacy publishers</td><td>Deep catalogs, sales forces, decades of district trust, adoption know-how.</td><td>Compete for the same adoption dollars with their own content + platforms; far bigger GTM muscle.</td></tr>
+          <tr><td><strong>Great Minds (Eureka) · Amplify</strong></td><td>Modern curriculum</td><td>Strong, branded, research-backed programs of their own.</td><td>Own the content <em>and</em> a platform — no partner dependence; direct HQIM rivals.</td></tr>
+          <tr><td><strong>Imagine Learning · Kendall Hunt</strong></td><td>Curriculum platforms</td><td>Also official <strong>IM partners</strong> — sell the same Illustrative Math content.</td><td>The most direct threat: a district can get "IM math" from them instead of Kiddom. Forces Kiddom to win on platform/AI, not content.</td></tr>
+          <tr><td><strong>MagicSchool · Brisk · Diffit · SchoolAI · Khanmigo</strong></td><td>AI insurgents</td><td>Fast-growing teacher-facing AI tools; viral bottom-up adoption.</td><td>Compete for the "AI for teachers" narrative — but generate content <em>ungrounded</em> in any adopted curriculum. Kiddom's counter is coherence + grounding.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Where the Battle Is Actually Fought</h3>
+
+    <ul>
+      <li><strong>Adoptions:</strong> getting on state HQIM lists (CA, TX, etc.) is the highest-leverage contest — a decade of distribution per win. Kiddom's CA math adoption is a real point on the board against far larger publishers.</li>
+      <li><strong>Coherence vs. fragmentation:</strong> Kiddom's pitch is "one integrated system" against both the LMS (no content) and the AI tools (no curriculum). This is its cleanest differentiation.</li>
+      <li><strong>The AI narrative:</strong> the insurgents (MagicSchool et al.) are winning <em>mindshare</em> on "AI for teachers." Kiddom's structural advantage is that its AI is grounded in adopted HQIM and real student data — but it has to make that advantage <em>felt</em>, or it loses the story to flashier ungrounded tools.</li>
+      <li><strong>Interoperability:</strong> because districts run Google Classroom/Canvas/PowerSchool, Kiddom frequently has to <em>integrate with</em> the incumbent rather than displace it — making LTI, rostering, and SSO competitive features, not plumbing.</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 CTO Talking Point:</strong> Kiddom's defensible edge is the <strong>fusion</strong> — curriculum + platform + assessment + AI as one coherent system — which neither the content-less LMS players nor the platform-thin publishers nor the curriculum-less AI tools can replicate alone. Its exposed flanks are (1) other IM partners selling the same content, and (2) AI insurgents owning the "AI for teachers" mindshare. A credible strategy: lean into coherence and grounded-AI as the wedge, treat interoperability with incumbents as a feature rather than an admission of defeat, and use state adoptions as the distribution flywheel that the AI tools structurally can't access.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 6 ===================== -->
+<section class="module-section" id="module-6">
+  <div class="module-header" onclick="toggleModule(6)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 6</span>
+      <h2>The Technology &amp; Architecture</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-6">▶</span>
+  </div>
+  <div class="module-content" id="content-6">
+
+    <p>This is the heart of the CTO conversation: what a curriculum-plus-platform-plus-AI business actually has to build and own. Below is a subsystem-by-subsystem reference architecture, each tied to a business force from earlier modules. These are <strong>general best-practice patterns for this domain</strong> (not Kiddom's confidential internals), framed so you can reason about trade-offs out loud.</p>
+
+    <div class="ascii-diagram">
+<pre>
+KIDDOM — SYSTEM ARCHITECTURE (REFERENCE MODEL)
+
+  CLIENTS:   Web App     iOS / Android     Print (PDF/offset)
+               │             │                  ▲
+               └──────┬──────┘                  │ single-source
+                      │  (API gateway / BFF)    │ publishing
+   ┌──────────────────┼─────────────────────────┴───────────────┐
+   ▼                  ▼                                          ▼
+ CURRICULUM       INSTRUCTION / LMS                      ASSESSMENT &amp;
+ CONTENT PLATFORM  • planning · assignments              ANALYTICS
+ • canonical model • standards-based gradebook           • item bank (QTI)
+   program→unit    • Spotlight (paper capture)           • auto + AI scoring
+   →lesson→item    • submissions (digital + photo)       • mastery rollups
+ • versioning      • classroom / real-time               • teacher + admin
+   (CA/NYC/MD/VA)        │                                  dashboards
+ • EN / ES i18n         │                                • district reporting
+        │               │                                       │
+        └──────┬────────┴──────────────┬────────────────────────┘
+               ▼                        ▼
+      STANDARDS ALIGNMENT GRAPH    AI / "LEARNING INTELLIGENCE"
+      • CCSS · NGSS · state         • RAG grounded in HQIM corpus
+        frameworks (CA/TX/VA)       • Auto-Feedback / Practice Gen
+      • crosswalks · evidence       • ATLAS nightly differentiation
+      • powers search, reporting,   • de-identify PII · human-in-loop
+        adoption compliance         • evals / safety gates
+               │                        │
+               └───────────┬────────────┘
+                           ▼
+   INTEROPERABILITY  +  IDENTITY/ROSTERING  +  DATA WAREHOUSE
+   OneRoster · LTI 1.3 · QTI · Caliper · Ed-Fi · Clever/ClassLink · SSO
+                           │
+                           ▼
+   CROSS-CUTTING:  FERPA/COPPA/SOPIPA privacy · WCAG/508 a11y ·
+                   SOC 2 · multi-tenancy · bell-schedule scale
+</pre>
+    </div>
+
+    <h3>1. Curriculum Content Platform (the foundation)</h3>
+    <p>The hardest unglamorous problem — the analog of a marketplace's canonical catalog. A curriculum is a deep, structured hierarchy: <code>subject → grade/course → unit → lesson → activity/task → item</code>, each node carrying standards alignment, multiple renditions (print + digital), and language variants (EN/ES). You need a <strong>canonical content model</strong> and <strong>single-source publishing</strong> so that one authoritative source generates the web experience, the mobile experience, <em>and</em> the printed workbook/teacher guide — and so a state edition (CA/NYC/MD/VA) is a <em>composable layer</em> over the canonical core, not a fork. Get this wrong and every new state adoption multiplies your maintenance surface; get it right and adoptions become configuration. This is the single most important architectural decision in the company.</p>
+
+    <h3>2. Standards Alignment Graph</h3>
+    <p>Every piece of content aligns to one or more standards — and standards are a <strong>graph that differs by state and changes over time</strong>: Common Core, NGSS, plus state-specific frameworks (California's 2023 Math Framework + ELD + Environmental Principles, Virginia SOL, Texas TEKS). You need crosswalks between standard sets and machine-readable <strong>alignment evidence</strong> — because a state adoption literally requires <em>proving</em> alignment. This graph powers search, the standards-based gradebook, district reporting, and adoption compliance. It is also a genuine data moat: high-quality alignment data is expensive to produce and compounds.</p>
+
+    <h3>3. Identity &amp; Rostering</h3>
+    <p>Who is in which class — sourced from each district's <strong>SIS</strong> (PowerSchool, Infinite Campus, Skyward) via <strong>Clever, ClassLink, or OneRoster</strong> syncs, with SSO (Google, Clever, Microsoft, SAML/OIDC). Multi-tenancy is hierarchical: district → school → teacher → section → student. This is unglamorous, breaks constantly, and is <strong>the number-one cause of failed September launches</strong>. Rostering reliability is a renewal issue disguised as plumbing.</p>
+
+    <h3>4. Instruction / LMS Layer</h3>
+    <p>Planning, assignments, the standards-based gradebook, and real-time classroom tools. Two domain-specific demands stand out: <strong>(a) paper-first inputs</strong> — Spotlight means "a photo of a worksheet" is a first-class object that must be captured, stored, and tied to a student/assignment; and <strong>(b) low-bandwidth / Chromebook tolerance</strong> — many classrooms have constrained connectivity and aging devices, so the client must degrade gracefully, not assume fat pipes.</p>
+
+    <h3>5. Assessment &amp; Analytics</h3>
+    <p>An item bank (ideally <strong>QTI</strong>-modeled), scoring (rule-based <em>and</em> AI-assisted for open response), mastery/standards rollups, and dashboards for teachers and admins. This subsystem produces the <strong>longitudinal student-performance data</strong> that is the fuel for the AI layer and the basis of the "learning intelligence" claim — so its data model is strategic, not just operational. District-level reporting often needs to export via <strong>Ed-Fi</strong> or into the district's data warehouse.</p>
+
+    <h3>6. The AI / "Learning Intelligence" Layer</h3>
+    <p>The strategic core. The defining pattern is <strong>retrieval-augmented generation grounded in the HQIM corpus + standards graph + student data</strong> — the technical embodiment of "coherence." Auto-Feedback and Practice Generator are interactive; <strong>Atlas is a nightly batch pipeline</strong> that, per class, joins formative results to the curriculum and standards graph and generates differentiated next-day materials. The hard parts are not the model call — they are the substrate and the safety:</p>
+    <ul>
+      <li><strong>Grounding &amp; coherence:</strong> outputs must stay inside the adopted curriculum's scope and standards (retrieve, cite, constrain) — this is the differentiator vs. ungrounded AI tools.</li>
+      <li><strong>Student-data safety:</strong> minimize/<strong>de-identify PII</strong> before it reaches any model; never train third-party models on student data; keep a clear data-flow story for district privacy review.</li>
+      <li><strong>Human-in-the-loop:</strong> AI produces drafts (feedback, scores, warm-ups); the teacher approves. This is both pedagogy and risk control.</li>
+      <li><strong>Evals &amp; safety gates:</strong> hallucination, bias, and age-appropriateness must be measured continuously — an AI-quality regression in a K-12 product is a trust and PR event, not just a bug. Build the measurement culture as deliberately as the features.</li>
+      <li><strong>Model strategy:</strong> foundation models are a <em>buy</em> (use frontier models via API — e.g., the latest Claude); the proprietary value is the grounding corpus, the prompts/pipelines, and the evals — not the base model.</li>
+    </ul>
+
+    <h3>7. Interoperability — the K-12 Integration Tax</h3>
+    <p>Districts run a zoo of incumbent systems, so Kiddom must speak the ecosystem's standards fluently. These are <strong>revenue-blocking features, not back-office plumbing</strong>:</p>
+    <div class="comparison-table">
+      <table>
+        <thead><tr><th>Standard</th><th>Purpose</th><th>Why it's non-negotiable</th></tr></thead>
+        <tbody>
+          <tr><td><strong>OneRoster</strong> (+ Clever / ClassLink)</td><td>Rostering &amp; class sync from the SIS.</td><td>No clean roster = no working product on day one.</td></tr>
+          <tr><td><strong>LTI 1.3</strong></td><td>Launch Kiddom content inside Canvas / Schoology / Google Classroom.</td><td>Lets Kiddom live <em>inside</em> the district's chosen LMS instead of fighting it.</td></tr>
+          <tr><td><strong>QTI</strong></td><td>Portable assessment items.</td><td>Item interoperability and reuse across systems.</td></tr>
+          <tr><td><strong>Caliper Analytics</strong></td><td>Standardized learning-event data.</td><td>Clean learning-analytics emission for the data layer.</td></tr>
+          <tr><td><strong>Ed-Fi</strong></td><td>District data-standard / warehouse.</td><td>How districts ingest your data into their reporting.</td></tr>
+          <tr><td><strong>SSO</strong> (SAML / OIDC / Google)</td><td>Single sign-on.</td><td>Friction here = teachers abandon on the first morning.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>8. Compliance &amp; Privacy (a P0 constraint)</h3>
+    <p>Because users are children and customers are public agencies, compliance is a <strong>hard gate on revenue</strong>, akin to HIPAA in health systems:</p>
+    <ul>
+      <li><strong>FERPA</strong> — protects education records; Kiddom operates as a "school official" handling them.</li>
+      <li><strong>COPPA</strong> — under-13 data; school-as-agent consent model and strict data-use limits.</li>
+      <li><strong>State student-privacy laws</strong> — e.g., California's <strong>SOPIPA</strong>, plus the national <strong>Student Data Privacy Agreement (NDPA)</strong> framework many districts require you to sign.</li>
+      <li><strong>Accessibility</strong> — <strong>WCAG 2.1 AA / Section 508 / ADA</strong>; adoptions frequently require a <strong>VPAT</strong>. Inaccessible content can disqualify you from a state list outright.</li>
+      <li><strong>SOC 2 Type II</strong> — table-stakes security attestation for district procurement.</li>
+    </ul>
+
+    <h3>9. Print / Publishing Pipeline</h3>
+    <p>Unusually for a software company, Kiddom ships <strong>physical materials</strong> — workbooks and teacher guides, in English and Spanish — generated from the same single source as the digital experience. Print and digital must stay <strong>version-locked</strong>: a teacher's printed book and the student's screen must show the same lesson, same edition. This is a real pipeline (content → typeset → PDF → POD/offset partner) and a frequent source of drift if the content model isn't the single source of truth.</p>
+
+    <h3>10. Scale &amp; Reliability — the Shape of the Load</h3>
+    <p>Edtech load is <strong>distinctively bursty and predictable</strong>, which is both a challenge and a gift:</p>
+    <ul>
+      <li><strong>Bell-schedule concurrency:</strong> within a time zone, classes start on the hour/half-hour — a sawtooth of synchronized spikes as every period begins. Capacity must absorb the peak, not the average.</li>
+      <li><strong>The September spike:</strong> back-to-school is the single largest, most deterministic load event of the year — you know it's coming months out. There is no excuse for a September outage; load-test against it explicitly.</li>
+      <li><strong>School-year seasonality:</strong> summers are quiet (your maintenance/migration window); testing windows and term-ends create secondary peaks.</li>
+      <li><strong>Cost discipline:</strong> districts are price-sensitive and margins matter — over-provisioning for a peak you can predict is wasteful; autoscale to the known calendar.</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 CTO Talking Point:</strong> If asked "what's hard here that isn't obvious?", the strongest answers are: (1) the <strong>canonical content model + standards graph</strong> — single-source publishing across print/digital/EN-ES with state editions as composable layers is the foundation every other system (AI, search, reporting, adoption) stands on; (2) <strong>grounded AI on proprietary data</strong> — the Atlas pipeline's value comes from the content/standards/assessment substrate plus rigorous evals and PII safety, not from the model; and (3) the <strong>interoperability + compliance gate</strong> — rostering, LTI, FERPA, and accessibility are revenue-blocking, and "it works in September for every district" is the real reliability bar. Anyone can say "build an LMS." Naming these three says you understand <em>this</em> platform.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 7 ===================== -->
+<section class="module-section" id="module-7">
+  <div class="module-header" onclick="toggleModule(7)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 7</span>
+      <h2>Build vs Buy &amp; Strategic Technology Bets</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-7">▶</span>
+  </div>
+  <div class="module-content" id="content-7">
+
+    <p>A CTO's job is not to build everything — it's to know which capabilities are <strong>moat-building (build and own)</strong> and which are <strong>commodity (buy / partner and move on)</strong>. Here is a defensible framework for Kiddom, followed by the highest-leverage strategic bets.</p>
+
+    <h3>The Build / Buy / Partner Matrix</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>Decision</th><th>Rationale</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Canonical content model + single-source publishing</strong></td><td style="color:var(--success)"><strong>BUILD</strong></td><td>The foundation of everything; no vendor models <em>your</em> curriculum + state editions + print/digital/EN-ES. Pure moat.</td></tr>
+          <tr><td><strong>Standards alignment graph + evidence</strong></td><td style="color:var(--success)"><strong>BUILD</strong> (seed w/ data vendors)</td><td>Powers search, reporting, adoption compliance; compounding data asset. Can seed from alignment-data providers, but own the graph.</td></tr>
+          <tr><td><strong>Assessment + analytics + data warehouse</strong></td><td style="color:var(--success)"><strong>BUILD</strong></td><td>The "learning intelligence" substrate and the fuel for AI; the longitudinal data is un-buyable and differentiating.</td></tr>
+          <tr><td><strong>AI grounding/orchestration (RAG, Atlas pipeline, prompts, evals)</strong></td><td style="color:var(--success)"><strong>BUILD</strong> on bought models</td><td>The grounding corpus + pipelines + evals are the moat; the base model is a commodity input.</td></tr>
+          <tr><td><strong>Curriculum content (IM, EL, OpenSciEd)</strong></td><td style="color:var(--danger)"><strong>PARTNER</strong></td><td>Authoring credibility is a multi-year trust problem (like building a grading standard). Partner deeply; differentiate on the wrapper.</td></tr>
+          <tr><td><strong>Foundation models</strong></td><td style="color:var(--warning)"><strong>BUY</strong></td><td>Use frontier APIs (e.g., latest Claude); don't train base models. Spend the budget on grounding + evals + safety.</td></tr>
+          <tr><td><strong>Rostering / SSO / LMS interop (LTI, OneRoster)</strong></td><td style="color:var(--warning)"><strong>BUY + own the edges</strong></td><td>Use Clever/ClassLink + standard libraries; own the reliability and the "September works" SLA on top.</td></tr>
+          <tr><td><strong>Print / fulfillment</strong></td><td style="color:var(--warning)"><strong>PARTNER</strong></td><td>POD/offset print partners; own the single-source pipeline, not the presses.</td></tr>
+          <tr><td><strong>Infra, search, video, payments/billing</strong></td><td style="color:var(--warning)"><strong>BUY</strong></td><td>Cloud, OpenSearch/Algolia, B2B billing — commodity; differentiate on what you put on top.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Five Strategic Bets</h3>
+
+    <p><strong>1. Grounded AI as the moat ("learning intelligence").</strong> The single biggest prize. Make the AI layer — grounded in adopted HQIM, the standards graph, and longitudinal student data, with rigorous evals and PII safety — so good that it converts "we use IM" into "we can't leave Kiddom." Atlas is the spearhead; the platform is the long game. This is the thing the ungrounded AI insurgents and the bare-content resellers structurally cannot copy.</p>
+
+    <p><strong>2. The content + standards graph as a compounding data asset.</strong> Single-source publishing with state editions as composable layers turns each new adoption into configuration, not a fork — making the GTM engine (Module 4) scalable. The alignment graph + evidence is also a reusable asset across search, reporting, and compliance.</p>
+
+    <p><strong>3. Interoperability as a competitive feature.</strong> Because districts keep their incumbent LMS/SIS, world-class rostering, LTI launch, and SSO let Kiddom live <em>inside</em> the district's stack instead of demanding rip-and-replace. Reliability here ("September just works") is a renewal driver.</p>
+
+    <p><strong>4. Assessment-and-analytics depth.</strong> The data spine that makes "learning intelligence" real. Deeper formative assessment, mastery tracking, and admin reporting both serve districts directly and feed the AI flywheel.</p>
+
+    <p><strong>5. Adoption-driven expansion + multilingual reach.</strong> Each state adoption (CA, MD, VA, and beyond) is a distribution unlock; English/Spanish and accessibility broaden every one. Decide deliberately how far to industrialize the "new state edition" machinery so the sales team can promise new states without an engineering scramble.</p>
+
+    <div class="deal-box">
+      <strong>🎯 The integration-debt reality:</strong> Kiddom grew by stacking <strong>partner content + acquired/integrated capabilities + a decade of platform evolution</strong> (toolkit → curriculum → AI). That means real <strong>integration debt</strong>: a content model that may predate the multi-state, multi-language demands now placed on it; assessment data that needs to be unified to fuel AI; and AI features that risk being bolted on rather than grounded in a shared substrate. A candid CTO narrative acknowledges that "learning intelligence" is as much a <em>consolidation</em> program — unify the content model, unify the data spine, then ground the AI on both — as it is a greenfield AI build. The <strong>sequencing</strong> (content model first? data spine first? which AI bet first?) is the central architectural decision of your first two years.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 8 ===================== -->
+<section class="module-section" id="module-8">
+  <div class="module-header" onclick="toggleModule(8)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 8</span>
+      <h2>The CTO Playbook — First 90 Days &amp; Onboarding Prep</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-8">▶</span>
+  </div>
+  <div class="module-content" id="content-8">
+
+    <p>This module converts everything above into action: the metrics that matter, the risks to watch, the board/leadership narrative, a first-90-days checklist, and the questions you should be ready to answer (and ask) as you onboard.</p>
+
+    <h3>The Metrics That Define Success</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Domain</th><th>Metric</th><th>Why it matters</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Revenue</td><td>ARR, net revenue retention, district renewal rate, seat expansion</td><td>The edtech health metrics this board (Owl/Altos/Khosla) actually watches.</td></tr>
+          <tr><td>Adoption</td><td>State adoptions won; districts on each adopted program; time-to-new-state-edition</td><td>The decade-long distribution flywheel; #4's content-architecture payoff.</td></tr>
+          <tr><td>Engagement</td><td>Weekly active teachers/students, lessons delivered, assignments graded</td><td>Proof the platform is used, not just bought — the leading renewal indicator.</td></tr>
+          <tr><td>AI / Atlas</td><td>AI-feature adoption, teacher-accept rate of AI drafts, measured learning gains</td><td>Whether "learning intelligence" is converting into defensibility.</td></tr>
+          <tr><td>Reliability</td><td>September uptime, bell-schedule peak headroom, rostering success rate</td><td>"It works on the first morning" is the trust bar; failures here churn districts.</td></tr>
+          <tr><td>Compliance</td><td>VPAT/a11y conformance, SOC 2 status, signed NDPAs, privacy-review pass rate</td><td>Revenue-blocking gates; track as readiness, not afterthought.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Risk Register</h3>
+    <ul>
+      <li><strong>Partner-content dependence</strong> — the moat is the wrapper, not the content; other IM partners sell the same curriculum. (Module 4)</li>
+      <li><strong>AI safety &amp; trust</strong> — a hallucinated/biased/age-inappropriate AI output in a K-12 product is a PR and trust event; evals + human-in-the-loop + PII de-identification are mandatory.</li>
+      <li><strong>Compliance/accessibility gate</strong> — a privacy or a11y failure can disqualify you from an adoption entirely.</li>
+      <li><strong>September reliability</strong> — the one deterministic mega-load event; an outage here is a renewal killer.</li>
+      <li><strong>Integration debt</strong> — content model + data spine + AI must be unified to make "learning intelligence" real.</li>
+      <li><strong>Budget cyclicality</strong> — post-ESSER scrutiny; the platform must justify spend via consolidation ("replace five tools") and outcomes.</li>
+      <li><strong>Mindshare loss to AI insurgents</strong> — MagicSchool/Brisk/etc. own the "AI for teachers" story bottom-up; grounded-AI advantage must be made visible.</li>
+    </ul>
+
+    <h3>The Leadership &amp; Board Narrative</h3>
+    <p>This board is edtech-native (Owl, Altos, Khosla) and the founders include a former teacher (CAO Abbas Manjee). They care about four things — translate every initiative into one of them:</p>
+    <ul>
+      <li><strong>Growth / ARR &amp; retention</strong> — adoptions won, district renewals, seat expansion, consolidation wins.</li>
+      <li><strong>Outcomes / efficacy</strong> — measured learning gains (Atlas's ~18% claim must become rigorous, defensible evidence) — this is the currency with educators <em>and</em> investors.</li>
+      <li><strong>Moat / defensibility</strong> — grounded AI on proprietary data, the content+standards graph, switching cost.</li>
+      <li><strong>Risk</strong> — privacy, accessibility, AI safety, September reliability.</li>
+    </ul>
+    <p>Never present a roadmap in pure technology terms ("we're rebuilding the content service"). Present it as "this lets us ship a new state edition in weeks instead of months, which unlocks $X in adoptable pipeline, while making the AI grounding stronger." Speak <em>outcomes + adoption + moat</em>, not services.</p>
+
+    <h3>Your First 90 Days</h3>
+    <p><strong>Days 1-30 — Listen &amp; assess:</strong></p>
+    <ul>
+      <li>Sit with a real district implementation end-to-end: rostering sync → teacher planning → assignment → assessment → gradebook → admin report. Document every manual step and every break point. Then watch a teacher use Spotlight and the AI features in a real (or recorded) class.</li>
+      <li>Map the content architecture reality: how canonical is the content model? How are CA / NYC / MD / VA editions actually produced — composable layers or forks? How version-locked are print and digital?</li>
+      <li>Audit the data spine: is assessment/performance data unified enough to fuel Atlas, or fragmented across subsystems? This determines how real "learning intelligence" can be.</li>
+      <li>Review the AI stack: what's the grounding pipeline, what PII reaches models, what evals exist, what's the human-in-the-loop guarantee? Treat this as your top trust risk.</li>
+      <li>Pull the compliance posture: SOC 2 status, VPAT/accessibility conformance, signed NDPAs, the privacy-review pipeline for new districts.</li>
+      <li>Map the interoperability surface: rostering (Clever/ClassLink/OneRoster), LTI, SSO — and last September's rostering failure rate.</li>
+    </ul>
+    <p><strong>Days 31-60 — Diagnose &amp; plan:</strong></p>
+    <ul>
+      <li>Produce the integration-debt register and a <em>sequenced</em> unification plan (likely: content model → data spine → grounded AI). Align with the CAO (academic), CRO (adoption pipeline), and product.</li>
+      <li>Stand up the metrics dashboard above; get a clean baseline before claiming any improvement.</li>
+      <li>Pick the highest-leverage AI bet to harden (likely Atlas grounding + evals) and define what "measured efficacy" means rigorously, not anecdotally.</li>
+      <li>Stress-test the September/bell-schedule load model and the rostering pipeline now — months ahead of back-to-school.</li>
+    </ul>
+    <p><strong>Days 61-90 — Commit &amp; communicate:</strong></p>
+    <ul>
+      <li>Present a phased roadmap framed in board terms (growth / outcomes / moat / risk), with the "ground the AI on a unified content + data substrate" thesis as the spine.</li>
+      <li>Define the build/buy/partner framework (Module 7) explicitly, so every future decision references it.</li>
+      <li>Ship one visible proof point — e.g., a new state edition produced as configuration rather than a fork, or an Atlas-grounding/eval improvement with a credible efficacy read.</li>
+      <li>Establish rituals: a recurring AI-safety/eval review, a content-model + data-quality review, and a hard pre-September readiness gate (load + rostering + compliance).</li>
+    </ul>
+
+    <h3>Questions To Be Ready For — and To Ask</h3>
+    <p><strong>They may ask you:</strong></p>
+    <ul>
+      <li>"How do you make our AI better than generic AI tools for teachers?" → grounding in adopted HQIM + standards graph + proprietary student data; evals; human-in-the-loop; coherence over freelance generation.</li>
+      <li>"How do we add a new state adoption without an engineering fire drill?" → canonical content model with standards/localization as composable layers; single-source publishing; alignment evidence as data.</li>
+      <li>"What's our biggest strategic technology risk?" → partner-content dependence + integration debt; the answer to both is the unified platform + grounded-AI moat.</li>
+      <li>"How do you guarantee September works?" → deterministic load-test against the known peak, hardened rostering, a pre-September readiness gate.</li>
+      <li>"How do you keep student data safe in an AI product?" → de-identify PII before models, no third-party training on student data, clear data-flow story for district privacy review, continuous safety evals.</li>
+    </ul>
+    <p><strong>You should ask them:</strong></p>
+    <ul>
+      <li>How unified is the content model and the assessment/performance data today — and is "ground the AI on one substrate" actually the mandate?</li>
+      <li>What's the real state of September reliability and rostering success across districts?</li>
+      <li>How does Kiddom intend to defend against other IM partners and the AI insurgents — and what's engineering's role in that?</li>
+      <li>What's the appetite (and budget) for the unification/consolidation work versus net-new feature velocity?</li>
+      <li>How is success measured for this role in year one — adoptions enabled, AI/efficacy milestones, platform reliability, or all three?</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 The one-sentence thesis to walk in with:</strong> "Kiddom's edge is coherence — it delivers high-quality curriculum, assessment, and AI as one integrated system — and the CTO's job is to turn the parts Kiddom actually owns (a canonical content model, a standards-and-assessment data spine, and AI grounded in proprietary student data) into a moat strong enough that 'IM through Kiddom' beats the same curriculum from anyone else, while guaranteeing the privacy, accessibility, and September reliability that districts make non-negotiable."
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<div class="footer">
+<p>Kiddom — The Business of K-12 Curriculum &amp; Learning Intelligence · CTO Onboarding Course</p>
+<p>Covers the company &amp; "human-first" thesis, the K-12/HQIM market, the product, the curriculum &amp; partner moat, competitors, a reference architecture, build/buy, and a CTO playbook.</p>
+<p style="margin-top:8px">Built for an incoming CTO onboarding into Kiddom. Figures are sourced from public reporting &amp; analyst estimates (June 2026) — verify specifics before quoting.</p>
+</div>
+
+<script>
+function toggleModule(n){var c=document.getElementById('content-'+n);var t=document.getElementById('toggle-'+n);if(c.classList.contains('open')){c.classList.remove('open');t.classList.remove('open')}else{c.classList.add('open');t.classList.add('open')}}
+function updateProgress(){var checks=document.querySelectorAll('.progress-check');var total=checks.length;var done=0;checks.forEach(function(c){if(c.checked)done++});document.getElementById('progress-text').textContent=done+'/'+total;document.getElementById('progress-fill').style.width=(done/total*100)+'%';try{localStorage.setItem('kiddom-cto-course-progress',JSON.stringify(Array.from(checks).map(function(c){return c.checked})))}catch(e){}}
+function loadProgress(){try{var saved=JSON.parse(localStorage.getItem('kiddom-cto-course-progress'));if(saved){var checks=document.querySelectorAll('.progress-check');checks.forEach(function(c,i){if(saved[i])c.checked=true});updateProgress()}}catch(e){}}
+document.addEventListener('DOMContentLoaded',function(){loadProgress();var links=document.querySelectorAll('.nav-link');var sections=document.querySelectorAll('.module-section');var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){var id=entry.target.id;links.forEach(function(l){l.classList.remove('active');if(l.getAttribute('href')==='#'+id)l.classList.add('active')})}})},{rootMargin:'-80px 0px -60% 0px',threshold:0});sections.forEach(function(s){observer.observe(s)})});
+</script>
+</body>
+</html>

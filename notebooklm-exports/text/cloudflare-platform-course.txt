@@ -1,0 +1,3630 @@
+CLOUDFLARE FOR DEVELOPERS — THE FULL STACK EDGE PLATFORM
+========================================================
+
+  ⚡ 2026 Edition
+
+=====================================================
+CLOUDFLARE FOR DEVELOPERSTHE FULL STACK EDGE PLATFORM
+=====================================================
+
+
+  From Workers and KV to AI Gateway and Durable Objects — everything you need to build, deploy, and scale on the world's largest edge network.
+
+    10Modules
+    ~180Lessons
+    ~20hContent
+    330+Edge Cities
+
+
+
+---------------------------------
+Why Cloudflare is the New Default
+---------------------------------
+
+
+The Shift from Centralized Cloud to Edge-First Architecture
+----------------------------------------
+
+
+For a decade, the default mental model for deploying web services was: pick a region (us-east-1), deploy containers, add a CDN in front for static assets. AWS, GCP, and Azure built their entire developer experience around this model — regional VPCs, availability zones, load balancers pointing at long-running servers.
+That model made sense when the bottleneck was compute availability. It no longer makes sense when the bottleneck is latency and developer velocity. A user in Mumbai connecting to a service deployed in Virginia is crossing 200ms of raw physics — no amount of optimization overcomes the speed of light. Edge-first architecture moves the compute to the user instead.
+
+Understand the shift from regional to edge-first architecture
+
+
+Cloudflare's Developer Platform Strategy
+----------------------------------------
+
+
+Cloudflare started as a CDN and DDoS protection service. By 2017 they launched Workers — serverless functions running at the edge. Since then they've systematically built every primitive a full-stack application needs:
+
+    * 2017 — Workers (serverless compute at the edge)
+
+    * 2018 — Workers KV (eventually consistent key-value storage)
+
+    * 2019 — Durable Objects (stateful edge compute)
+
+    * 2020 — Pages (static site hosting + preview deployments)
+
+    * 2021 — R2 (zero-egress S3-compatible object storage)
+
+    * 2022 — D1 (SQLite at the edge), Queues, Email Workers
+
+    * 2023 — Workers AI, Vectorize, AI Gateway, Hyperdrive
+
+    * 2024 — Browser Run, Turnstile GA, VoidZero acquisition (Vite)
+
+    * 2025–2026 — Dynamic Workers, Durable Object Facets, Artifacts, Agent-native primitives
+
+
+The strategic insight: every AWS service has a Cloudflare equivalent, at lower cost, with zero cold starts, and deployable in under 60 seconds. They're not building a CDN with extras — they're building the developer cloud of the AI era.
+
+Understand Cloudflare's platform evolution timeline
+
+
+Why Coding Agents + Cloudflare is the Killer Combo
+----------------------------------------
+
+
+Here's something most tutorials don't tell you: Cloudflare's developer experience is uniquely well-suited to AI coding agents like Claude Code, Cursor, and GitHub Copilot. Here's why:
+
+    * Everything is config files. wrangler.toml is declarative. An agent can read your existing config, understand what you have, and add a KV namespace or D1 binding in seconds.
+
+    * Single deploy command. wrangler deploy deploys to all 330+ cities simultaneously. No multi-region configs, no container registries, no Kubernetes yamls.
+
+    * Zero infrastructure management. There are no EC2 instances to size, no VPCs to configure, no security groups. An agent can go from "create a URL shortener" to deployed production URL in under 2 minutes.
+
+    * The CLI is agent-friendly. In 2026, Cloudflare ships the cf CLI alongside Wrangler — designed specifically for programmatic use by AI agents with structured JSON output and idempotent operations.
+
+
+What used to take a senior engineer 2 days (set up AWS Lambda + API Gateway + DynamoDB + CloudFront + IAM roles) now takes Claude Code 90 seconds with Cloudflare. This is not an exaggeration.
+
+Understand why agents + Cloudflare is a powerful combination
+
+
+V8 Isolates vs Containers — The Cold Start Problem
+----------------------------------------
+
+
+The most underappreciated technical decision in Cloudflare's stack is the choice to run Workers in V8 isolates rather than containers. This is why there are no cold starts.
+
+
+
+Containers (Lambda, Fargate)
+
+
+
+      * Full OS process with its own memory space
+
+      * Cold start: 1.2–2.8s P95 for Node.js Lambda
+
+      * Warm start: ~5–15ms
+
+      * Needs VPC, security groups, IAM
+
+      * ~128MB minimum memory allocation
+
+      * Scales per container (coarse-grained)
+
+
+
+
+
+V8 Isolates (Workers)
+
+
+
+      * Lightweight JS context in a shared V8 process
+
+      * Cold start: <5ms (typically sub-1ms)
+
+      * No OS boot, no process spawn
+
+      * Zero config networking
+
+      * ~128KB memory overhead per isolate
+
+      * Scales per request (ultra-fine-grained)
+
+
+
+
+  Cold Start Latency Comparison (P95)
+  |
+2800ms |████████████████████████████  AWS Lambda (Node.js, cold)
+1200ms |████████████████             AWS Lambda (Node.js, warm container)
+ 800ms |██████████                   Google Cloud Run (cold)
+ 120ms |█                            Vercel Edge Functions
+  50ms |▌                            Cloudflare Workers (new isolate)
+   2ms |.                            Cloudflare Workers (cached isolate)
+        └──────────────────────────────────────────────────────
+        Zero config, 330+ PoPs, no warm-up required
+
+Why isolates are safe despite sharing a processEach V8 isolate has its own heap, its own global scope, and cannot access other isolates' memory — this is the same security model that runs every browser tab. Cloudflare adds additional layers: each isolate runs in a separate OS thread and has strict resource limits (CPU time, memory). The Cloudflare security team's 2023 paper on isolate security is worth reading.
+
+Understand V8 isolates vs containers and cold start differences
+
+
+Platform Pricing Comparison 2026
+--------------------------------
+
+
+Let's compare real 2026 pricing for a service handling 10M requests/month with ~100ms average execution time:
+
+
+Platform	|	Free Tier	|	Paid Base	|	Per Request	|	Per GB-sec	|	Egress	|	10M req/mo est.
+Cloudflare Workers	|	100K req/day	|	$5/mo	|	$0.30/M	|	N/A	|	$0	|	~$8
+AWS Lambda	|	1M req/mo + 400K GB-sec	|	$0	|	$0.20/M	|	$0.0000166667	|	$0.09/GB	|	~$18–35
+Vercel Functions	|	Hobby (non-commercial)	|	$20/user/mo	|	Included to limits	|	N/A	|	$0.40/GB	|	~$20–60
+Netlify Functions	|	125K req/mo	|	$19/member/mo	|	$25/M over limit	|	N/A	|	$0.55/GB	|	~$19–45
+Google Cloud Run	|	2M req/mo	|	$0	|	$0.40/M	|	$0.00002400	|	$0.12/GB	|	~$20–40
+
+
+The egress fee is Cloudflare's biggest structural advantageAWS charges $0.09/GB for egress. If your API returns 1KB per response at 10M requests, that's ~$900/month in egress alone — on top of compute. Cloudflare charges $0 for egress. For data-heavy APIs, this can be the single largest cost difference.
+
+Compare 2026 pricing across Cloudflare, AWS, Vercel, Netlify
+
+
+The Cloudflare Network: 330+ Cities, 13,000+ Interconnections
+----------------------------------------
+
+
+Cloudflare operates one of the largest networks on earth. As of 2026:
+
+    * 330+ cities across 100+ countries with Cloudflare data centers
+
+    * 13,000+ network interconnections — peering with ISPs, IXPs, and major cloud providers
+
+    * ~20% of all internet traffic passes through Cloudflare's network
+
+    * Anycast routing — every request automatically routes to the nearest PoP
+
+    * Backbone network — Cloudflare's own fiber between PoPs for faster multi-hop requests
+
+
+  Cloudflare Global Network (selected PoPs)
+
+  Americas          Europe/ME/Africa    Asia Pacific
+  ─────────         ─────────────────   ────────────
+  New York          London              Tokyo
+  Los Angeles       Frankfurt           Singapore
+  Miami             Amsterdam           Sydney
+  Chicago           Paris               Mumbai
+  Toronto           Dublin              Hong Kong
+  São Paulo         Stockholm           Seoul
+  Mexico City       Warsaw              Jakarta
+  Seattle           Madrid              Taipei
+  Atlanta           Milan               Osaka
+  Dallas            Zurich              Bangkok
+  Denver            Lisbon              Auckland
+  Phoenix           Nairobi             Kuala Lumpur
+  Minneapolis       Lagos               Manila
+  ... 330+ total
+
+  Every Worker request routes to the NEAREST city automatically.
+  Latency from most users: under 20ms to first edge node.
+
+Understand Cloudflare's network scale and Anycast routing
+
+
+When NOT to Use Cloudflare
+--------------------------
+
+
+Cloudflare isn't always the right choice. Be honest about limitations:
+
+    * CPU-intensive workloads — Workers have a 30ms CPU time limit (50ms on paid). Long ML inference, video transcoding, or heavy cryptography don't fit.
+
+    * Legacy runtime dependencies — Workers use a subset of Web APIs, not Node.js APIs. If you need native modules (bcrypt, sharp), you'll need to find WASM alternatives.
+
+    * Large memory workloads — Workers cap at 128MB. Parsing large CSV files or in-memory caching of big datasets needs a different approach.
+
+    * Long-running background jobs — Workers timeout at 30s wall time. For jobs that run for minutes or hours, use Cloudflare Queues + chunked processing or a different service.
+
+
+Know the limitations and when to choose a different platform
+
+
+------------------
+Cloudflare Workers
+------------------
+
+
+V8 Isolates Deep Dive — How Workers Actually Execute
+----------------------------------------
+
+
+Each Cloudflare Worker runs inside a V8 isolate — the same JavaScript engine that powers Chrome. Here's what happens when a request hits a Worker:
+
+    1. Request arrives at nearest Cloudflare PoP via Anycast
+
+    2. The scheduler checks if an isolate for your Worker is already warm
+
+    3. If warm (<1ms), the existing isolate handles the request
+
+    4. If cold (<5ms), a new isolate is created by loading your compiled script
+
+    5. Your fetch handler executes synchronously until it returns a Response
+
+    6. The isolate may remain warm for the next request, or be garbage collected
+
+
+The key insight: V8 startup is fast because there's no OS process, no memory-mapped files to load, no network interfaces to initialize. It's "create a new JavaScript heap and run the script" — comparable to instantiating a class.
+
+Understand the V8 isolate execution model and request lifecycle
+
+
+Your First Worker — JavaScript
+------------------------------
+
+
+The simplest possible Worker: a global fetch event handler that returns a Response.
+
+
+---code---
+// src/index.js — Modern ES Modules syntax (recommended)
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    if (path === '/') {
+      return new Response('Hello from the edge!', {
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
+
+    if (path === '/json') {
+      return Response.json({
+        message: 'Edge API response',
+        timestamp: new Date().toISOString(),
+        colo: request.cf?.colo, // e.g. "SJC" for San Jose
+        country: request.cf?.country,
+      });
+    }
+
+    return new Response('Not Found', { status: 404 });
+  },
+};
+---/code---
+
+
+Write a basic Worker with routing and JSON responses
+
+
+TypeScript Workers — The Recommended Approach
+----------------------------------------
+
+
+In production, always use TypeScript. The @cloudflare/workers-types package gives you full type safety for all Cloudflare-specific APIs.
+
+
+---code---
+// src/index.ts
+export interface Env {
+  MY_KV: KVNamespace;
+  MY_DB: D1Database;
+  API_SECRET: string; // secret binding
+}
+
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise {
+    const { pathname } = new URL(request.url);
+
+    // Route handling
+    switch (pathname) {
+      case '/api/health':
+        return Response.json({ ok: true });
+
+      case '/api/data':
+        const data = await env.MY_KV.get('cached-data');
+        return Response.json({ data });
+
+      default:
+        return new Response('Not Found', { status: 404 });
+    }
+  },
+};
+---/code---
+
+
+Set up TypeScript Workers with proper type bindings
+
+
+Wrangler CLI — Complete Reference
+---------------------------------
+
+
+Wrangler is the official CLI for Cloudflare Workers development. Install it globally or use npx:
+
+
+---code---
+# Install Wrangler
+npm install -g wrangler
+# Or use npx (no global install needed)
+npx wrangler --version
+
+# Authenticate with your Cloudflare account
+wrangler login
+
+# Create a new Worker project
+wrangler init my-worker
+# Prompts: TypeScript? Yes | Deploy to CF? Later
+
+# Start local development server (hot reload)
+wrangler dev
+# Opens http://localhost:8787
+# Live reload on file save, real KV/D1/R2 bindings optional
+
+# Deploy to production
+wrangler deploy
+# Deploys to all 330+ PoPs in ~30 seconds
+
+# Stream real-time logs from production
+wrangler tail
+# Shows requests, console.log output, errors
+
+# Manage secrets
+wrangler secret put API_KEY
+# Prompts for value — never stored in wrangler.toml
+
+wrangler secret list   # List secret names (not values)
+wrangler secret delete API_KEY
+
+# KV namespace operations
+wrangler kv namespace create MY_KV
+wrangler kv key put --namespace-id=abc123 "mykey" "myvalue"
+wrangler kv key get --namespace-id=abc123 "mykey"
+wrangler kv key list --namespace-id=abc123
+
+# D1 database operations
+wrangler d1 create my-database
+wrangler d1 execute my-database --file=schema.sql
+wrangler d1 execute my-database --command="SELECT * FROM users LIMIT 5"
+
+# R2 bucket operations
+wrangler r2 bucket create my-bucket
+wrangler r2 object put my-bucket/path/to/file.txt --file=local.txt
+
+# Deploy to specific environment
+wrangler deploy --env staging
+wrangler deploy --env production
+---/code---
+
+
+Master the Wrangler CLI for development and deployment
+
+
+wrangler.toml — Full Configuration Reference
+----------------------------------------
+
+
+---code---
+# wrangler.toml — complete example
+name = "my-api"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"] # Enable Node.js compat APIs
+
+# Custom domain routing
+[[routes]]
+pattern = "api.example.com/*"
+zone_name = "example.com"
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "abc123def456"
+preview_id = "preview789" # Used with wrangler dev
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "my-database"
+database_id = "xxxx-xxxx-xxxx-xxxx"
+
+# R2 Bucket
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "my-assets"
+
+# Workers AI
+[ai]
+binding = "AI"
+
+# Vectorize Index
+[[vectorize]]
+binding = "VECTOR_INDEX"
+index_name = "my-embeddings"
+
+# Cron Triggers
+[triggers]
+crons = ["0 */6 * * *", "0 9 * * 1"] # every 6h + Monday 9am
+
+# Environment-specific overrides
+[env.staging]
+name = "my-api-staging"
+vars = { ENVIRONMENT = "staging" }
+
+[env.production]
+name = "my-api-production"
+vars = { ENVIRONMENT = "production" }
+
+# Service bindings (call other Workers)
+[[services]]
+binding = "AUTH_WORKER"
+service = "auth-service"
+entrypoint = "default"
+
+# Durable Objects
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "ChatRoom"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ChatRoom"]
+---/code---
+
+
+Configure wrangler.toml with all binding types
+
+
+Middleware Patterns
+-------------------
+
+
+Workers don't have built-in routing — you implement it yourself. The standard pattern is a lightweight router or middleware chain:
+
+
+---code---
+// Middleware pattern: auth → rate limit → handler
+type Handler = (req: Request, env: Env) => Promise;
+
+function withAuth(handler: Handler): Handler {
+  return async (req, env) => {
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!token || token !== env.API_SECRET) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    return handler(req, env);
+  };
+}
+
+function withCORS(handler: Handler): Handler {
+  return async (req, env) => {
+    if (req.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
+    }
+    const response = await handler(req, env);
+    const newResponse = new Response(response.body, response);
+    newResponse.headers.set('Access-Control-Allow-Origin', '*');
+    return newResponse;
+  };
+}
+
+const myHandler: Handler = async (req, env) => {
+  return Response.json({ secret: 'protected data' });
+};
+
+export default {
+  fetch: withCORS(withAuth(myHandler)),
+};
+---/code---
+
+
+Implement middleware patterns for auth, CORS, and rate limiting
+
+
+Service Bindings — Worker-to-Worker Communication
+----------------------------------------
+
+
+Service bindings let Workers call other Workers directly — no HTTP round trip, no latency, no external network. The call happens in the same Cloudflare PoP.
+
+
+---code---
+// auth-service Worker (separate deployment)
+export default {
+  async fetch(request: Request): Promise {
+    const { token } = await request.json() as { token: string };
+    const isValid = token.startsWith('valid_'); // real: JWT verification
+    return Response.json({ valid: isValid, userId: isValid ? 'user_123' : null });
+  },
+};
+
+// api-gateway Worker (uses service binding)
+export interface Env {
+  AUTH_WORKER: Fetcher; // service binding type
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+
+    // Direct in-PoP call to auth service (no HTTP overhead)
+    const authRes = await env.AUTH_WORKER.fetch(new Request('http://internal/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+      headers: { 'Content-Type': 'application/json' },
+    }));
+
+    const { valid, userId } = await authRes.json() as any;
+    if (!valid) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    return Response.json({ message: `Hello user ${userId}` });
+  },
+};
+---/code---
+
+
+Use service bindings for Worker-to-Worker communication
+
+
+Durable Objects — Stateful Edge Compute
+---------------------------------------
+
+
+Durable Objects are the most powerful and most misunderstood Cloudflare primitive. They give you a single-threaded stateful actor at the edge — one instance per ID, globally unique, with its own storage.
+Use cases: real-time collaborative editing, WebSocket rooms, distributed counters, rate limiters, game state, user sessions with strong consistency.
+
+
+---code---
+// Durable Object: rate limiter per IP
+export class RateLimiter {
+  state: DurableObjectState;
+
+  constructor(state: DurableObjectState) {
+    this.state = state;
+  }
+
+  async fetch(request: Request): Promise {
+    const now = Date.now();
+    const windowMs = 60_000; // 1 minute window
+    const maxRequests = 100;
+
+    // Read current count from DO storage (consistent, not KV)
+    let data = await this.state.storage.get<{ count: number; windowStart: number }>('window');
+
+    if (!data || now - data.windowStart > windowMs) {
+      data = { count: 0, windowStart: now };
+    }
+
+    data.count++;
+    await this.state.storage.put('window', data);
+
+    if (data.count > maxRequests) {
+      return Response.json(
+        { error: 'Rate limit exceeded', retryAfter: Math.ceil((data.windowStart + windowMs - now) / 1000) },
+        { status: 429 }
+      );
+    }
+
+    return Response.json({ allowed: true, remaining: maxRequests - data.count });
+  }
+}
+
+// Worker that uses the rate limiter DO
+export default {
+  async fetch(request: Request, env: { RATE_LIMITER: DurableObjectNamespace }): Promise {
+    const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+    const id = env.RATE_LIMITER.idFromName(ip); // unique DO per IP
+    const stub = env.RATE_LIMITER.get(id);
+    const limitResponse = await stub.fetch(request);
+
+    if (limitResponse.status === 429) return limitResponse;
+
+    return Response.json({ data: 'your API response here' });
+  },
+};
+---/code---
+
+
+Build stateful Durable Objects for rate limiting and counters
+
+
+Cron Triggers — Scheduled Workers
+---------------------------------
+
+
+---code---
+// Scheduled Worker that runs on cron
+export default {
+  async fetch(request: Request): Promise {
+    return new Response('OK');
+  },
+
+  async scheduled(
+    event: ScheduledEvent,
+    env: Env,
+    ctx: ExecutionContext
+  ): Promise {
+    console.log(`Cron triggered at: ${new Date(event.scheduledTime).toISOString()}`);
+    console.log(`Cron expression: ${event.cron}`);
+
+    // Do your scheduled work here
+    await env.DB.prepare(
+      'DELETE FROM sessions WHERE expires_at < ?'
+    ).bind(Date.now()).run();
+
+    await env.KV.put('last-cleanup', new Date().toISOString());
+    console.log('Cleanup complete');
+  },
+};
+---/code---
+
+
+Testing Cron Triggers LocallyRun wrangler dev and trigger manually: curl "http://localhost:8787/__scheduled?cron=*+*+*+*+*". In production, use the Cloudflare dashboard to trigger manually or check execution logs.
+
+Set up cron triggers for scheduled background tasks
+
+
+Error Handling and Debugging
+----------------------------
+
+
+---code---
+// Production-grade error handling pattern
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise {
+    try {
+      return await handleRequest(request, env, ctx);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      const stack = error instanceof Error ? error.stack : undefined;
+
+      // Log to console — visible in wrangler tail + Logpush
+      console.error(JSON.stringify({
+        error: message,
+        stack,
+        url: request.url,
+        method: request.method,
+        timestamp: new Date().toISOString(),
+        ray: request.headers.get('CF-Ray'),
+      }));
+
+      // Return safe error response (never expose stack in prod)
+      const isProd = env.ENVIRONMENT === 'production';
+      return Response.json({
+        error: isProd ? 'Internal Server Error' : message,
+        requestId: request.headers.get('CF-Ray'),
+      }, { status: 500 });
+    }
+  },
+};
+---/code---
+
+
+Implement production error handling with structured logging
+
+
+Workers in Rust via WebAssembly
+-------------------------------
+
+
+For CPU-intensive operations, you can compile Rust to WASM and call it from a Worker. This gives you near-native performance within the 30ms CPU limit.
+
+
+---code---
+// Cargo.toml
+[package]
+name = "my-wasm-lib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+
+// src/lib.rs
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub fn compute_hash(input: &str) -> String {
+    // Expensive computation done in Rust/WASM
+    let hash = sha256(input.as_bytes());
+    hex::encode(hash)
+}
+
+// Worker that uses the WASM module
+import init, { compute_hash } from './my_wasm_lib_bg.wasm';
+
+export default {
+  async fetch(request: Request): Promise {
+    const body = await request.text();
+    const hash = compute_hash(body);
+    return Response.json({ hash });
+  },
+};
+---/code---
+
+
+Understand WASM Workers for CPU-intensive tasks
+
+
+NEW 2026: Dynamic Workers and the cf CLI
+----------------------------------------
+
+
+Two major 2026 additions change how Workers scale and how agents interact with them:
+
+    * Dynamic Workers — automatic horizontal scaling with persistent state. Instead of manually managing Durable Objects for fan-out patterns, Dynamic Workers scale out automatically while sharing state. Ideal for AI agent workloads that spawn many parallel sub-tasks.
+
+    * cf CLI — a unified CLI alongside Wrangler, designed specifically for AI agent consumption. Features: structured JSON output (--json flag on all commands), idempotent operations, machine-readable error codes, and a cf agent subcommand for agent-specific workflows.
+
+
+---code---
+# cf CLI (2026) — agent-friendly interface
+cf worker deploy --json # structured JSON output
+cf worker list --json | jq '.workers[].name'
+cf kv namespace list --json
+cf d1 database query my-db --sql "SELECT COUNT(*) FROM users" --json
+
+# Agent workflow: create + deploy in one command
+cf agent deploy \
+  --name my-api \
+  --source ./src/index.ts \
+  --kv MY_KV \
+  --d1 MY_DB \
+  --json
+---/code---
+
+
+Learn 2026 Dynamic Workers and the cf CLI for agents
+
+
+------------------------
+Cloudflare Storage Stack
+------------------------
+
+
+The Storage Decision Tree
+-------------------------
+
+
+What kind of data are you storing?
+│
+├── Simple key-value pairs, session data, config, feature flags?
+│   └── → KV (Workers KV)
+│       └── Note: eventually consistent, reads cached at edge
+│
+├── Files, images, videos, user uploads, backups?
+│   └── → R2 (S3-compatible object storage)
+│       └── Note: zero egress, supports presigned URLs
+│
+├── Structured relational data, queries, relationships?
+│   └── → D1 (SQLite at the edge)
+│       └── Note: strong consistency, SQL queries, 10GB max
+│
+├── Already have Postgres/MySQL? Need to connect from Workers?
+│   └── → Hyperdrive (connection pooling proxy)
+│       └── Note: caches queries, pools connections globally
+│
+├── AI embeddings, similarity search, RAG?
+│   └── → Vectorize (vector database)
+│       └── Note: integrates with Workers AI natively
+│
+└── Complex stateful data that needs strong consistency + real-time?
+    └── → Durable Objects storage (transactional SQLite)
+        └── Note: single writer, linearizable, WebSocket-friendly
+
+
+Know when to use each Cloudflare storage primitive
+
+
+Workers KV — Eventually Consistent Key-Value at the Edge
+----------------------------------------
+
+
+KV is the simplest Cloudflare storage. It's a globally distributed key-value store optimized for read-heavy workloads. Writes propagate to all edge nodes within ~60 seconds.
+
+
+Property	|	Value
+Max key size	|	512 bytes
+Max value size	|	25 MB
+Max keys per namespace	|	Unlimited (billions)
+Free tier reads	|	100,000 / day
+Free tier writes	|	1,000 / day
+Paid reads	|	$0.50 / million
+Paid writes	|	$5.00 / million
+Read latency	|	<1ms (edge cached)
+Write propagation	|	~60s globally
+Consistency model	|	Eventual (last write wins)
+
+
+---code---
+// KV CRUD operations in a Worker
+export interface Env { CACHE: KVNamespace; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const { pathname } = new URL(request.url);
+    const key = pathname.slice(1); // strip leading /
+
+    if (request.method === 'GET') {
+      // Basic get
+      const value = await env.CACHE.get(key);
+      if (!value) return new Response('Not found', { status: 404 });
+      return new Response(value);
+    }
+
+    if (request.method === 'PUT') {
+      const value = await request.text();
+      // Write with TTL (auto-expires in 1 hour)
+      await env.CACHE.put(key, value, { expirationTtl: 3600 });
+      return Response.json({ success: true });
+    }
+
+    if (request.method === 'DELETE') {
+      await env.CACHE.delete(key);
+      return Response.json({ success: true });
+    }
+
+    // List keys with prefix
+    if (request.method === 'GET' && key === 'list') {
+      const { keys, list_complete, cursor } = await env.CACHE.list({
+        prefix: 'user:',
+        limit: 100,
+        cursor: undefined,
+      });
+      return Response.json({ keys: keys.map(k => k.name), list_complete, cursor });
+    }
+
+    // Store JSON with metadata
+    const userData = { name: 'Alice', role: 'admin' };
+    await env.CACHE.put('user:123', JSON.stringify(userData), {
+      expirationTtl: 86400, // 24 hours
+      metadata: { userId: '123', createdAt: Date.now() },
+    });
+
+    // Get with metadata
+    const { value, metadata } = await env.CACHE.getWithMetadata<{ userId: string }>('user:123');
+    return Response.json({ value, metadata });
+  },
+};
+---/code---
+
+
+KV is not a databaseKV is eventually consistent — a write might take up to 60 seconds to propagate globally. Never use it for: user account balances, inventory counts, anything that requires read-after-write consistency, or sequential IDs. Use D1 for those.
+
+Implement KV CRUD with TTL, metadata, and prefix listing
+
+
+R2 — Zero-Egress Object Storage
+-------------------------------
+
+
+R2 is Cloudflare's answer to AWS S3 — fully S3-compatible API with the critical difference: zero egress fees. Serving 1TB/month from S3 costs ~$92 in egress. From R2: $0.
+
+
+Property	|	R2	|	AWS S3
+Storage cost	|	$0.015/GB/month	|	$0.023/GB/month
+Egress cost	|	$0	|	$0.09/GB (first 10TB)
+Class A ops (writes)	|	$4.50/million	|	$5.00/million
+Class B ops (reads)	|	$0.36/million	|	$0.40/million
+Free tier storage	|	10 GB/month	|	5 GB (12 months)
+S3 API compatibility	|	~98%	|	Native
+Max object size	|	5 TB	|	5 TB
+
+
+---code---
+// R2 operations from a Worker
+export interface Env { BUCKET: R2Bucket; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const url = new URL(request.url);
+    const key = url.pathname.slice(1); // object key from URL path
+
+    switch (request.method) {
+      case 'GET': {
+        const object = await env.BUCKET.get(key);
+        if (!object) return new Response('Object Not Found', { status: 404 });
+
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set('etag', object.httpEtag);
+        headers.set('Cache-Control', 'public, max-age=31536000');
+        return new Response(object.body, { headers });
+      }
+
+      case 'PUT': {
+        await env.BUCKET.put(key, request.body, {
+          httpMetadata: {
+            contentType: request.headers.get('Content-Type') ?? 'application/octet-stream',
+          },
+          customMetadata: {
+            uploadedAt: new Date().toISOString(),
+            uploadedBy: 'user_123',
+          },
+        });
+        return Response.json({ key, success: true });
+      }
+
+      case 'DELETE': {
+        await env.BUCKET.delete(key);
+        return Response.json({ success: true });
+      }
+
+      default:
+        return new Response('Method Not Allowed', { status: 405 });
+    }
+  },
+};
+
+// Listing objects in a bucket
+const listed = await env.BUCKET.list({
+  prefix: 'uploads/user-123/',
+  limit: 100,
+  delimiter: '/', // treats / as folder separator
+  cursor: undefined,
+});
+
+// listed.objects = array of R2Object
+// listed.delimitedPrefixes = "folders"
+// listed.truncated = boolean, listed.cursor for pagination
+---/code---
+
+
+R2 Migrator (Super Slurper) — Now GA in 2026Migrating from S3 to R2? The Super Slurper tool can copy your entire S3 bucket to R2 without downloading through your machine. It runs server-side on Cloudflare infrastructure and handles terabytes efficiently. Run: wrangler r2 bucket sippy put my-bucket --r2-bucket=my-r2-bucket --r2-key-prefix= --source-bucket=s3://my-s3-bucket --source-region=us-east-1
+
+Implement R2 object storage with metadata and listing
+
+
+D1 — SQLite at the Edge
+-----------------------
+
+
+D1 is Cloudflare's serverless SQL database — SQLite running at the edge with Workers-native access. No connection strings, no pooling, no cold connections.
+
+
+---code---
+-- schema.sql: Create your D1 schema
+CREATE TABLE IF NOT EXISTS users (
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  email     TEXT    NOT NULL UNIQUE,
+  name      TEXT    NOT NULL,
+  role      TEXT    NOT NULL DEFAULT 'user',
+  created_at TEXT   NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT   NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS posts (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      TEXT    NOT NULL,
+  content    TEXT    NOT NULL,
+  published  INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_posts_published ON posts(published);
+
+-- Run migration: wrangler d1 execute my-db --file=schema.sql
+---/code---
+
+
+---code---
+// D1 CRUD in a Worker
+export interface Env { DB: D1Database; }
+
+interface User { id: number; email: string; name: string; role: string; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const url = new URL(request.url);
+
+    // List users with pagination
+    if (url.pathname === '/users' && request.method === 'GET') {
+      const page = parseInt(url.searchParams.get('page') ?? '1');
+      const limit = 20;
+      const offset = (page - 1) * limit;
+
+      const { results } = await env.DB
+        .prepare('SELECT id, email, name, role FROM users ORDER BY id DESC LIMIT ? OFFSET ?')
+        .bind(limit, offset)
+        .all();
+
+      const { results: [{ total }] } = await env.DB
+        .prepare('SELECT COUNT(*) as total FROM users')
+        .all<{ total: number }>();
+
+      return Response.json({ users: results, total, page, limit });
+    }
+
+    // Create user
+    if (url.pathname === '/users' && request.method === 'POST') {
+      const { email, name } = await request.json() as Partial;
+      if (!email || !name) return Response.json({ error: 'email and name required' }, { status: 400 });
+
+      try {
+        const result = await env.DB
+          .prepare('INSERT INTO users (email, name) VALUES (?, ?) RETURNING id')
+          .bind(email, name)
+          .first<{ id: number }>();
+        return Response.json({ id: result?.id, email, name }, { status: 201 });
+      } catch (e: any) {
+        if (e.message?.includes('UNIQUE constraint')) {
+          return Response.json({ error: 'Email already exists' }, { status: 409 });
+        }
+        throw e;
+      }
+    }
+
+    // Batch operations (multiple queries in one round trip)
+    const [usersResult, postsResult] = await env.DB.batch([
+      env.DB.prepare('SELECT COUNT(*) as total FROM users'),
+      env.DB.prepare('SELECT COUNT(*) as total FROM posts WHERE published = 1'),
+    ]);
+
+    return Response.json({
+      stats: {
+        users: usersResult.results[0],
+        published_posts: postsResult.results[0],
+      }
+    });
+  },
+};
+---/code---
+
+
+D1 Limitations to KnowMax database size: 10GB. Max row size: 1MB. Max query duration: 30s. No full-text search (use Vectorize instead). No stored procedures. Supports SQLite syntax only — not Postgres syntax. For most applications under 10GB, D1 is ideal. Above that, use Hyperdrive + external Postgres.
+
+Build a D1 REST API with schema, migrations, and CRUD
+
+
+Hyperdrive — Connect to External Postgres/MySQL
+----------------------------------------
+
+
+Already have a Postgres database (Neon, Supabase, PlanetScale)? Hyperdrive acts as a connection pool proxy at the edge — it maintains persistent connections to your database and routes Worker requests through the nearest PoP.
+
+
+---code---
+# Create a Hyperdrive config
+wrangler hyperdrive create my-hyperdrive \
+  --connection-string "postgresql://user:pass@db.neon.tech/mydb?sslmode=require"
+
+# wrangler.toml
+[[hyperdrive]]
+binding = "DB"
+id = "your-hyperdrive-config-id"
+---/code---
+
+
+---code---
+// Worker using Hyperdrive with postgres.js
+import postgres from 'postgres';
+
+export interface Env { DB: Hyperdrive; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    // Hyperdrive provides a connection string that routes through its proxy
+    const sql = postgres(env.DB.connectionString, {
+      max: 5,           // Hyperdrive manages the actual pool
+      idle_timeout: 20,
+      connect_timeout: 30,
+    });
+
+    try {
+      const users = await sql`
+        SELECT id, email, name FROM users
+        WHERE active = true
+        ORDER BY created_at DESC
+        LIMIT 20
+      `;
+      return Response.json({ users });
+    } finally {
+      await sql.end({ timeout: 5 }); // important: release connection
+    }
+  },
+};
+---/code---
+
+
+Connect an external Postgres database via Hyperdrive
+
+
+Vectorize — Vector Database for AI
+----------------------------------
+
+
+Vectorize is Cloudflare's managed vector database — designed to work natively with Workers AI for embedding generation and similarity search. Used for: semantic search, RAG, recommendations, duplicate detection.
+
+
+---code---
+# Create a Vectorize index
+wrangler vectorize create my-embeddings \
+  --dimensions=768 \
+  --metric=cosine
+---/code---
+
+
+---code---
+// Upsert and query vectors
+export interface Env {
+  VECTORIZE: VectorizeIndex;
+  AI: Ai;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const { action, text, id } = await request.json() as any;
+
+    if (action === 'index') {
+      // Generate embedding with Workers AI
+      const embeddings = await env.AI.run('@cf/baai/bge-small-en-v1.5', {
+        text: [text],
+      });
+
+      // Upsert into Vectorize
+      await env.VECTORIZE.upsert([{
+        id: id ?? crypto.randomUUID(),
+        values: embeddings.data[0],
+        metadata: { text, indexedAt: Date.now() },
+      }]);
+
+      return Response.json({ success: true, id });
+    }
+
+    if (action === 'search') {
+      // Embed the query
+      const embeddings = await env.AI.run('@cf/baai/bge-small-en-v1.5', {
+        text: [text],
+      });
+
+      // Find similar vectors
+      const results = await env.VECTORIZE.query(embeddings.data[0], {
+        topK: 5,
+        returnMetadata: 'all',
+      });
+
+      return Response.json({ matches: results.matches });
+    }
+
+    return Response.json({ error: 'Unknown action' }, { status: 400 });
+  },
+};
+---/code---
+
+
+Build semantic search with Vectorize and Workers AI embeddings
+
+
+----------------------------------
+Cloudflare Pages & Full-Stack Apps
+----------------------------------
+
+
+What is Cloudflare Pages?
+-------------------------
+
+
+Cloudflare Pages is a JAMstack hosting platform that deploys static sites and SSR apps to Cloudflare's edge. Every commit triggers a build, every branch gets a unique preview URL, and your production site runs on the same 330+ city network as your Workers.
+Pages is most similar to Vercel but with two major advantages: no bandwidth costs and native integration with all Cloudflare primitives (Workers, KV, D1, R2) via Pages Functions.
+
+Understand what Cloudflare Pages is and how it differs from Vercel
+
+
+Framework Support in 2026
+-------------------------
+
+
+Framework	|	Rendering	|	Pages Support	|	Build Command	|	Output Dir
+Next.js	|	SSR + SSG + ISR	|	✅ Full (via @cloudflare/next-on-pages)	|	npx @cloudflare/next-on-pages	|	.vercel/output/static
+Astro	|	SSG + SSR (hybrid)	|	✅ Native (@astrojs/cloudflare)	|	astro build	|	dist
+Remix	|	SSR	|	✅ Native (@remix-run/cloudflare)	|	remix build	|	build/client
+SvelteKit	|	SSR + SSG	|	✅ Adapter (@sveltejs/adapter-cloudflare)	|	vite build	|	.svelte-kit/cloudflare
+Nuxt	|	SSR + SSG	|	✅ Preset (nitro cloudflare-pages)	|	nuxt build	|	.output/public
+Vue / React (SPA)	|	SPA	|	✅ Any build tool	|	npm run build	|	dist
+Hono	|	SSR API	|	✅ Native Workers API	|	npm run build	|	dist
+
+
+Know framework support and build configurations for Pages
+
+
+Deploying to Pages — Three Methods
+----------------------------------
+
+
+---code---
+# Method 1: Direct deploy via Wrangler (fastest)
+wrangler pages deploy ./dist --project-name=my-site
+
+# Method 2: Git integration (recommended for teams)
+# Connect via dashboard: Pages → New project → Connect to Git
+# Cloudflare runs builds automatically on every push
+
+# Method 3: GitHub Actions CI/CD
+# See Module 10 for full workflow YAML
+
+# Local preview of your Pages Functions
+wrangler pages dev ./dist --compatibility-date=2026-01-01
+---/code---
+
+
+Pages Functions — Server-Side Logic
+-----------------------------------
+
+
+Pages Functions are Workers that live in your functions/ directory and run server-side. They map directly to URL paths — file-based routing just like Next.js API routes.
+
+
+---code---
+// functions/api/users/[id].ts
+// Handles: GET /api/users/123, PUT /api/users/123
+
+import type { PagesFunction } from '@cloudflare/workers-types';
+
+interface Env { DB: D1Database; }
+
+export const onRequestGet: PagesFunction = async ({ params, env }) => {
+  const userId = params.id as string;
+
+  const user = await env.DB
+    .prepare('SELECT * FROM users WHERE id = ?')
+    .bind(userId)
+    .first();
+
+  if (!user) return Response.json({ error: 'User not found' }, { status: 404 });
+  return Response.json(user);
+};
+
+export const onRequestPut: PagesFunction = async ({ params, env, request }) => {
+  const userId = params.id as string;
+  const body = await request.json() as { name?: string; email?: string };
+
+  await env.DB
+    .prepare('UPDATE users SET name = ?, email = ? WHERE id = ?')
+    .bind(body.name, body.email, userId)
+    .run();
+
+  return Response.json({ success: true });
+};
+
+// functions/api/users/index.ts — handles /api/users
+export const onRequestGet: PagesFunction = async ({ env }) => {
+  const { results } = await env.DB.prepare('SELECT * FROM users LIMIT 50').all();
+  return Response.json(results);
+};
+---/code---
+
+
+Build Pages Functions with file-based routing
+
+
+Preview Deployments and Branch Deploys
+--------------------------------------
+
+
+Every pull request on a Pages project gets its own preview URL automatically. This enables:
+
+    * Reviewers to test changes in a live environment before merging
+
+    * QA testing on a production-like environment
+
+    * Staging environments via protected staging branch
+
+    * Feature branches for experimental work
+
+
+---code---
+# Preview URL format:
+# https://.my-project.pages.dev
+# https://.my-project.pages.dev
+
+# Configure in wrangler.toml for Pages
+[env.preview]
+name = "my-site-preview"
+# Different KV/D1 bindings for preview vs production
+[[env.preview.kv_namespaces]]
+binding = "CACHE"
+id = "preview-kv-namespace-id"
+
+[env.production]
+name = "my-site"
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "production-kv-namespace-id"
+---/code---
+
+
+Set up preview deployments and branch-specific environments
+
+
+Custom Domains, Redirects, and Headers
+--------------------------------------
+
+
+---code---
+# _redirects file (in project root)
+# Old URL    →   New URL     Status
+/old-blog/*   /blog/:splat   301
+/api/*        https://api.example.com/:splat  200
+/app          /app/dashboard  302
+
+# SPA fallback (serve index.html for all unmatched routes)
+/*            /index.html     200
+
+# _headers file
+/api/*
+  Content-Security-Policy: default-src 'self'
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=()
+---/code---
+
+
+VoidZero Acquisition — Vite Native Integration ComingIn 2024, Cloudflare acquired VoidZero, the company behind Vite (the most popular frontend build tool). In 2026, this means: native Vite plugins for Workers and Pages, zero-config bundling for Workers, and a unified dev server that mirrors production exactly. If you're starting a new project in late 2026, expect npm create cloudflare to scaffold Vite-powered projects with full HMR support for Workers.
+
+Configure custom domains, redirects, and security headers
+
+
+Full-Stack App Architecture Pattern
+-----------------------------------
+
+
+  Full-Stack App on Cloudflare
+
+  User Browser
+       │
+       ▼
+  Cloudflare Edge (330+ PoPs)
+       │
+       ├──► Pages — serves HTML/CSS/JS (CDN cached, instant)
+       │         └── Astro/Next.js/SvelteKit frontend
+       │
+       ├──► Pages Functions — /api/* routes (serverless)
+       │         ├── Auth middleware
+       │         └── REST API handlers
+       │               ├── D1 — user data, posts, orders (SQL)
+       │               ├── KV — sessions, cache, feature flags
+       │               └── R2 — file uploads, media
+       │
+       └──► Workers — background services
+                 ├── Email Worker — transactional email
+                 ├── Queue consumer — async job processing
+                 └── Cron Worker — scheduled maintenance
+
+  Total infra config: ~50 lines of wrangler.toml
+  Deploy time: ~30 seconds globally
+
+Design a full-stack architecture using Pages + Workers + storage
+
+
+-------------
+Cloudflare AI
+-------------
+
+
+Workers AI — Run ML at the Edge Without GPU Management
+----------------------------------------
+
+
+Workers AI lets you run inference on GPU-backed models from any Worker with a simple API call — no provisioning, no scaling, no CUDA. Cloudflare manages the GPU cluster; you pay per inference.
+The models run in Cloudflare's network near your users. For a user in Tokyo, the inference runs on Cloudflare's Tokyo GPU cluster — not in us-east-1.
+
+Understand Workers AI architecture and billing model
+
+
+Supported Models in 2026
+------------------------
+
+
+Model	|	Type	|	Best For	|	Context
+@cf/meta/llama-4-scout-17b-16e-instruct	|	Chat (multimodal)	|	General tasks, image understanding	|	128K tokens
+@cf/meta/llama-3.3-70b-instruct-fp8-fast	|	Chat	|	High quality reasoning	|	128K tokens
+@cf/mistral/mistral-small-3.1-24b-instruct	|	Chat	|	Balanced quality/speed	|	32K tokens
+@cf/google/gemma-3-12b-it	|	Chat	|	Multilingual, coding	|	128K tokens
+@cf/deepseek-ai/deepseek-r1-distill-qwen-32b	|	Reasoning	|	Math, logic, step-by-step	|	32K tokens
+@cf/moonshot-ai/kimi-k2.6	|	Chat	|	Long context tasks	|	256K tokens
+@cf/baai/bge-small-en-v1.5	|	Embedding	|	English semantic search	|	512 tokens
+@cf/google/embedding-gemma-300m	|	Embedding (EmbeddingGemma)	|	Multilingual embeddings	|	512 tokens
+@cf/plamo/plamo-embedding-1b	|	Embedding	|	Japanese + multilingual	|	512 tokens
+@cf/openai/whisper	|	Speech-to-Text	|	Audio transcription	|	25MB audio
+@cf/stabilityai/stable-diffusion-xl-base-1.0	|	Image generation	|	Text-to-image	|	—
+
+
+Know the 2026 Workers AI model catalog
+
+
+Basic Inference — Chat Completion
+---------------------------------
+
+
+---code---
+export interface Env { AI: Ai; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const { message } = await request.json() as { message: string };
+
+    // Basic chat completion
+    const response = await env.AI.run('@cf/meta/llama-4-scout-17b-16e-instruct', {
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: message },
+      ],
+      max_tokens: 1024,
+      temperature: 0.7,
+    });
+
+    return Response.json({ reply: response.response });
+  },
+};
+
+// Streaming response (token by token)
+const stream = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+  messages: [{ role: 'user', content: message }],
+  stream: true,
+});
+
+// Return a streaming response to the client
+return new Response(stream, {
+  headers: {
+    'Content-Type': 'text/event-stream',
+    'Transfer-Encoding': 'chunked',
+  },
+});
+---/code---
+
+
+Build streaming and non-streaming AI chat endpoints
+
+
+Whisper — Speech-to-Text at the Edge
+------------------------------------
+
+
+---code---
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    if (request.method !== 'POST') return new Response('POST only', { status: 405 });
+
+    // Accept audio file upload (mp3, wav, flac, ogg)
+    const audioBuffer = await request.arrayBuffer();
+    const audioArray = new Uint8Array(audioBuffer);
+
+    const result = await env.AI.run('@cf/openai/whisper', {
+      audio: [...audioArray],
+    });
+
+    return Response.json({
+      text: result.text,
+      words: result.words, // word-level timestamps
+    });
+  },
+};
+---/code---
+
+
+Implement audio transcription with Whisper
+
+
+AI Gateway — Proxy, Cache, Rate Limit All AI APIs
+----------------------------------------
+
+
+AI Gateway sits in front of any AI provider (OpenAI, Anthropic, Hugging Face, Workers AI, Replicate) and gives you: request logging, response caching, rate limiting, cost tracking, and fallbacks — all with zero code changes to your app (just swap the base URL).
+
+
+---code---
+// Without AI Gateway (direct OpenAI call)
+const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${env.OPENAI_KEY}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ model: 'gpt-4o', messages: [...] }),
+});
+
+// With AI Gateway (just change the URL)
+const AI_GATEWAY_URL = `https://gateway.ai.cloudflare.com/v1/${env.CF_ACCOUNT_ID}/my-gateway/openai`;
+const response = await fetch(`${AI_GATEWAY_URL}/chat/completions`, {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${env.OPENAI_KEY}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({ model: 'gpt-4o', messages: [...] }),
+  // Optional: cache identical prompts for 1 hour
+  // headers: { ..., 'cf-aig-cache-ttl': '3600' },
+});
+
+// Universal endpoint — route to multiple providers with fallbacks
+const UNIVERSAL_URL = `https://gateway.ai.cloudflare.com/v1/${env.CF_ACCOUNT_ID}/my-gateway`;
+const response = await fetch(UNIVERSAL_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify([
+    // Try Anthropic first
+    { provider: 'anthropic', endpoint: 'messages',
+      headers: { 'x-api-key': env.ANTHROPIC_KEY },
+      query: { model: 'claude-sonnet-4-5', messages: [...], max_tokens: 1024 } },
+    // Fall back to Workers AI if Anthropic fails
+    { provider: 'workers-ai', endpoint: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      query: { messages: [...] } },
+  ]),
+});
+---/code---
+
+
+AI Gateway FeaturesCaching: Cache identical prompts for 1h-24h — instant responses, zero tokens consumed. Rate limiting: Limit RPM or tokens/min per user/session. Logging: Full request/response logs with cost tracking. Analytics: Token usage, cache hit rate, error rates in the dashboard. Fallbacks: Automatic retry with backup providers.
+
+Set up AI Gateway for caching, logging, and provider fallbacks
+
+
+Full RAG Pipeline — Vectorize + Workers AI
+----------------------------------------
+
+
+Retrieval-Augmented Generation (RAG) combines vector search with LLM completion to answer questions about your specific documents. Here's a complete implementation:
+
+
+---code---
+// Complete RAG implementation: index documents + answer questions
+export interface Env {
+  AI: Ai;
+  VECTORIZE: VectorizeIndex;
+  DOCS_KV: KVNamespace; // store full document text
+}
+
+// Step 1: Index documents (call once per document)
+async function indexDocument(
+  env: Env,
+  docId: string,
+  content: string,
+  metadata: Record
+) {
+  // Chunk the document (max 512 tokens per chunk)
+  const chunks = chunkText(content, 400); // ~400 words per chunk
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunkId = `${docId}_chunk_${i}`;
+
+    // Generate embedding for this chunk
+    const embedResult = await env.AI.run('@cf/baai/bge-small-en-v1.5', {
+      text: [chunks[i]],
+    });
+
+    // Store chunk text for later retrieval
+    await env.DOCS_KV.put(chunkId, chunks[i]);
+
+    // Store vector with metadata
+    await env.VECTORIZE.upsert([{
+      id: chunkId,
+      values: embedResult.data[0],
+      metadata: { ...metadata, docId, chunkIndex: `${i}` },
+    }]);
+  }
+}
+
+// Step 2: Answer a question using RAG
+async function answerQuestion(env: Env, question: string): Promise {
+  // 1. Embed the question
+  const questionEmbed = await env.AI.run('@cf/baai/bge-small-en-v1.5', {
+    text: [question],
+  });
+
+  // 2. Find relevant chunks via vector similarity
+  const matches = await env.VECTORIZE.query(questionEmbed.data[0], {
+    topK: 5,
+    returnMetadata: 'all',
+  });
+
+  // 3. Retrieve the actual text for top matches
+  const contexts = await Promise.all(
+    matches.matches
+      .filter(m => m.score > 0.7) // only high-confidence matches
+      .map(m => env.DOCS_KV.get(m.id))
+  );
+
+  const context = contexts.filter(Boolean).join('\n\n---\n\n');
+
+  // 4. Generate answer with LLM + context
+  const result = await env.AI.run('@cf/meta/llama-4-scout-17b-16e-instruct', {
+    messages: [
+      {
+        role: 'system',
+        content: `You are a helpful assistant. Answer questions using ONLY the provided context.
+If the answer is not in the context, say "I don't have information about that."
+
+Context:
+${context}`,
+      },
+      { role: 'user', content: question },
+    ],
+    max_tokens: 512,
+  });
+
+  return result.response ?? 'Unable to generate response';
+}
+
+// Worker handler
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const { action, ...body } = await request.json() as any;
+
+    if (action === 'index') {
+      await indexDocument(env, body.id, body.content, body.metadata ?? {});
+      return Response.json({ success: true });
+    }
+
+    if (action === 'ask') {
+      const answer = await answerQuestion(env, body.question);
+      return Response.json({ answer });
+    }
+
+    return Response.json({ error: 'Unknown action' }, { status: 400 });
+  },
+};
+
+// Helper: chunk text into ~wordCount word segments
+function chunkText(text: string, wordCount: number): string[] {
+  const words = text.split(/\s+/);
+  const chunks: string[] = [];
+  for (let i = 0; i < words.length; i += wordCount) {
+    chunks.push(words.slice(i, i + wordCount).join(' '));
+  }
+  return chunks;
+}
+---/code---
+
+
+Build a complete RAG pipeline with Vectorize + Workers AI
+
+
+Workers AI Pricing
+------------------
+
+
+Category	|	Free Tier	|	Paid
+Text generation (Llama 4, Mistral, etc.)	|	10,000 neurons/day	|	$0.01 per 1,000 neurons
+Text embeddings	|	Included in neuron budget	|	$0.01 per 1,000 neurons
+Speech-to-text (Whisper)	|	Included	|	$0.01 per 1,000 neurons
+Image generation	|	Included	|	$0.02 per step (SDXL)
+
+
+Note: Cloudflare uses "neurons" as their GPU compute unit. A typical 100-token response uses ~300-500 neurons. The free tier covers ~20-50 typical chat exchanges per day.
+
+Understand Workers AI pricing and the neuron model
+
+
+-----------------------------
+Cloudflare for Internal Tools
+-----------------------------
+
+
+The "One-Off Internal Tool" Use Case
+------------------------------------
+
+
+The single biggest underrated use case for Cloudflare: internal tools. Your team needs a script to reset user passwords? A webhook to sync Stripe events to your database? A Slack bot to query production metrics? A cron job to generate daily reports?
+Traditionally, these would be scripts on a VM, cron jobs on some server someone set up years ago, or Lambda functions with 47 IAM permissions. With Cloudflare + coding agents, they're deployed in minutes with zero infrastructure.
+
+The Cloudflare + Claude Code Workflow1. Describe the tool to Claude Code in plain English. 2. Claude writes the Worker code and wrangler.toml. 3. wrangler deploy — live in 30 seconds. No tickets, no DevOps approval, no EC2 sizing. This is the new normal for internal tooling at fast-moving teams.
+
+Understand Cloudflare as the platform for internal tools
+
+
+Quick API Endpoints with Workers
+--------------------------------
+
+
+Need to expose a simple API for an internal script or dashboard? A Worker is the fastest path from "I need an endpoint" to "it's live."
+
+
+---code---
+// Internal metrics API — returns production stats
+export interface Env {
+  DB: D1Database;
+  INTERNAL_KEY: string; // secret for internal access
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    // Simple API key auth for internal use
+    const key = request.headers.get('X-Internal-Key');
+    if (key !== env.INTERNAL_KEY) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { pathname } = new URL(request.url);
+
+    if (pathname === '/stats') {
+      const [users, orders, revenue] = await env.DB.batch([
+        env.DB.prepare('SELECT COUNT(*) as total FROM users WHERE created_at > date("now", "-7 days")'),
+        env.DB.prepare('SELECT COUNT(*) as total FROM orders WHERE created_at > date("now", "-7 days")'),
+        env.DB.prepare('SELECT SUM(amount) as total FROM orders WHERE created_at > date("now", "-7 days") AND status = "completed"'),
+      ]);
+      return Response.json({
+        week: {
+          new_users: users.results[0],
+          new_orders: orders.results[0],
+          revenue_cents: revenue.results[0],
+        },
+        generated_at: new Date().toISOString(),
+      });
+    }
+
+    if (pathname === '/admin/reset-user' && request.method === 'POST') {
+      const { userId } = await request.json() as { userId: number };
+      await env.DB.prepare('UPDATE users SET password_reset_token = ? WHERE id = ?')
+        .bind(crypto.randomUUID(), userId).run();
+      return Response.json({ success: true });
+    }
+
+    return new Response('Not Found', { status: 404 });
+  },
+};
+---/code---
+
+
+Build secure internal API endpoints with key authentication
+
+
+Webhook Receiver
+----------------
+
+
+---code---
+// Stripe webhook receiver — validates signature, stores events
+export interface Env {
+  DB: D1Database;
+  STRIPE_WEBHOOK_SECRET: string;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+
+    const signature = request.headers.get('stripe-signature');
+    if (!signature) return new Response('Missing signature', { status: 400 });
+
+    const body = await request.text();
+
+    // Validate Stripe webhook signature using Web Crypto API
+    const isValid = await validateStripeSignature(body, signature, env.STRIPE_WEBHOOK_SECRET);
+    if (!isValid) return new Response('Invalid signature', { status: 403 });
+
+    const event = JSON.parse(body);
+    console.log(`Received Stripe event: ${event.type}`);
+
+    // Handle events
+    switch (event.type) {
+      case 'payment_intent.succeeded': {
+        const pi = event.data.object;
+        await env.DB.prepare(
+          'INSERT INTO payments (stripe_id, amount, status, customer_id) VALUES (?, ?, "completed", ?)'
+        ).bind(pi.id, pi.amount, pi.customer).run();
+        break;
+      }
+      case 'customer.subscription.deleted': {
+        const sub = event.data.object;
+        await env.DB.prepare(
+          'UPDATE subscriptions SET status = "canceled" WHERE stripe_id = ?'
+        ).bind(sub.id).run();
+        break;
+      }
+    }
+
+    return Response.json({ received: true });
+  },
+};
+
+async function validateStripeSignature(
+  body: string, signature: string, secret: string
+): Promise {
+  const [, timestamp, , hash] = signature.split(/[=,]/);
+  const payload = `${timestamp}.${body}`;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  const expected = [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, '0')).join('');
+  return expected === hash;
+}
+---/code---
+
+
+Build a webhook receiver with signature validation
+
+
+Slack Bot on Workers
+--------------------
+
+
+---code---
+// Slack slash command + interactive button handler
+export interface Env {
+  DB: D1Database;
+  SLACK_SIGNING_SECRET: string;
+  SLACK_BOT_TOKEN: string;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const { pathname } = new URL(request.url);
+
+    // Slack requires URL verification challenge
+    if (pathname === '/slack/events') {
+      const body = await request.json() as any;
+      if (body.type === 'url_verification') {
+        return Response.json({ challenge: body.challenge });
+      }
+    }
+
+    // /status slash command
+    if (pathname === '/slack/commands/status') {
+      const formData = await request.formData();
+      const text = formData.get('text') as string;
+      const userId = formData.get('user_id') as string;
+
+      // Query deployment status
+      const deploy = await env.DB.prepare(
+        'SELECT * FROM deployments ORDER BY created_at DESC LIMIT 1'
+      ).first() as any;
+
+      // Return immediate response (Slack requires <3s)
+      return Response.json({
+        response_type: 'in_channel',
+        blocks: [
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Latest Deploy:* ${deploy?.version ?? 'unknown'}\n*Status:* ${deploy?.status ?? 'unknown'}\n*Time:* ${deploy?.created_at ?? 'unknown'}`,
+            },
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: { type: 'plain_text', text: 'Rollback' },
+                style: 'danger',
+                action_id: 'rollback_deploy',
+                value: deploy?.id,
+                confirm: {
+                  title: { type: 'plain_text', text: 'Rollback?' },
+                  text: { type: 'mrkdwn', text: 'This will rollback production. Are you sure?' },
+                  confirm: { type: 'plain_text', text: 'Yes, rollback' },
+                  deny: { type: 'plain_text', text: 'Cancel' },
+                },
+              },
+            ],
+          },
+        ],
+      });
+    }
+
+    // Handle interactive button clicks
+    if (pathname === '/slack/interactive') {
+      const formData = await request.formData();
+      const payload = JSON.parse(formData.get('payload') as string);
+
+      if (payload.actions[0]?.action_id === 'rollback_deploy') {
+        // Trigger rollback asynchronously
+        const deployId = payload.actions[0].value;
+        console.log(`Rollback triggered for deploy ${deployId} by ${payload.user.name}`);
+        // ... trigger your actual rollback logic
+
+        return Response.json({
+          text: `⏳ Rollback initiated for deploy ${deployId}. ETA: 2 minutes.`,
+        });
+      }
+    }
+
+    return new Response('Not Found', { status: 404 });
+  },
+};
+---/code---
+
+
+Build a Slack bot with slash commands and interactive components
+
+
+Prompt Templates for Building Internal Tools with Agents
+----------------------------------------
+
+
+When using Claude Code or Cursor to build internal tools on Cloudflare, these prompt patterns get the best results:
+
+
+---code---
+## Template 1: New internal API
+"Create a Cloudflare Worker that:
+- Exposes GET /api/[resource] that reads from D1 table '[table]'
+- Exposes POST /api/[resource] to create new records
+- Uses X-Internal-Key header authentication (env var INTERNAL_KEY)
+- Returns proper error messages for validation failures
+- Include the full wrangler.toml with D1 binding"
+
+## Template 2: Webhook receiver
+"Create a Cloudflare Worker webhook receiver for [service]:
+- Validates the [service] webhook signature
+- Parses the event payload and stores in D1
+- Returns 200 immediately, processes async with ctx.waitUntil()
+- Handles: [list of event types]
+- Include error logging with CF-Ray header"
+
+## Template 3: Cron job
+"Create a Cloudflare Worker cron job that runs [schedule]:
+- Connects to D1 database
+- [Describe the job: cleanup expired sessions, send daily report, sync data, etc.]
+- Logs results with structured JSON for Logpush
+- Include the wrangler.toml cron trigger configuration"
+
+## Template 4: Migrate from Lambda
+"I have this AWS Lambda function: [paste code]
+Convert it to a Cloudflare Worker:
+- Replace AWS SDK calls with Cloudflare equivalents
+- Replace DynamoDB with D1 or KV (decide which is appropriate)
+- Replace S3 with R2
+- Maintain the same API contract
+- Include wrangler.toml bindings"
+---/code---
+
+
+Use AI coding agent prompt templates for internal tools
+
+
+Background Processing with ctx.waitUntil()
+----------------------------------------
+
+
+---code---
+// Process background work AFTER returning response to user
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise {
+    const body = await request.json() as any;
+
+    // Return immediately to the caller
+    const jobId = crypto.randomUUID();
+    await env.KV.put(`job:${jobId}`, 'pending', { expirationTtl: 3600 });
+
+    // Schedule background work (runs after response is sent)
+    ctx.waitUntil(processInBackground(env, jobId, body));
+
+    return Response.json({ jobId, status: 'queued' }, { status: 202 });
+  },
+};
+
+async function processInBackground(env: Env, jobId: string, data: any) {
+  try {
+    // Long-running work: send emails, generate reports, sync data
+    await doExpensiveWork(data);
+    await env.KV.put(`job:${jobId}`, 'completed', { expirationTtl: 3600 });
+  } catch (e) {
+    console.error(`Job ${jobId} failed:`, e`);
+    await env.KV.put(`job:${jobId}`, 'failed', { expirationTtl: 3600 });
+  }
+}
+---/code---
+
+
+Implement background processing with ctx.waitUntil()
+
+
+---------------------
+Security & Networking
+---------------------
+
+
+Cloudflare Access — Zero Trust for Internal Apps
+----------------------------------------
+
+
+Cloudflare Access replaces VPNs for internal app access. Put any web app behind Access and require employees to authenticate with your IdP (Google, Okta, Azure AD) before they can reach it — no VPN client, no firewall rules, no IP whitelisting.
+
+  Zero Trust Access Flow
+
+  Employee Browser
+       │ "https://admin.company.com/dashboard"
+       ▼
+  Cloudflare Access
+       │ "Who are you?"
+       ├──► Not logged in → redirect to Google/Okta login
+       │
+       ├──► Logged in, policy matches → pass through
+       │         (email in allowed list, or group: "engineering")
+       │
+       └──► Logged in, policy fails → 403 Access Denied
+                 (contractor, not in "admin" group)
+
+  Your App Server (could be behind Cloudflare Tunnel)
+       ↑ Never exposed to internet — only Cloudflare reaches it
+
+
+---code---
+// Validate Cloudflare Access JWT in a Worker
+// (for apps that call your API from behind Access)
+async function validateCFAccessJWT(
+  request: Request,
+  teamDomain: string
+): Promise<{ email: string; name: string } | null> {
+  const token = request.headers.get('Cf-Access-Jwt-Assertion');
+  if (!token) return null;
+
+  // Fetch Cloudflare's public keys
+  const certsRes = await fetch(`https://${teamDomain}.cloudflareaccess.com/cdn-cgi/access/certs`);
+  const { keys } = await certsRes.json() as { keys: JsonWebKey[] };
+
+  // Verify JWT signature using Web Crypto
+  const [headerB64, payloadB64] = token.split('.');
+  const payload = JSON.parse(atob(payloadB64));
+
+  // In production: verify signature, check iss, aud, exp
+  if (payload.exp < Date.now() / 1000) return null;
+
+  return { email: payload.email, name: payload.name };
+}
+---/code---
+
+
+Set up Cloudflare Access for Zero Trust internal app access
+
+
+WAF — Web Application Firewall Rules
+------------------------------------
+
+
+Cloudflare's WAF protects against OWASP Top 10, SQLi, XSS, and more — automatically, at the edge, before requests reach your code.
+
+
+---code---
+/* Custom WAF Rules (Firewall Rules syntax) */
+
+/* Block requests from known bad IPs or TOR exit nodes */
+(ip.src in $cf.anonymizer_proxies) OR
+(ip.threat_score gt 50 AND not ip.src in {1.2.3.4})
+
+/* Rate limit aggressive crawlers */
+(http.request.uri.path contains "/api/" AND
+ ip.src not in {YOUR_OFFICE_IP/24} AND
+ not cf.client.bot_management.verified_bot)
+
+/* Block SQL injection attempts */
+(http.request.body.raw contains "UNION SELECT" OR
+ http.request.uri.query contains "'; DROP" OR
+ http.request.uri.query contains "1=1")
+
+/* Allow only certain countries for admin panel */
+(http.request.uri.path starts_with "/admin" AND
+ not ip.geoip.country in {"US" "CA" "GB"})
+
+/* Cloudflare Turnstile challenge on suspicious score */
+(cf.threat_score gt 14 AND
+ http.request.uri.path eq "/checkout")
+---/code---
+
+
+Configure WAF rules for SQL injection, country blocking, and threat scores
+
+
+DDoS Protection — Automatic and Unlimited
+----------------------------------------
+
+
+Cloudflare's DDoS protection is automatic and unlimited on all plans (including free). You don't configure it — it just works. Key facts:
+
+    * Cloudflare has absorbed attacks over 2 Tbps without impact to customers
+
+    * Mitigation happens at the network layer before traffic reaches your origin
+
+    * HTTP DDoS is mitigated at L7 with adaptive fingerprinting
+
+    * You get protection even on the free plan — unlimited bandwidth, no overage charges
+
+    * L3/L4 protection (UDP floods, SYN floods) is included
+
+
+Understand Cloudflare's DDoS protection model
+
+
+Cloudflare Tunnel — Expose Local Services Securely
+----------------------------------------
+
+
+Cloudflare Tunnel (formerly Argo Tunnel) lets you expose a service on your local machine or private network to the internet — without opening firewall ports or exposing your IP. Perfect for: self-hosted apps, dev machines, NAS devices, Raspberry Pi projects.
+
+
+---code---
+# Install cloudflared
+brew install cloudflare/cloudflare/cloudflared
+# or: curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o cloudflared
+
+# Authenticate
+cloudflared tunnel login
+
+# Create a named tunnel
+cloudflared tunnel create my-app-tunnel
+
+# Create config.yml
+tunnel:
+credentials-file: ~/.cloudflared/.json
+
+ingress:
+  - hostname: myapp.example.com
+    service: http://localhost:3000
+  - hostname: api.example.com
+    service: http://localhost:8080
+  - service: http_status:404  # catch-all
+
+# Run the tunnel
+cloudflared tunnel run my-app-tunnel
+
+# Or run as a system service
+cloudflared service install
+sudo systemctl start cloudflared
+---/code---
+
+
+Set up Cloudflare Tunnel to securely expose local services
+
+
+Turnstile — CAPTCHA Alternative
+-------------------------------
+
+
+Cloudflare Turnstile replaces reCAPTCHA and hCAPTCHA with a privacy-preserving challenge that's invisible to most users. No "select all traffic lights" puzzles — it runs in the background.
+
+
+---code---
+
+
+
+
+  Sign Up
+
+
+// Backend: verify Turnstile token in Worker
+async function verifyTurnstile(token: string, secretKey: string, ip: string): Promise {
+  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ secret: secretKey, response: token, remoteip: ip }),
+  });
+  const result = await response.json() as { success: boolean };
+  return result.success;
+}
+---/code---
+
+
+Implement Turnstile for bot-proof forms
+
+
+SSL/TLS and DNS Management
+--------------------------
+
+
+Cloudflare handles SSL automatically. Every domain gets a free TLS certificate. Key settings to know:
+
+    * SSL Mode: Full (Strict) — recommended. Cloudflare ↔ origin is encrypted with a valid cert. Don't use "Flexible" in production (traffic to origin is unencrypted).
+
+    * Always Use HTTPS — redirects all HTTP to HTTPS at the edge (300ms faster than origin redirect).
+
+    * HSTS — adds Strict-Transport-Security header. Enable once you're fully HTTPS.
+
+    * Minimum TLS Version — set to 1.2 minimum; TLS 1.0/1.1 are deprecated.
+
+
+Configure SSL/TLS modes and security headers
+
+
+-----------------
+Advanced Patterns
+-----------------
+
+
+Edge Caching Strategies
+-----------------------
+
+
+Cloudflare's Cache API gives Workers programmatic control over the CDN cache — cache custom content, bypass cache for authenticated users, or implement stale-while-revalidate.
+
+
+---code---
+// Cache API: cache API responses at the edge
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    // Don't cache authenticated requests
+    const auth = request.headers.get('Authorization');
+    if (auth) return handleRequest(request, env);
+
+    const cache = caches.default;
+    const cacheKey = new Request(request.url, request);
+
+    // Check cache first
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      // Add header to indicate cache hit for debugging
+      const response = new Response(cached.body, cached);
+      response.headers.set('X-Cache', 'HIT');
+      return response;
+    }
+
+    // Cache miss — fetch and cache
+    const response = await handleRequest(request, env);
+
+    // Only cache successful responses
+    if (response.status === 200) {
+      const cacheableResponse = new Response(response.clone().body, {
+        headers: {
+          ...Object.fromEntries(response.headers),
+          'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+          'X-Cache': 'MISS',
+        },
+      });
+      // Store in cache (async, no await needed)
+      cache.put(cacheKey, cacheableResponse.clone());
+      return cacheableResponse;
+    }
+
+    return response;
+  },
+};
+---/code---
+
+
+Implement edge caching with the Cache API and stale-while-revalidate
+
+
+Real-Time Applications with WebSockets
+--------------------------------------
+
+
+Workers support long-lived WebSocket connections using Durable Objects as the stateful hub. This is the foundation for: real-time chat, live dashboards, collaborative editing, multiplayer games.
+
+
+---code---
+// WebSocket chat room using Durable Objects
+export class ChatRoom {
+  state: DurableObjectState;
+  sessions: Map;
+
+  constructor(state: DurableObjectState) {
+    this.state = state;
+    this.sessions = new Map();
+  }
+
+  async fetch(request: Request): Promise {
+    const upgradeHeader = request.headers.get('Upgrade');
+    if (upgradeHeader !== 'websocket') {
+      return new Response('Expected WebSocket', { status: 426 });
+    }
+
+    const url = new URL(request.url);
+    const userId = url.searchParams.get('userId') ?? 'anonymous';
+    const userName = url.searchParams.get('name') ?? 'User';
+
+    const [client, server] = Object.values(new WebSocketPair());
+
+    this.state.acceptWebSocket(server);
+    this.sessions.set(server, { userId, name: userName });
+
+    // Broadcast join event
+    this.broadcast(server, { type: 'join', userId, name: userName, time: Date.now() });
+
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+    const session = this.sessions.get(ws);
+    if (!session) return;
+
+    const data = JSON.parse(typeof message === 'string' ? message : '');
+
+    if (data.type === 'message') {
+      // Store in DO storage for history
+      const msgId = crypto.randomUUID();
+      await this.state.storage.put(`msg:${Date.now()}:${msgId}`, {
+        userId: session.userId,
+        name: session.name,
+        text: data.text,
+      });
+
+      // Broadcast to all connected clients
+      this.broadcast(null, {
+        type: 'message',
+        id: msgId,
+        userId: session.userId,
+        name: session.name,
+        text: data.text,
+        time: Date.now(),
+      });
+    }
+  }
+
+  async webSocketClose(ws: WebSocket) {
+    const session = this.sessions.get(ws);
+    this.sessions.delete(ws);
+    if (session) {
+      this.broadcast(null, { type: 'leave', userId: session.userId, name: session.name });
+    }
+  }
+
+  broadcast(exclude: WebSocket | null, data: unknown) {
+    const message = JSON.stringify(data);
+    for (const ws of this.sessions.keys()) {
+      if (ws !== exclude) {
+        try { ws.send(message); } catch { this.sessions.delete(ws); }
+      }
+    }
+  }
+}
+
+// Worker that routes WebSocket connections to the correct room
+export default {
+  async fetch(request: Request, env: { ROOMS: DurableObjectNamespace }): Promise {
+    const url = new URL(request.url);
+    const roomId = url.searchParams.get('room') ?? 'general';
+    const id = env.ROOMS.idFromName(roomId);
+    const room = env.ROOMS.get(id);
+    return room.fetch(request);
+  },
+};
+---/code---
+
+
+Build real-time WebSocket applications with Durable Objects
+
+
+Cloudflare Queues — Managed Message Queue
+----------------------------------------
+
+
+Queues provides reliable async job processing — send a message from one Worker, consume it in another. Replaces SQS for most use cases with zero configuration.
+
+
+---code---
+// wrangler.toml — Queue producer and consumer
+[[queues.producers]]
+binding = "MY_QUEUE"
+queue = "email-queue"
+
+[[queues.consumers]]
+queue = "email-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "email-dlq"
+---/code---
+
+
+---code---
+export interface Env {
+  MY_QUEUE: Queue;
+}
+
+// Producer Worker — sends jobs to queue
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const { to, subject, body } = await request.json() as any;
+
+    // Send to queue — returns immediately, consumer processes async
+    await env.MY_QUEUE.send({ to, subject, body, timestamp: Date.now() });
+    return Response.json({ queued: true });
+  },
+
+  // Consumer — processes batches of messages
+  async queue(batch: MessageBatch, env: Env): Promise {
+    console.log(`Processing ${batch.messages.length} emails`);
+
+    for (const msg of batch.messages) {
+      const { to, subject, body } = msg.body as any;
+      try {
+        await sendEmail(to, subject, body); // your email sending logic
+        msg.ack(); // acknowledge success
+      } catch (e) {
+        console.error(`Failed to send email to ${to}:`, e`);
+        msg.retry(); // will retry up to max_retries times
+      }
+    }
+  },
+};
+---/code---
+
+
+Implement async job processing with Cloudflare Queues
+
+
+Email Workers — Email Routing
+-----------------------------
+
+
+Email Workers let you process incoming email programmatically. Route emails to different handlers, parse attachments, trigger workflows on incoming messages.
+
+
+---code---
+// wrangler.toml
+[[email]]
+name = "incoming-email"
+
+// Worker: process incoming email
+export default {
+  async email(message: EmailMessage, env: Env, ctx: ExecutionContext): Promise {
+    const from = message.from;
+    const to = message.to;
+    const subject = message.headers.get('Subject') ?? '(no subject)';
+
+    console.log(`Email from ${from} to ${to}: ${subject}`);
+
+    // Route based on recipient
+    if (to.startsWith('support@')) {
+      // Create support ticket
+      await env.DB.prepare(
+        'INSERT INTO tickets (from_email, subject, status) VALUES (?, ?, "open")'
+      ).bind(from, subject).run();
+
+      // Forward to human agent
+      await message.forward('team@company.com');
+      return;
+    }
+
+    if (to.startsWith('reports@')) {
+      // Parse CSV attachment
+      const raw = await new Response(message.raw).text();
+      // process CSV...
+      return;
+    }
+
+    // Reject unrecognized recipients
+    message.setReject('Unknown recipient');
+  },
+};
+---/code---
+
+
+Process incoming email with Email Workers routing
+
+
+Browser Run — Headless Browser at the Edge (2026)
+----------------------------------------
+
+
+Browser Run is the 2026 evolution of the Browser Rendering API. It provides a managed headless Chromium browser accessible from Workers, with major new capabilities:
+
+    * Live View — stream the browser's visual output in real time (for debugging or human-in-the-loop workflows)
+
+    * Human in the Loop — pause automation and pass control to a human when needed (e.g., CAPTCHA, 2FA)
+
+    * CDP Access — full Chrome DevTools Protocol access for fine-grained control
+
+
+---code---
+// Browser Run: scrape a page and return its content
+import puppeteer from '@cloudflare/puppeteer';
+
+export default {
+  async fetch(request: Request, env: { BROWSER: BrowserWorker }): Promise {
+    const { url } = await request.json() as { url: string };
+
+    const browser = await puppeteer.launch(env.BROWSER);
+    const page = await browser.newPage();
+
+    await page.goto(url, { waitUntil: 'networkidle0' });
+
+    // Take screenshot
+    const screenshot = await page.screenshot({ type: 'png' });
+
+    // Extract text content
+    const text = await page.evaluate(() => document.body.innerText);
+
+    await browser.close();
+
+    return Response.json({ text, screenshotBase64: btoa(String.fromCharCode(...screenshot)) });
+  },
+};
+---/code---
+
+
+Use Browser Run for headless browser automation at the edge
+
+
+NEW 2026: Durable Object Facets
+-------------------------------
+
+
+Durable Object Facets are an evolution of the Durable Objects model — each Facet gets its own isolated SQLite database, allowing you to shard data horizontally while keeping each shard strongly consistent and single-threaded.
+
+
+---code---
+// DO Facet: isolated SQLite per tenant
+export class TenantData {
+  constructor(private state: DurableObjectState) {}
+
+  async fetch(request: Request): Promise {
+    // Each tenant gets its own SQLite via state.storage.sql
+    const cursor = this.state.storage.sql.exec(
+      'SELECT * FROM tenant_config WHERE key = ?',
+      'theme'
+    );
+    const rows = [...cursor];
+    return Response.json(rows);
+  }
+}
+
+// One DO instance (Facet) per tenant — complete isolation
+const tenantId = request.headers.get('X-Tenant-Id');
+const id = env.TENANT_DATA.idFromName(tenantId);
+const facet = env.TENANT_DATA.get(id);
+return facet.fetch(request);
+---/code---
+
+
+Use DO Facets for multi-tenant isolated SQLite storage
+
+
+NEW 2026: Artifacts — Git-Compatible Versioned Storage
+----------------------------------------
+
+
+Artifacts is a new Cloudflare primitive designed for AI agent workflows. Think of it as Git-compatible versioned object storage accessible from Workers — an agent can commit files, read history, branch, and merge, all via a simple Workers API.
+
+
+---code---
+// Artifacts: versioned file storage for agents
+export interface Env { ARTIFACTS: ArtifactStore; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    // Write a versioned artifact
+    const artifact = await env.ARTIFACTS.commit({
+      path: 'output/report.md',
+      content: '# Agent Report\n\nAnalysis complete...',
+      message: 'Add weekly report',
+      author: 'claude-agent',
+    });
+
+    // Read history
+    const history = await env.ARTIFACTS.log({ path: 'output/report.md', limit: 10 });
+
+    // Read a specific version
+    const v1 = await env.ARTIFACTS.read({ path: 'output/report.md', ref: history[3].sha });
+
+    return Response.json({ artifact, history, v1 });
+  },
+};
+---/code---
+
+
+Use Artifacts for versioned file storage in agent workflows
+
+
+NEW 2026: Outbound Workers for Sandboxes
+----------------------------------------
+
+
+Outbound Workers provide a zero-trust egress proxy for untrusted code running in sandboxes. When you run LLM-generated code in a Workers sandbox, all outbound network requests pass through an Outbound Worker that can inspect, allow, block, or log them.
+
+
+---code---
+// Outbound Worker: intercepts egress from sandboxed Workers
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const url = new URL(request.url);
+    const sandboxId = request.headers.get('X-Sandbox-Id');
+
+    // Allowlist: only permit requests to approved domains
+    const allowed = ['api.github.com', 'api.stripe.com', 'cdn.jsdelivr.net'];
+    if (!allowed.includes(url.hostname)) {
+      console.warn(`Sandbox ${sandboxId} blocked: ${url.href}`);
+      return new Response('Blocked by egress policy', { status: 403 });
+    }
+
+    // Log all outbound requests for audit
+    await env.DB.prepare(
+      'INSERT INTO egress_log (sandbox_id, url, method, ts) VALUES (?, ?, ?, ?)'
+    ).bind(sandboxId, url.href, request.method, Date.now()).run();
+
+    // Forward the request
+    return fetch(request);
+  },
+};
+---/code---
+
+
+Implement zero-trust egress control with Outbound Workers
+
+
+------------------
+Practical Projects
+------------------
+
+
+Project 1: URL Shortener (Workers + KV)
+---------------------------------------
+
+
+A full URL shortener: create short links, track click counts, expire links after N days. Deployed globally in under 30 seconds.
+
+
+---code---
+// wrangler.toml
+name = "url-shortener"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+[[kv_namespaces]]
+binding = "LINKS"
+id = "YOUR_KV_NAMESPACE_ID"
+
+[[kv_namespaces]]
+binding = "STATS"
+id = "YOUR_STATS_NAMESPACE_ID"
+---/code---
+
+
+---code---
+// src/index.ts — complete URL shortener
+export interface Env {
+  LINKS: KVNamespace;
+  STATS: KVNamespace;
+  BASE_URL: string; // e.g. "https://sho.rt"
+  ADMIN_KEY: string;
+}
+
+interface LinkData {
+  url: string;
+  createdAt: number;
+  expiresAt?: number;
+  customSlug?: string;
+}
+
+function generateSlug(length = 6): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, b => chars[b % chars.length]).join('');
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // POST /api/links — create a short link
+    if (path === '/api/links' && request.method === 'POST') {
+      const adminKey = request.headers.get('X-Admin-Key');
+      if (adminKey !== env.ADMIN_KEY) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+      const body = await request.json() as { url: string; slug?: string; ttlDays?: number };
+
+      // Validate URL
+      try { new URL(body.url); } catch {
+        return Response.json({ error: 'Invalid URL' }, { status: 400 });
+      }
+
+      const slug = body.slug ?? generateSlug();
+      const ttlDays = body.ttlDays ?? 365;
+      const expiresAt = Date.now() + ttlDays * 86400_000;
+
+      // Check slug not taken
+      const existing = await env.LINKS.get(slug);
+      if (existing) return Response.json({ error: 'Slug already taken' }, { status: 409 });
+
+      const linkData: LinkData = { url: body.url, createdAt: Date.now(), expiresAt };
+      await env.LINKS.put(slug, JSON.stringify(linkData), {
+        expirationTtl: ttlDays * 86400,
+      });
+
+      return Response.json({
+        slug,
+        shortUrl: `${env.BASE_URL}/${slug}`,
+        originalUrl: body.url,
+        expiresAt: new Date(expiresAt).toISOString(),
+      }, { status: 201 });
+    }
+
+    // GET /api/links/:slug/stats — click statistics
+    const statsMatch = path.match(/^\/api\/links\/([^/]+)\/stats$/);
+    if (statsMatch) {
+      const slug = statsMatch[1];
+      const clicks = await env.STATS.get(`clicks:${slug}`);
+      return Response.json({ slug, clicks: parseInt(clicks ?? '0') });
+    }
+
+    // Redirect: GET /:slug
+    const slug = path.slice(1);
+    if (slug && !slug.includes('/')) {
+      const raw = await env.LINKS.get(slug);
+      if (!raw) return Response.redirect(`${env.BASE_URL}/not-found`, 302);
+
+      const link: LinkData = JSON.parse(raw);
+
+      // Increment click count (async, don't wait)
+      const currentClicks = parseInt(await env.STATS.get(`clicks:${slug}`) ?? '0');
+      env.STATS.put(`clicks:${slug}`, String(currentClicks + 1));
+
+      return Response.redirect(link.url, 301);
+    }
+
+    return new Response('URL Shortener — POST /api/links to create');
+  },
+};
+---/code---
+
+
+Build the URL shortener with click tracking
+
+
+Project 2: Blog with CMS (Pages + D1)
+-------------------------------------
+
+
+A simple content management system: write posts in markdown, publish them via API, serve them from Pages Functions backed by D1.
+
+
+---code---
+-- schema.sql
+CREATE TABLE IF NOT EXISTS posts (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug         TEXT    NOT NULL UNIQUE,
+  title        TEXT    NOT NULL,
+  content      TEXT    NOT NULL,  -- markdown
+  excerpt      TEXT,
+  cover_image  TEXT,
+  published    INTEGER NOT NULL DEFAULT 0,
+  published_at TEXT,
+  created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+  updated_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS tags (
+  id   INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS post_tags (
+  post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  tag_id  INTEGER NOT NULL REFERENCES tags(id)  ON DELETE CASCADE,
+  PRIMARY KEY (post_id, tag_id)
+);
+
+CREATE INDEX idx_posts_slug      ON posts(slug);
+CREATE INDEX idx_posts_published ON posts(published, published_at DESC);
+---/code---
+
+
+---code---
+// functions/api/posts/index.ts
+import type { PagesFunction } from '@cloudflare/workers-types';
+interface Env { DB: D1Database; CMS_KEY: string; }
+
+// GET /api/posts — list published posts
+export const onRequestGet: PagesFunction = async ({ env, request }) => {
+  const url = new URL(request.url);
+  const page = parseInt(url.searchParams.get('page') ?? '1');
+  const tag = url.searchParams.get('tag');
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  let query = `SELECT id, slug, title, excerpt, cover_image, published_at
+    FROM posts WHERE published = 1`;
+  const params: any[] = [];
+
+  if (tag) {
+    query += ` AND id IN (
+      SELECT post_id FROM post_tags pt
+      JOIN tags t ON t.id = pt.tag_id WHERE t.slug = ?
+    )`;
+    params.push(tag);
+  }
+
+  query += ` ORDER BY published_at DESC LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
+
+  const { results } = await env.DB.prepare(query).bind(...params).all();
+  return Response.json({ posts: results, page, limit });
+};
+
+// POST /api/posts — create post (admin only)
+export const onRequestPost: PagesFunction = async ({ env, request }) => {
+  if (request.headers.get('X-CMS-Key') !== env.CMS_KEY)
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { title, slug, content, excerpt, cover_image, tags = [] } =
+    await request.json() as any;
+
+  const result = await env.DB
+    .prepare(`INSERT INTO posts (title, slug, content, excerpt, cover_image)
+      VALUES (?, ?, ?, ?, ?) RETURNING id`)
+    .bind(title, slug, content, excerpt, cover_image)
+    .first<{ id: number }>();
+
+  return Response.json({ id: result?.id, slug }, { status: 201 });
+};
+
+// functions/api/posts/[slug].ts — get single post
+export const onRequestGet: PagesFunction = async ({ params, env }) => {
+  const post = await env.DB
+    .prepare('SELECT * FROM posts WHERE slug = ? AND published = 1')
+    .bind(params.slug).first();
+  if (!post) return Response.json({ error: 'Not found' }, { status: 404 });
+  return Response.json(post);
+};
+---/code---
+
+
+Build the blog CMS with D1 schema, API, and pagination
+
+
+Project 3: AI Chatbot with RAG (Workers AI + Vectorize)
+----------------------------------------
+
+
+A customer support chatbot that answers questions based on your documentation. See the complete RAG implementation in Module 5 — this project adds a streaming chat interface and conversation history.
+
+
+---code---
+// Chatbot with conversation history stored in KV
+export interface Env {
+  AI: Ai;
+  VECTORIZE: VectorizeIndex;
+  DOCS_KV: KVNamespace;
+  SESSIONS_KV: KVNamespace;
+}
+
+interface Message { role: 'user' | 'assistant'; content: string; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const { sessionId, message } = await request.json() as any;
+
+    // Load conversation history (last 10 turns)
+    const rawHistory = await env.SESSIONS_KV.get(sessionId);
+    const history: Message[] = rawHistory ? JSON.parse(rawHistory) : [];
+
+    // Retrieve relevant docs via RAG
+    const embed = await env.AI.run('@cf/baai/bge-small-en-v1.5', { text: [message] });
+    const matches = await env.VECTORIZE.query(embed.data[0], { topK: 3, returnMetadata: 'all' });
+    const docs = await Promise.all(
+      matches.matches.filter(m => m.score > 0.65).map(m => env.DOCS_KV.get(m.id))
+    );
+    const context = docs.filter(Boolean).join('\n\n');
+
+    // Build message array with history + new message
+    const messages = [
+      {
+        role: 'system' as const,
+        content: context
+          ? `You are a helpful customer support assistant. Use the docs below to answer.\n\nDocs:\n${context}`
+          : 'You are a helpful customer support assistant.',
+      },
+      ...history.slice(-8),  // last 4 turns
+      { role: 'user' as const, content: message },
+    ];
+
+    // Stream response
+    const stream = await env.AI.run('@cf/meta/llama-4-scout-17b-16e-instruct', {
+      messages, stream: true, max_tokens: 512,
+    });
+
+    // Save history after response (simplified — in prod buffer the stream)
+    history.push({ role: 'user', content: message });
+    history.push({ role: 'assistant', content: '[streamed]' });
+    await env.SESSIONS_KV.put(sessionId, JSON.stringify(history), { expirationTtl: 3600 });
+
+    return new Response(stream, {
+      headers: { 'Content-Type': 'text/event-stream' },
+    });
+  },
+};
+---/code---
+
+
+Build the RAG chatbot with streaming and conversation history
+
+
+Project 4: Slack Bot (Workers + KV)
+-----------------------------------
+
+
+A Slack bot with slash commands, interactive messages, and KV storage for user preferences. Builds on the Slack example in Module 6 — this version adds a /standup command that collects daily standups.
+
+
+---code---
+// /standup slash command — collect + post team standups
+export interface Env {
+  STANDUPS: KVNamespace;
+  SLACK_BOT_TOKEN: string;
+  SLACK_SIGNING_SECRET: string;
+  STANDUP_CHANNEL: string; // channel ID to post summary
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise {
+    const { pathname } = new URL(request.url);
+
+    if (pathname === '/slack/standup' && request.method === 'POST') {
+      const formData = await request.formData();
+      const userId = formData.get('user_id') as string;
+      const userName = formData.get('user_name') as string;
+      const text = (formData.get('text') as string).trim();
+
+      // Open a modal for structured standup input
+      ctx.waitUntil(openStandupModal(
+        env,
+        formData.get('trigger_id') as string,
+        userId,
+        userName
+      ));
+
+      return Response.json({ response_type: 'ephemeral', text: 'Opening standup form...' });
+    }
+
+    if (pathname === '/slack/interactive') {
+      const formData = await request.formData();
+      const payload = JSON.parse(formData.get('payload') as string);
+
+      if (payload.type === 'view_submission' && payload.view.callback_id === 'standup_submit') {
+        const values = payload.view.state.values;
+        const standup = {
+          userId: payload.user.id,
+          userName: payload.user.name,
+          yesterday: values.yesterday.yesterday_input.value,
+          today: values.today.today_input.value,
+          blockers: values.blockers.blockers_input.value,
+          submittedAt: Date.now(),
+        };
+
+        // Store standup for today
+        const dateKey = new Date().toISOString().split('T')[0];
+        await env.STANDUPS.put(`${dateKey}:${standup.userId}`, JSON.stringify(standup));
+
+        // Post to channel
+        ctx.waitUntil(postStandup(env, standup));
+        return new Response('', { status: 200 }); // close modal
+      }
+    }
+
+    return new Response('Not Found', { status: 404 });
+  },
+};
+
+async function openStandupModal(env: Env, triggerId: string, userId: string, userName: string) {
+  await fetch('https://slack.com/api/views.open', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${env.SLACK_BOT_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      trigger_id: triggerId,
+      view: {
+        type: 'modal',
+        callback_id: 'standup_submit',
+        title: { type: 'plain_text', text: 'Daily Standup' },
+        submit: { type: 'plain_text', text: 'Submit' },
+        blocks: [
+          inputBlock('yesterday', 'What did you do yesterday?'),
+          inputBlock('today', 'What will you do today?'),
+          inputBlock('blockers', 'Any blockers? (or "none")'),
+        ],
+      },
+    }),
+  });
+}
+
+function inputBlock(id: string, label: string) {
+  return {
+    type: 'input', block_id: id,
+    element: { type: 'plain_text_input', action_id: `${id}_input`, multiline: true },
+    label: { type: 'plain_text', text: label },
+  };
+}
+
+async function postStandup(env: Env, s: any) {
+  await fetch('https://slack.com/api/chat.postMessage', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${env.SLACK_BOT_TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      channel: env.STANDUP_CHANNEL,
+      text: `*${s.userName}'s Standup*\n*Yesterday:* ${s.yesterday}\n*Today:* ${s.today}\n*Blockers:* ${s.blockers}`,
+    }),
+  });
+}
+---/code---
+
+
+Build the Slack standup bot with modals and channel posting
+
+
+Project 5: Internal Dashboard (Pages + D1 + Hyperdrive)
+----------------------------------------
+
+
+A CRUD admin panel: lists records from D1, allows editing, displays charts. Frontend is plain HTML/JS served from Pages; backend is Pages Functions.
+
+
+---code---
+// functions/api/[[path]].ts — catch-all API handler for dashboard
+import type { PagesFunction } from '@cloudflare/workers-types';
+interface Env { DB: D1Database; ADMIN_KEY: string; }
+
+export const onRequest: PagesFunction = async (ctx) => {
+  // Auth check
+  const key = ctx.request.headers.get('X-Admin-Key');
+  if (key !== ctx.env.ADMIN_KEY)
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { pathname } = new URL(ctx.request.url);
+  const [, , resource, id] = pathname.split('/'); // /api/{resource}/{id}
+
+  const ALLOWED = ['users', 'orders', 'products'];
+  if (!ALLOWED.includes(resource))
+    return Response.json({ error: 'Unknown resource' }, { status: 404 });
+
+  if (ctx.request.method === 'GET' && !id) {
+    const { results } = await ctx.env.DB
+      .prepare(`SELECT * FROM ${resource} ORDER BY id DESC LIMIT 100`).all();
+    return Response.json(results);
+  }
+
+  if (ctx.request.method === 'GET' && id) {
+    const row = await ctx.env.DB
+      .prepare(`SELECT * FROM ${resource} WHERE id = ?`).bind(id).first();
+    if (!row) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json(row);
+  }
+
+  if (ctx.request.method === 'PUT' && id) {
+    const body = await ctx.request.json() as Record;
+    const fields = Object.keys(body).filter(k => k !== 'id');
+    const sets = fields.map(f => `${f} = ?`).join(', ');
+    await ctx.env.DB
+      .prepare(`UPDATE ${resource} SET ${sets} WHERE id = ?`)
+      .bind(...fields.map(f => body[f]), id).run();
+    return Response.json({ success: true });
+  }
+
+  if (ctx.request.method === 'DELETE' && id) {
+    await ctx.env.DB.prepare(`DELETE FROM ${resource} WHERE id = ?`).bind(id).run();
+    return Response.json({ success: true });
+  }
+
+  return Response.json({ error: 'Method not allowed' }, { status: 405 });
+};
+---/code---
+
+
+Build the admin dashboard with generic CRUD over D1
+
+
+Project 6: Cron Monitoring Service (Workers + KV + Email Workers)
+----------------------------------------
+
+
+A "heartbeat" monitoring service: your cron jobs ping an endpoint every run, and if a ping is missed, an alert email is sent. Zero external dependencies.
+
+
+---code---
+// Complete cron monitor: receive pings + alert on silence
+export interface Env {
+  MONITORS: KVNamespace;
+  ALERT_EMAIL: string;
+}
+
+interface MonitorConfig {
+  name: string;
+  intervalMinutes: number;
+  alertEmail: string;
+  lastPing?: number;
+  status: 'ok' | 'late' | 'down';
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const url = new URL(request.url);
+    const [, action, monitorId] = url.pathname.split('/');
+
+    // POST /ping/:id — job pings this endpoint on each run
+    if (action === 'ping' && monitorId) {
+      const raw = await env.MONITORS.get(monitorId);
+      if (!raw) return Response.json({ error: 'Monitor not found' }, { status: 404 });
+
+      const config: MonitorConfig = JSON.parse(raw);
+      config.lastPing = Date.now();
+      config.status = 'ok';
+      await env.MONITORS.put(monitorId, JSON.stringify(config));
+
+      console.log(`Monitor ${config.name} pinged at ${new Date().toISOString()}`);
+      return Response.json({ ok: true, name: config.name });
+    }
+
+    // POST /monitors — create a new monitor
+    if (action === 'monitors' && request.method === 'POST') {
+      const body = await request.json() as Omit;
+      const id = crypto.randomUUID();
+      await env.MONITORS.put(id, JSON.stringify({ ...body, status: 'ok', lastPing: Date.now() }));
+      return Response.json({ id, pingUrl: `https://YOUR_WORKER/ping/${id}` }, { status: 201 });
+    }
+
+    // GET /monitors — list all monitors
+    if (action === 'monitors' && request.method === 'GET') {
+      const { keys } = await env.MONITORS.list();
+      const monitors = await Promise.all(
+        keys.map(async k => {
+          const raw = await env.MONITORS.get(k.name);
+          return { id: k.name, ...JSON.parse(raw ?? '{}') };
+        })
+      );
+      return Response.json(monitors);
+    }
+
+    return new Response('Not Found', { status: 404 });
+  },
+
+  // Runs every 5 minutes via cron to check for stale monitors
+  async scheduled(_event: ScheduledEvent, env: Env): Promise {
+    const { keys } = await env.MONITORS.list();
+
+    for (const key of keys) {
+      const raw = await env.MONITORS.get(key.name);
+      if (!raw) continue;
+
+      const config: MonitorConfig = JSON.parse(raw);
+      const gracePeriodMs = config.intervalMinutes * 60_000 * 1.5; // 50% grace period
+      const timeSincePing = Date.now() - (config.lastPing ?? 0);
+
+      if (timeSincePing > gracePeriodMs && config.status !== 'down') {
+        config.status = 'down';
+        await env.MONITORS.put(key.name, JSON.stringify(config));
+
+        // Send alert email using Email Workers send capability
+        console.error(JSON.stringify({
+          alert: 'MONITOR_DOWN',
+          monitor: config.name,
+          lastPing: new Date(config.lastPing ?? 0).toISOString(),
+          minutesSince: Math.round(timeSincePing / 60_000),
+        }));
+        // In prod: trigger email via Email Workers or Mailchannels
+      }
+    }
+  },
+};
+---/code---
+
+
+Build the cron monitoring service with alerts
+
+
+--------------------------
+Migration & Best Practices
+--------------------------
+
+
+Migrating from AWS Lambda to Workers — Step by Step
+----------------------------------------
+
+
+The migration is simpler than it looks. Workers speak the same HTTP model; you're replacing the Lambda handler signature with the Workers fetch handler, and AWS SDK calls with Cloudflare bindings.
+
+
+AWS Lambda	|	Cloudflare Workers
+Handler: exports.handler = async (event) => {}	|	Handler: export default { async fetch(request, env) {} }
+DynamoDB (via AWS SDK)	|	D1 (SQL) or KV (key-value)
+S3 (via AWS SDK)	|	R2 (S3-compatible, zero egress)
+SQS	|	Cloudflare Queues
+Secrets Manager	|	wrangler secret + env bindings
+API Gateway routes	|	URL routing in Workers code
+CloudWatch Logs	|	console.log → Logpush / wrangler tail
+EventBridge / CloudWatch Events	|	Cron Triggers in wrangler.toml
+Lambda Layers	|	npm packages bundled by Wrangler
+VPC, Security Groups	|	Not needed — Workers have no VPC
+
+
+---code---
+// BEFORE: AWS Lambda handler (Node.js)
+const { DynamoDBClient, GetItemCommand } = require('@aws-sdk/client-dynamodb');
+const client = new DynamoDBClient({ region: 'us-east-1' });
+
+exports.handler = async (event) => {
+  const userId = event.pathParameters.id;
+  const result = await client.send(new GetItemCommand({
+    TableName: 'Users',
+    Key: { id: { S: userId } },
+  }));
+  if (!result.Item) return { statusCode: 404, body: JSON.stringify({ error: 'Not found' }) };
+  return { statusCode: 200, body: JSON.stringify({ id: result.Item.id.S }) };
+};
+
+// AFTER: Cloudflare Worker (TypeScript)
+export interface Env { DB: D1Database; }
+
+export default {
+  async fetch(request: Request, env: Env): Promise {
+    const userId = new URL(request.url).pathname.split('/').pop();
+    const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?')
+      .bind(userId).first();
+    if (!user) return Response.json({ error: 'Not found' }, { status: 404 });
+    return Response.json(user);
+  },
+};
+---/code---
+
+
+Know the Lambda-to-Workers migration mapping
+
+
+Migrating from Vercel to Pages
+------------------------------
+
+
+If you're on Vercel with Next.js, the migration is a single package change:
+
+
+---code---
+# Remove Vercel adapter, add Cloudflare adapter
+npm uninstall @vercel/next
+
+# For Next.js (via OpenNext)
+npm install -D @cloudflare/next-on-pages
+# Build command: npx @cloudflare/next-on-pages
+# Output dir: .vercel/output/static
+
+# For Astro
+npm install @astrojs/cloudflare
+# astro.config.mjs:
+import cloudflare from '@astrojs/cloudflare';
+export default defineConfig({ output: 'server', adapter: cloudflare() });
+
+# For SvelteKit
+npm install @sveltejs/adapter-cloudflare
+# svelte.config.js:
+import adapter from '@sveltejs/adapter-cloudflare';
+export default { kit: { adapter: adapter() } };
+
+# Connect to Cloudflare Pages via Git (dashboard)
+# or: wrangler pages deploy ./build-output --project-name=my-site
+---/code---
+
+
+Next.js Edge Runtime CaveatNot all Next.js features work on Cloudflare Pages — specifically, anything requiring full Node.js APIs (native modules, child_process, fs in certain configurations). Use the edge runtime directive on pages/API routes: export const runtime = 'edge'. Pages using the default Node.js runtime won't work on Workers. Check @cloudflare/next-on-pages compatibility matrix before migrating.
+
+Migrate from Vercel to Pages for Next.js, Astro, SvelteKit
+
+
+The Cloudflare Free Tier — What You Get for $0
+----------------------------------------
+
+
+Product	|	Free Tier Limit
+Workers requests	|	100,000 / day
+Workers CPU time	|	10ms / request
+Workers KV reads	|	100,000 / day
+Workers KV writes	|	1,000 / day
+KV storage	|	1 GB
+D1 storage	|	5 GB
+D1 reads	|	25M / day
+D1 writes	|	100K / day
+R2 storage	|	10 GB / month
+R2 Class A ops	|	1M / month
+R2 Class B ops	|	10M / month
+R2 egress	|	$0 (always free)
+Pages builds	|	500 / month
+Pages bandwidth	|	Unlimited
+Queues	|	1M operations / month
+Workers AI tokens	|	10,000 neurons / day
+Turnstile	|	Unlimited (free forever)
+DDoS protection	|	Unlimited (free forever)
+SSL certificates	|	Unlimited (free forever)
+
+
+The free tier supports: a personal blog, a small SaaS MVP, a portfolio site with API, up to ~3M monthly users for simple apps, all internal tools for a team of 5–10 people. The paid tier ($5/month Workers + pay-as-you-go) supports most startups through Series A.
+
+Understand the free tier limits and plan accordingly
+
+
+Monitoring — Logpush, Analytics, and Tail Workers
+----------------------------------------
+
+
+---code---
+# wrangler tail — real-time log streaming during development
+wrangler tail                           # all events
+wrangler tail --format=json             # JSON format for parsing
+wrangler tail --status=error            # only errors
+wrangler tail --ip-address=1.2.3.4     # filter by IP
+wrangler tail --method=POST             # filter by HTTP method
+wrangler tail --search="TypeError"      # filter by error text
+---/code---
+
+
+---code---
+// Tail Worker — receives all log events from another Worker
+// Use for: sending errors to Sentry, metrics to Datadog, alerts to Slack
+export default {
+  async tail(events: TraceItem[]): Promise {
+    for (const event of events) {
+      for (const log of event.logs) {
+        // Send errors to Slack
+        if (log.level === 'error') {
+          await fetch('https://hooks.slack.com/services/YOUR/WEBHOOK/URL', {
+            method: 'POST',
+            body: JSON.stringify({
+              text: `🚨 Worker Error: ${log.message[0]}\nRay: ${event.rayId}`,
+            }),
+          });
+        }
+      }
+
+      // Forward all events to your observability platform
+      await fetch('https://api.datadog.com/api/v2/logs', {
+        method: 'POST',
+        headers: { 'DD-API-KEY': YOUR_DATADOG_KEY },
+        body: JSON.stringify({
+          ddsource: 'cloudflare-workers',
+          ddtags: `ray:${event.rayId},status:${event.outcome}`,
+          message: JSON.stringify(event.logs),
+        }),
+      });
+    }
+  },
+};
+---/code---
+
+
+Set up Tail Workers for production error alerting
+
+
+CI/CD with GitHub Actions
+-------------------------
+
+
+---code---
+# .github/workflows/deploy.yml
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+
+  deploy-staging:
+    name: Deploy Staging
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - name: Deploy to staging
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          command: deploy --env staging
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+  deploy-production:
+    name: Deploy Production
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'npm' }
+      - run: npm ci
+      - run: npm run build  # if you have a build step
+      - name: Deploy to production
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          command: deploy --env production
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      - name: Run smoke test
+        run: |
+          curl -f https://api.yourdomain.com/health || exit 1
+
+# Required GitHub Secrets:
+# CF_API_TOKEN: Cloudflare API token with Workers:Edit permission
+# CF_ACCOUNT_ID: Your Cloudflare account ID (from dashboard)
+---/code---
+
+
+Set up GitHub Actions CI/CD with staging and production environments
+
+
+Wrangler Environments — Staging and Production
+----------------------------------------
+
+
+---code---
+# wrangler.toml — multi-environment setup
+name = "my-api"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+# Shared config (applies to all environments)
+[vars]
+ENVIRONMENT = "development"
+LOG_LEVEL = "debug"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "dev-kv-id"
+
+# Staging environment
+[env.staging]
+name = "my-api-staging"
+vars = { ENVIRONMENT = "staging", LOG_LEVEL = "info" }
+route = { pattern = "staging.api.example.com/*", zone_name = "example.com" }
+
+[[env.staging.kv_namespaces]]
+binding = "CACHE"
+id = "staging-kv-id"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "my-api-staging"
+database_id = "staging-d1-id"
+
+# Production environment
+[env.production]
+name = "my-api"
+vars = { ENVIRONMENT = "production", LOG_LEVEL = "warn" }
+route = { pattern = "api.example.com/*", zone_name = "example.com" }
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "production-kv-id"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "my-api-production"
+database_id = "production-d1-id"
+
+# Deploy commands:
+# wrangler deploy --env staging
+# wrangler deploy --env production
+# wrangler dev --env staging  (local dev with staging bindings)
+---/code---
+
+
+Configure multi-environment deployments with isolated resources
+
+
+Testing Workers with Vitest + Miniflare
+---------------------------------------
+
+
+---code---
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    environment: 'miniflare',
+    environmentOptions: {
+      kvNamespaces: ['CACHE'],
+      d1Databases: ['DB'],
+      bindings: { API_SECRET: 'test-secret' },
+    },
+  },
+});
+---/code---
+
+
+---code---
+// src/index.test.ts
+import { describe, it, expect, beforeAll } from 'vitest';
+import worker from '.';
+import { env } from 'cloudflare:test';
+
+beforeAll(async () => {
+  // Seed test database
+  await env.DB.exec(`
+    CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT, name TEXT);
+    INSERT INTO users VALUES (1, 'alice@test.com', 'Alice');
+  `);
+});
+
+describe('GET /users', () => {
+  it('returns users list', async () => {
+    const request = new Request('http://localhost/users');
+    const response = await worker.fetch(request, env, new ExecutionContext());
+
+    expect(response.status).toBe(200);
+    const { users } = await response.json() as any;
+    expect(users).toHaveLength(1);
+    expect(users[0].email).toBe('alice@test.com');
+  });
+
+  it('rejects unauthenticated requests', async () => {
+    const request = new Request('http://localhost/admin/users');
+    const response = await worker.fetch(request, env, new ExecutionContext());
+    expect(response.status).toBe(401);
+  });
+});
+
+describe('KV caching', () => {
+  it('stores and retrieves from KV', async () => {
+    await env.CACHE.put('test-key', 'test-value');
+    const value = await env.CACHE.get('test-key');
+    expect(value).toBe('test-value');
+  });
+});
+---/code---
+
+
+Write unit and integration tests for Workers with Vitest + Miniflare
+
+
+Cost Optimization Strategies
+----------------------------
+
+
+    * Cache aggressively with KV — a KV read ($0.50/M) is 600x cheaper than a D1 query plus Worker CPU. Cache the result of expensive database queries for 60 seconds.
+
+    * Use Workers for light logic, defer heavy work to Queues — don't burn CPU time on the hot path. Move report generation, email sending, and data processing to Queue consumers.
+
+    * Minimize response size — bandwidth on R2 is free, but large responses increase KV/D1 data volume and slow down clients. Return only the fields needed.
+
+    * Batch D1 queries — use env.DB.batch() to combine multiple queries into one round trip. Reduces both latency and query count.
+
+    * Set appropriate KV TTLs — expired KV values still count toward storage (until GC). Set expirationTtl on everything that should expire to keep namespace size down.
+
+    * Use conditional requests (ETag) — return 304 Not Modified for unchanged resources to avoid R2 reads and bandwidth costs.
+
+    * Logpush instead of console.log in prod — console.log on every request burns CPU time. Use structured JSON and send logs via Logpush to your analytics platform.
+
+
+Apply cost optimization strategies across Workers, KV, and D1
+
+
+Production Checklist
+--------------------
+
+
+Area	|	Checklist Item	|	Status
+Security	|	Secrets in wrangler secret (not in code)	|	□
+Security	|	Input validation on all user-supplied data	|	□
+Security	|	Authentication on all non-public endpoints	|	□
+Security	|	CORS configured correctly (not *)	|	□
+Reliability	|	Error handling returns safe messages (no stack traces)	|	□
+Reliability	|	Database queries use parameterized bindings (not string concat)	|	□
+Reliability	|	Cron jobs idempotent (safe to re-run)	|	□
+Observability	|	Structured JSON logging with request ID	|	□
+Observability	|	Tail Worker or Logpush for production logs	|	□
+Performance	|	KV caching for database-backed responses	|	□
+Performance	|	Cache-Control headers on static assets	|	□
+CI/CD	|	GitHub Actions or equivalent for auto-deploy	|	□
+CI/CD	|	Staging environment with separate bindings	|	□
+CI/CD	|	Tests pass before deploy	|	□
+Cost	|	Free tier limits understood for expected traffic	|	□
+
+
+Complete the production readiness checklist

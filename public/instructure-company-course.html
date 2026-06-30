@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instructure — The Business of Canvas &amp; the Learning Ecosystem (Company Briefing)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0d12;--bg-card:#13161e;--bg-card-hover:#1b1f2a;--accent:#f4525a;--accent-dim:#e03e47;--accent-glow:rgba(244,82,90,0.15);--gold:#2dd4bf;--gold-glow:rgba(45,212,191,0.12);--text:#e3e6ec;--text-dim:#9aa3b2;--text-bright:#f8fafc;--border:#1f2430;--border-light:#333b4c;--success:#10b981;--warning:#f59e0b;--danger:#dc2626;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,sans-serif;--font-mono:"SF Mono",Monaco,Menlo,Consolas,"Liberation Mono",monospace}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.75;font-size:17px;min-height:100vh}
+nav{position:sticky;top:0;z-index:100;background:rgba(11,13,18,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px;gap:16px}
+.nav-brand{font-size:15px;font-weight:700;color:var(--accent);white-space:nowrap;letter-spacing:-0.3px}
+.nav-brand span{color:var(--gold)}
+.nav-links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;white-space:nowrap;transition:all 0.2s}
+.nav-link:hover,.nav-link.active{color:var(--accent);background:var(--accent-glow)}
+.nav-progress{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-dim);white-space:nowrap}
+.progress-bar{width:100px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));border-radius:3px;transition:width 0.5s ease;width:0%}
+.hero{max-width:1200px;margin:0 auto;padding:80px 24px 50px}
+.hero h1{font-size:clamp(28px,4vw,44px);font-weight:800;color:var(--text-bright);line-height:1.15;margin-bottom:16px;letter-spacing:-1px}
+.hero h1 span{color:var(--accent)}
+.hero h1 em{color:var(--gold);font-style:normal}
+.hero-subtitle{font-size:18px;color:var(--text-dim);max-width:760px;margin-bottom:32px}
+.hero-meta{display:flex;gap:24px;flex-wrap:wrap;font-size:14px;color:var(--text-dim)}
+.hero-meta span{display:flex;align-items:center;gap:6px}
+.hero-meta strong{color:var(--text)}
+.statbar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1200px;margin:0 auto 8px;padding:0 24px}
+.statbox{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.statbox .num{font-size:22px;font-weight:800;color:var(--text-bright);letter-spacing:-0.5px}
+.statbox .num small{font-size:13px;color:var(--gold);font-weight:600}
+.statbox .lbl{font-size:11px;text-transform:uppercase;letter-spacing:0.6px;color:var(--text-dim);margin-top:4px}
+main{max-width:1200px;margin:0 auto;padding:32px 24px 80px}
+.module-section{margin-bottom:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg-card);transition:border-color 0.3s}
+.module-section:hover{border-color:var(--border-light)}
+.module-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;cursor:pointer;user-select:none;transition:background 0.2s}
+.module-header:hover{background:var(--bg-card-hover)}
+.module-header-left{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
+.progress-check{width:20px;height:20px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.module-number{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;flex-shrink:0}
+.module-header h2{font-size:clamp(16px,2.5vw,20px);font-weight:700;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toggle-icon{color:var(--text-dim);font-size:14px;transition:transform 0.3s;flex-shrink:0}
+.toggle-icon.open{transform:rotate(90deg)}
+.module-content{display:none;padding:0 24px 32px;border-top:1px solid var(--border)}
+.module-content.open{display:block}
+.module-content h3{font-size:20px;font-weight:700;color:var(--accent);margin:32px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.module-content h3:first-child{margin-top:24px}
+.module-content h4{font-size:16px;font-weight:700;color:var(--gold);margin:24px 0 10px}
+.module-content p{margin-bottom:16px;color:var(--text)}
+.module-content ul,.module-content ol{margin:0 0 16px 24px;color:var(--text)}
+.module-content li{margin-bottom:8px}
+.module-content code{font-family:var(--font-mono);font-size:0.9em;background:rgba(244,82,90,0.1);color:var(--accent);padding:2px 6px;border-radius:4px}
+.module-content strong{color:var(--text-bright)}
+.key-term{color:var(--accent);font-weight:600;border-bottom:1px dotted var(--accent-dim)}
+.info-box{background:linear-gradient(135deg,rgba(244,82,90,0.08),rgba(244,82,90,0.03));border:1px solid rgba(244,82,90,0.25);border-left:4px solid var(--accent);border-radius:8px;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7}
+.info-box strong{color:var(--accent)}
+.deal-box{background:linear-gradient(135deg,rgba(45,212,191,0.09),rgba(45,212,191,0.03));border:1px solid rgba(45,212,191,0.28);border-left:4px solid var(--gold);border-radius:8px;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7}
+.deal-box strong{color:var(--gold)}
+.risk-box{background:linear-gradient(135deg,rgba(220,38,38,0.1),rgba(220,38,38,0.03));border:1px solid rgba(220,38,38,0.32);border-left:4px solid var(--danger);border-radius:8px;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7}
+.risk-box strong{color:#f87171}
+.comparison-table{overflow-x:auto;margin:24px 0;border-radius:8px;border:1px solid var(--border)}
+.comparison-table table,.module-content table{width:100%;border-collapse:collapse;font-size:14px}
+.comparison-table th,.module-content th{background:rgba(244,82,90,0.1);color:var(--accent);font-weight:600;text-align:left;padding:12px 16px;border-bottom:2px solid var(--border);white-space:nowrap}
+.comparison-table td,.module-content td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.comparison-table tr:hover,.module-content tr:hover{background:rgba(244,82,90,0.04)}
+.comparison-table td strong,.module-content td strong{color:var(--text-bright)}
+.ascii-diagram{margin:24px 0;background:#0c0f17;border:1px solid var(--border);border-radius:8px;overflow-x:auto}
+.ascii-diagram pre{font-family:var(--font-mono);font-size:13px;line-height:1.5;color:var(--accent);padding:24px;margin:0;white-space:pre;min-width:max-content}
+.tagrow{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 20px}
+.tag{font-size:12px;font-weight:600;padding:4px 12px;border-radius:9999px;background:rgba(244,82,90,0.12);color:var(--accent);border:1px solid rgba(244,82,90,0.25)}
+.tag.g{background:var(--gold-glow);color:var(--gold);border-color:rgba(45,212,191,0.3)}
+.disclaimer{max-width:1200px;margin:0 auto;padding:0 24px}
+.disclaimer .d-inner{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;font-size:13px;color:var(--text-dim);line-height:1.6}
+.footer{text-align:center;padding:40px 24px;color:var(--text-dim);font-size:13px;border-top:1px solid var(--border);max-width:1200px;margin:0 auto}
+.footer a{color:var(--accent);text-decoration:none}
+@media(max-width:768px){
+nav{padding:0 16px}
+.nav-links{display:none}
+.hero{padding:40px 16px 24px}
+.statbar{grid-template-columns:repeat(2,1fr);padding:0 16px}
+main{padding:24px 16px 60px}
+.module-header{padding:16px}
+.module-content{padding:0 16px 24px}
+.module-header h2{font-size:16px}
+.hero-meta{flex-direction:column;gap:8px}
+.ascii-diagram pre{font-size:11px;padding:16px}
+.comparison-table th,.comparison-table td,.module-content th,.module-content td{padding:8px 10px;font-size:13px}
+}
+</style>
+</head>
+<body>
+<nav>
+<div class="nav-inner">
+<div class="nav-brand">Instructure <span>— Company Briefing</span></div>
+<div class="nav-links">
+<a href="#module-1" class="nav-link">1. Instructure 101</a>
+<a href="#module-2" class="nav-link">2. The LMS Market</a>
+<a href="#module-3" class="nav-link">3. The Product</a>
+<a href="#module-4" class="nav-link">4. The PE Story</a>
+<a href="#module-5" class="nav-link">5. Competition</a>
+<a href="#module-6" class="nav-link">6. Architecture</a>
+<a href="#module-7" class="nav-link">7. AI &amp; Build/Buy</a>
+<a href="#module-8" class="nav-link">8. The Playbook</a>
+</div>
+<div class="nav-progress">
+<span id="progress-text">0/8</span>
+<div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+</div>
+</div>
+</nav>
+
+<div class="hero">
+<h1>Instructure: The Business of <span>Canvas</span> &amp; the <em>Learning Ecosystem</em></h1>
+<p class="hero-subtitle">A leadership-level briefing for understanding Instructure — the company behind Canvas, the #1 LMS in North American higher education. Learn the BYU open-source origin story, how higher-ed and K-12 actually buy, what the company really is now (Canvas + Mastery + Parchment + an AI layer), the private-equity roll-up that took it from a ~$2B take-private to a ~$4.8B one in four years, the competitive landscape after Blackboard's collapse, the architecture an open-source LMS-at-scale must own, and the risk register a 2026 data breach just rewrote. Built to take you from day-zero to a credible point of view fast.</p>
+<div class="hero-meta">
+<span><strong>Audience:</strong> Incoming exec / CTO / strategist / candidate</span>
+<span><strong>Duration:</strong> 2-3 hours</span>
+<span><strong>Modules:</strong> 8</span>
+<span><strong>Focus:</strong> Instructure as a technology &amp; business asset</span>
+</div>
+</div>
+
+<div class="statbar">
+<div class="statbox"><div class="num">2008</div><div class="lbl">Founded (Utah · from BYU)</div></div>
+<div class="statbox"><div class="num">~$4.8<small>B</small></div><div class="lbl">KKR take-private (Nov 2024)</div></div>
+<div class="statbox"><div class="num">$530<small>M</small></div><div class="lbl">Revenue (FY2023, last public)</div></div>
+<div class="statbox"><div class="num">~50<small>%</small></div><div class="lbl">Canvas · NA higher-ed enrollment</div></div>
+</div>
+
+<div class="disclaimer">
+<div class="d-inner">
+<strong style="color:var(--gold)">⚑ On the numbers:</strong> Instructure has been <strong>private since November 13, 2024</strong> (KKR-owned), so it no longer files with the SEC — public financials end with Q3 2024. Revenue, retention, and backlog figures below come from the last public filings (FY2023 10-K, Q3 2024 10-Q); deal terms from Instructure / KKR / Thoma Bravo press releases; market-share figures are <em>third-party estimates</em> (Phil Hill / On EdTech, Edutechnica, LISTedTECH) and differ by methodology (enrollment vs. institution count). FY2024+ figures are guidance or private. The 2026 breach scope (TB/user counts, ransom) is largely <em>attacker-claimed and unconfirmed</em>. The architecture in Module 6 blends <em>confirmed open-source facts</em> with <em>best-practice reference patterns</em>, not Instructure's confidential internals. Verify any specific number against a live source before quoting it.
+</div>
+</div>
+
+<main>
+
+<!-- ===================== MODULE 1 ===================== -->
+<section class="module-section" id="module-1">
+  <div class="module-header" onclick="toggleModule(1)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 1</span>
+      <h2>Instructure 101 — The Company &amp; the "Open LMS" Thesis</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-1">▶</span>
+  </div>
+  <div class="module-content" id="content-1">
+
+    <p>Before you reason about Instructure as a technology asset, understand what kind of company it actually is. Instructure is not "an app" and not, anymore, a single-product LMS vendor — it is the company behind <strong>Canvas</strong>, the learning-management system that quietly overtook Blackboard to become the dominant platform in North American higher education, and it has spent the last decade trying to convert that one sticky beachhead into an entire <span class="key-term">learning ecosystem</span> spanning the learner's lifecycle. The arc from "the open, better LMS" to "the platform from first course-search to first job" is the single most important thing to internalize, because it defines the technical and strategic mandate you'd inherit.</p>
+
+    <h3>The Founding Story — Born in a BYU Classroom</h3>
+
+    <p>Instructure was founded in <strong>2008 in Utah</strong> by two Brigham Young University graduate computer-science students, <strong>Brian Whitmer</strong> and <strong>Devlin Daley</strong>. The origin is unusually literal: in a spring-2008 BYU grad CS course taught by <strong>Josh Coates</strong> (the founder of online-backup company Mozy, then volunteering as an adjunct), the class was asked to find the <em>worst</em> software for managing online educational content. Whitmer and Daley concluded the answer was the incumbent LMSs themselves — <strong>Blackboard and WebCT</strong> — clunky, closed, and hated by faculty.</p>
+
+    <p>Rather than build immediately, they mocked up a product in <strong>PowerPoint</strong> and cold-called university technology officers, meeting roughly eighteen institutions over the summer to validate the pain. Coates funded the seed and later became CEO. The product, <span class="key-term">Canvas</span>, launched in <strong>2011</strong> — and the defining strategic decision was to release it as <strong>open source under the AGPL license</strong>, a deliberate, provocative contrast to the closed incumbents. "The open LMS" wasn't a feature; it was the wedge: trust through transparency, a cloud-native architecture, and a faculty-friendly UX, against entrenched, disliked software that customers felt locked into.</p>
+
+    <div class="info-box">
+      <strong>💡 Talking Point:</strong> Two genes define Instructure's culture and you'll feel them in every decision. First, <strong>customer-validation-before-code</strong> — the PowerPoint-and-cold-calls founding is the company's instinct: sell the institution, then build. Second, <strong>open as a trust strategy</strong> — Canvas being genuinely open-source (and Instructure's leadership of interoperability standards, Module 6) is not charity; it is the antidote to the lock-in resentment that killed Blackboard's goodwill. If you frame your mandate as "keep earning the trust that openness bought us, while monetizing the ecosystem around the open core," you're speaking to the actual strategic identity, not just shipping features.
+    </div>
+
+    <h3>The Strategic Arc: Open LMS → Multi-Product → Learning Ecosystem</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Era</th><th>What Instructure was</th><th>The business logic / tension</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>2008-2015<br>The open LMS</strong></td>
+            <td>Canvas: a cloud-native, open-source, faculty-friendly LMS displacing Blackboard/WebCT, bottom-up and top-down in higher ed.</td>
+            <td>Beloved and winning share — but a <em>single-product</em> company with one revenue line, racing to a 2015 IPO.</td>
+          </tr>
+          <tr>
+            <td><strong>2016-2021<br>Multi-product platform</strong></td>
+            <td>Bolt-ons around Canvas: video (Studio), assessment (MasteryConnect), K-12 data (Certica→Elevate), adoption analytics (Impact). Two ownership flips bracket this era.</td>
+            <td>Solves single-product risk by <em>cross-selling</em> into the installed base — but creates integration debt and a sprawl of brands to unify.</td>
+          </tr>
+          <tr>
+            <td><strong>2022-present<br>Learning ecosystem</strong></td>
+            <td>Credentials (Badgr→Credentials), edtech management (LearnPlatform), <strong>Parchment</strong> (credential exchange), <strong>Canvas Career</strong>, and an <strong>AI layer (IgniteAI)</strong> — consolidated into three pillars: <strong>Canvas · Mastery · Parchment</strong>.</td>
+            <td>The current bet: own the <em>whole learner lifecycle</em> (learn → assess → analyze → credential → career) so Canvas's stickiness pulls a platform of attach revenue. KKR's roll-up thesis.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Who Runs It</h3>
+
+    <ul>
+      <li><strong>Steve Daly</strong> — CEO since July 2020 (retained through both the Thoma Bravo and KKR deals). Came from <strong>LANDESK / Ivanti</strong>, which he grew from ~$90M to ~$500M and sold to Thoma Bravo — i.e., a <em>PE-native operator</em> who scales-and-sells software companies. That background <em>is</em> the strategy: Daly runs Instructure as a platform to be expanded and monetized under private equity, not a founder's passion project.</li>
+      <li><strong>Audrey Zhao</strong> — CFO (appointed 2025; ex-CloudBees, Cloudera). <strong>Michael Lysaght</strong> — CTO. <strong>Shiren Vijiasingam</strong> — Chief Product Officer. <strong>Melissa Loble</strong> — Chief Learning Officer and the company's longtime academic/interoperability voice (former Chair of the 1EdTech board — remember her in Module 6).</li>
+      <li><strong>The founders have moved on.</strong> Brian Whitmer left to found <strong>CoughDrop</strong>, an augmentative-communication (AAC) app for people with complex communication needs — motivated by his daughter with Rett syndrome. Devlin Daley co-founded <strong>Derivita</strong>, a STEM/math assessment platform. Neither runs Instructure today; this is a professionally-managed, PE-owned company, not a founder-led one.</li>
+    </ul>
+
+    <p>Recurring public signal: the company's marquee event is <span class="key-term">InstructureCon</span>, where strategy is set each July — in 2024 the AI analytics push (Intelligent Insights), in 2025 the OpenAI partnership and IgniteAI. The strategic vocabulary to adopt is <strong>"ecosystem," "interoperability," and "the learner lifecycle"</strong> — and, increasingly, <strong>"responsible AI."</strong></p>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 2 ===================== -->
+<section class="module-section" id="module-2">
+  <div class="module-header" onclick="toggleModule(2)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 2</span>
+      <h2>The LMS Market &amp; the Learner-Lifecycle Shift</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-2">▶</span>
+  </div>
+  <div class="module-content" id="content-2">
+
+    <p>You cannot architect for this business without understanding how education actually <em>buys</em> software — because the buyer, the budget cycle, and the switching cost dictate the product's hard constraints far more than any UX preference. Instructure sells into two related-but-different markets (<strong>higher education</strong> and <strong>K-12</strong>), and the LMS occupies a uniquely defensible position within both.</p>
+
+    <h3>The LMS Is Infrastructure — and That's the Whole Game</h3>
+
+    <p>An LMS is the <strong>system of record for teaching and learning</strong>: every course, assignment, submission, grade, discussion, and roster flows through it. That makes it the rare edtech category with <em>structural</em> stickiness:</p>
+
+    <ul>
+      <li><strong>Brutal switching costs.</strong> Migrating an LMS means retraining thousands of faculty, re-integrating dozens of tools, and moving years of course content. Institutions change LMS roughly <strong>once a decade</strong>, via formal committee evaluations — so winning a campus is closer to winning a long-term contract than a sale, and <em>losing</em> one is rare but catastrophic.</li>
+      <li><strong>Long, seasonal sales cycles.</strong> Decisions track the academic and budget calendar; deployments land for fall term. Revenue and system load are both seasonal and predictable.</li>
+      <li><strong>The buyer isn't the user.</strong> A CIO, provost, or LMS-evaluation committee chooses; faculty and students use. You build for two audiences with different success criteria — and procurement gates (security, accessibility, interoperability) you must clear <em>before</em> being considered.</li>
+      <li><strong>The platform is the hub.</strong> Because every other tool integrates <em>into</em> the LMS (via LTI), the LMS owner sits at the center of the institution's edtech graph — a privileged position to cross-sell adjacent products. This is the entire ecosystem thesis.</li>
+    </ul>
+
+    <div class="deal-box">
+      <strong>🎯 Why this matters strategically:</strong> Instructure's defensibility starts with a fact of physics, not a feature: the LMS is expensive to rip out and sits at the center of the integration graph. That's why Canvas's ~50% higher-ed share is so valuable — it's not just revenue, it's <em>distribution</em> for everything else the company sells. The strategic question the whole company is built around is: <strong>"How do we convert LMS stickiness into a multi-product platform before the LMS itself gets commoditized?"</strong> Every acquisition (Module 4) and the AI push (Module 7) is an answer to that question.
+    </div>
+
+    <h3>Two Markets, Different Rules</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Dimension</th><th>Higher Education</th><th>K-12</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Instructure's position</strong></td><td>Dominant — Canvas ~50% of NA enrollment; the stronghold.</td><td>Strong #2 (~24%) behind free Google Classroom.</td></tr>
+          <tr><td><strong>Buyer</strong></td><td>University CIO / provost / faculty committee.</td><td>District administrators / state agencies; highly price-sensitive.</td></tr>
+          <tr><td><strong>Pricing power</strong></td><td>Higher — institutions pay for reliability &amp; ecosystem.</td><td>Capped by <strong>Google Classroom (free)</strong> as a baseline.</td></tr>
+          <tr><td><strong>Headroom</strong></td><td>Near-saturated domestically; growth = international + attach + AI upsell.</td><td>Fragmented, competitive; bigger seat counts but thinner margins.</td></tr>
+          <tr><td><strong>Key headwind</strong></td><td>The <strong>enrollment "demographic cliff"</strong> pressures seat-based revenue.</td><td>The <strong>ESSER funding cliff</strong> (federal COVID money expired Sept 2024) is shrinking district budgets.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Two Budget Cliffs — the Defining Market Headwinds</h3>
+
+    <ul>
+      <li><strong>K-12 — the ESSER cliff.</strong> Federal pandemic-relief funds (ESSER) that inflated district edtech spending through ~2024 have <strong>expired</strong>. Districts in 2026 are scrutinizing spend and cutting tools — and edtech contracts are first on the chopping block. A tailwind for "consolidate onto one platform," a headwind for everything priced as an add-on.</li>
+      <li><strong>Higher ed — the enrollment cliff.</strong> A long-forecast decline in the college-age population pressures the seat-based pricing that LMS revenue depends on. Fewer students per institution erodes per-campus revenue even if share holds.</li>
+      <li><strong>The strategic response to both is the same: the learner lifecycle.</strong> If per-seat LMS revenue is structurally pressured, the growth has to come from <em>selling more per institution</em> — assessment, analytics, credentials, career, AI — and from <em>international</em> expansion where Canvas is still a challenger.</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 Talking Point:</strong> The market rules become non-negotiable product requirements. Because the buyer is an institution and the category is "system of record for student data," three things are <strong>P0 constraints, not nice-to-haves</strong>: (1) <strong>data privacy</strong> (FERPA, COPPA, GDPR, state laws — institutions will not sign without it, and a breach is existential — see Module 8); (2) <strong>accessibility</strong> (WCAG / Section 508 — adoptions require a VPAT; an inaccessible product is disqualified); and (3) <strong>interoperability</strong> (SSO, rostering, and LTI to plug into the institution's existing stack). Instructure didn't just comply with these — it turned interoperability into a competitive weapon (Module 6). Frame all three to your team as <em>revenue-blocking</em> requirements, because that's literally what they are.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 3 ===================== -->
+<section class="module-section" id="module-3">
+  <div class="module-header" onclick="toggleModule(3)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 3</span>
+      <h2>The Product — What Instructure Actually Is</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-3">▶</span>
+  </div>
+  <div class="module-content" id="content-3">
+
+    <p>"Instructure" is really <strong>one flagship plus a platform of attach products</strong>, now organized into <strong>three brand pillars</strong> — Canvas (learning), Mastery (assessment), and Parchment (credentials) — wrapped by cross-cutting analytics and AI layers. Institutions experience it as a growing ecosystem around Canvas; engineering maintains a portfolio of products with different origins, stacks, and SLAs. Treat this module as the functional map of the business.</p>
+
+    <div class="ascii-diagram">
+<pre>
+THE INSTRUCTURE LEARNING ECOSYSTEM — THREE PILLARS + AI
+
+  ┌──────────────────────────────────────────────────────────────┐
+  │  PILLAR 1 — CANVAS  (learning / the hub)                      │
+  │    Canvas LMS · Studio (video) · Catalog (storefront)        │
+  │    Canvas Career (skills/workforce) · Elementary             │
+  └───────────────────────────┬──────────────────────────────────┘
+                              │  the sticky system-of-record
+  ┌───────────────────────────┴──────────────────────────────────┐
+  │  PILLAR 2 — MASTERY  (assessment)                            │
+  │    MasteryConnect — K-12 formative &amp; benchmark assessment    │
+  └───────────────────────────┬──────────────────────────────────┘
+                              │
+  ┌───────────────────────────┴──────────────────────────────────┐
+  │  PILLAR 3 — PARCHMENT  (credentials)                         │
+  │    transcript / credential exchange · digital badges ·       │
+  │    Scribbles (K-12 records) · 165M+ credentials              │
+  └───────────────────────────┬──────────────────────────────────┘
+                              │  augmented &amp; measured by...
+  ┌───────────────────────────┴──────────────────────────────────┐
+  │  CROSS-CUTTING:  Intelligent Insights · Elevate (K-12 data) ·│
+  │  Impact (adoption) · LearnPlatform (edtech mgmt) · IgniteAI  │
+  └──────────────────────────────────────────────────────────────┘
+</pre>
+    </div>
+
+    <h3>Pillar 1 — Canvas (the hub, and ~90%+ of the brand)</h3>
+    <ul>
+      <li><strong>Canvas LMS</strong> — the flagship cloud LMS across higher ed, K-12, and workforce; open-source (AGPL), launched 2011. In 2025-26 it was repackaged into tiers (<strong>Canvas Core / Plus / Next</strong>) — a classic PE move to create upsell ladders inside the installed base.</li>
+      <li><strong>Canvas Studio</strong> — interactive, two-way video (inline comments on a timeline, embedded quizzes, captions). Originally "Arc" (2016), renamed Studio in 2019.</li>
+      <li><strong>Canvas Catalog</strong> — a white-label course storefront / e-commerce layer (registration, payments, certificates) for continuing-ed and non-degree programs.</li>
+      <li><strong>Canvas Career</strong> <span class="tag g">2026</span> — a skills-first, AI-native workforce-learning product that maps content to job skills; broad availability Jan 2026. The explicit "→ career" end of the lifecycle thesis.</li>
+      <li><strong>Canvas Credentials</strong> (formerly <strong>Badgr</strong>) — stackable Open Badges. Note the org reshuffle: it was <strong>rebranded "Parchment Digital Badges" in late 2025</strong>, folding badging into the Parchment pillar.</li>
+    </ul>
+
+    <h3>Pillar 2 — Mastery (assessment)</h3>
+    <p><span class="key-term">MasteryConnect</span> (now branded "Mastery"), from the 2019 acquisition, is K-12 <strong>formative and benchmark assessment</strong> with standards-based mastery tracking. It connects "what was taught" to "how students did" and is the assessment leg of the lifecycle. It competes against entrenched K-12 assessment leaders (i-Ready, Renaissance — Module 5), which is why it's a pillar but not yet a dominant one.</p>
+
+    <h3>Pillar 3 — Parchment (credentials) — the big 2024 bet</h3>
+    <p><span class="key-term">Parchment</span>, acquired in early 2024 for <strong>~$835M gross</strong> (the company's largest deal by far), is the world's largest <strong>academic credential exchange</strong> — digital transcripts, diplomas, and verifications, with 165M+ credentials issued and ~13,000-15,000 institutional customers. Strategically it extends Instructure past the classroom to the <strong>"what you earned and where it goes next"</strong> moment — the bridge from education to employment. <strong>Scribbles Software</strong> (acquired mid-2024) added K-12 student-records/credentialing under this pillar. Note the long game irony: Parchment was founded by <strong>Matt Pittinsky</strong> — a Blackboard co-founder — so Instructure now owns a business built by the man who built its historic rival (Module 5).</p>
+
+    <h3>Cross-Cutting: Analytics &amp; the K-12 Data Stack</h3>
+    <div class="comparison-table">
+      <table>
+        <thead><tr><th>Product</th><th>Origin</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Intelligent Insights</strong></td><td>Built (2024)</td><td>AI self-service analytics — natural-language "Ask Your Data," at-risk-student flags, course readiness (Module 7).</td></tr>
+          <tr><td><strong>Elevate</strong> suite</td><td>Certica + Kimono</td><td>K-12 data: <strong>Analytics</strong> (ex-Videri), <strong>Data Sync</strong> (ex-Kimono), <strong>Standards Alignment</strong> (Academic Benchmarks library), <strong>Data Quality</strong>.</td></tr>
+          <tr><td><strong>Impact</strong></td><td>EesySoft (2021)</td><td>In-app digital-adoption guidance &amp; usage analytics — helps institutions drive (and measure) tool adoption.</td></tr>
+          <tr><td><strong>LearnPlatform</strong></td><td>Acquired 2022</td><td>EdTech effectiveness/management — inventory, ESSA evidence, privacy vetting; publishes the "EdTech Top 40."</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="info-box">
+      <strong>💡 Talking Point:</strong> The product portfolio <em>is</em> the M&amp;A history (Module 4) — almost every non-Canvas product was acquired, which tells you the central technical challenge: <strong>this is a consolidation/integration problem as much as a product problem</strong>. The pieces (Canvas, Mastery, Parchment, Elevate, Impact, LearnPlatform) came from different companies with different stacks, data models, and identity systems. The "learning ecosystem" story is only as real as the <em>data and identity integration</em> beneath it — a credential in Parchment is far more valuable if it's natively tied to a Canvas course and a Mastery assessment. If asked "where's the hard, unglamorous work?", the answer is <em>unifying identity, data, and the learner record across acquired products</em> — that's what turns a portfolio into a platform.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 4 ===================== -->
+<section class="module-section" id="module-4">
+  <div class="module-header" onclick="toggleModule(4)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 4</span>
+      <h2>Ownership &amp; the Private-Equity Roll-Up Story</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-4">▶</span>
+  </div>
+  <div class="module-content" id="content-4">
+
+    <p>This is the most distinctive thing about Instructure as a business: it has been a <strong>private-equity asset twice over</strong>, and its ownership history is the clearest window into its strategy. Understanding the IPO → Thoma Bravo → re-IPO → KKR sequence — and the financials underneath — will signal that you understand the company as a <em>financial</em> asset, not just a product.</p>
+
+    <h3>The Ownership Timeline</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Event</th><th>Date</th><th>Terms</th><th>What it means</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>IPO #1 (NYSE: INST)</strong></td><td>Nov 2015</td><td><strong>$16.00/share</strong>, ~$70M raised, ~$449M cap</td><td>Public as a single-product, pre-profit growth company.</td></tr>
+          <tr><td><strong>Thoma Bravo take-private</strong></td><td>Mar 2020</td><td><strong>$49.00/share</strong> (raised from $47.60 after shareholder revolt); <strong>~$2B</strong></td><td>PE buys it cheap, right as COVID remote-learning demand explodes.</td></tr>
+          <tr><td><strong>IPO #2 (re-IPO)</strong></td><td>Jul 2021</td><td><strong>$20.00/share</strong>; <strong>~$2.9B</strong> valuation; TB kept ~88%</td><td>TB takes it public again at a big markup; multi-product story.</td></tr>
+          <tr><td><strong>KKR take-private</strong></td><td>Nov 2024</td><td><strong>$23.60/share</strong>; <strong>~$4.8B</strong> EV; TB fully exits</td><td>A bigger PE firm buys the platform to run the roll-up at scale.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="deal-box">
+      <strong>🎯 The number that explains everything:</strong> Thoma Bravo paid <strong>~$2B</strong> in 2020 and the asset changed hands to <strong>KKR for ~$4.8B</strong> in 2024 — roughly <strong>2.4× in about four years</strong>. That single fact validates the entire thesis: an LMS with ~50% share is <em>sticky infrastructure</em> that compounds value through cross-sell and disciplined cost management. It's the same playbook Bain ran buying PowerSchool ($5.6B, 2024). The KKR deal was all-cash at $23.60/share (a 16% premium), with <strong>Dragoneer</strong> as a minority partner; it completed November 13, 2024, and Instructure delisted. KKR also extended <strong>broad-based equity ownership to all ~1,700 employees</strong> — its signature "Ownership Works" move and a genuine differentiator in how it runs portfolio companies.
+    </div>
+
+    <h3>The Acquisition Engine</h3>
+
+    <p>Instructure grew the ecosystem by <strong>buying it</strong>. Nine confirmed acquisitions, but prices were disclosed for only a few — note how the deals get bigger as the "lifecycle" ambition grows:</p>
+
+    <div class="comparison-table">
+      <table>
+        <thead><tr><th>Acquisition</th><th>Year</th><th>Price</th><th>Became</th></tr></thead>
+        <tbody>
+          <tr><td><strong>MasteryConnect</strong></td><td>2019</td><td>~$42.5M</td><td>Mastery (assessment pillar)</td></tr>
+          <tr><td><strong>Certica Solutions</strong></td><td>2020</td><td>~$130M</td><td>Elevate (K-12 data) + Academic Benchmarks</td></tr>
+          <tr><td><strong>EesySoft</strong></td><td>2021</td><td>undisclosed</td><td>Impact (adoption analytics)</td></tr>
+          <tr><td><strong>Kimono</strong></td><td>2021</td><td>undisclosed</td><td>Elevate Data Sync</td></tr>
+          <tr><td><strong>Concentric Sky / Badgr</strong></td><td>2022</td><td>undisclosed</td><td>Canvas Credentials → Parchment Badges</td></tr>
+          <tr><td><strong>LearnPlatform</strong></td><td>2022</td><td>undisclosed</td><td>LearnPlatform (edtech management)</td></tr>
+          <tr><td><strong>Parchment</strong></td><td>2024</td><td><strong>~$835M</strong> (gross)</td><td>Parchment (credentials pillar) — the big one</td></tr>
+          <tr><td><strong>Scribbles Software</strong></td><td>2024</td><td>~$82M</td><td>K-12 records within Parchment</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Financial Shape (last public picture)</h3>
+
+    <ul>
+      <li><strong>Revenue trajectory:</strong> $302M (2020) → $405M (2021) → $475M (2022) → <strong>$530M (FY2023, last full public year)</strong> → ~$655-666M (2024 guidance — but ~$115M of that jump is Parchment, so <em>organic</em> growth was high-single/low-double digits).</li>
+      <li><strong>The cash-machine reality:</strong> Instructure runs a <strong>GAAP net loss</strong> (–$34M in 2023, from intangible amortization, stock-comp, and debt interest) but is strongly <strong>cash-flow positive</strong>: ~<strong>40% adjusted-EBITDA margin</strong> (~$214M) and ~$158M free cash flow in 2023. This is the profile PE loves — predictable recurring revenue and fat cash margins to service debt.</li>
+      <li><strong>Recurring &amp; sticky:</strong> ~92% of revenue is subscription/support; backlog (RPO) was ~$945M as of Q3 2024.</li>
+      <li><strong>The yellow flag — softening retention:</strong> net revenue retention slipped <strong>109% → 106% → 103%</strong> (2021→2023) and gross retention <strong>95% → 94% → 93%</strong>. Still healthy, but the <em>trend</em> is the thing to watch: expansion is getting harder as higher-ed saturates and budgets tighten. This is why "attach more products + go international + AI upsell" isn't optional.</li>
+      <li><strong>The stated goal:</strong> <strong>$1 billion in revenue by 2028</strong> — which implies ~10-12% annual growth <em>plus</em> continued M&amp;A.</li>
+    </ul>
+
+    <div class="risk-box">
+      <strong>⚠️ The LBO reality:</strong> The KKR buyout loaded the company with <strong>~$2B of debt</strong> (a ~$1.69B first-lien term loan, a $365M second-lien, plus a revolver), and the borrower is rated <strong>B- / B3</strong> — i.e., speculative-grade, leveraged. The ~40% EBITDA margins comfortably service it <em>today</em>, but it constrains flexibility: less room for unprofitable bets, real pressure to convert the AI/ecosystem story into expansion revenue, and a board that thinks in debt covenants and exit multiples. As a technology leader here, you will be asked to justify spend in the language of <strong>margin, cash flow, and net revenue retention</strong> — not just product vision. The discipline is the point; know it going in.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 5 ===================== -->
+<section class="module-section" id="module-5">
+  <div class="module-header" onclick="toggleModule(5)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 5</span>
+      <h2>The Competitive Landscape</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-5">▶</span>
+  </div>
+  <div class="module-content" id="content-5">
+
+    <p>Instructure competes on several fronts at once: the core LMS war (where it's winning), the K-12 front (where it's #2 to free), the international front (where it's the challenger), and the adjacent markets its acquisitions pushed it into (credentials, assessment, analytics). The biggest story of 2025-26 is that its historic arch-rival <strong>collapsed</strong>.</p>
+
+    <h3>The Core LMS War — Canvas Won (and the crossover story)</h3>
+
+    <p>Blackboard led the LMS market through ~2017. <strong>2018 was the crossover year</strong> — Canvas passed Blackboard in US higher-ed installs — and Canvas has extended the lead every year since. By 2025, <strong>Canvas held more share than its next three competitors combined.</strong> The numbers depend on methodology:</p>
+
+    <ul>
+      <li><strong>By enrollment (students reached):</strong> Canvas ~<strong>50%</strong>, D2L Brightspace ~20%, Blackboard/Anthology ~12%, Moodle ~9% (NA higher ed, year-end 2024 est.).</li>
+      <li><strong>By institution count:</strong> Canvas ~<strong>39%</strong>, Blackboard ~19%, Brightspace/Moodle ~16% each (Spring 2025 est.).</li>
+      <li><strong>Why they differ:</strong> Moodle and Blackboard skew toward many <em>small</em> institutions (bigger by count); Canvas and Brightspace skew toward large systems (bigger by enrollment). Both views are true; cite the one that fits the point.</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 The biggest competitive shift in years — Blackboard collapsed.</strong> <strong>Anthology</strong> (the 2021 Blackboard+Anthology merger, ~$1.6B in deal debt) filed <strong>Chapter 11 bankruptcy in September 2025</strong> and emerged in February 2026 <em>broken up</em> — re-formed as a debt-free "Blackboard, Inc." owned by Oaktree and Nexus, after selling off its SIS/ERP business to Ellucian and its CRM to Encoura. The historic #1 LMS is now a diminished, balance-sheet-repaired LMS-and-Ally business. For Instructure this is a major tailwind: the most natural alternative for a wavering Canvas prospect just spent 18 months in financial distress. Don't overstate it as "the rival is dead" — but the competitive pressure from Blackboard is the weakest it has ever been.
+    </div>
+
+    <h3>Competitor Map</h3>
+
+    <div class="comparison-table">
+      <table>
+        <thead>
+          <tr><th>Player</th><th>Type</th><th>Strength</th><th>How it pressures Instructure</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>D2L (Brightspace)</strong></td><td>LMS · public (TSX:DTOL)</td><td>The only profitable pure-play public rival; quiet share-gainer; founder-led (John Baker).</td><td>The <em>healthiest</em> direct competitor — winning real higher-ed migrations (e.g., SUNY/CUNY). The one to actually watch.</td></tr>
+          <tr><td><strong>Blackboard, Inc.</strong> (ex-Anthology)</td><td>Legacy LMS</td><td>Deep installed base, brand recognition, the Ally accessibility tool.</td><td>Post-bankruptcy and diminished; defending, not attacking — but cheap and debt-free again.</td></tr>
+          <tr><td><strong>Moodle</strong></td><td>Open-source LMS</td><td>Dominant <em>outside</em> North America by installs; free core; ~519M registered users.</td><td>The incumbent Instructure must displace <em>internationally</em>; a free price anchor everywhere.</td></tr>
+          <tr><td><strong>Google Classroom</strong></td><td>K-12 workflow</td><td>Free with Workspace; Chromebook-native; #1 in US K-12.</td><td>Caps K-12 pricing power; sets a "free" baseline Canvas must be worth paying above.</td></tr>
+          <tr><td><strong>PowerSchool / Schoology</strong></td><td>K-12 SIS + LMS</td><td>SIS incumbency; Bain took it private for $5.6B (2024); 60M+ students.</td><td>Bundles LMS with the system-of-record relationship Instructure lacks in K-12.</td></tr>
+          <tr><td><strong>Microsoft (Teams for Ed)</strong></td><td>Adjacent</td><td>M365 ubiquity; integrates <em>into</em> Canvas via LTI.</td><td>A complement today, a margin/commoditization threat over time.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>The Adjacent-Market Battles (from the acquisitions)</h3>
+    <ul>
+      <li><strong>Credentials (Parchment):</strong> faces the entrenched nonprofit <strong>National Student Clearinghouse</strong> (~97% of US postsecondary enrollment) and <strong>Credly</strong> (Pearson-owned, 100M+ badges). Parchment is the largest <em>exchange</em>, but it's not an uncontested moat.</li>
+      <li><strong>Assessment (Mastery):</strong> trails K-12 leaders <strong>Curriculum Associates (i-Ready, &gt;14M students)</strong> and <strong>Renaissance</strong>. Mastery is a pillar, not a market leader.</li>
+      <li><strong>The AI insurgents:</strong> tutoring/AI-tool startups (and the foundation-model labs themselves) threaten to make "the place learning happens" feel like an AI chat, not an LMS. Instructure's answer is to <em>host</em> the AI inside Canvas (Module 7) rather than fight it.</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 Talking Point:</strong> Instructure's defensible edge in its core is the combination of <strong>open-source trust + interoperability leadership + the cost of switching a system-of-record</strong>, now reinforced by a rival's collapse. Its exposed flanks are (1) <strong>D2L</strong>, the one healthy direct competitor; (2) <strong>free</strong> (Google Classroom / Moodle) capping K-12 and international pricing; (3) <strong>adjacent incumbents</strong> (NSC, i-Ready) that make the "ecosystem" harder to win than the LMS was; and (4) the existential wildcard — <strong>AI commoditizing the LMS into plumbing</strong>. A credible strategy leans into the ecosystem and interoperability moat, treats AI as something to host rather than resist, and uses Blackboard's weakness to accelerate higher-ed consolidation while it can.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 6 ===================== -->
+<section class="module-section" id="module-6">
+  <div class="module-header" onclick="toggleModule(6)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 6</span>
+      <h2>The Technology &amp; Architecture</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-6">▶</span>
+  </div>
+  <div class="module-content" id="content-6">
+
+    <p>This is the heart of the technical conversation: what an open-source, multi-tenant LMS serving tens of millions of learners actually has to build and own. Some of this is <strong>confirmed public fact</strong> (Canvas is open source — you can read the code); the rest is a <strong>best-practice reference model</strong> for this class of platform, framed so you can reason about trade-offs out loud.</p>
+
+    <div class="ascii-diagram">
+<pre>
+CANVAS / INSTRUCTURE — SYSTEM ARCHITECTURE (REFERENCE MODEL)
+
+  CLIENTS:   Web (React)     iOS / Android apps     LTI tool launches
+               │                  │                       │
+               └─────────┬────────┴───────────────────────┘
+                         │   REST API  +  GraphQL API
+   ┌─────────────────────┼──────────────────────────────────────┐
+   ▼                     ▼                                        ▼
+ CANVAS CORE          ASSESSMENT / DATA                    INTEROP LAYER
+ (Ruby on Rails)      • Mastery (K-12)                     • LTI 1.3 / Advantage
+ • courses · assign-  • Quizzes · SpeedGrader              • OneRoster (rostering)
+   ments · gradebook  • Elevate (K-12 data)               • Caliper (analytics)
+ • discussions ·      • Intelligent Insights              • QTI (assessment items)
+   submissions        • LearnPlatform                     • SSO (SAML/OIDC/LDAP)
+        │                     │                                  │
+        ▼                     ▼                                  ▼
+  DATA TIER:  PostgreSQL (sharded via Switchman) · Redis cache · object storage
+        │
+        ▼
+  AI / "IGNITEAI":  AWS Bedrock · MCP · 500+ Canvas APIs · partner LLMs
+        │              (OpenAI · Anthropic Claude · Gemini · Perplexity)
+        ▼
+  PLATFORM:  multi-tenant SaaS on AWS · 99.9% uptime SLA · bell-schedule scale
+        │
+        ▼
+  CROSS-CUTTING:  FERPA/COPPA/GDPR privacy · WCAG/508 a11y · SOC 2 ·
+                  AGPL open-source core · security (post-2026-breach hardening)
+</pre>
+    </div>
+
+    <h3>1. The Open-Source Core (a genuine differentiator)</h3>
+    <p>Canvas is <strong>genuinely open source</strong> — licensed <strong>AGPLv3</strong>, with the code public at <code>github.com/instructure/canvas-lms</code>. This is real, not a marketing gloss: institutions can self-host, audit the code, and trust there's no black box. It's the technical embodiment of the "anti-Blackboard" trust strategy. The commercial model is <strong>not</strong> "sell the software" — almost everyone uses Instructure's <em>hosted, managed</em> Canvas Cloud — it's "open core, monetize the operation, the scale, the integrations, and the ecosystem on top." Understanding why open-source is a <em>business</em> asset (trust, lock-in avoidance, developer goodwill, standards credibility), not a giveaway, is key.</p>
+
+    <h3>2. The Stack</h3>
+    <p>Canvas is a <strong>Ruby on Rails</strong> application (one of the largest production Rails codebases in the world), with <strong>PostgreSQL</strong> as the primary database — sharded for multi-tenancy via Instructure's open-source <strong>Switchman</strong> library — <strong>Redis</strong> for caching, and a <strong>React</strong> front end talking to both a long-standing <strong>REST API</strong> and an expanding <strong>GraphQL API</strong>. (Stack is confirmed; specific framework versions are secondary.) The takeaway: this is a <strong>mature, large, evolving monolith-plus-services</strong> — the engineering reality is incremental modernization and scale, not greenfield.</p>
+
+    <h3>3. Multi-Tenancy &amp; Cloud (AWS)</h3>
+    <p>Canvas is a <strong>multi-tenant SaaS on AWS</strong> — AWS itself bills Canvas as "the first AWS-cloud-based LMS," i.e., an early flagship education customer. Multi-tenancy is hierarchical (institution → account → sub-account → course → section → enrollment). The architecture has to isolate thousands of institutions' data on shared infrastructure while serving a <strong>99.9% uptime SLA</strong>. <strong>Concentration risk is real:</strong> the October 2025 AWS regional outage disrupted Canvas, and the AI roadmap also runs on AWS (Bedrock) — single-cloud dependence is a known exposure.</p>
+
+    <h3>4. Interoperability — the Competitive Weapon</h3>
+    <p>This is where Instructure turned a requirement into a moat. It is a <strong>leader of the interoperability standards bodies</strong> — Melissa Loble chaired the <strong>1EdTech</strong> (formerly IMS Global) board, and Canvas was among the first to pass full <strong>LTI Advantage</strong> certification. Because every edtech tool integrates <em>into</em> the LMS, being the most standards-fluent, most-integrated hub is a structural advantage:</p>
+    <div class="comparison-table">
+      <table>
+        <thead><tr><th>Standard</th><th>Purpose</th><th>Why it's strategic</th></tr></thead>
+        <tbody>
+          <tr><td><strong>LTI 1.3 / Advantage</strong></td><td>Launch any tool inside Canvas (and Canvas inside others).</td><td>Makes Canvas the hub of the institution's tool graph — the entire ecosystem leverage point.</td></tr>
+          <tr><td><strong>OneRoster</strong></td><td>Rostering / class sync from the SIS.</td><td>No clean roster = no working product on day one (esp. K-12).</td></tr>
+          <tr><td><strong>Caliper Analytics</strong></td><td>Standardized learning-event data.</td><td>Clean telemetry for the analytics/AI layer.</td></tr>
+          <tr><td><strong>QTI</strong></td><td>Portable assessment items.</td><td>Item interoperability across Mastery and third-party assessment.</td></tr>
+          <tr><td><strong>SSO</strong> (SAML/OIDC/LDAP)</td><td>Single sign-on.</td><td>Friction here = abandonment on the first morning.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>5. Scale &amp; the Shape of the Load</h3>
+    <p>LMS load is <strong>distinctively bursty and predictable</strong>: classes start on the hour, terms start in fall, exams cluster. During the 2020 COVID surge, Canvas saw concurrency jump roughly <strong>3× — from ~2.2M to 6M+ concurrent users</strong> — and absorbed thousands of new institutions, a real proof point of the AWS-elastic architecture. The capacity discipline is "absorb the deterministic peak (fall start, exam weeks), autoscale down the rest of the year."</p>
+
+    <h3>6. Security &amp; Compliance — now P0-with-a-bullet</h3>
+    <p>Because the data is <strong>student records</strong> and customers are institutions, compliance is a hard gate on revenue: <strong>FERPA</strong>, <strong>COPPA</strong>, <strong>GDPR</strong>, state privacy laws, <strong>SOC 2</strong>, and <strong>WCAG/508 accessibility</strong> (with VPATs for procurement). And after the <strong>2026 ShinyHunters breach</strong> (Module 8) — which exposed data across thousands of institutions and triggered a Congressional inquiry — <strong>security is no longer a back-office checkbox but the single most scrutinized property of the platform</strong>. For a custodian of hundreds of millions of student records, a breach is an existential trust event, not a bug.</p>
+
+    <div class="info-box">
+      <strong>💡 Talking Point:</strong> If asked "what's hard here that isn't obvious?", the strongest answers are: (1) <strong>scaling and modernizing a massive open-source Rails monolith</strong> serving tens of millions on multi-tenant AWS — the work is incremental evolution under a 99.9% SLA, not rewrites; (2) <strong>integration as the platform thesis</strong> — interoperability leadership (1EdTech/LTI) is the moat, and unifying identity/data across acquired products (Module 3) is what turns the portfolio into an ecosystem; and (3) <strong>security and privacy as existential</strong> — post-2026, "we are the trustworthy custodian of student data" is the bar, and the open-source transparency that built trust now coexists with a hard security mandate. Naming these three says you understand <em>this</em> platform, not "an LMS" in the abstract.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 7 ===================== -->
+<section class="module-section" id="module-7">
+  <div class="module-header" onclick="toggleModule(7)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 7</span>
+      <h2>AI Strategy &amp; Build / Buy Bets</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-7">▶</span>
+  </div>
+  <div class="module-content" id="content-7">
+
+    <p>AI is simultaneously Instructure's biggest opportunity (a reason to upsell the saturated installed base) and its biggest existential threat (it could commoditize the LMS into plumbing). The company's posture is deliberate: <strong>be the trusted, open platform where the institution's chosen AI runs — not a single proprietary model.</strong></p>
+
+    <h3>The AI Timeline (get the dates right)</h3>
+    <ul>
+      <li><strong>July 2024 (InstructureCon):</strong> <span class="key-term">Intelligent Insights</span> launches — a paid AI-analytics product with natural-language "<strong>Ask Your Data</strong>," at-risk-student flags, and course-readiness signals. Plus the first native Canvas AI features (discussion summaries, 100-language translation, semantic "Smart Search") and free <strong>Khanmigo</strong> teacher tools.</li>
+      <li><strong>July 2025 (InstructureCon):</strong> the <strong>OpenAI partnership</strong> and <span class="key-term">IgniteAI</span> are announced. <em>(Common mistake: the OpenAI deal was 2025, not 2024.)</em></li>
+      <li><strong>Dec 2025 → Mar 2026:</strong> <strong>IgniteAI Agent</strong> (agentic, multi-step Canvas workflows) announced and launched, free to US customers through mid-2026.</li>
+    </ul>
+
+    <h3>IgniteAI — the "Conductor," not a Model</h3>
+    <p><strong>IgniteAI</strong> is the strategic centerpiece: an AI <strong>orchestration layer</strong> ("the conductor") built on <strong>AWS Bedrock</strong>, using the <strong>Model Context Protocol (MCP)</strong> and Canvas's 500+ APIs to let institutions plug in the LLM <em>they</em> choose — OpenAI, Anthropic's Claude, Google Gemini, Perplexity — and surface native features (rubric generation, discussion insights, translation) plus partner tools. The genius of the framing is that it sidesteps the existential threat: instead of betting the company on one model (and competing with the labs), Instructure makes Canvas the <strong>neutral, governed substrate</strong> where any AI runs, with the institution's data governance intact.</p>
+
+    <p>The first OpenAI product, the <strong>"LLM-Enabled Assignment,"</strong> is a tell: students do work with a custom ChatGPT-like tool inside Canvas, and the teacher grades the <em>process</em> (the visible "learning evidence"), not just the output — and crucially, <strong>learner data stays private and is not shared with OpenAI</strong> (institutions bring their own API key). That privacy stance is not incidental — it's strategic scar tissue (see below).</p>
+
+    <h3>"AI Nutrition Facts" — Trust as Product</h3>
+    <p>Instructure attaches an <span class="key-term">"AI Nutrition Facts"</span> label to every AI feature — disclosing which model it uses, what data it touches, and how privacy is handled — backed by a public commitment that <strong>customer data is never used to train AI models without permission</strong>. This is the open-source trust strategy applied to AI, and it's <strong>deliberate inoculation</strong> against the company's own history: in 2019, then-CEO Dan Goldsmith bragged that Instructure had "the most comprehensive database on the educational experience in the globe" and pitched predictive models — provoking 50+ academics to sign a protest letter and forcing a public no-sell-data pledge. The 2025-26 AI messaging ("your data stays yours, here are the nutrition facts") is engineered so that episode never repeats.</p>
+
+    <h3>The Build / Buy / Partner Matrix</h3>
+    <div class="comparison-table">
+      <table>
+        <thead><tr><th>Capability</th><th>Decision</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td><strong>The LMS hub (Canvas) + interoperability</strong></td><td style="color:var(--success)"><strong>BUILD &amp; OWN</strong></td><td>The sticky system-of-record and the integration moat. The core asset; never outsource it.</td></tr>
+          <tr><td><strong>AI orchestration (IgniteAI, MCP, governance)</strong></td><td style="color:var(--success)"><strong>BUILD</strong> on bought infra</td><td>The conductor, the data governance, the "nutrition facts" trust layer — that's the durable value, not the model.</td></tr>
+          <tr><td><strong>Learner-record / identity graph across products</strong></td><td style="color:var(--success)"><strong>BUILD</strong></td><td>What turns acquired products into an ecosystem; un-buyable, compounding.</td></tr>
+          <tr><td><strong>Foundation models</strong></td><td style="color:var(--warning)"><strong>BUY / PARTNER</strong></td><td>Use frontier APIs (OpenAI, Claude, Gemini) via Bedrock; don't train base models. Stay model-neutral on purpose.</td></tr>
+          <tr><td><strong>New product categories (assessment, credentials, analytics)</strong></td><td style="color:var(--warning)"><strong>BUY</strong></td><td>The whole growth strategy is M&amp;A-led (Module 4); buy the category leader, integrate into the hub.</td></tr>
+          <tr><td><strong>Cloud, infra, search, video transcode</strong></td><td style="color:var(--warning)"><strong>BUY</strong></td><td>AWS + commodity infra; differentiate on what runs on top, not the plumbing.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="deal-box">
+      <strong>🎯 The strategic bet in one line:</strong> Instructure is wagering that in an AI world, the winner is <em>not</em> whoever has the best model but whoever owns the <strong>trusted, interoperable, data-governed platform where institutions safely run whatever AI they choose</strong>. IgniteAI + "AI Nutrition Facts" + model-neutrality + the open-source ethos are all the same bet: turn the LMS's position-of-trust into the place AI is governed in education. If that holds, AI <em>deepens</em> the moat (more reasons to stay on Canvas) instead of dissolving it. The risk (Module 8) is that the foundation-model labs decide they'd rather be the platform than a plugged-in partner.
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== MODULE 8 ===================== -->
+<section class="module-section" id="module-8">
+  <div class="module-header" onclick="toggleModule(8)">
+    <div class="module-header-left">
+      <input type="checkbox" class="progress-check" onclick="event.stopPropagation(); updateProgress()">
+      <span class="module-number">Module 8</span>
+      <h2>The Playbook — Risks, Metrics &amp; First 90 Days</h2>
+    </div>
+    <span class="toggle-icon" id="toggle-8">▶</span>
+  </div>
+  <div class="module-content" id="content-8">
+
+    <p>This module converts everything above into action: the risk that now sits at the top of the register, the metrics that matter to a PE owner, the narrative to walk in with, a first-90-days checklist, and the questions to be ready for.</p>
+
+    <h3>The 2026 Breach — the Risk That Rewrote the Register</h3>
+    <div class="risk-box">
+      <strong>⚠️ The Canvas data breach (2026):</strong> In spring 2026, the <strong>ShinyHunters</strong> group breached Canvas; a follow-on strike even <strong>defaced Canvas login pages nationwide</strong> with ransom demands shown on students' screens. Attacker claims (largely <em>unconfirmed</em>) cite ~3.65 TB and hundreds of millions of users across ~9,000 institutions. Instructure says exposed data was limited to names, emails, student IDs, and inter-user messages — and that <strong>no passwords, government IDs, or financial data</strong> were taken. It reportedly reached an "agreement" and said the stolen data was "destroyed" (an unconfirmed ~$10M ransom figure circulates) — a decision to pay-for-deletion that drew heavy criticism. The fallout: a <strong>Congressional inquiry</strong> (House Homeland Security demanded a briefing) and <strong>multiple class-action lawsuits</strong> (some naming KKR). For a custodian of student records, this is the defining risk of the moment — and it makes security the #1 line of any credible technology agenda here.
+    </div>
+
+    <h3>The Risk Register</h3>
+    <ul>
+      <li><strong>Cybersecurity &amp; trust (now #1)</strong> — the 2026 breach + ransom decision + Congressional probe + class actions; existential for a student-data custodian; churn risk at security-sensitive R1s.</li>
+      <li><strong>AI disrupting the LMS</strong> — if foundation-model labs deliver native tutoring agents, the LMS risks becoming commodity plumbing; the OpenAI partnership is both hedge and risk.</li>
+      <li><strong>LBO debt</strong> — ~$2B (B-/B3) is serviceable on ~40% EBITDA margins but constrains flexibility and demands expansion revenue.</li>
+      <li><strong>Saturation + softening retention</strong> — ~50% higher-ed share means limited domestic headroom; NRR slid to 103%; the $1B-by-2028 goal leans on less-proven international/workforce/AI upsell.</li>
+      <li><strong>Budget cliffs</strong> — ESSER expiry (K-12) and the enrollment cliff (higher ed) pressure seat-based revenue; Google Classroom (free) caps K-12 pricing.</li>
+      <li><strong>Integration debt</strong> — the ecosystem is only as real as the identity/data unification across acquired products.</li>
+      <li><strong>AWS / single-cloud concentration</strong> — core hosting <em>and</em> the AI roadmap (Bedrock) on one cloud (the Oct 2025 outage was a warning).</li>
+      <li><strong>Reduced transparency post-KKR</strong> — financials, churn, and security posture are now opaque to outsiders.</li>
+    </ul>
+
+    <h3>The Metrics That Define Success (PE lens)</h3>
+    <div class="comparison-table">
+      <table>
+        <thead><tr><th>Domain</th><th>Metric</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td>Revenue</td><td>ARR, <strong>net &amp; gross revenue retention</strong>, multi-product attach rate</td><td>The PE health metrics; reversing the NRR slide is the central commercial job.</td></tr>
+          <tr><td>Cash</td><td>Adjusted-EBITDA margin, free cash flow, debt covenants</td><td>It's an LBO — cash services the ~$2B debt and funds M&amp;A.</td></tr>
+          <tr><td>Ecosystem</td><td>Parchment/Mastery/Elevate attach into the Canvas base; AI-feature adoption</td><td>Proof the "learning ecosystem" is real, not a slide.</td></tr>
+          <tr><td>Reliability &amp; security</td><td>Uptime, fall-term peak headroom, <strong>security posture / time-to-detect</strong></td><td>Post-breach, the trust bar; failures here churn institutions and invite regulators.</td></tr>
+          <tr><td>Share</td><td>Higher-ed wins (esp. vs D2L &amp; ex-Blackboard), international growth</td><td>The distribution flywheel; capitalize on Blackboard's collapse now.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Your First 90 Days</h3>
+    <p><strong>Days 1-30 — Listen &amp; assess:</strong></p>
+    <ul>
+      <li><strong>Start with security.</strong> Get the full post-mortem on the 2026 breach: blast radius, root cause, remediation status, the detection gap, and the trust-recovery plan with institutions and regulators. This is the top risk and the top first-impression.</li>
+      <li>Map the real state of the ecosystem: how unified are identity and the learner record across Canvas, Mastery, Parchment, Elevate? Where is integration debt blocking the cross-sell story?</li>
+      <li>Audit the AI stack: how does IgniteAI actually govern data, what's the "nutrition facts" enforcement, and what's the production reality vs. the keynote?</li>
+      <li>Understand the financial constraints: the debt covenants, EBITDA targets, and where you're expected to invest vs. hold margin.</li>
+      <li>Pull the reliability picture: AWS concentration, fall-term load model, the 99.9% SLA track record.</li>
+    </ul>
+    <p><strong>Days 31-60 — Diagnose &amp; plan:</strong></p>
+    <ul>
+      <li>Produce a security-hardening roadmap and an integration-debt register; sequence them against the $1B-by-2028 commercial plan.</li>
+      <li>Define what "ecosystem" means technically (the unified learner record) and pick the highest-leverage unification to ship first.</li>
+      <li>Stand up the metrics that a PE board reads (retention, attach, margin, security posture) with a clean baseline.</li>
+    </ul>
+    <p><strong>Days 61-90 — Commit &amp; communicate:</strong></p>
+    <ul>
+      <li>Present a roadmap framed in KKR's language — <strong>retention, attach revenue, margin, and risk</strong> — with "trustworthy, interoperable AI platform" as the strategic spine and "never again" security as the foundation.</li>
+      <li>Ship one visible proof point (a security milestone, or a cross-product integration that makes attach real).</li>
+      <li>Establish rituals: a recurring security/privacy review, an AI-governance review, and a pre-fall-term readiness gate (load + security + accessibility).</li>
+    </ul>
+
+    <h3>Questions To Be Ready For — and To Ask</h3>
+    <p><strong>They may ask you:</strong></p>
+    <ul>
+      <li>"How do we make sure 2026 never happens again?" → defense-in-depth, time-to-detect, data minimization, third-party risk, and a transparent trust-recovery posture with institutions and regulators.</li>
+      <li>"Does AI kill the LMS or strengthen it?" → IgniteAI as the neutral, governed, model-agnostic substrate; trust + interoperability as the moat AI deepens rather than dissolves.</li>
+      <li>"How do we hit $1B by 2028?" → reverse the NRR slide via multi-product attach into the Canvas base, international expansion (displace Moodle), and AI upsell — plus disciplined M&amp;A.</li>
+      <li>"How do we turn a pile of acquisitions into one platform?" → unify identity and the learner record; make a Parchment credential natively tied to a Canvas course and a Mastery result.</li>
+    </ul>
+    <p><strong>You should ask them:</strong></p>
+    <ul>
+      <li>How real is the ecosystem integration today, and is "unify the learner record" actually the mandate — or is it still cross-sell-by-slide?</li>
+      <li>What's the post-breach security investment appetite, and how is success measured?</li>
+      <li>What's the debt/margin envelope — how much can we invest in platform and security vs. hold EBITDA?</li>
+      <li>How do we intend to capitalize on Blackboard's collapse before the window closes — and to defend against D2L?</li>
+      <li>How is success for this role measured in year one — security, ecosystem integration, AI delivery, or retention?</li>
+    </ul>
+
+    <div class="info-box">
+      <strong>💡 The one-sentence thesis to walk in with:</strong> "Instructure's edge is that Canvas is sticky, open, and interoperable infrastructure with ~50% higher-ed share and a collapsed arch-rival — and the job is to convert that position-of-trust into a unified, AI-governed learning ecosystem that grows attach and retention enough to hit $1B for KKR, while making security so airtight that the 2026 breach becomes the turning point, not the epitaph."
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<div class="footer">
+<p>Instructure — The Business of Canvas &amp; the Learning Ecosystem · Company Briefing</p>
+<p>Covers the BYU open-source origin, the LMS market &amp; learner-lifecycle shift, the product portfolio, the IPO→Thoma Bravo→KKR private-equity story, the competitive landscape after Blackboard's collapse, a reference architecture, the AI strategy, and a first-90-days playbook.</p>
+<p style="margin-top:8px">Built to understand Instructure as a technology &amp; business asset. Figures are sourced from public filings (through Q3 2024), company &amp; investor press releases, and third-party analyst estimates (as of June 2026) — Instructure is private (KKR-owned) and many recent figures are estimates; verify specifics before quoting.</p>
+</div>
+
+<script>
+function toggleModule(n){var c=document.getElementById('content-'+n);var t=document.getElementById('toggle-'+n);if(c.classList.contains('open')){c.classList.remove('open');t.classList.remove('open')}else{c.classList.add('open');t.classList.add('open')}}
+function updateProgress(){var checks=document.querySelectorAll('.progress-check');var total=checks.length;var done=0;checks.forEach(function(c){if(c.checked)done++});document.getElementById('progress-text').textContent=done+'/'+total;document.getElementById('progress-fill').style.width=(done/total*100)+'%';try{localStorage.setItem('instructure-company-course-progress',JSON.stringify(Array.from(checks).map(function(c){return c.checked})))}catch(e){}}
+function loadProgress(){try{var saved=JSON.parse(localStorage.getItem('instructure-company-course-progress'));if(saved){var checks=document.querySelectorAll('.progress-check');checks.forEach(function(c,i){if(saved[i])c.checked=true});updateProgress()}}catch(e){}}
+document.addEventListener('DOMContentLoaded',function(){loadProgress();var links=document.querySelectorAll('.nav-link');var sections=document.querySelectorAll('.module-section');var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){var id=entry.target.id;links.forEach(function(l){l.classList.remove('active');if(l.getAttribute('href')==='#'+id)l.classList.add('active')})}})},{rootMargin:'-80px 0px -60% 0px',threshold:0});sections.forEach(function(s){observer.observe(s)})});
+</script>
+</body>
+</html>
