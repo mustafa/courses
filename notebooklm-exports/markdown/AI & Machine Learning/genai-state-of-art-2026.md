@@ -4,25 +4,11 @@
 
 A dense, opinionated technical survey for senior engineers. Everything that matters as of June 2026 — models, APIs, agents, reasoning, open-weight revolution, and the business war underneath.
 
-Last updated: July 5, 2026 • ~2.5–3.5 hours reading • 11 Modules
+Last updated: June 2026 • ~2.5–3.5 hours reading • 11 Modules
 
 0 / 11 complete
 
 [1Model Landscape](#mod1) [2The API Wars](#mod2) [3Agents & Orchestration](#mod3) [4Reasoning & Chain-of-Thought](#mod4) [5Multimodal Frontier](#mod5) [6Fine-Tuning Playbook](#mod6) [7RAG & Knowledge Systems](#mod7) [8Safety & Governance](#mod8) [9Business Landscape](#mod9) [10What's Next](#mod10) [11Open-Weight Revolution](#mod11)
-
-## Module ★: Weekly Updates
-
-*A running log of significant developments since this course was written. Newest first; entries older than 8 weeks are pruned.*
-
-### Week of July 5, 2026
-
--   **Anthropic — Claude Sonnet 5:** Released June 30 with frontier-level coding, agentic, and tool-use performance, a native 1M-token context window, and introductory pricing of $2/$10 per Mtok through August 31. It's now the default model in Claude Code — resetting the price/performance baseline for production agent workloads.
--   **Anthropic — Fable 5 redeployed globally:** After the June 12 US government directive suspending access, export controls were lifted and Fable 5 returned worldwide on July 1. Anthropic also published details of Fable's cyber safeguards and proposed an industry-wide jailbreak-severity scoring framework with Amazon, Microsoft, and Google — a notable step toward shared safety standards.
--   **Anthropic — Claude Science:** A new AI workbench for researchers (June 30) that integrates common scientific tools and packages, produces auditable artifacts, and provides flexible compute — Anthropic's first vertical product aimed squarely at pharma and academic research.
--   **OpenAI — GPT-5.6 preview:** The new flagship family (Sol, Terra, Luna) went to ~20 trusted partners on June 26 in coordination with the US government, with broader API/ChatGPT availability expected soon. Meanwhile GPT-4.5 was retired from ChatGPT — the model lineup is consolidating fast around 5.5/5.6.
--   **Google — Gemini 3.5 Flash GA:** Now the model behind gemini-flash-latest, beating Gemini 3.1 Pro on key benchmarks at less than half the cost of comparable models — reinforcing the trend of "fast/cheap" tiers overtaking last generation's flagships.
--   **Open weights — benchmark leapfrogging:** DeepSeek V4-Pro now leads all evaluated models (including closed APIs) on LiveCodeBench (93.5) and Codeforces (3206), and MiniMax M3 tops open-weight SWE-Bench Pro at 59.0%. The open/closed gap on coding is effectively gone; the differentiators are agentic reliability and ecosystem.
--   **Enterprise distribution:** Claude reached general availability on Microsoft Azure AI Foundry — the first deployment on NVIDIA GB300 Blackwell Ultra GPUs — meaning every major hyperscaler now sells Claude alongside its own models.
 
 ## Module 01: The Model Landscape: Who's Winning, Who's Catching Up
 
@@ -52,7 +38,7 @@ The practical implication for engineering leaders: model selection is now a **po
 
 Key Takeaway
 
-**The "which model is best" question is dead.** For Coursera's use case, the winning move is Sonnet 4.6 as your workhorse (fast, reliable, great at structured output), Opus 4.6 for complex content generation and assessment design, and Gemini Flash for bulk processing where cost matters. Keep Llama 4 Scout on your radar for on-prem inference when data sovereignty is a concern for international markets. *(Update July 2026: Claude Sonnet 5 shipped June 30 and supersedes Sonnet 4.6 as the workhorse recommendation — frontier coding/agentic performance, 1M-token context, and $2/$10 per Mtok introductory pricing through August 31. See Weekly Updates above.)*
+**The "which model is best" question is dead.** For Coursera's use case, the winning move is Sonnet 4.6 as your workhorse (fast, reliable, great at structured output), Opus 4.6 for complex content generation and assessment design, and Gemini Flash for bulk processing where cost matters. Keep Llama 4 Scout on your radar for on-prem inference when data sovereignty is a concern for international markets.
 
 ### The MoE Revolution
 
