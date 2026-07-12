@@ -14,6 +14,16 @@ Last updated: July 5, 2026 • ~2.5–3.5 hours reading • 11 Modules
 
 *A running log of significant developments since this course was written. Newest first; entries older than 8 weeks are pruned.*
 
+### Week of July 12, 2026
+
+-   **OpenAI — GPT-5.6 general availability (July 9):** The new flagship family rolled out across ChatGPT, Codex, and the API after June's limited partner preview — Sol is the flagship, Terra the balanced tier, Luna the fast/low-cost option. It's also now the preferred model in Microsoft 365 Copilot, an unusually fast preview-to-GA turnaround.
+-   **OpenAI — ChatGPT Work (July 9):** A new agent inside ChatGPT that gathers context across your apps, breaks goals into steps, and returns finished sheets, slides, docs, and web apps. A direct answer to Claude Cowork — the "agent that ships deliverables" category is now a two-horse race. The Codex app is also merging into the new ChatGPT desktop app.
+-   **OpenAI — GPT-Live voice models (July 8):** Full-duplex models replace the default ChatGPT Voice experience — they speak and listen simultaneously, so users can interrupt naturally, enabling live translation and far more natural conversation. Voice UX just jumped from turn-taking to true duplex.
+-   **Anthropic — Claude Cowork goes cloud (July 7):** Cowork is expanding from desktop to web and mobile, with agent tasks that keep running even when your devices are offline. Rolling out over the next several weeks starting with Max, with doubled usage limits through August 5. Agents are becoming ambient multi-device services, not desktop apps.
+-   **Anthropic — enterprise MCP management:** A new beta lets admins provision MCP connectors once (starting with Okta) with zero-touch user access and centralized authorization across Claude chat, Claude Code, and Cowork. The Microsoft 365 connector also gained write tools: sending email, managing calendars, and creating files in OneDrive/SharePoint.
+-   **Google — Gemini 3.5 Pro slips to July 17:** Google scrapped the 2.5 Pro-derived architecture for a full rebuild after enterprise testers flagged excessive token consumption in extended agentic tasks. Promised: a 2M-token context window and a Deep Think reasoning layer. The delay leaves the frontier to OpenAI and Anthropic for another week.
+-   **Other notable releases:** xAI shipped Grok 4.5 (July 8). Meta unveiled Muse Spark 1.1, an agent-focused model that coordinates sub-agents, drives computer interfaces, and handles long-running tasks. Mistral's Leanstral 1.5 generates Lean 4 proofs that software behaves as specified — formal verification is entering the AI coding toolchain.
+
 ### Week of July 5, 2026
 
 -   **Anthropic — Claude Sonnet 5:** Released June 30 with frontier-level coding, agentic, and tool-use performance, a native 1M-token context window, and introductory pricing of $2/$10 per Mtok through August 31. It's now the default model in Claude Code — resetting the price/performance baseline for production agent workloads.

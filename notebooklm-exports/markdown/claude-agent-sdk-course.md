@@ -37,6 +37,12 @@ Course Modules
 
 *Significant Anthropic news since this course was written. Newest first; entries older than 8 weeks are pruned.*
 
+### Week of July 12, 2026
+
+-   **Claude Cowork goes cloud (July 7):** Cowork is expanding to web and mobile with cloud execution — agent tasks keep running when devices are offline. Rolling out starting with Max, with doubled usage limits through August 5. A preview of where SDK-based agents are heading: long-lived, device-independent sessions.
+-   **Enterprise-managed MCP connectors (beta):** Admins can provision connectors once (starting with Okta) and users get zero-touch access on first login, with centralized authorization across Claude chat, Claude Code, and Cowork. The Microsoft 365 connector also gained write tools — sending email, managing calendar events, and creating files in OneDrive/SharePoint.
+-   **Claude Code updates:** Login-expiry warnings, clearer agent status and manual-mode badges, smoother background sessions, a new VS Code remote-control setting, and a fix for SessionStart hook streaming in headless sessions that could idle-reap remote workers mid-hook — relevant if you run headless agents via the SDK.
+
 ### Week of July 5, 2026
 
 -   **Claude Sonnet 5 released (June 30):** Anthropic's most agentic Sonnet yet, with a native 1M-token context window and introductory pricing of $2/$10 per Mtok through August 31. It's the new default in Claude Code — worth making your default SDK model for agent workloads.
