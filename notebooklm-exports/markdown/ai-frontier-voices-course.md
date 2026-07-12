@@ -1,0 +1,304 @@
+# AI Frontier Voices — Learning from the People Building It
+
+# AI Frontier Voices
+
+Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
+
+Last updated: July 12, 2026 • ~1.5–2 hours reading • 6 Modules
+
+0 / 6 complete
+
+[1Anthropic — Karpathy, Cherny, Thariq](#mod1) [2OpenAI — Brown, Gabriel, Liu](#mod2) [3Google AI — Kilpatrick, Reshi, fofr](#mod3) [4Cursor — Robinson, Zakariasson, Truell](#mod4) [5xAI — milichab, skcd](#mod5) [6Resources — ai\_explorer25 & How to Follow](#mod6)
+
+## Module ★: Latest from the Feed
+
+*A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of July 12, 2026
+
+-   **@karpathy (Anthropic):** Settling into his pre-training role after joining in May — his team focuses on using Claude to accelerate pre-training research itself. His Sequoia AI Ascent framing keeps circulating: "Vibe coding raises the floor. Agentic engineering is about extrapolating the ceiling."
+-   **@polynoamial (OpenAI):** At a Seoul symposium (July 3), Noam Brown argued the future of AI will be defined by *memory*, not raw compute — inference-time scaling makes memory capacity and bandwidth the primary bottleneck, with big implications for the semiconductor market.
+-   **@mntruell (Cursor):** Composer 2.5 became the most-chosen model in Cursor; Truell celebrated with 10x usage for a day. Cursor also shipped its native iOS app (June 29) — cloud agents, remote control, voice, and PR merges from your phone.
+-   **xAI (@milichab, @skcd42):** Grok 4.5 launched July 8 — Musk calls it an "Opus-class model," priced at $2/$6 per Mtok. Grok 5 (the 6T-parameter model) is still training on Colossus 2, with availability likely slipping to Q3+.
+-   **@jxnlco (OpenAI):** Continuing his "Codex-maxxing" series — soliciting community feedback on Codex plugins and sharing workflows for using Codex in non-coding knowledge work (presentations, voice notes, megathreads).
+
+## Module 01: Anthropic — The Claude Builders
+
+### Who to Follow and Why
+
+AK
+
+Andrej Karpathy [@karpathy](https://x.com/karpathy)
+
+OpenAI co-founder, former Tesla AI director, AI's best teacher. Joined Anthropic's pre-training team in May 2026. The single highest signal-to-noise account in AI.
+
+BC
+
+Boris Cherny [@bcherny](https://x.com/bcherny)
+
+Creator of Claude Code. Shares the highest-leverage practical tips on agentic coding anywhere — how he actually uses the tool he built.
+
+TS
+
+Thariq Shihipar [@trq212](https://x.com/trq212)
+
+Claude Code developer at Anthropic. Writes long-form articles on agent design that read like internal engineering docs made public.
+
+### Karpathy: From Teaching AI to Training Claude
+
+Karpathy's [move to Anthropic in May 2026](https://techcrunch.com/2026/05/19/openai-co-founder-andrej-karpathy-joins-anthropics-pre-training-team/) was the biggest talent story of the year. He's starting a team focused on **using Claude to accelerate pre-training research** — models improving models. His announcement: "The next few years at the frontier of LLMs will be especially formative... I remain deeply passionate about education and plan to resume my work on it in time."
+
+His conceptual contributions frame how the whole industry talks:
+
+-   **"Vibe coding" vs "agentic engineering":** At Sequoia's AI Ascent (April 2026) he drew the line between delegating code to AI without reading it, and directing multiple agents on complex tasks. "Vibe coding raises the floor. Agentic engineering is about extrapolating the ceiling."
+-   **"AI psychosis":** His March 2026 confession of persistent anxiety about falling behind the frontier of what agents can do — naming a feeling every engineer recognizes.
+-   **Education legacy:** CS231n, the "Zero to Hero" neural net series, nanoGPT, and Eureka Labs — the reason a generation of ML engineers exists.
+
+Key Takeaway
+
+Watch Karpathy for **conceptual frames**, not news. He names the patterns everyone else is fumbling to describe, usually 6 months early.
+
+### Cherny: How the Creator Uses Claude Code
+
+Boris Cherny's tips are so followed there's an entire community site cataloguing them ([118+ tips and counting](https://howborisusesclaudecode.com/)). The essentials of his workflow:
+
+-   **Massive parallelism:** 5 Claude Code instances in terminal tabs (numbered 1–5, separate git checkouts), plus 5–10 more sessions on claude.ai/code. Built-in git worktree support (shipped Feb 2026) made this a first-class pattern.
+-   **Plan mode first:** Most sessions start in Plan mode (Shift+Tab twice). Iterate on the plan, then switch to auto-accept — Claude usually one-shots the implementation.
+-   **Opus with thinking, always:** Bigger and slower per token, but needs less steering and is better at tool use — "almost always faster in the end."
+-   **Slash commands for every inner loop:** Repeated workflows become commands in `.claude/commands/`, checked into git so the whole team (and Claude itself) can use them.
+-   **The self-improvement loop:** Spot an anti-pattern in a PR → don't just fix it, tell Claude to update CLAUDE.md so future sessions avoid it automatically.
+
+Why This Matters
+
+Cherny's workflow is a preview of every engineer's workflow 12 months out. The pattern — human as reviewer/director, agents as parallel implementers, rules encoded in memory files — is becoming the industry default.
+
+### Thariq: Seeing Like an Agent
+
+Thariq joined Anthropic in July 2025 with a thesis: "We're bottlenecked not by model capabilities, but by creativity and understanding." His long-form writing delivers on it:
+
+-   **"Claude Code is All You Need":** The article that popularized using Claude Code as a *general agent*, not just for code — file management, research, writing, automation.
+-   **"Lessons from Building Claude Code: Seeing like an Agent" (Feb 2026):** How to construct an agent's action space and tool design — what the world looks like from inside the loop.
+-   **Skills at Anthropic (March 2026):** Lessons from hundreds of skills in active internal use — how to package repeatable workflows agents can invoke.
+
+| Account | Post For | Cadence | Signal |
+| --- | --- | --- | --- |
+| @karpathy | Concepts, frames, education | Weekly-ish | Very High |
+| @bcherny | Claude Code tips, releases | Several/week | Very High |
+| @trq212 | Long-form agent design essays | Every few weeks | Very High |
+
+## Module 02: OpenAI — Reasoning, Video, and Codex
+
+### Who to Follow and Why
+
+NB
+
+Noam Brown [@polynoamial](https://x.com/polynoamial)
+
+OpenAI research VP behind the o-series reasoning models. Previously cracked poker (Libratus/Pluribus) and Diplomacy (Cicero) at Meta. Shares real technical detail on reasoning research.
+
+G
+
+Gabriel [@gabriel1](https://x.com/gabriel1)
+
+Sora developer. A window into what it's like building (and sunsetting) frontier generative video products — a great career-path account.
+
+JL
+
+Jason Liu [@jxnlco](https://x.com/jxnlco)
+
+Creator of Instructor (the structured-outputs library), now Developer Experience Engineer on the Codex team. The most practical voice on agentic developer tooling at OpenAI.
+
+### Brown: The Reasoning Bet, Then the Memory Bet
+
+Noam Brown was foundational to o1 and o3 — the models that proved spending more compute at *inference time* dramatically improves math and science performance. His long-standing thesis: reasoning techniques "could've arrived decades ago" — the ideas were simpler than people assumed; what was missing was the conviction to scale them.
+
+His current frame (Seoul symposium, July 3, 2026): **inference-time scaling makes memory the next battleground**. As models spend more time reasoning, memory capacity and bandwidth — not FLOPs — become the binding constraint. If he's right, the hardware winners of the next cycle look different from the last one.
+
+Key Takeaway
+
+Brown's posts are a leading indicator for where OpenAI's research compute is going. He telegraphed the o-series a year early; take the memory thesis seriously.
+
+### Gabriel and the Sora Arc
+
+The Sora story is 2026's biggest product cautionary tale: the consumer web/app experience was **discontinued April 26, 2026**, with the API sunsetting September 24. Reports cited compute shortages and ~$1M/day operating costs, plus a strategic shift toward enterprise. Following a builder like @gabriel1 through that arc teaches more about frontier product reality than any launch thread — what it takes to ship generative video, and what it costs to keep it alive.
+
+### Liu: Codex-maxxing
+
+Jason Liu's account is a live lab notebook for Codex developer experience:
+
+-   **"Codex-maxxing" (May 2026):** His guide to techniques and primitives for daily Codex use in *knowledge work* — presentations, voice notes, running five parallel workstreams as "megathreads."
+-   **Skill Installer:** Do something useful once, package it as a skill so Codex repeats it without reteaching — the same convergent pattern as Anthropic's skills and Cursor's skills.
+-   **Community-driven DX:** He publicly solicits feedback on what's broken in Codex plugins and ships against it — a rare open feedback loop at a frontier lab.
+-   **Instructor legacy:** His structured-outputs library was cited by OpenAI as inspiration for the official structured output feature.
+
+Pattern to Notice
+
+All three labs converged on the same abstraction in 2026: **packaged, reusable agent workflows** (Anthropic skills, Codex skills, Cursor skills). When competitors converge, that's the signal the pattern is real.
+
+## Module 03: Google AI — Gemini, AI Studio, and Vibe Coding
+
+### Who to Follow and Why
+
+LK
+
+Logan Kilpatrick [@OfficialLoganK](https://x.com/OfficialLoganK)
+
+Leads Google AI Studio and the Gemini API at Google DeepMind. Every major Gemini launch goes through his account first. The definitive source for Google AI news.
+
+AR
+
+Ammaar Reshi [@ammaar](https://x.com/ammaar)
+
+Product & Design lead for Google AI Studio. The best account for seeing what vibe-coding can actually build — he demos by shipping.
+
+F
+
+fofr [@fofrAI](https://x.com/fofrAI)
+
+Prolific creative-model explorer. Finds the weird, delightful edges of image/video/audio models before anyone else — a constant source of "I didn't know models could do that."
+
+### Kilpatrick: The Launch Channel
+
+Logan Kilpatrick's account is effectively Google AI's release feed with commentary. Recent arc:
+
+-   **Gemini 3 Pro:** His launch thread ("state of the art across most benchmarks") set the tone for Google's strongest release cycle yet.
+-   **Unified Playground:** AI Studio consolidated Gemini, GenMedia (Veo 3.1), TTS, and Live models into one surface without tab-switching.
+-   **Cloud Next 2026 (April):** Teased design previews, "tap tap tap" autocomplete, "yap to app" voice input, mobile AI Studio, and on-device Gemma 4.
+-   **The thesis:** "We are building AI Studio and Gemini to dramatically accelerate the development of products at Google" — AI Studio as Google's internal accelerant, productized.
+
+### Reshi: Vibe Coding as a Product Discipline
+
+Ammaar Reshi owns product strategy for AI Studio's playground and vibe-coding surfaces, and he leads by building:
+
+-   **Full-stack vibe coding:** Prompt-to-app with multiplayer support, databases, and modern web tooling (Framer Motion et al.) directly in AI Studio.
+-   **Antigravity + Firebase (March 2026):** Plain-English prompt to a *deployed* app with auth, database, and backend — in one browser tab.
+-   **Design-led demos:** His launch demos are vibe-coded prototypes he builds himself; he's also taught vibe-coding workshops internationally.
+
+### fofr: The Creative Frontier Scout
+
+fofr's account is the answer to "what can generative media actually do this month?" He stress-tests new image, video, and audio models the day they drop and publishes recipes — prompt patterns, model chains, and unexpected capabilities. In a year where video models (Veo 3.1, Grok Imagine 1.5) leapfrogged monthly and Sora exited the stage, an account dedicated to *hands-on comparative exploration* is more valuable than any benchmark table.
+
+Key Takeaway
+
+Google's story in 2026 is **distribution + integration**: models woven into AI Studio, Firebase, and on-device Gemma. Follow Kilpatrick for the what, Reshi for the how, fofr for the what's-possible.
+
+## Module 04: Cursor — The Agent-First IDE
+
+### Who to Follow and Why
+
+LR
+
+Lee Robinson [@leerob](https://x.com/leerob)
+
+Former Vercel VP of Product, now at Cursor working on ML and education. The loudest, clearest voice explaining Cursor releases and AI-assisted development.
+
+EZ
+
+Eric Zakariasson [@ericzakariasson](https://x.com/ericzakariasson)
+
+Cursor product engineer. Shares the practical workflows — model selection guides, context management, agent patterns — that make Cursor users faster.
+
+MT
+
+Michael Truell [@mntruell](https://x.com/mntruell)
+
+Cursor's CEO. Major releases, usage milestones, and the strategic vision for where coding is headed.
+
+### The 2026 Cursor Arc: From IDE to Agent Manager
+
+Cursor's year has been a sprint toward agent-first development:
+
+-   **Composer 1.5 → 2 → 2.5:** Cursor's in-house models, trained with large-scale RL in environments emulating real Cursor usage (Composer 2 built on the open Kimi K2.5 base). By May, **Composer 2.5 was the most-chosen model in Cursor** — an in-house model beating frontier APIs on its home turf.
+-   **Cursor 3 (April 2026):** The headline: "simpler, more powerful, and built for a world where all code is written by agents." Lee Robinson's launch thread told the story of redesigning the interface around directing agents rather than editing files.
+-   **Truell's "Third Era" essay (Feb 2026):** Era 1: manually editing files. Era 2: agents write most code. Era 3: *fleets of agents working autonomously to ship improvements*.
+-   **Cloud ↔ local agent handoff:** Move a running agent session from cloud to desktop and back. Plus the native iOS app (June 29): cloud agents, voice, and PR merges from your phone.
+-   **Always-on CI agents:** Agents that monitor GitHub, investigate CI failures, and open PRs with fixes — unattended.
+
+### Zakariasson's Playbook
+
+-   **Model selection guide:** Match model to task — his guide on thinking through model choice remains the reference.
+-   **Plan mode before execution:** Gather context and align on the problem/solution with the model first (same pattern as Cherny — convergent evolution again).
+-   **Self-verifiable solutions:** Prompt for solutions the agent can run and check itself.
+-   **Skills in Cursor:** Live as of January 2026 — including skills that teach you about your own codebase.
+-   **Data on adoption:** Cursor's insights report: accepted AI lines surviving 60+ minutes rose from ~76% to 81% in 2026; lines-per-PR up ~2.5x YoY; 1,000+ line "mega PRs" increasingly common.
+
+> **Warning:** Watch This
+>
+> Cursor training its own frontier-competitive models (Composer) while being a top customer of Anthropic/OpenAI models is the most interesting strategic tension in dev tools. Truell's account is where that story will break.
+
+## Module 05: xAI — Grok's Fast Followers
+
+### Who to Follow and Why
+
+M
+
+milichab [@milichab](https://x.com/milichab)
+
+Recently joined xAI; shares updates on Grok models and products from inside the fastest-shipping lab.
+
+S
+
+skcd [@skcd42](https://x.com/skcd42)
+
+xAI engineer behind Grok Build, the terminal-native coding agent. Covers major Grok releases with an engineer's eye.
+
+### The Grok Release Cadence
+
+xAI ships faster than any other lab, and these two accounts are how you keep up:
+
+-   **Grok 4.5 (July 8, 2026):** Positioned by Musk as "roughly comparable to Opus 4.7, but much faster" at $2/$6 per Mtok — aggressive pricing aimed at coding, agentic tasks, and knowledge work.
+-   **Grok Build (May 2026):** skcd's project — a coding agent "built by engineers who live in the terminal: people who reach for vim, think in keybindings, and treat the alt-screen as home." xAI's answer to Claude Code.
+-   **Grok Voice (June 4):** Conversational spoken interaction in the Grok mobile app.
+-   **Grok Imagine Video 1.5:** #1 on the Image-to-Video Arena — 720p clips up to 15 seconds with native audio.
+-   **Grok 5 watch:** The 6T-parameter model is still training on Colossus 2 after Q1 and Q2 windows slipped; Q3 2026 or later is the realistic window.
+
+Why Follow xAI Accounts
+
+Even if you never use Grok, xAI's pace forces the other labs to respond. Grok 4.5's pricing and Grok Build's existence are directly shaping Anthropic and OpenAI roadmaps.
+
+## Module 06: Resources — Aggregators and How to Follow Well
+
+### The Aggregator
+
+AE
+
+AI Explorer [@ai\_explorer25](https://x.com/ai_explorer25)
+
+Covers AI content broadly and surfaces free resources — courses, tools, papers, and tutorials. The safety net for anything the specialist accounts miss.
+
+### How to Follow the Frontier Without Drowning
+
+Fifteen accounts is a curriculum, not a feed. A sustainable practice:
+
+-   **Builders over commentators.** Every account in this course ships the thing they talk about. That's the filter: primary sources only.
+-   **Watch for convergence.** When Anthropic, OpenAI, and Cursor all ship "skills" within months of each other, that's not coincidence — that's the industry telling you what abstraction won. Cross-company patterns are the highest-value signal on this list.
+-   **Read the long-form.** The X posts are pointers; the real payload is in the essays — Thariq's agent-design articles, Truell's "Third Era," Liu's Codex-maxxing, Karpathy's talks.
+-   **Weekly beats daily.** The "Latest from the Feed" section at the top of this course exists so a weekly scan replaces doom-scrolling. Frontier news that matters survives seven days.
+
+### The Full Roster
+
+| Ecosystem | Account | Beat |
+| --- | --- | --- |
+| Anthropic | @karpathy | Pre-training, concepts, education |
+| @bcherny | Claude Code tips & releases |  |
+| @trq212 | Agent design essays |  |
+| OpenAI | @polynoamial | Reasoning research |
+| @gabriel1 | Sora / generative video |  |
+| @jxnlco | Codex developer experience |  |
+| Google AI | @OfficialLoganK | Gemini & AI Studio launches |
+| @ammaar | Vibe coding, product & design |  |
+| @fofrAI | Creative model exploration |  |
+| Cursor | @leerob | Releases & education |
+| @ericzakariasson | Workflows & practical tips |  |
+| @mntruell | CEO — vision & milestones |  |
+| xAI | @milichab | Grok product updates |
+| @skcd42 | Grok Build & releases |  |
+| General | @ai_explorer25 | Free resources & broad coverage |
+
+Final Takeaway
+
+The frontier moves through people before it moves through papers or products. These 15 accounts are where "what's next" shows up first — and this course updates itself weekly so the roster stays current.
+
+AI Frontier Voices — Learning from the People Building It
+
+Updated weekly by an automated research task. Last updated July 12, 2026.

@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Frontier Voices — Learning from the People Building It</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0f1a;
+  --bg-card: #111827;
+  --bg-card-alt: #1a2332;
+  --bg-code: #0d1117;
+  --accent: #f472b6;
+  --accent-dim: #9e2a6f;
+  --accent-glow: rgba(244,114,182,0.15);
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --text-bright: #f8fafc;
+  --border: #1e293b;
+  --border-light: #334155;
+  --green: #34d399;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --purple: #a78bfa;
+  --blue: #4ea8de;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, "Liberation Mono", Menlo, monospace;
+  --max-w: 960px;
+  --nav-h: 56px;
+}
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 16px); }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img { max-width: 100%; }
+
+/* ===== NAV ===== */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,15,26,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  height: var(--nav-h);
+  display: flex; align-items: center;
+  padding: 0 24px;
+}
+.nav-title { font-size: 15px; font-weight: 700; color: var(--accent); white-space: nowrap; margin-right: 24px; }
+.nav-links { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; flex: 1; }
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a { font-size: 12px; padding: 6px 10px; border-radius: 6px; white-space: nowrap; color: var(--text-dim); transition: all 0.2s; }
+.nav-links a:hover, .nav-links a.active { background: var(--accent-glow); color: var(--accent); text-decoration: none; }
+.nav-progress { position: absolute; bottom: 0; left: 0; height: 2px; background: var(--accent); width: 0%; transition: width 0.3s; }
+.hamburger { display: none; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; padding: 4px 8px; }
+
+/* ===== LAYOUT ===== */
+.container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+.hero { padding: 80px 0 60px; text-align: center; background: linear-gradient(180deg, rgba(244,114,182,0.08) 0%, transparent 100%); }
+.hero h1 { font-size: 42px; font-weight: 800; color: var(--text-bright); margin-bottom: 12px; letter-spacing: -1px; }
+.hero .subtitle { font-size: 18px; color: var(--text-dim); max-width: 640px; margin: 0 auto 24px; }
+.hero .meta { font-size: 13px; color: var(--accent-dim); }
+.hero .meta span { margin: 0 8px; }
+
+/* ===== MODULES ===== */
+.module { margin: 48px 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-card); }
+.module-header { display: flex; align-items: center; gap: 16px; padding: 20px 24px; cursor: pointer; background: var(--bg-card); border-bottom: 1px solid transparent; transition: background 0.2s; user-select: none; }
+.module-header:hover { background: var(--bg-card-alt); }
+.module-header .num { background: var(--accent); color: var(--bg); font-size: 13px; font-weight: 800; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.module-header h2 { font-size: 20px; font-weight: 700; color: var(--text-bright); flex: 1; }
+.module-header .chevron { font-size: 20px; color: var(--text-dim); transition: transform 0.3s; }
+.module.open .module-header { border-bottom-color: var(--border); }
+.module.open .module-header .chevron { transform: rotate(180deg); }
+.module-body { display: none; padding: 32px 24px; }
+.module.open .module-body { display: block; }
+
+/* ===== PROGRESS CHECKBOX ===== */
+.progress-check { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.progress-check input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; border: 2px solid var(--border-light); border-radius: 4px; cursor: pointer; position: relative; transition: all 0.2s; }
+.progress-check input[type="checkbox"]:checked { background: var(--green); border-color: var(--green); }
+.progress-check input[type="checkbox"]:checked::after { content: "✓"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--bg); font-size: 13px; font-weight: 800; }
+.progress-check label { font-size: 12px; color: var(--text-dim); }
+
+/* ===== TYPOGRAPHY ===== */
+.module-body h3 { font-size: 18px; font-weight: 700; color: var(--accent); margin: 32px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.module-body h3:first-child { margin-top: 0; }
+.module-body h4 { font-size: 15px; font-weight: 700; color: var(--text-bright); margin: 24px 0 8px; }
+.module-body p { margin: 12px 0; color: var(--text); }
+.module-body ul, .module-body ol { margin: 12px 0 12px 20px; }
+.module-body li { margin: 6px 0; color: var(--text); }
+.module-body strong { color: var(--text-bright); }
+.weekly-update { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; margin: 20px 0; }
+.weekly-update h3 { margin-top: 0 !important; }
+
+/* ===== PERSON CARDS ===== */
+.person { display: flex; gap: 16px; align-items: flex-start; margin: 20px 0; padding: 16px 20px; background: var(--bg-card-alt); border: 1px solid var(--border); border-radius: 10px; }
+.person .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent-glow); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; flex-shrink: 0; }
+.person .p-info { flex: 1; }
+.person .p-name { font-weight: 700; color: var(--text-bright); font-size: 15px; }
+.person .p-handle { font-size: 13px; color: var(--accent); }
+.person .p-why { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+
+/* ===== CALLOUTS ===== */
+.callout { margin: 20px 0; padding: 16px 20px; border-radius: 8px; border-left: 4px solid; font-size: 14px; }
+.callout-takeaway { background: rgba(244,114,182,0.08); border-color: var(--accent); }
+.callout-takeaway .callout-title { color: var(--accent); }
+.callout-warning { background: rgba(251,191,36,0.08); border-color: var(--yellow); }
+.callout-warning .callout-title { color: var(--yellow); }
+.callout-opinion { background: rgba(167,139,250,0.08); border-color: var(--purple); }
+.callout-opinion .callout-title { color: var(--purple); }
+.callout-title { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+/* ===== TABLES ===== */
+.table-wrap { overflow-x: auto; margin: 20px 0; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+thead { background: var(--bg-card-alt); }
+th { padding: 12px 16px; text-align: left; font-weight: 700; color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+td { padding: 10px 16px; border-top: 1px solid var(--border); color: var(--text); }
+tr:hover td { background: rgba(244,114,182,0.04); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.badge-green { background: rgba(52,211,153,0.15); color: var(--green); }
+.badge-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+.badge-blue { background: rgba(78,168,222,0.15); color: var(--blue); }
+.badge-purple { background: rgba(167,139,250,0.15); color: var(--purple); }
+
+/* ===== CODE ===== */
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin: 16px 0; overflow-x: auto; font-size: 13px; line-height: 1.6; }
+code { font-family: var(--mono); }
+pre code { color: var(--text); }
+p code, li code { background: var(--bg-code); padding: 2px 6px; border-radius: 4px; font-size: 13px; border: 1px solid var(--border); }
+
+/* ===== FOOTER ===== */
+.footer { text-align: center; padding: 48px 24px; margin-top: 60px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 13px; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar-wrap { display: flex; align-items: center; gap: 12px; padding: 16px 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 24px 0; }
+.progress-bar-bg { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
+.progress-text { font-size: 13px; color: var(--text-dim); white-space: nowrap; font-weight: 600; }
+
+/* ===== TOC ===== */
+.toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin: 32px 0; }
+.toc-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; transition: all 0.2s; cursor: pointer; text-decoration: none; }
+.toc-item:hover { border-color: var(--accent); background: var(--bg-card-alt); text-decoration: none; }
+.toc-item .toc-num { background: var(--accent-glow); color: var(--accent); font-size: 13px; font-weight: 800; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.toc-item .toc-label { font-size: 14px; color: var(--text); font-weight: 500; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 28px; }
+  .hero .subtitle { font-size: 15px; }
+  .nav-links { display: none; }
+  .nav-links.open { display: flex; flex-direction: column; position: absolute; top: var(--nav-h); left: 0; right: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 12px; gap: 4px; }
+  .hamburger { display: block; margin-left: auto; }
+  .module-body { padding: 20px 16px; }
+  .module-header { padding: 16px; }
+  .module-header h2 { font-size: 16px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+  pre { font-size: 12px; padding: 14px; }
+  .toc { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .hero { padding: 48px 0 36px; }
+  .hero h1 { font-size: 24px; }
+  .container { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav class="nav">
+  <div class="nav-title">Frontier Voices</div>
+  <div class="nav-links" id="navLinks">
+    <a href="#mod1">Anthropic</a>
+    <a href="#mod2">OpenAI</a>
+    <a href="#mod3">Google AI</a>
+    <a href="#mod4">Cursor</a>
+    <a href="#mod5">xAI</a>
+    <a href="#mod6">Resources</a>
+  </div>
+  <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+  <div class="nav-progress" id="navProgress"></div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="container">
+    <h1>AI Frontier Voices</h1>
+    <p class="subtitle">Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.</p>
+    <p class="meta">
+      <span>Last updated: July 12, 2026</span>
+      <span>•</span>
+      <span>~1.5–2 hours reading</span>
+      <span>•</span>
+      <span>6 Modules</span>
+    </p>
+  </div>
+</section>
+
+<div class="container">
+
+<!-- PROGRESS -->
+<div class="progress-bar-wrap">
+  <span class="progress-text" id="progressText">0 / 6 complete</span>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <a class="toc-item" href="#mod1"><span class="toc-num">1</span><span class="toc-label">Anthropic — Karpathy, Cherny, Thariq</span></a>
+  <a class="toc-item" href="#mod2"><span class="toc-num">2</span><span class="toc-label">OpenAI — Brown, Gabriel, Liu</span></a>
+  <a class="toc-item" href="#mod3"><span class="toc-num">3</span><span class="toc-label">Google AI — Kilpatrick, Reshi, fofr</span></a>
+  <a class="toc-item" href="#mod4"><span class="toc-num">4</span><span class="toc-label">Cursor — Robinson, Zakariasson, Truell</span></a>
+  <a class="toc-item" href="#mod5"><span class="toc-num">5</span><span class="toc-label">xAI — milichab, skcd</span></a>
+  <a class="toc-item" href="#mod6"><span class="toc-num">6</span><span class="toc-label">Resources — ai_explorer25 & How to Follow</span></a>
+</div>
+
+<!-- ============================================================ -->
+<!-- LATEST FROM THE FEED -->
+<!-- ============================================================ -->
+<div class="module open" id="latest-feed">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">★</span>
+    <h2>Latest from the Feed</h2>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+    <p><em>A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.</em></p>
+
+    <div class="weekly-update">
+      <h3>Week of July 12, 2026</h3>
+      <ul>
+        <li><strong>@karpathy (Anthropic):</strong> Settling into his pre-training role after joining in May — his team focuses on using Claude to accelerate pre-training research itself. His Sequoia AI Ascent framing keeps circulating: "Vibe coding raises the floor. Agentic engineering is about extrapolating the ceiling."</li>
+        <li><strong>@polynoamial (OpenAI):</strong> At a Seoul symposium (July 3), Noam Brown argued the future of AI will be defined by <em>memory</em>, not raw compute — inference-time scaling makes memory capacity and bandwidth the primary bottleneck, with big implications for the semiconductor market.</li>
+        <li><strong>@mntruell (Cursor):</strong> Composer 2.5 became the most-chosen model in Cursor; Truell celebrated with 10x usage for a day. Cursor also shipped its native iOS app (June 29) — cloud agents, remote control, voice, and PR merges from your phone.</li>
+        <li><strong>xAI (@milichab, @skcd42):</strong> Grok 4.5 launched July 8 — Musk calls it an "Opus-class model," priced at $2/$6 per Mtok. Grok 5 (the 6T-parameter model) is still training on Colossus 2, with availability likely slipping to Q3+.</li>
+        <li><strong>@jxnlco (OpenAI):</strong> Continuing his "Codex-maxxing" series — soliciting community feedback on Codex plugins and sharing workflows for using Codex in non-coding knowledge work (presentations, voice notes, megathreads).</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 1: ANTHROPIC -->
+<!-- ============================================================ -->
+<div class="module open" id="mod1">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">01</span>
+    <h2>Anthropic — The Claude Builders</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check1" onchange="updateProgress()">
+      <label for="check1">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>Who to Follow and Why</h3>
+
+    <div class="person">
+      <div class="avatar">AK</div>
+      <div class="p-info">
+        <div class="p-name">Andrej Karpathy <a class="p-handle" href="https://x.com/karpathy">@karpathy</a></div>
+        <div class="p-why">OpenAI co-founder, former Tesla AI director, AI's best teacher. Joined Anthropic's pre-training team in May 2026. The single highest signal-to-noise account in AI.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">BC</div>
+      <div class="p-info">
+        <div class="p-name">Boris Cherny <a class="p-handle" href="https://x.com/bcherny">@bcherny</a></div>
+        <div class="p-why">Creator of Claude Code. Shares the highest-leverage practical tips on agentic coding anywhere — how he actually uses the tool he built.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">TS</div>
+      <div class="p-info">
+        <div class="p-name">Thariq Shihipar <a class="p-handle" href="https://x.com/trq212">@trq212</a></div>
+        <div class="p-why">Claude Code developer at Anthropic. Writes long-form articles on agent design that read like internal engineering docs made public.</div>
+      </div>
+    </div>
+
+    <h3>Karpathy: From Teaching AI to Training Claude</h3>
+    <p>Karpathy's <a href="https://techcrunch.com/2026/05/19/openai-co-founder-andrej-karpathy-joins-anthropics-pre-training-team/">move to Anthropic in May 2026</a> was the biggest talent story of the year. He's starting a team focused on <strong>using Claude to accelerate pre-training research</strong> — models improving models. His announcement: "The next few years at the frontier of LLMs will be especially formative... I remain deeply passionate about education and plan to resume my work on it in time."</p>
+
+    <p>His conceptual contributions frame how the whole industry talks:</p>
+    <ul>
+      <li><strong>"Vibe coding" vs "agentic engineering":</strong> At Sequoia's AI Ascent (April 2026) he drew the line between delegating code to AI without reading it, and directing multiple agents on complex tasks. "Vibe coding raises the floor. Agentic engineering is about extrapolating the ceiling."</li>
+      <li><strong>"AI psychosis":</strong> His March 2026 confession of persistent anxiety about falling behind the frontier of what agents can do — naming a feeling every engineer recognizes.</li>
+      <li><strong>Education legacy:</strong> CS231n, the "Zero to Hero" neural net series, nanoGPT, and Eureka Labs — the reason a generation of ML engineers exists.</li>
+    </ul>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      Watch Karpathy for <strong>conceptual frames</strong>, not news. He names the patterns everyone else is fumbling to describe, usually 6 months early.
+    </div>
+
+    <h3>Cherny: How the Creator Uses Claude Code</h3>
+    <p>Boris Cherny's tips are so followed there's an entire community site cataloguing them (<a href="https://howborisusesclaudecode.com/">118+ tips and counting</a>). The essentials of his workflow:</p>
+    <ul>
+      <li><strong>Massive parallelism:</strong> 5 Claude Code instances in terminal tabs (numbered 1–5, separate git checkouts), plus 5–10 more sessions on claude.ai/code. Built-in git worktree support (shipped Feb 2026) made this a first-class pattern.</li>
+      <li><strong>Plan mode first:</strong> Most sessions start in Plan mode (Shift+Tab twice). Iterate on the plan, then switch to auto-accept — Claude usually one-shots the implementation.</li>
+      <li><strong>Opus with thinking, always:</strong> Bigger and slower per token, but needs less steering and is better at tool use — "almost always faster in the end."</li>
+      <li><strong>Slash commands for every inner loop:</strong> Repeated workflows become commands in <code>.claude/commands/</code>, checked into git so the whole team (and Claude itself) can use them.</li>
+      <li><strong>The self-improvement loop:</strong> Spot an anti-pattern in a PR → don't just fix it, tell Claude to update CLAUDE.md so future sessions avoid it automatically.</li>
+    </ul>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Why This Matters</div>
+      Cherny's workflow is a preview of every engineer's workflow 12 months out. The pattern — human as reviewer/director, agents as parallel implementers, rules encoded in memory files — is becoming the industry default.
+    </div>
+
+    <h3>Thariq: Seeing Like an Agent</h3>
+    <p>Thariq joined Anthropic in July 2025 with a thesis: "We're bottlenecked not by model capabilities, but by creativity and understanding." His long-form writing delivers on it:</p>
+    <ul>
+      <li><strong>"Claude Code is All You Need":</strong> The article that popularized using Claude Code as a <em>general agent</em>, not just for code — file management, research, writing, automation.</li>
+      <li><strong>"Lessons from Building Claude Code: Seeing like an Agent" (Feb 2026):</strong> How to construct an agent's action space and tool design — what the world looks like from inside the loop.</li>
+      <li><strong>Skills at Anthropic (March 2026):</strong> Lessons from hundreds of skills in active internal use — how to package repeatable workflows agents can invoke.</li>
+    </ul>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Account</th><th>Post For</th><th>Cadence</th><th>Signal</th></tr></thead>
+        <tbody>
+          <tr><td><strong>@karpathy</strong></td><td>Concepts, frames, education</td><td>Weekly-ish</td><td><span class="badge badge-green">Very High</span></td></tr>
+          <tr><td><strong>@bcherny</strong></td><td>Claude Code tips, releases</td><td>Several/week</td><td><span class="badge badge-green">Very High</span></td></tr>
+          <tr><td><strong>@trq212</strong></td><td>Long-form agent design essays</td><td>Every few weeks</td><td><span class="badge badge-green">Very High</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 2: OPENAI -->
+<!-- ============================================================ -->
+<div class="module" id="mod2">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">02</span>
+    <h2>OpenAI — Reasoning, Video, and Codex</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check2" onchange="updateProgress()">
+      <label for="check2">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>Who to Follow and Why</h3>
+
+    <div class="person">
+      <div class="avatar">NB</div>
+      <div class="p-info">
+        <div class="p-name">Noam Brown <a class="p-handle" href="https://x.com/polynoamial">@polynoamial</a></div>
+        <div class="p-why">OpenAI research VP behind the o-series reasoning models. Previously cracked poker (Libratus/Pluribus) and Diplomacy (Cicero) at Meta. Shares real technical detail on reasoning research.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">G</div>
+      <div class="p-info">
+        <div class="p-name">Gabriel <a class="p-handle" href="https://x.com/gabriel1">@gabriel1</a></div>
+        <div class="p-why">Sora developer. A window into what it's like building (and sunsetting) frontier generative video products — a great career-path account.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">JL</div>
+      <div class="p-info">
+        <div class="p-name">Jason Liu <a class="p-handle" href="https://x.com/jxnlco">@jxnlco</a></div>
+        <div class="p-why">Creator of Instructor (the structured-outputs library), now Developer Experience Engineer on the Codex team. The most practical voice on agentic developer tooling at OpenAI.</div>
+      </div>
+    </div>
+
+    <h3>Brown: The Reasoning Bet, Then the Memory Bet</h3>
+    <p>Noam Brown was foundational to o1 and o3 — the models that proved spending more compute at <em>inference time</em> dramatically improves math and science performance. His long-standing thesis: reasoning techniques "could've arrived decades ago" — the ideas were simpler than people assumed; what was missing was the conviction to scale them.</p>
+    <p>His current frame (Seoul symposium, July 3, 2026): <strong>inference-time scaling makes memory the next battleground</strong>. As models spend more time reasoning, memory capacity and bandwidth — not FLOPs — become the binding constraint. If he's right, the hardware winners of the next cycle look different from the last one.</p>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      Brown's posts are a leading indicator for where OpenAI's research compute is going. He telegraphed the o-series a year early; take the memory thesis seriously.
+    </div>
+
+    <h3>Gabriel and the Sora Arc</h3>
+    <p>The Sora story is 2026's biggest product cautionary tale: the consumer web/app experience was <strong>discontinued April 26, 2026</strong>, with the API sunsetting September 24. Reports cited compute shortages and ~$1M/day operating costs, plus a strategic shift toward enterprise. Following a builder like @gabriel1 through that arc teaches more about frontier product reality than any launch thread — what it takes to ship generative video, and what it costs to keep it alive.</p>
+
+    <h3>Liu: Codex-maxxing</h3>
+    <p>Jason Liu's account is a live lab notebook for Codex developer experience:</p>
+    <ul>
+      <li><strong>"Codex-maxxing" (May 2026):</strong> His guide to techniques and primitives for daily Codex use in <em>knowledge work</em> — presentations, voice notes, running five parallel workstreams as "megathreads."</li>
+      <li><strong>Skill Installer:</strong> Do something useful once, package it as a skill so Codex repeats it without reteaching — the same convergent pattern as Anthropic's skills and Cursor's skills.</li>
+      <li><strong>Community-driven DX:</strong> He publicly solicits feedback on what's broken in Codex plugins and ships against it — a rare open feedback loop at a frontier lab.</li>
+      <li><strong>Instructor legacy:</strong> His structured-outputs library was cited by OpenAI as inspiration for the official structured output feature.</li>
+    </ul>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Pattern to Notice</div>
+      All three labs converged on the same abstraction in 2026: <strong>packaged, reusable agent workflows</strong> (Anthropic skills, Codex skills, Cursor skills). When competitors converge, that's the signal the pattern is real.
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 3: GOOGLE AI -->
+<!-- ============================================================ -->
+<div class="module" id="mod3">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">03</span>
+    <h2>Google AI — Gemini, AI Studio, and Vibe Coding</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check3" onchange="updateProgress()">
+      <label for="check3">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>Who to Follow and Why</h3>
+
+    <div class="person">
+      <div class="avatar">LK</div>
+      <div class="p-info">
+        <div class="p-name">Logan Kilpatrick <a class="p-handle" href="https://x.com/OfficialLoganK">@OfficialLoganK</a></div>
+        <div class="p-why">Leads Google AI Studio and the Gemini API at Google DeepMind. Every major Gemini launch goes through his account first. The definitive source for Google AI news.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">AR</div>
+      <div class="p-info">
+        <div class="p-name">Ammaar Reshi <a class="p-handle" href="https://x.com/ammaar">@ammaar</a></div>
+        <div class="p-why">Product & Design lead for Google AI Studio. The best account for seeing what vibe-coding can actually build — he demos by shipping.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">F</div>
+      <div class="p-info">
+        <div class="p-name">fofr <a class="p-handle" href="https://x.com/fofrAI">@fofrAI</a></div>
+        <div class="p-why">Prolific creative-model explorer. Finds the weird, delightful edges of image/video/audio models before anyone else — a constant source of "I didn't know models could do that."</div>
+      </div>
+    </div>
+
+    <h3>Kilpatrick: The Launch Channel</h3>
+    <p>Logan Kilpatrick's account is effectively Google AI's release feed with commentary. Recent arc:</p>
+    <ul>
+      <li><strong>Gemini 3 Pro:</strong> His launch thread ("state of the art across most benchmarks") set the tone for Google's strongest release cycle yet.</li>
+      <li><strong>Unified Playground:</strong> AI Studio consolidated Gemini, GenMedia (Veo 3.1), TTS, and Live models into one surface without tab-switching.</li>
+      <li><strong>Cloud Next 2026 (April):</strong> Teased design previews, "tap tap tap" autocomplete, "yap to app" voice input, mobile AI Studio, and on-device Gemma 4.</li>
+      <li><strong>The thesis:</strong> "We are building AI Studio and Gemini to dramatically accelerate the development of products at Google" — AI Studio as Google's internal accelerant, productized.</li>
+    </ul>
+
+    <h3>Reshi: Vibe Coding as a Product Discipline</h3>
+    <p>Ammaar Reshi owns product strategy for AI Studio's playground and vibe-coding surfaces, and he leads by building:</p>
+    <ul>
+      <li><strong>Full-stack vibe coding:</strong> Prompt-to-app with multiplayer support, databases, and modern web tooling (Framer Motion et al.) directly in AI Studio.</li>
+      <li><strong>Antigravity + Firebase (March 2026):</strong> Plain-English prompt to a <em>deployed</em> app with auth, database, and backend — in one browser tab.</li>
+      <li><strong>Design-led demos:</strong> His launch demos are vibe-coded prototypes he builds himself; he's also taught vibe-coding workshops internationally.</li>
+    </ul>
+
+    <h3>fofr: The Creative Frontier Scout</h3>
+    <p>fofr's account is the answer to "what can generative media actually do this month?" He stress-tests new image, video, and audio models the day they drop and publishes recipes — prompt patterns, model chains, and unexpected capabilities. In a year where video models (Veo 3.1, Grok Imagine 1.5) leapfrogged monthly and Sora exited the stage, an account dedicated to <em>hands-on comparative exploration</em> is more valuable than any benchmark table.</p>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Key Takeaway</div>
+      Google's story in 2026 is <strong>distribution + integration</strong>: models woven into AI Studio, Firebase, and on-device Gemma. Follow Kilpatrick for the what, Reshi for the how, fofr for the what's-possible.
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 4: CURSOR -->
+<!-- ============================================================ -->
+<div class="module" id="mod4">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">04</span>
+    <h2>Cursor — The Agent-First IDE</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check4" onchange="updateProgress()">
+      <label for="check4">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>Who to Follow and Why</h3>
+
+    <div class="person">
+      <div class="avatar">LR</div>
+      <div class="p-info">
+        <div class="p-name">Lee Robinson <a class="p-handle" href="https://x.com/leerob">@leerob</a></div>
+        <div class="p-why">Former Vercel VP of Product, now at Cursor working on ML and education. The loudest, clearest voice explaining Cursor releases and AI-assisted development.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">EZ</div>
+      <div class="p-info">
+        <div class="p-name">Eric Zakariasson <a class="p-handle" href="https://x.com/ericzakariasson">@ericzakariasson</a></div>
+        <div class="p-why">Cursor product engineer. Shares the practical workflows — model selection guides, context management, agent patterns — that make Cursor users faster.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">MT</div>
+      <div class="p-info">
+        <div class="p-name">Michael Truell <a class="p-handle" href="https://x.com/mntruell">@mntruell</a></div>
+        <div class="p-why">Cursor's CEO. Major releases, usage milestones, and the strategic vision for where coding is headed.</div>
+      </div>
+    </div>
+
+    <h3>The 2026 Cursor Arc: From IDE to Agent Manager</h3>
+    <p>Cursor's year has been a sprint toward agent-first development:</p>
+    <ul>
+      <li><strong>Composer 1.5 → 2 → 2.5:</strong> Cursor's in-house models, trained with large-scale RL in environments emulating real Cursor usage (Composer 2 built on the open Kimi K2.5 base). By May, <strong>Composer 2.5 was the most-chosen model in Cursor</strong> — an in-house model beating frontier APIs on its home turf.</li>
+      <li><strong>Cursor 3 (April 2026):</strong> The headline: "simpler, more powerful, and built for a world where all code is written by agents." Lee Robinson's launch thread told the story of redesigning the interface around directing agents rather than editing files.</li>
+      <li><strong>Truell's "Third Era" essay (Feb 2026):</strong> Era 1: manually editing files. Era 2: agents write most code. Era 3: <em>fleets of agents working autonomously to ship improvements</em>.</li>
+      <li><strong>Cloud ↔ local agent handoff:</strong> Move a running agent session from cloud to desktop and back. Plus the native iOS app (June 29): cloud agents, voice, and PR merges from your phone.</li>
+      <li><strong>Always-on CI agents:</strong> Agents that monitor GitHub, investigate CI failures, and open PRs with fixes — unattended.</li>
+    </ul>
+
+    <h3>Zakariasson's Playbook</h3>
+    <ul>
+      <li><strong>Model selection guide:</strong> Match model to task — his guide on thinking through model choice remains the reference.</li>
+      <li><strong>Plan mode before execution:</strong> Gather context and align on the problem/solution with the model first (same pattern as Cherny — convergent evolution again).</li>
+      <li><strong>Self-verifiable solutions:</strong> Prompt for solutions the agent can run and check itself.</li>
+      <li><strong>Skills in Cursor:</strong> Live as of January 2026 — including skills that teach you about your own codebase.</li>
+      <li><strong>Data on adoption:</strong> Cursor's insights report: accepted AI lines surviving 60+ minutes rose from ~76% to 81% in 2026; lines-per-PR up ~2.5x YoY; 1,000+ line "mega PRs" increasingly common.</li>
+    </ul>
+
+    <div class="callout callout-warning">
+      <div class="callout-title">Watch This</div>
+      Cursor training its own frontier-competitive models (Composer) while being a top customer of Anthropic/OpenAI models is the most interesting strategic tension in dev tools. Truell's account is where that story will break.
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 5: XAI -->
+<!-- ============================================================ -->
+<div class="module" id="mod5">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">05</span>
+    <h2>xAI — Grok's Fast Followers</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check5" onchange="updateProgress()">
+      <label for="check5">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>Who to Follow and Why</h3>
+
+    <div class="person">
+      <div class="avatar">M</div>
+      <div class="p-info">
+        <div class="p-name">milichab <a class="p-handle" href="https://x.com/milichab">@milichab</a></div>
+        <div class="p-why">Recently joined xAI; shares updates on Grok models and products from inside the fastest-shipping lab.</div>
+      </div>
+    </div>
+
+    <div class="person">
+      <div class="avatar">S</div>
+      <div class="p-info">
+        <div class="p-name">skcd <a class="p-handle" href="https://x.com/skcd42">@skcd42</a></div>
+        <div class="p-why">xAI engineer behind Grok Build, the terminal-native coding agent. Covers major Grok releases with an engineer's eye.</div>
+      </div>
+    </div>
+
+    <h3>The Grok Release Cadence</h3>
+    <p>xAI ships faster than any other lab, and these two accounts are how you keep up:</p>
+    <ul>
+      <li><strong>Grok 4.5 (July 8, 2026):</strong> Positioned by Musk as "roughly comparable to Opus 4.7, but much faster" at $2/$6 per Mtok — aggressive pricing aimed at coding, agentic tasks, and knowledge work.</li>
+      <li><strong>Grok Build (May 2026):</strong> skcd's project — a coding agent "built by engineers who live in the terminal: people who reach for vim, think in keybindings, and treat the alt-screen as home." xAI's answer to Claude Code.</li>
+      <li><strong>Grok Voice (June 4):</strong> Conversational spoken interaction in the Grok mobile app.</li>
+      <li><strong>Grok Imagine Video 1.5:</strong> #1 on the Image-to-Video Arena — 720p clips up to 15 seconds with native audio.</li>
+      <li><strong>Grok 5 watch:</strong> The 6T-parameter model is still training on Colossus 2 after Q1 and Q2 windows slipped; Q3 2026 or later is the realistic window.</li>
+    </ul>
+
+    <div class="callout callout-opinion">
+      <div class="callout-title">Why Follow xAI Accounts</div>
+      Even if you never use Grok, xAI's pace forces the other labs to respond. Grok 4.5's pricing and Grok Build's existence are directly shaping Anthropic and OpenAI roadmaps.
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODULE 6: RESOURCES -->
+<!-- ============================================================ -->
+<div class="module" id="mod6">
+  <div class="module-header" onclick="toggleModule(this)">
+    <span class="num">06</span>
+    <h2>Resources — Aggregators and How to Follow Well</h2>
+    <div class="progress-check" onclick="event.stopPropagation()">
+      <input type="checkbox" id="check6" onchange="updateProgress()">
+      <label for="check6">Done</label>
+    </div>
+    <span class="chevron">▼</span>
+  </div>
+  <div class="module-body">
+
+    <h3>The Aggregator</h3>
+
+    <div class="person">
+      <div class="avatar">AE</div>
+      <div class="p-info">
+        <div class="p-name">AI Explorer <a class="p-handle" href="https://x.com/ai_explorer25">@ai_explorer25</a></div>
+        <div class="p-why">Covers AI content broadly and surfaces free resources — courses, tools, papers, and tutorials. The safety net for anything the specialist accounts miss.</div>
+      </div>
+    </div>
+
+    <h3>How to Follow the Frontier Without Drowning</h3>
+    <p>Fifteen accounts is a curriculum, not a feed. A sustainable practice:</p>
+    <ul>
+      <li><strong>Builders over commentators.</strong> Every account in this course ships the thing they talk about. That's the filter: primary sources only.</li>
+      <li><strong>Watch for convergence.</strong> When Anthropic, OpenAI, and Cursor all ship "skills" within months of each other, that's not coincidence — that's the industry telling you what abstraction won. Cross-company patterns are the highest-value signal on this list.</li>
+      <li><strong>Read the long-form.</strong> The X posts are pointers; the real payload is in the essays — Thariq's agent-design articles, Truell's "Third Era," Liu's Codex-maxxing, Karpathy's talks.</li>
+      <li><strong>Weekly beats daily.</strong> The "Latest from the Feed" section at the top of this course exists so a weekly scan replaces doom-scrolling. Frontier news that matters survives seven days.</li>
+    </ul>
+
+    <h3>The Full Roster</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ecosystem</th><th>Account</th><th>Beat</th></tr></thead>
+        <tbody>
+          <tr><td rowspan="3"><strong>Anthropic</strong></td><td>@karpathy</td><td>Pre-training, concepts, education</td></tr>
+          <tr><td>@bcherny</td><td>Claude Code tips & releases</td></tr>
+          <tr><td>@trq212</td><td>Agent design essays</td></tr>
+          <tr><td rowspan="3"><strong>OpenAI</strong></td><td>@polynoamial</td><td>Reasoning research</td></tr>
+          <tr><td>@gabriel1</td><td>Sora / generative video</td></tr>
+          <tr><td>@jxnlco</td><td>Codex developer experience</td></tr>
+          <tr><td rowspan="3"><strong>Google AI</strong></td><td>@OfficialLoganK</td><td>Gemini & AI Studio launches</td></tr>
+          <tr><td>@ammaar</td><td>Vibe coding, product & design</td></tr>
+          <tr><td>@fofrAI</td><td>Creative model exploration</td></tr>
+          <tr><td rowspan="3"><strong>Cursor</strong></td><td>@leerob</td><td>Releases & education</td></tr>
+          <tr><td>@ericzakariasson</td><td>Workflows & practical tips</td></tr>
+          <tr><td>@mntruell</td><td>CEO — vision & milestones</td></tr>
+          <tr><td rowspan="2"><strong>xAI</strong></td><td>@milichab</td><td>Grok product updates</td></tr>
+          <tr><td>@skcd42</td><td>Grok Build & releases</td></tr>
+          <tr><td><strong>General</strong></td><td>@ai_explorer25</td><td>Free resources & broad coverage</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-takeaway">
+      <div class="callout-title">Final Takeaway</div>
+      The frontier moves through people before it moves through papers or products. These 15 accounts are where "what's next" shows up first — and this course updates itself weekly so the roster stays current.
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <p>AI Frontier Voices — Learning from the People Building It</p>
+  <p>Updated weekly by an automated research task. Last updated July 12, 2026.</p>
+</footer>
+
+<script>
+// Module toggle
+function toggleModule(header) {
+  header.parentElement.classList.toggle('open');
+}
+
+// Progress tracking
+function updateProgress() {
+  const checks = document.querySelectorAll('.progress-check input[type="checkbox"]');
+  const total = checks.length;
+  let done = 0;
+  checks.forEach(c => { if (c.checked) done++; });
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = done + ' / ' + total + ' complete';
+  const state = Array.from(checks).map(c => c.checked ? '1' : '0').join('');
+  try { localStorage.setItem('frontier-voices-progress', state); } catch(e) {}
+}
+
+// Restore progress
+function restoreProgress() {
+  try {
+    const state = localStorage.getItem('frontier-voices-progress');
+    if (state) {
+      const checks = document.querySelectorAll('.progress-check input[type="checkbox"]');
+      state.split('').forEach((v, i) => {
+        if (checks[i]) checks[i].checked = v === '1';
+      });
+      updateProgress();
+    }
+  } catch(e) {}
+}
+
+// Scroll progress bar in nav
+function updateScrollProgress() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  document.getElementById('navProgress').style.width = pct + '%';
+}
+
+// Active nav link
+function updateActiveNav() {
+  const mods = document.querySelectorAll('.module');
+  const links = document.querySelectorAll('.nav-links a');
+  let current = '';
+  mods.forEach(m => {
+    const rect = m.getBoundingClientRect();
+    if (rect.top <= 120) current = m.id;
+  });
+  links.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+}
+
+// Hamburger menu
+document.getElementById('hamburger').addEventListener('click', function() {
+  document.getElementById('navLinks').classList.toggle('open');
+});
+
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => {
+    document.getElementById('navLinks').classList.remove('open');
+  });
+});
+
+window.addEventListener('scroll', function() {
+  updateScrollProgress();
+  updateActiveNav();
+}, { passive: true });
+
+document.addEventListener('DOMContentLoaded', function() {
+  restoreProgress();
+  updateScrollProgress();
+  updateActiveNav();
+});
+</script>
+
+</body>
+</html>
