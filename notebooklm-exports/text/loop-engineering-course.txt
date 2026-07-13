@@ -1,0 +1,2774 @@
+LOOP ENGINEERING: DESIGNING SYSTEMS THAT RUN AI AGENTS | COMPREHENSIVE COURSE
+=============================================================================
+
+  New Discipline — July 2026
+
+================
+LOOP ENGINEERING
+================
+
+
+  Designing systems that run AI agents in automated, self-correcting loops. The definitive course on the practice that replaced prompt engineering — from the people who invented it.
+
+    📚 10 Modules
+    ⏱ ~4 hour read
+    💻 30+ Code Examples
+    🎓 Practitioner Level
+    🔌 Fully Offline
+
+
+
+
+
+
+  0 / 10 completed
+
+
+  🔍
+
+
+
+
+
+
+        1. 1 What is Loop Engineering?
+
+        2. 2 The Anatomy of an Agentic Loop
+
+        3. 3 Verification-First Loop Design
+
+        4. 4 Loop Patterns for Coding Agents
+
+        5. 5 Loop Engineering with Claude Code
+
+        6. 6 Loop Engineering with Other Agents
+
+        7. 7 Production Loop Systems
+
+        8. 8 Loop Engineering for Non-Code Tasks
+
+        9. 9 Advanced Loop Patterns
+
+        10. 10 Building a Loop Engineering Practice
+
+
+
+
+
+The Shift from Prompt Engineering to Loop Engineering
+----------------------------------------
+
+
+In June 2026, a seismic shift occurred in how software engineers work with AI. On June 8th, Peter Steinberger — creator of OpenClaw, now at OpenAI — posted two sentences on X that hit 6.5 million views in a single day: "Here's your monthly reminder that you shouldn't be prompting coding agents anymore. You should be designing loops that prompt your agents."
+
+The same week, Addy Osmani, Google's engineering leader who spent over 14 years leading developer experience across Chrome and more recently AI at Google Cloud, published an essay that gave the practice its name. And Boris Cherny, head of Claude Code at Anthropic, put his own job description the same way in a video that got 870 reposts in eleven hours: "I don't prompt Claude anymore. I have loops running that prompt Claude and figuring out what to do. My job is to write loops."
+
+Loop engineering was born — or rather, it was finally named. The practice had been emerging for months among practitioners like Geoffrey Huntley, who had been running coding agents inside bash while-loops since early 2026 with his "Ralph Wiggum" technique. But Steinberger's viral post, Osmani's definitive essay, and Cherny's public embrace at Anthropic crystallized it into a discipline.
+
+
+Core Definition
+Loop engineering is replacing yourself as the person who prompts the agent. You design the system that does it instead. A loop is a recursive goal where you define a purpose and the AI iterates until complete. You define a goal, give the agent a way to find work, act on it, verify the result, and remember what is done — then let that system drive the agent.
+
+
+Why Single Prompts Aren't Enough
+--------------------------------
+
+
+For two years, the way you got something out of a coding agent was you wrote a good prompt and shared enough context. You type a thing, you read what came back, you type the next thing. The agent is a tool and you are holding it the entire time, one turn after the other. That part is over, or at least it's going to be.
+
+Consider the limitations of single-prompt interactions. When you prompt an agent to "fix the authentication bug," you get a single response. Maybe it's right, maybe it isn't. But complex software work — refactoring a module, implementing a feature across multiple files, triaging a week's worth of CI failures — isn't a single-shot activity. It's iterative by nature. You investigate, you try something, you check if it worked, you adjust, you try again. That's a loop.
+
+The realization that changed everything: if the work is inherently iterative, why are we doing the iteration manually? Why not build a system that handles the iteration for us?
+
+
+The Core Concept: Act, Observe, Decide, Repeat
+----------------------------------------
+
+
+Every agentic loop follows the same fundamental cycle:
+
+
+┌─────────────────────────────────────────────┐
+│                                             │
+│    ┌──────────┐     ┌──────────────┐        │
+│    │  TRIGGER │────▶│  READ STATE  │        │
+│    └──────────┘     └──────┬───────┘        │
+│                            │                │
+│                     ┌──────▼───────┐        │
+│                     │     PLAN     │        │
+│                     └──────┬───────┘        │
+│                            │                │
+│                     ┌──────▼───────┐        │
+│                     │   EXECUTE    │        │
+│                     └──────┬───────┘        │
+│                            │                │
+│                     ┌──────▼───────┐        │
+│               NO    │   VERIFY     │        │
+│           ┌─────────┤  (tests,     │        │
+│           │         │   linters)   │        │
+│           │         └──────┬───────┘        │
+│           │                │ YES            │
+│    ┌──────▼───────┐ ┌──────▼───────┐        │
+│    │  ADJUST &    │ │   COMMIT &   │        │
+│    │  RETRY       │ │ UPDATE STATE │        │
+│    └──────┬───────┘ └──────┬───────┘        │
+│           │                │                │
+│           │         ┌──────▼───────┐        │
+│           └────────▶│  DONE? STOP  │        │
+│                     │  OR CONTINUE │────┐   │
+│                     └──────────────┘    │   │
+│                            ▲           │   │
+│                            └───────────┘   │
+│                                             │
+└─────────────────────────────────────────────┘
+
+
+This is the heartbeat of every loop, from the simplest bash while-true to the most sophisticated multi-agent orchestration system. The intelligence comes from clear specifications and verifiable outcomes, not from one long session.
+
+
+How the Founders Defined the Field
+----------------------------------
+
+
+Three perspectives converged to define loop engineering as a discipline:
+
+Addy Osmani identified the five building blocks every loop needs: (1) Automations that run on a schedule, (2) Worktrees for parallel isolation, (3) Skills that codify project knowledge, (4) Plugins and connectors to reach external tools, and (5) Sub-agents that separate the maker from the checker. Plus one crucial sixth element: persistent state — a markdown file, a Linear board, anything that lives outside the single conversation.
+
+Boris Cherny demonstrated it at Anthropic's scale: 100% of internal pull requests pass through Claude Code, with hundreds of agents running overnight. His team's Claude Code shipped first-party /loop, /goal, /schedule, and /workflows commands — loop engineering primitives built directly into the product.
+
+Peter Steinberger compressed it into one sentence that hit millions: stop prompting your agents and start designing the loops that prompt them. He demonstrated that the shape of a loop is the same regardless of which tool you use — Codex or Claude Code — because the underlying primitives map one-to-one.
+
+
+Loop Engineering vs Prompt Engineering vs Agent Engineering
+----------------------------------------
+
+
+Dimension	|	Prompt Engineering	|	Agent/Harness Engineering	|	Loop Engineering
+Your output	|	A well-crafted prompt	|	The environment around one agent	|	The system that triggers, prompts, verifies, and re-runs agents
+Who decides next step?	|	You do, every turn	|	The agent, within guardrails	|	The loop system, autonomously
+Time horizon	|	One conversation	|	One task session	|	Indefinite — runs while you sleep
+Verification	|	You read the output	|	Tests and linters in the harness	|	Automated verifier gates each iteration
+State management	|	Context window	|	Context + tools	|	External persistent state (files, git, tickets)
+Bottleneck	|	Prompt quality	|	Harness design	|	Verifier quality and stop conditions
+Scales to	|	One task at a time	|	Complex single tasks	|	Parallel, recurring, overnight work
+
+
+The Spectrum of Automation
+--------------------------
+
+
+Loop engineering isn't all-or-nothing. There's a spectrum from fully manual to fully autonomous:
+
+Level 1 — Manual prompting: You type every prompt. The agent responds. You decide what to do next. This is where most developers still are.
+
+Level 2 — Assisted loops: You run a command like /goal "make all tests pass" and the agent iterates, but you're watching. You can interrupt. This is /goal in Claude Code.
+
+Level 3 — Scheduled loops: The loop runs on a timer — every hour, every morning. It finds work, does it, reports results. You review asynchronously. This is /loop and /schedule.
+
+Level 4 — Autonomous loops: The loop runs continuously. Multiple agents in parallel. One finds work, another does it, a third reviews it. You only intervene when the loop escalates. This is Boris Cherny's workflow at Anthropic.
+
+Level 5 — Evolutionary loops: The loop not only does work but improves its own process. It learns from failures, adjusts its strategies, optimizes for outcomes. This is Geoffrey Huntley's "Weaving Loom" — software factories that evolve products automatically.
+
+
+Caution
+Addy Osmani adds a critical warning: "Two people can build the exact same loop and get completely opposite results. One uses it to move faster on work they understand deeply. The other uses it to avoid understanding the work at all. The loop doesn't know the difference. You do." He calls this risk cognitive surrender — designing a loop is the cure when you do it with judgment and the accelerant when you do it to avoid thinking.
+
+
+Generator vs Verifier: The Two Halves
+-------------------------------------
+
+
+Every agentic loop has two fundamental components, and understanding the distinction between them is the most important concept in loop engineering.
+
+The Generator is the AI model — it reads code, makes plans, writes implementations, suggests fixes. It's creative, probabilistic, and occasionally wrong. The Generator is what most people think of when they think of "AI coding."
+
+The Verifier is everything that checks the Generator's work — unit tests, type checkers, linters, integration tests, compilation, even a second AI model acting as a reviewer. The Verifier is deterministic (or at least more reliable) and produces a clear signal: pass or fail.
+
+
+Key Insight
+In any loop, the verifier is the bottleneck, not the model. As models get better at generating code, the quality of your verification becomes the limiting factor on loop quality. A strong verifier with a mediocre model will outperform a weak verifier with the best model, because the loop can iterate until the strong verifier is satisfied.
+
+
+This is why test-driven development (TDD) has become even more important in the age of loops. If you write comprehensive tests first, you've built a verifier that the loop can run against on every iteration. The loop becomes: generate code → run tests → if tests fail, feed errors back to generator → repeat until green.
+
+
+The Full Loop Cycle
+-------------------
+
+
+A complete loop iteration follows this sequence:
+
+1. Read State: The agent reads the current state of the world — the codebase, the task list, test results, CI status, issue tracker. This is where persistent memory matters. Geoffrey Huntley's Ralph Wiggum pattern uses the filesystem as memory: a TODO.md file, the git history, and the codebase itself. Each iteration starts by reading these to understand what's done and what's next.
+
+2. Plan: Based on the state, the agent decides what to do. In simple loops, this might be "pick the next unchecked item from the task list." In sophisticated loops, it might involve analyzing test failures, identifying root causes, and prioritizing fixes.
+
+3. Execute: The agent makes changes — writes code, modifies configuration, creates files, runs commands. This is where the Generator does its work.
+
+4. Verify: The Verifier runs — tests execute, linters check, type checkers validate. The result is a clear signal that feeds back into the loop.
+
+5. Commit: If verification passes, the changes are committed. In git-based workflows, this creates a checkpoint that can be rolled back if later iterations cause problems. The commit message serves as a log of what the loop did.
+
+6. Update State: The persistent state is updated — the task is checked off the list, the progress file is updated, the ticket is moved. This is what allows the next iteration to know what's been accomplished.
+
+7. Decide: Should the loop continue or stop? This decision is critical and is where many loops fail. We'll cover stop conditions in detail below.
+
+
+Context Management Across Iterations
+------------------------------------
+
+
+One of the most important design decisions in loop engineering is how you handle context between iterations. There are two schools of thought:
+
+
+Clean Context Per Loop (The Ralph Wiggum Pattern)
+
+
+Geoffrey Huntley's breakthrough insight: start each iteration with a completely fresh context window. The agent forgets everything from the previous iteration. State survives only through what's written to disk — the codebase, the TODO file, and git history.
+
+
+---code---
+bash
+#!/bin/bash
+# ralph.sh — The Ralph Wiggum Loop
+# Named after the Simpsons character: deterministically
+# simple in an unpredictable world
+
+while true; do
+  # Each iteration gets a fresh context window.
+  # The repo IS the memory. The TODO.md IS the state.
+  cat PROMPT.md | claude --print 2>&1 | tee -a loop.log
+
+  # Optional: check if we're done
+  if grep -q "ALL TASKS COMPLETE" TODO.md; then
+    echo "Loop complete!"
+    break
+  fi
+
+  # Small delay to avoid hammering the API
+  sleep 2
+done
+---/code---
+
+
+The corresponding prompt file that drives the loop:
+
+
+---code---
+markdown
+# PROMPT.md — Instructions for each loop iteration
+
+You are working on this project. Read TODO.md to find the
+next unchecked task. Pick ONE task and implement it.
+
+## Rules
+1. Read TODO.md first to see what's done and what's next
+2. Pick the FIRST unchecked [ ] task
+3. Implement it completely
+4. Run the test suite: `npm test`
+5. If tests pass, check the box [x] in TODO.md
+6. Git commit with a descriptive message
+7. If tests fail, fix the failures before moving on
+8. NEVER skip a task or check a box without completing it
+---/code---
+
+
+Why does this "dumb" approach work so well? Because a long agent session degrades as the context window fills with old reasoning, dead ends, and stale file contents. Each fresh start eliminates context rot. The non-obvious insight is that the context reset is a feature, not a bug.
+
+
+Persistent Context (Long-Running Agent Pattern)
+
+
+The alternative is maintaining context across iterations, allowing the agent to build up understanding over time. This works better for deeply interconnected tasks where understanding from earlier iterations is valuable. Tools like Claude Code's /goal command use this approach — the agent maintains its context across turns while a separate verifier model checks completion after each turn.
+
+
+---code---
+python
+# persistent_loop.py — Long-running agent with persistent context
+import anthropic
+import subprocess
+import json
+
+client = anthropic.Anthropic()
+conversation = []
+MAX_TURNS = 50
+
+def run_loop(goal: str, verification_cmd: str):
+    """Run an agent loop with persistent context until goal is met."""
+    conversation.append({
+        "role": "user",
+        "content": f"""You are working toward this goal: {goal}
+
+After each action, I will run: {verification_cmd}
+Keep working until the verification passes.
+Start by reading the codebase and planning your approach."""
+    })
+
+    for turn in range(MAX_TURNS):
+        # Generator: get next action from the model
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=8096,
+            system="You are an expert software engineer working in a loop.",
+            messages=conversation,
+            tools=[
+                {"type": "bash_20250124", "name": "bash"},
+                {"type": "text_editor_20250124", "name": "text_editor"}
+            ]
+        )
+
+        conversation.append({"role": "assistant", "content": response.content})
+
+        # Execute tool calls, collect results...
+        # (tool execution handling omitted for brevity)
+
+        # Verifier: check if we're done
+        result = subprocess.run(
+            verification_cmd, shell=True, capture_output=True, text=True
+        )
+
+        if result.returncode == 0:
+            print(f"Goal achieved in {turn + 1} turns!")
+            return True
+
+        # Feed verification failure back to the generator
+        conversation.append({
+            "role": "user",
+            "content": f"Verification result (exit code {result.returncode}):\n"
+                       f"stdout: {result.stdout}\nstderr: {result.stderr}\n"
+                       f"Keep working toward the goal."
+        })
+
+    print(f"Hit turn ceiling ({MAX_TURNS}) without achieving goal")
+    return False
+
+# Usage
+run_loop(
+    goal="All tests in test/auth/ pass and lint is clean",
+    verification_cmd="npm test -- --testPathPattern='test/auth' && npm run lint"
+)
+---/code---
+
+
+Geoffrey Huntley's Pattern in Detail
+------------------------------------
+
+
+The Ralph Wiggum technique — named after the Simpsons character because "it looks too dumb to work, and it works" — has three files and a bash script:
+
+PRD.md — The specification. A checklist of tasks that define what "done" looks like. Each task is a checkbox that the agent checks off when complete.
+
+PROMPT.md — The instructions. Tells the agent to read the PRD, pick the next unchecked task, implement it, verify it, commit it, and check the box.
+
+ralph.sh — The loop. A bash while-true that feeds the prompt to the agent CLI, spawning a fresh session each iteration.
+
+The philosophy is simple: iteration over perfection. Failures are data. Just keep looping. The intelligence comes from clear specifications and verifiable outcomes plus an external state file, not from one long session.
+
+
+State Persistence Strategies
+----------------------------
+
+
+State is the spine of the whole system. Without persistent state, the loop re-derives everything from zero every cycle. Here are the primary strategies:
+
+File-based state: A TODO.md or PROGRESS.md file that tracks completed tasks, current status, and known issues. Simple, readable, and version-controlled. This is what the Ralph Wiggum pattern uses.
+
+Git-based state: Git commits as checkpoints. Each successful iteration creates a commit. If a later iteration breaks something, you can roll back. The git log becomes a history of the loop's decisions.
+
+Issue tracker state: Linear, GitHub Issues, or Jira tickets. The loop reads open tickets, works on them, and updates their status. This integrates naturally with team workflows.
+
+Hybrid state: Combining approaches. A markdown file for fine-grained task tracking, git commits for code checkpoints, and issue tracker integration for team visibility. This is what production loops typically use.
+
+
+Exit Conditions: When to Stop
+-----------------------------
+
+
+Exit conditions are the most critical safety mechanism in loop engineering. A loop without proper stop conditions is a loop that wastes tokens, makes bad changes, and runs off a cliff. There are three hard stops every production loop must have:
+
+Turn ceiling: A maximum number of iterations. If the loop hasn't achieved its goal in N iterations, stop and escalate to a human. This prevents infinite loops and runaway costs.
+
+No-progress detection: If the loop has made no meaningful progress in the last K iterations — same tests failing, same errors repeating, no new commits — stop. The loop is stuck and needs human help.
+
+Budget limits: A maximum token or dollar spend per loop run. This is your financial circuit breaker. Token costs can vary wildly in loops, and without a budget cap, a stuck loop can burn through significant resources.
+
+
+Practical Tip
+Claude Code's /goal command implements this separation elegantly: the goal condition is checked by a separate, smaller, faster model after every turn. The model that wrote the code isn't the one grading it. This is the maker/checker split applied to the stop condition itself.
+
+
+Why the Verifier is the Bottleneck
+----------------------------------
+
+
+As frontier models improve — Claude Sonnet 4, GPT-4.1, Gemini 2.5 — the generator quality keeps climbing. But a loop is only as good as its ability to distinguish success from failure. If your verifier says "looks good" when it isn't, the loop ships bad code with high confidence. If your verifier is too strict, the loop churns forever without making progress.
+
+This is the fundamental insight of verification-first loop design: build the verifier before you build the loop. Define what "done" and "correct" mean in executable, automated terms. Then wrap a loop around it.
+
+
+Quote
+"Prompt phrasing stopped being the bottleneck somewhere in early 2026, and what replaced it is loop design: the trigger, the topology, the verifier, and the stop rules that decide what an agent does next and when it quits." — Cobus Greyling, Medium
+
+
+Types of Verifiers
+------------------
+
+
+Different types of work require different verification strategies. Here's the hierarchy from fastest to most thorough:
+
+
+Level 1: Syntactic Verification (Milliseconds)
+
+
+Linters, formatters, and syntax checkers. These catch surface-level errors instantly: missing semicolons, import errors, style violations. They're fast enough to run on every single iteration.
+
+
+---code---
+bash
+# Fast syntactic checks — run on every iteration
+verify_syntax() {
+  local errors=0
+
+  # TypeScript compilation (type checking)
+  npx tsc --noEmit 2>&1 || ((errors++))
+
+  # ESLint
+  npx eslint src/ --max-warnings 0 2>&1 || ((errors++))
+
+  # Prettier check (formatting)
+  npx prettier --check "src/**/*.{ts,tsx}" 2>&1 || ((errors++))
+
+  return $errors
+}
+---/code---
+
+
+Level 2: Unit Test Verification (Seconds)
+
+
+Unit tests verify that individual components behave correctly. They're fast enough to run every iteration and provide specific, actionable error messages that help the generator fix issues.
+
+
+---code---
+bash
+# Unit test verification — the backbone of most loops
+verify_unit_tests() {
+  # Run tests with coverage and JSON output for parsing
+  npx jest --coverage --json --outputFile=test-results.json 2>&1
+
+  local exit_code=$?
+
+  if [ $exit_code -ne 0 ]; then
+    # Extract failure details for the generator
+    cat test-results.json | jq '.testResults[] |
+      select(.status == "failed") |
+      .assertionResults[] |
+      select(.status == "failed") |
+      {test: .fullName, error: .failureMessages[0]}'
+  fi
+
+  return $exit_code
+}
+---/code---
+
+
+Level 3: Integration Test Verification (Minutes)
+
+
+Integration tests verify that components work together. These are more expensive to run, so you might only run them every N iterations, or after unit tests pass.
+
+
+Level 4: LLM-as-Judge (Variable)
+
+
+For subjective quality — code readability, documentation quality, architecture decisions — you can use a separate LLM as a verifier. This is the "maker/checker split" that Osmani describes. The key is using a different model (or at least different instructions) from the generator.
+
+
+---code---
+python
+# LLM-as-Judge verifier — for subjective quality checks
+import anthropic
+
+client = anthropic.Anthropic()
+
+def verify_with_llm(code_diff: str, criteria: str) -> dict:
+    """Use a separate model to judge code quality."""
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",  # Fast, cheap judge
+        max_tokens=1024,
+        messages=[{
+            "role": "user",
+            "content": f"""Review this code change against the criteria.
+
+CRITERIA: {criteria}
+
+CODE DIFF:
+{code_diff}
+
+Respond with JSON:
+{{"pass": true/false, "issues": ["list of issues if any"],
+  "score": 1-10, "reasoning": "brief explanation"}}"""
+        }]
+    )
+    return json.loads(response.content[0].text)
+
+# Usage in a loop
+result = verify_with_llm(
+    code_diff=get_git_diff(),
+    criteria="""
+    - No hardcoded secrets or API keys
+    - All public functions have docstrings
+    - Error handling covers edge cases
+    - No obvious security vulnerabilities
+    - Code follows project conventions in CLAUDE.md
+    """
+)
+---/code---
+
+
+Building a Verification Harness
+-------------------------------
+
+
+A verification harness combines multiple verifiers into a single, composable pipeline. The key design principle: fast checks first, expensive checks last. If linting fails, there's no point running integration tests.
+
+
+---code---
+typescript
+// verification-harness.ts — Multi-level verification pipeline
+
+interface VerificationResult {
+  level: string;
+  passed: boolean;
+  duration_ms: number;
+  details: string;
+  errors?: string[];
+}
+
+interface HarnessResult {
+  overall_pass: boolean;
+  results: VerificationResult[];
+  total_duration_ms: number;
+}
+
+async function runVerificationHarness(): Promise {
+  const results: VerificationResult[] = [];
+  const start = Date.now();
+
+  // Level 1: Syntax (fast-fail)
+  const lint = await runCheck("syntax", "npx tsc --noEmit && npx eslint src/");
+  results.push(lint);
+  if (!lint.passed) {
+    return { overall_pass: false, results, total_duration_ms: Date.now() - start };
+  }
+
+  // Level 2: Unit tests
+  const unit = await runCheck("unit", "npx jest --passWithNoTests");
+  results.push(unit);
+  if (!unit.passed) {
+    return { overall_pass: false, results, total_duration_ms: Date.now() - start };
+  }
+
+  // Level 3: Integration (only if units pass)
+  const integration = await runCheck(
+    "integration",
+    "npx jest --config jest.integration.config.js"
+  );
+  results.push(integration);
+
+  // Level 4: LLM review (only if all deterministic checks pass)
+  if (integration.passed) {
+    const review = await llmReview();
+    results.push(review);
+  }
+
+  const overall = results.every(r => r.passed);
+  return { overall_pass: overall, results, total_duration_ms: Date.now() - start };
+}
+---/code---
+
+
+Test-Driven Loop Engineering
+----------------------------
+
+
+The most powerful loop pattern combines TDD with loop engineering: write the tests first, then let the loop make them pass. This inverts the traditional workflow — you become the specification writer, and the loop becomes the implementer.
+
+
+---code---
+bash
+#!/bin/bash
+# tdd-loop.sh — Write tests, let the loop implement
+
+# Step 1: You write the tests (this is YOUR job)
+# tests/auth.test.ts already contains 15 failing tests
+# that specify exactly how authentication should work
+
+# Step 2: Let the loop make them pass
+PROMPT="Read the failing tests in tests/auth.test.ts.
+Understand what each test expects.
+Implement the code in src/auth/ to make ALL tests pass.
+Run: npm test -- --testPathPattern=auth
+Do not modify the test files. Only modify source code."
+
+while true; do
+  echo "=== Loop iteration $(date) ==="
+
+  # Run tests to see current state
+  TEST_OUTPUT=$(npm test -- --testPathPattern=auth 2>&1)
+  PASS_COUNT=$(echo "$TEST_OUTPUT" | grep -oP '\d+ passed' | grep -oP '\d+')
+  TOTAL_COUNT=$(echo "$TEST_OUTPUT" | grep -oP 'Tests:.*\d+ total' | grep -oP '\d+ total' | grep -oP '\d+')
+
+  echo "Tests passing: $PASS_COUNT / $TOTAL_COUNT"
+
+  # Check if all tests pass
+  if echo "$TEST_OUTPUT" | grep -q "All tests passed"; then
+    echo "All tests pass! Loop complete."
+    git add -A && git commit -m "feat(auth): implement authentication - all tests passing"
+    break
+  fi
+
+  # Feed current state + failures to the agent
+  echo "$PROMPT
+
+Current test results:
+$TEST_OUTPUT" | claude --print
+
+  sleep 2
+done
+---/code---
+
+
+Multi-Level Verification Strategy
+---------------------------------
+
+
+Production loops use a tiered verification strategy to balance speed and thoroughness:
+
+
+Level	|	Checks	|	Speed	|	Run When	|	Failure Action
+Fast	|	Lint, type-check, format	|	~2 seconds	|	Every iteration	|	Feed errors back, retry immediately
+Medium	|	Unit tests, snapshot tests	|	~30 seconds	|	Every iteration (after fast passes)	|	Feed failures back with stack traces
+Slow	|	Integration tests, E2E tests	|	~5 minutes	|	Every 5th iteration or before commit	|	Revert last changes, rethink approach
+Manual	|	Human review, security audit	|	Async	|	Before merge to main	|	Escalate to human, pause loop
+
+
+Practical Tip
+The single most impactful thing you can do before running any loop is to ensure your project has a fast, reliable test suite. If npm test takes 30 minutes, your loop will crawl. Invest in test speed — parallel test runners, test sharding, mocking external services — and your loops will fly.
+
+
+Pattern 1: The Simple While Loop (Huntley Pattern)
+----------------------------------------
+
+
+The simplest and most battle-tested pattern. A bash while-true feeds the same prompt to a fresh agent instance on every iteration. The filesystem is the memory. This is the Ralph Wiggum technique in its purest form.
+
+
+---code---
+bash
+#!/bin/bash
+# simple-loop.sh — The foundational loop pattern
+# Three files: SPEC.md (requirements), PROMPT.md (instructions), this script
+
+MAX_ITERATIONS=50
+ITERATION=0
+
+while [ $ITERATION -lt $MAX_ITERATIONS ]; do
+  ITERATION=$((ITERATION + 1))
+  echo "━━━ Iteration $ITERATION / $MAX_ITERATIONS ━━━"
+
+  # Fresh agent, fresh context, same prompt
+  cat PROMPT.md | claude --print --max-turns 3 2>&1 | tee -a loop.log
+
+  # Check completion condition
+  if npm test 2>&1 | grep -q "Tests:.*0 failed"; then
+    echo "All tests pass after $ITERATION iterations!"
+    git add -A && git commit -m "loop: all tests passing after $ITERATION iterations"
+    exit 0
+  fi
+
+  # No-progress detection: same test failures as last iteration?
+  CURRENT_FAILURES=$(npm test 2>&1 | grep "FAIL" | sort)
+  if [ "$CURRENT_FAILURES" = "$LAST_FAILURES" ]; then
+    STUCK_COUNT=$((STUCK_COUNT + 1))
+    if [ $STUCK_COUNT -ge 3 ]; then
+      echo "Stuck for 3 iterations. Escalating to human."
+      exit 1
+    fi
+  else
+    STUCK_COUNT=0
+  fi
+  LAST_FAILURES="$CURRENT_FAILURES"
+
+  sleep 1
+done
+
+echo "Hit iteration ceiling. Manual intervention needed."
+exit 1
+---/code---
+
+
+Best for: Well-defined tasks with clear success criteria. Fixing test failures, implementing features against a spec, refactoring with a safety net of tests.
+
+Strengths: Dead simple, no framework needed, context rot eliminated by design, works with any agent CLI.
+
+Weaknesses: No persistent understanding across iterations, wasteful for tasks that require deep codebase knowledge built up over time.
+
+
+Pattern 2: The Plan-Then-Execute Loop
+-------------------------------------
+
+
+First, the agent creates a detailed plan. Then, a separate loop executes each step of the plan, verifying each one before moving to the next. The plan is stored on disk and updated as work progresses.
+
+
+---code---
+python
+# plan_execute_loop.py — Decompose, solve pieces, verify whole
+import subprocess
+import json
+
+def create_plan(goal: str) -> list[dict]:
+    """Phase 1: Agent creates a detailed plan."""
+    result = subprocess.run(
+        ["claude", "--print", "-p", f"""
+Analyze this goal and create a step-by-step execution plan.
+Goal: {goal}
+
+Output a JSON array of steps, each with:
+- "id": step number
+- "description": what to do
+- "verification": command to verify this step
+- "files": list of files likely to be touched
+- "status": "pending"
+
+Be specific. Each step should be independently verifiable.
+Output ONLY the JSON array, no other text.
+"""],
+        capture_output=True, text=True
+    )
+    return json.loads(result.stdout.strip())
+
+def execute_step(step: dict, plan: list[dict]) -> bool:
+    """Phase 2: Execute a single step with verification."""
+    plan_context = json.dumps(plan, indent=2)
+
+    result = subprocess.run(
+        ["claude", "--print", "-p", f"""
+You are executing step {step['id']} of a plan.
+
+FULL PLAN (for context):
+{plan_context}
+
+CURRENT STEP:
+{step['description']}
+
+VERIFICATION COMMAND:
+{step['verification']}
+
+Execute this step. After making changes, run the verification
+command. Only report success if verification passes.
+"""],
+        capture_output=True, text=True
+    )
+
+    # Run verification independently
+    verify = subprocess.run(
+        step['verification'], shell=True, capture_output=True, text=True
+    )
+    return verify.returncode == 0
+
+def plan_execute_loop(goal: str):
+    """The main plan-then-execute loop."""
+    print(f"Planning: {goal}")
+    plan = create_plan(goal)
+
+    with open("PLAN.json", "w") as f:
+        json.dump(plan, f, indent=2)
+
+    for step in plan:
+        print(f"\n--- Step {step['id']}: {step['description']} ---")
+
+        for attempt in range(3):  # Max 3 attempts per step
+            success = execute_step(step, plan)
+            if success:
+                step['status'] = 'completed'
+                print(f"  Step {step['id']} completed!")
+                subprocess.run(["git", "add", "-A"])
+                subprocess.run(["git", "commit", "-m",
+                    f"step {step['id']}: {step['description']}"])
+                break
+            else:
+                print(f"  Attempt {attempt + 1} failed, retrying...")
+        else:
+            print(f"Step {step['id']} failed after 3 attempts. Stopping.")
+            return False
+
+        # Update plan file
+        with open("PLAN.json", "w") as f:
+            json.dump(plan, f, indent=2)
+
+    print("\nAll steps completed!")
+    return True
+---/code---
+
+
+Best for: Large features that can be decomposed into independent, verifiable steps. Migration projects, refactoring campaigns, new feature implementation.
+
+
+Pattern 3: The Test-Fix Loop
+----------------------------
+
+
+The most focused pattern: run tests, feed failures to the agent, let it fix them, repeat until green. No planning, no exploration — just pure test-driven iteration.
+
+
+---code---
+bash
+#!/bin/bash
+# test-fix-loop.sh — The tightest possible loop
+
+for i in $(seq 1 30); do
+  echo "=== Fix iteration $i ==="
+
+  # Capture test output
+  TEST_OUTPUT=$(npm test 2>&1)
+
+  # Check if all pass
+  if echo "$TEST_OUTPUT" | grep -q "All tests passed\|Tests:.*0 failed"; then
+    echo "All tests green after $i iterations!"
+    exit 0
+  fi
+
+  # Extract just the failures (trim context for cleaner prompt)
+  FAILURES=$(echo "$TEST_OUTPUT" | grep -A 5 "FAIL\|Error\|Expected\|Received" | head -100)
+
+  # Feed failures to a fresh agent
+  claude --print -p "These tests are failing. Fix them.
+Do NOT modify test files. Only fix source code.
+
+Test failures:
+$FAILURES"
+
+done
+
+echo "Could not fix all tests in 30 iterations."
+exit 1
+---/code---
+
+
+Pattern 4: The Review Loop
+--------------------------
+
+
+Generate → Review → Revise → Re-review. This pattern uses the maker/checker split explicitly: one agent (or model) generates, another reviews, and the loop continues until the reviewer approves.
+
+
+---code---
+python
+# review_loop.py — Generator/Reviewer separation
+import anthropic
+
+client = anthropic.Anthropic()
+
+def generate(task: str, feedback: str = "") -> str:
+    """Generator: create or revise code."""
+    prompt = f"Task: {task}"
+    if feedback:
+        prompt += f"\n\nPrevious review feedback to address:\n{feedback}"
+
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.content[0].text
+
+def review(code: str, criteria: str) -> dict:
+    """Reviewer: evaluate code quality (different model/instructions)."""
+    response = client.messages.create(
+        model="claude-sonnet-4-6",  # Same or different model
+        max_tokens=2048,
+        system="You are a strict code reviewer. Be thorough and critical.",
+        messages=[{"role": "user", "content": f"""
+Review this code against the criteria. Be strict.
+
+CRITERIA: {criteria}
+CODE: {code}
+
+Respond with JSON: {{"approved": bool, "issues": [str], "score": 1-10}}"""}]
+    )
+    return json.loads(response.content[0].text)
+
+def review_loop(task: str, criteria: str, max_rounds: int = 5):
+    """Run the generate-review loop until approved."""
+    feedback = ""
+    for round_num in range(max_rounds):
+        print(f"Round {round_num + 1}")
+
+        code = generate(task, feedback)
+        result = review(code, criteria)
+
+        if result["approved"]:
+            print(f"Approved in round {round_num + 1}! Score: {result['score']}")
+            return code
+
+        feedback = "\n".join(result["issues"])
+        print(f"  Score: {result['score']}, Issues: {len(result['issues'])}")
+
+    print("Not approved within max rounds")
+    return None
+---/code---
+
+
+Pattern 5: The Exploration Loop
+-------------------------------
+
+
+For tasks where you don't know the codebase well enough to plan upfront. The agent explores, builds understanding, then implements. Useful for bug hunting, codebase onboarding, and architectural analysis.
+
+
+---code---
+python
+# exploration_loop.py — Explore, understand, then act
+def exploration_loop(question: str, codebase_dir: str, max_depth: int = 5):
+    """Iteratively explore a codebase to answer a question or find a bug."""
+
+    explored_files = set()
+    findings = []
+
+    for depth in range(max_depth):
+        # Phase 1: Decide what to explore next
+        next_targets = plan_exploration(
+            question=question,
+            explored=list(explored_files),
+            findings=findings,
+            codebase_dir=codebase_dir
+        )
+
+        if not next_targets:
+            break  # Nothing more to explore
+
+        # Phase 2: Read and analyze each target
+        for target in next_targets:
+            content = read_file(f"{codebase_dir}/{target}")
+            explored_files.add(target)
+
+            analysis = analyze_for_relevance(content, question)
+            if analysis["relevant"]:
+                findings.append({
+                    "file": target,
+                    "insight": analysis["insight"],
+                    "references": analysis.get("references", [])
+                })
+
+        # Phase 3: Check if we have enough understanding
+        confidence = assess_confidence(question, findings)
+        print(f"Depth {depth + 1}: explored {len(explored_files)} files, "
+              f"confidence: {confidence:.0%}")
+
+        if confidence >= 0.85:
+            return synthesize_answer(question, findings)
+
+    return synthesize_answer(question, findings)  # Best effort
+---/code---
+
+
+Best for: Understanding unfamiliar codebases, finding the root cause of complex bugs, architectural analysis, onboarding to a new project. The key insight is that each exploration iteration narrows the search space — the agent follows references, imports, and call chains to build a mental map of the relevant code.
+
+
+Pattern 6: Multi-Agent Loops
+----------------------------
+
+
+Multiple agents with different roles, coordinated by an orchestrator. This is the "code agent orchestra" that Osmani describes — one agent explores, one implements, one verifies.
+
+
+---code---
+typescript
+// multi-agent-loop.ts — Orchestrated agent team
+// Using Claude Code subagents defined in .claude/agents/
+
+// .claude/agents/explorer.md
+// ---
+// model: claude-haiku-4-5-20251001
+// description: Reads code and finds relevant context
+// ---
+// You are a code explorer. Read files, understand architecture,
+// identify relevant code. Never modify files.
+
+// .claude/agents/implementer.md
+// ---
+// model: claude-sonnet-4-6
+// description: Implements changes based on explorer findings
+// ---
+// You implement code changes based on analysis provided.
+// Always run tests after changes.
+
+// .claude/agents/reviewer.md
+// ---
+// model: claude-sonnet-4-6
+// description: Reviews code for quality and correctness
+// ---
+// You are a strict code reviewer. Check for bugs, security issues,
+// and style violations. Be thorough.
+
+// Orchestration happens through the task system:
+// 1. Explorer agent reads codebase, outputs analysis
+// 2. Implementer agent receives analysis, makes changes
+// 3. Reviewer agent checks the diff, approves or sends back
+---/code---
+
+
+When to Use Which Pattern
+-------------------------
+
+
+Pattern	|	Best For	|	Complexity	|	Token Cost
+Simple While	|	Well-specified tasks with tests	|	Low	|	Medium (fresh context each time)
+Plan-Execute	|	Large decomposable features	|	Medium	|	High (planning + execution)
+Test-Fix	|	Fixing known failures	|	Low	|	Low (tight feedback loop)
+Review	|	Quality-sensitive work	|	Medium	|	High (double model calls)
+Exploration	|	Unknown codebases, bug hunting	|	Medium	|	Variable
+Multi-Agent	|	Complex end-to-end workflows	|	High	|	Very high
+
+
+Practical Tip
+Start with the simplest pattern that could work. The Simple While Loop handles 80% of use cases. Add complexity only when the simple pattern demonstrably fails. As the industry advice goes: "prefer the simplest pattern that works, and compose patterns rather than reaching for a heavy framework."
+
+
+Claude Code's Built-in Loop Capabilities
+----------------------------------------
+
+
+Claude Code has evolved from a coding assistant into a loop-native platform. As of mid-2026, it ships with first-party loop primitives that implement the exact patterns described by Osmani, Cherny, and Steinberger. Here's the complete toolkit:
+
+
+The /goal Command — Conditional Loops
+
+
+/goal was added in Claude Code v2.1.139 (May 11, 2026). It runs across turns until a condition you write is actually true, with a separate fast model grading the work after every turn. You give it something like "all tests in test/auth pass and lint is clean" and walk away.
+
+
+---code---
+terminal
+# Basic /goal usage
+$ claude
+> /goal all tests in test/auth/ pass and lint is clean
+
+# The agent will:
+# 1. Read the current test state
+# 2. Make changes to fix failures
+# 3. Run tests
+# 4. A separate model checks: "Is the goal met?"
+# 5. If not, repeat from step 2
+# 6. If yes, stop and report
+
+# More complex goals
+> /goal refactor src/database/ to use the repository pattern.
+  All existing tests must still pass. No new TypeScript errors.
+
+# Goal with explicit verification
+> /goal migrate all API routes from Express to Hono.
+  Verification: npm test && npm run typecheck && curl localhost:3000/health
+---/code---
+
+
+Key Detail
+The maker/checker split is built in: /goal uses a separate, smaller, faster model to check the completion condition after every turn. The model that wrote the code isn't the one deciding if it's done. This is the most important architectural decision in Claude Code's loop implementation.
+
+
+The /loop Command — Time-Based Loops
+
+
+/loop re-runs a task on a cadence. It's the heartbeat of automated workflows — periodic triage, CI monitoring, code hygiene sweeps.
+
+
+---code---
+terminal
+# Run a task every 30 minutes
+> /loop every 30m: check for new GitHub issues labeled 'bug',
+  triage them, and draft fix PRs for any that look straightforward
+
+# Run a task every hour
+> /loop every 1h: scan the codebase for TODO comments added
+  in the last hour, create GitHub issues for each one
+
+# Run on file changes (watch mode)
+> /loop on change to src/**/*.ts: run the affected tests
+  and fix any new failures
+---/code---
+
+
+The /schedule Command — Cron-Based Loops
+
+
+For loops that need to run at specific times — morning triage, end-of-day reports, weekly code health checks.
+
+
+---code---
+terminal
+# Daily morning triage
+> /schedule "0 9 * * 1-5": Read yesterday's CI failures,
+  open issues, and recent commits. Write a triage summary
+  to DAILY_TRIAGE.md and fix any obvious issues.
+
+# Weekly dependency audit
+> /schedule "0 10 * * 1": Check for outdated dependencies,
+  security vulnerabilities, and available updates.
+  Create a PR with safe updates.
+---/code---
+
+
+CLAUDE.md as Loop Configuration
+-------------------------------
+
+
+Your CLAUDE.md file is the skill that persists across every loop iteration. It tells the agent your project conventions, build commands, testing patterns, and constraints. Without it, every iteration starts from zero — with it, the loop compounds knowledge.
+
+
+---code---
+markdown
+# CLAUDE.md — Loop-optimized project configuration
+
+## Build & Test
+- Build: `npm run build`
+- Test: `npm test` (Jest, ~45 second full suite)
+- Lint: `npm run lint` (ESLint + Prettier)
+- Type check: `npx tsc --noEmit`
+- Fast test subset: `npm test -- --testPathPattern=unit`
+
+## Loop Rules
+- ALWAYS run `npm test` before committing
+- NEVER modify files in tests/ unless explicitly asked
+- ALWAYS run `npx tsc --noEmit` after TypeScript changes
+- Commit after each successfully verified change
+- If stuck for 3+ attempts on the same error, add a TODO comment and move on
+
+## Architecture
+- src/api/ — Express route handlers (migrating to Hono)
+- src/services/ — Business logic, no framework dependencies
+- src/db/ — Drizzle ORM models and migrations
+- tests/ — Jest tests, mirrors src/ structure
+
+## Conventions
+- Use functional style, avoid classes
+- All async functions must have error handling
+- Use zod for runtime validation at API boundaries
+- Database queries only in src/db/, never in route handlers
+---/code---
+
+
+Hooks for Pre/Post Loop Actions
+-------------------------------
+
+
+Claude Code hooks let you run shell commands at specific points in the agent lifecycle — before/after tool execution, before/after model responses. In loops, hooks are your quality gates.
+
+
+---code---
+json
+// .claude/settings.json — Hook configuration
+{
+  "hooks": {
+    "preToolExecution": [
+      {
+        "matcher": "bash",
+        "command": "echo 'Tool execution: $(date)' >> .loop-audit.log"
+      }
+    ],
+    "postToolExecution": [
+      {
+        "matcher": "bash",
+        "command": "if git diff --name-only | grep -q 'migration'; then echo 'WARNING: Migration file changed' >> .loop-alerts.log; fi"
+      }
+    ],
+    "afterCommit": [
+      {
+        "command": "npm run lint:fix && npm test -- --bail"
+      }
+    ]
+  }
+}
+---/code---
+
+
+Headless Mode for CI/CD Loops
+-----------------------------
+
+
+Claude Code's headless mode (claude --print or claude -p) enables loops to run in CI/CD pipelines, cron jobs, and background processes without human interaction.
+
+
+---code---
+yaml
+# .github/workflows/loop-triage.yml
+# Runs a Claude Code loop on every CI failure
+name: AI Triage Loop
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  triage:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run triage loop
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # Get CI failure logs
+          FAILURES=$(gh run view ${{ github.event.workflow_run.id }} --log-failed)
+
+          # Run a goal-based loop to fix the failures
+          claude -p "The CI pipeline failed. Here are the failures:
+
+          $FAILURES
+
+          Fix the issues. Run tests to verify. Create a PR with the fix." \
+            --max-turns 20 \
+            --allowedTools bash,text_editor
+---/code---
+
+
+The Claude Agent SDK for Loop Orchestration
+----------------------------------------
+
+
+For loops that need programmatic control beyond what the CLI provides, the Claude Agent SDK gives you full control over agent lifecycle, tool use, and multi-agent coordination.
+
+
+---code---
+typescript
+// loop-orchestrator.ts — Using Claude Agent SDK
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();
+
+async function orchestrateLoop(tasks: string[]) {
+  for (const task of tasks) {
+    console.log(`\n--- Starting task: ${task} ---`);
+
+    // Each task gets its own agent with clean context
+    const result = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 8096,
+      system: `You are a coding agent working in a loop.
+Current task: ${task}
+Read PROGRESS.md for context on what's been done.
+After completing the task, update PROGRESS.md.`,
+      messages: [{ role: "user", content: task }],
+      tools: [
+        { type: "bash_20250124", name: "bash" },
+        { type: "text_editor_20250124", name: "text_editor" }
+      ]
+    });
+
+    // Run verification
+    const verify = await runVerification();
+    if (!verify.passed) {
+      console.log("Verification failed, running fix loop...");
+      await runFixLoop(verify.errors, 5);
+    }
+
+    // Commit checkpoint
+    await exec("git add -A && git commit -m 'loop: " + task + "'");
+  }
+}
+---/code---
+
+
+Subagents as Loop Workers
+-------------------------
+
+
+Claude Code's subagent system lets you define specialized agents that work as components in your loop. Each subagent is defined as a markdown file in .claude/agents/ with its own model, instructions, and tools.
+
+
+---code---
+markdown
+# .claude/agents/security-reviewer.md
+---
+model: claude-sonnet-4-6
+description: Reviews code changes for security vulnerabilities
+---
+
+You are a security reviewer. For each code change:
+
+1. Check for hardcoded secrets, API keys, or credentials
+2. Verify input validation on all user-facing endpoints
+3. Check for SQL injection, XSS, and CSRF vulnerabilities
+4. Ensure authentication/authorization checks are present
+5. Verify error messages don't leak internal details
+
+Output a JSON report:
+{"safe": boolean, "issues": [{severity, description, file, line}]}
+---/code---
+
+
+Practical Examples
+------------------
+
+
+Example 1: Fix All TypeScript Errors
+
+
+---code---
+terminal
+$ claude
+> /goal There are zero TypeScript errors when running `npx tsc --noEmit`.
+  Fix all type errors without using `any` or `@ts-ignore`.
+  Prefer proper typing with interfaces and type guards.
+---/code---
+
+
+Example 2: Add Tests for Uncovered Functions
+
+
+---code---
+terminal
+$ claude
+> /goal Code coverage for src/services/ is above 80%.
+  Run `npm test -- --coverage --collectCoverageFrom='src/services/**'`
+  to check. Write meaningful tests, not just coverage padding.
+---/code---
+
+
+Example 3: Overnight PR Babysitter
+
+
+---code---
+terminal
+$ claude
+> /schedule "*/30 * * * *": Check all open PRs. For each PR:
+  - If CI is failing, analyze the failure and push a fix
+  - If it needs rebase, rebase it
+  - If review comments are addressed, re-request review
+  Only act on PRs authored by the team (check CODEOWNERS)
+---/code---
+
+
+The Universal Shape of Loops
+----------------------------
+
+
+Addy Osmani's key observation: the shape of a loop is the same regardless of which tool you use. Both Codex and Claude Code now have all five building blocks (automations, worktrees, skills, connectors, sub-agents). Once you notice the shape is the same, you stop arguing about which tool and start designing loops that work no matter which agent you're running.
+
+
+Primitive	|	Claude Code	|	Codex App	|	Cursor	|	Custom (DIY)
+Automations	|	/loop, /schedule, hooks	|	Automations tab, /goal	|	Rules, .cursorrules	|	Cron + bash scripts
+Worktrees	|	git worktree, --worktree flag	|	Built-in per thread	|	Per-tab isolation	|	git worktree manually
+Skills	|	SKILL.md in .claude/skills/	|	SKILL.md, $skill-name	|	.cursorrules files	|	Prompt files on disk
+Connectors	|	MCP servers + plugins	|	MCP connectors + plugins	|	Tool integrations	|	API calls in scripts
+Sub-agents	|	.claude/agents/ + Task tool	|	.codex/agents/ (TOML)	|	Multi-model routing	|	Multiple API calls
+
+
+Codex App Loops
+---------------
+
+
+OpenAI's Codex app maps almost exactly onto the same loop primitives. Automations in the Codations tab let you define a project, prompt, cadence, and environment — and results land in a Triage inbox. An automation can call a skill, keeping the recurring thing maintainable.
+
+
+---code---
+toml
+# .codex/agents/reviewer.toml — Codex subagent definition
+[agent]
+name = "security-reviewer"
+description = "Reviews code changes for security issues"
+model = "o3-mini"
+reasoning_effort = "high"
+
+[agent.instructions]
+text = """
+You are a security reviewer. Check each code change for:
+- Hardcoded secrets
+- SQL injection vulnerabilities
+- Missing input validation
+- Authentication bypass risks
+Output: JSON {safe: bool, issues: [{severity, description}]}
+"""
+---/code---
+
+
+Cursor's Multi-File Edit Loops
+------------------------------
+
+
+Cursor implements loops through its Composer feature and .cursorrules configuration. While not as explicitly loop-oriented as Claude Code, you can build effective loops by combining Cursor's multi-file editing with external scripts:
+
+
+---code---
+bash
+#!/bin/bash
+# cursor-loop.sh — Using Cursor CLI in a loop
+# Cursor's background agent mode enables headless operation
+
+while true; do
+  # Let Cursor's agent mode handle a task
+  cursor --agent --task "$(cat TASK.md)" --verify "npm test"
+
+  if [ $? -eq 0 ]; then
+    echo "Task completed!"
+    break
+  fi
+
+  echo "Retrying..."
+  sleep 5
+done
+---/code---
+
+
+GitHub Copilot Workspace Loops
+------------------------------
+
+
+Copilot Workspace implements the plan-execute pattern natively: you describe a change, it creates a plan across multiple files, you review and iterate. The loop is semi-automatic — Copilot proposes, you approve, it executes, you verify.
+
+
+Kiro's Spec-Driven Development Loops
+------------------------------------
+
+
+Amazon's Kiro IDE (launched 2026) takes a specification-first approach to loops. You write requirements in natural language, Kiro generates a structured design document with acceptance criteria, then implements against it in a loop, verifying each step against the original spec. This is the plan-execute pattern with the spec as the persistent state. The verification layer is baked into the spec itself — each requirement becomes a checkable condition. Kiro's approach is particularly well-suited for greenfield features where you want a clear contract before implementation begins, and for teams that already practice spec-driven development.
+
+
+Devin's Autonomous Task Loops
+-----------------------------
+
+
+Devin runs some of the most autonomous loops of any commercial tool — it can take a high-level task description and run for extended periods, breaking it down, implementing, testing, and iterating independently. The loop includes web browsing for research, terminal commands for execution, and a built-in code editor. What makes Devin's loops distinctive is their level of environmental interaction — the agent can install dependencies, read documentation, debug with browser devtools, and iterate on solutions across multiple files and systems. However, this autonomy comes with risks: longer loop runs mean more opportunity for the agent to go off-course, and the cost per run can be substantial. Devin's approach works best for well-defined tasks with clear deliverables and automated verification, such as fixing bugs with reproduction steps or implementing features with existing test suites.
+
+
+Custom Loops with APIs
+----------------------
+
+
+For maximum control, build your own loop using the Anthropic or OpenAI APIs directly. This is the framework-agnostic approach — you design every piece of the loop.
+
+
+---code---
+python
+# custom_api_loop.py — Framework-agnostic loop with Anthropic API
+import anthropic
+import subprocess
+import time
+import json
+from pathlib import Path
+
+client = anthropic.Anthropic()
+
+class AgenticLoop:
+    """A complete, configurable agentic loop."""
+
+    def __init__(
+        self,
+        goal: str,
+        verification_cmd: str,
+        max_iterations: int = 30,
+        max_stuck: int = 3,
+        model: str = "claude-sonnet-4-6",
+        state_file: str = "LOOP_STATE.json"
+    ):
+        self.goal = goal
+        self.verification_cmd = verification_cmd
+        self.max_iterations = max_iterations
+        self.max_stuck = max_stuck
+        self.model = model
+        self.state_file = state_file
+        self.state = self._load_state()
+
+    def _load_state(self) -> dict:
+        if Path(self.state_file).exists():
+            return json.loads(Path(self.state_file).read_text())
+        return {"iteration": 0, "stuck_count": 0, "last_error": "", "history": []}
+
+    def _save_state(self):
+        Path(self.state_file).write_text(json.dumps(self.state, indent=2))
+
+    def _verify(self) -> tuple[bool, str]:
+        result = subprocess.run(
+            self.verification_cmd, shell=True,
+            capture_output=True, text=True, timeout=120
+        )
+        return result.returncode == 0, result.stdout + result.stderr
+
+    def _detect_stuck(self, error: str) -> bool:
+        if error == self.state["last_error"]:
+            self.state["stuck_count"] += 1
+        else:
+            self.state["stuck_count"] = 0
+        self.state["last_error"] = error
+        return self.state["stuck_count"] >= self.max_stuck
+
+    def run(self) -> bool:
+        """Execute the loop until goal is met or limits are reached."""
+        for i in range(self.max_iterations):
+            self.state["iteration"] = i + 1
+            print(f"\n{'='*50}")
+            print(f"Iteration {i + 1} / {self.max_iterations}")
+
+            # Verify current state
+            passed, output = self._verify()
+            if passed:
+                print(f"Goal achieved in {i + 1} iterations!")
+                self._save_state()
+                return True
+
+            # Check if stuck
+            if self._detect_stuck(output[:200]):
+                print("Loop is stuck. Escalating to human.")
+                self._save_state()
+                return False
+
+            # Generate fix (fresh context each iteration)
+            response = client.messages.create(
+                model=self.model,
+                max_tokens=8096,
+                messages=[{
+                    "role": "user",
+                    "content": f"""Goal: {self.goal}
+
+Verification command: {self.verification_cmd}
+Current verification output (FAILING):
+{output[:3000]}
+
+Iteration: {i + 1} of {self.max_iterations}
+Previous attempts: {len(self.state['history'])}
+
+Fix the issues. Make targeted, minimal changes."""
+                }],
+                tools=[
+                    {"type": "bash_20250124", "name": "bash"},
+                    {"type": "text_editor_20250124", "name": "text_editor"}
+                ]
+            )
+
+            # Process tool calls... (execution logic)
+            self.state["history"].append({
+                "iteration": i + 1,
+                "timestamp": time.time(),
+                "error_snippet": output[:200]
+            })
+            self._save_state()
+
+        print("Hit iteration ceiling.")
+        return False
+
+# Usage
+loop = AgenticLoop(
+    goal="All tests pass and TypeScript compiles cleanly",
+    verification_cmd="npx tsc --noEmit && npm test",
+    max_iterations=25
+)
+loop.run()
+---/code---
+
+
+Framework-Agnostic Principles
+-----------------------------
+
+
+Regardless of which tool or API you use, these principles apply to every loop:
+
+1. Separate generation from verification. Never let the same model/context that produced code judge whether it's correct.
+
+2. Make state explicit and external. Files on disk, git commits, issue tracker state — not in-memory, not in the context window.
+
+3. Build in hard stops. Turn ceiling, stuck detection, budget cap. Every loop. No exceptions.
+
+4. Design for restartability. If the loop crashes at iteration 17, it should be able to resume from the last good state, not start over from scratch.
+
+5. Log everything. Every iteration, every verification result, every decision. You will need to debug your loops, and logs are the only way.
+
+
+Hard Stops: The Safety Net
+--------------------------
+
+
+A production loop without hard stops is a liability. Here are the three non-negotiable safety mechanisms and how to implement them:
+
+
+Turn Limits
+
+
+---code---
+python
+# Hard stop 1: Turn ceiling
+class TurnLimiter:
+    def __init__(self, max_turns: int = 50):
+        self.max_turns = max_turns
+        self.current_turn = 0
+
+    def tick(self) -> bool:
+        """Returns False if limit reached."""
+        self.current_turn += 1
+        if self.current_turn > self.max_turns:
+            self.escalate(f"Hit turn ceiling: {self.max_turns}")
+            return False
+        return True
+
+    def escalate(self, reason: str):
+        """Alert human, save state, stop gracefully."""
+        save_loop_state()
+        send_notification(f"Loop stopped: {reason}")
+        create_github_issue(
+            title=f"Loop escalation: {reason}",
+            body=f"The loop ran for {self.current_turn} turns without completing.\n"
+                 f"State saved to LOOP_STATE.json.\n"
+                 f"Please review and either adjust the goal or fix the blocker."
+        )
+---/code---
+
+
+No-Progress Detection
+
+
+---code---
+python
+# Hard stop 2: Stuck detection
+class ProgressDetector:
+    def __init__(self, patience: int = 3):
+        self.patience = patience
+        self.history: list[str] = []
+
+    def check(self, state_fingerprint: str) -> bool:
+        """Returns False if no progress detected."""
+        self.history.append(state_fingerprint)
+
+        if len(self.history) >= self.patience:
+            recent = self.history[-self.patience:]
+            if len(set(recent)) == 1:
+                # Same state for `patience` iterations
+                return False
+        return True
+
+    @staticmethod
+    def fingerprint(project_dir: str) -> str:
+        """Create a fingerprint of the current project state."""
+        import hashlib
+        result = subprocess.run(
+            ["git", "diff", "--stat"], capture_output=True, text=True,
+            cwd=project_dir
+        )
+        test_result = subprocess.run(
+            ["npm", "test", "--", "--json"],
+            capture_output=True, text=True, cwd=project_dir
+        )
+        combined = result.stdout + test_result.stdout
+        return hashlib.md5(combined.encode()).hexdigest()
+---/code---
+
+
+Budget Caps
+
+
+---code---
+python
+# Hard stop 3: Token/cost budget
+class BudgetTracker:
+    def __init__(self, max_input_tokens: int = 2_000_000,
+                 max_output_tokens: int = 500_000,
+                 max_cost_usd: float = 50.0):
+        self.max_input = max_input_tokens
+        self.max_output = max_output_tokens
+        self.max_cost = max_cost_usd
+        self.total_input = 0
+        self.total_output = 0
+
+    def track(self, usage: dict) -> bool:
+        """Track usage. Returns False if budget exceeded."""
+        self.total_input += usage.get("input_tokens", 0)
+        self.total_output += usage.get("output_tokens", 0)
+
+        cost = self._estimate_cost()
+
+        if (self.total_input > self.max_input or
+            self.total_output > self.max_output or
+            cost > self.max_cost):
+            return False
+        return True
+
+    def _estimate_cost(self) -> float:
+        # Sonnet 4 pricing (example)
+        input_cost = (self.total_input / 1_000_000) * 3.0
+        output_cost = (self.total_output / 1_000_000) * 15.0
+        return input_cost + output_cost
+---/code---
+
+
+Observability: Seeing Inside Your Loops
+---------------------------------------
+
+
+You can't improve what you can't measure. Production loops need observability at three levels:
+
+Iteration-level telemetry: For each iteration, log: timestamp, duration, tokens consumed, verification result, files changed, git commit hash. This is your audit trail.
+
+
+---code---
+python
+# loop-telemetry.py — Structured logging for loop iterations
+import json
+import time
+from datetime import datetime
+
+class LoopTelemetry:
+    def __init__(self, loop_id: str, log_file: str = "loop-telemetry.jsonl"):
+        self.loop_id = loop_id
+        self.log_file = log_file
+        self.start_time = time.time()
+
+    def log_iteration(self, iteration: int, **kwargs):
+        entry = {
+            "loop_id": self.loop_id,
+            "iteration": iteration,
+            "timestamp": datetime.utcnow().isoformat(),
+            "elapsed_seconds": round(time.time() - self.start_time, 2),
+            **kwargs
+        }
+        with open(self.log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+
+    def summary(self) -> dict:
+        """Generate loop performance summary."""
+        entries = []
+        with open(self.log_file) as f:
+            for line in f:
+                e = json.loads(line)
+                if e["loop_id"] == self.loop_id:
+                    entries.append(e)
+
+        return {
+            "total_iterations": len(entries),
+            "total_duration_s": entries[-1]["elapsed_seconds"] if entries else 0,
+            "total_tokens": sum(e.get("tokens_used", 0) for e in entries),
+            "pass_rate": sum(1 for e in entries if e.get("verified")) / max(len(entries), 1),
+            "avg_iteration_s": sum(e.get("duration_s", 0) for e in entries) / max(len(entries), 1)
+        }
+---/code---
+
+
+Loop-level metrics: Across all runs of a loop: completion rate, average iterations to completion, cost per successful run, common failure modes.
+
+System-level dashboards: Across all loops in your organization: total agents running, total cost, human escalation rate, PR merge rate for loop-generated code.
+
+
+Cost Management
+---------------
+
+
+Token costs in loops can vary wildly. A tight test-fix loop might use 10K tokens per iteration. An exploration loop might use 100K. Here are strategies to manage costs:
+
+Model routing per iteration: Use a fast, cheap model (Haiku) for exploration and triage. Use a capable model (Sonnet) for implementation. Use the most powerful model (Opus) only for final review and complex debugging.
+
+Context trimming: In persistent-context loops, aggressively trim the context between iterations. Summarize previous iterations instead of keeping full transcripts. Keep only the most recent test failures, not the entire test output history.
+
+Early exit: If verification passes on the first try, skip all remaining iterations. Sounds obvious, but many loops don't check for early success.
+
+
+Error Handling and Human Escalation
+-----------------------------------
+
+
+Every production loop needs a graceful degradation path:
+
+
+---code---
+python
+# error-handling.py — Graceful degradation in loops
+class LoopErrorHandler:
+    ESCALATION_THRESHOLDS = {
+        "api_error": 3,        # 3 consecutive API failures
+        "verification_timeout": 2,  # 2 timeouts
+        "unknown_error": 1,    # Any unexpected error
+        "security_concern": 1  # Immediate escalation
+    }
+
+    def __init__(self):
+        self.error_counts: dict[str, int] = {}
+
+    def handle(self, error_type: str, error_msg: str, context: dict):
+        self.error_counts[error_type] = self.error_counts.get(error_type, 0) + 1
+
+        threshold = self.ESCALATION_THRESHOLDS.get(error_type, 1)
+
+        if self.error_counts[error_type] >= threshold:
+            self.escalate_to_human(error_type, error_msg, context)
+            return "stop"
+
+        if error_type == "api_error":
+            time.sleep(min(2 ** self.error_counts[error_type], 60))
+            return "retry"
+
+        return "continue"
+
+    def escalate_to_human(self, error_type, error_msg, context):
+        """Create a clear, actionable escalation."""
+        notification = {
+            "type": "loop_escalation",
+            "error_type": error_type,
+            "message": error_msg,
+            "loop_state": context.get("state_file"),
+            "iteration": context.get("iteration"),
+            "suggested_action": self._suggest_action(error_type)
+        }
+        # Send via Slack, email, PagerDuty, etc.
+        send_to_slack("#ai-loop-alerts", notification)
+---/code---
+
+
+Parallelization: Running Multiple Loops
+---------------------------------------
+
+
+Running multiple loops concurrently requires isolation. The key tool is git worktrees — each loop gets its own working directory on its own branch, sharing the same repo history.
+
+
+---code---
+bash
+#!/bin/bash
+# parallel-loops.sh — Run multiple isolated loops concurrently
+
+REPO_DIR=$(pwd)
+TASKS=("fix-auth-tests" "refactor-database" "add-api-docs")
+
+for task in "${TASKS[@]}"; do
+  (
+    # Create isolated worktree for this loop
+    WORKTREE="/tmp/loop-$task"
+    git worktree add "$WORKTREE" -b "loop/$task" main
+
+    cd "$WORKTREE"
+
+    # Run the loop in the isolated worktree
+    claude -p "$(cat $REPO_DIR/tasks/$task.md)" \
+      --max-turns 20 \
+      --allowedTools bash,text_editor \
+      2>&1 | tee "$REPO_DIR/logs/$task.log"
+
+    # If successful, create a PR
+    if [ $? -eq 0 ]; then
+      git push origin "loop/$task"
+      gh pr create --title "Loop: $task" --body "Automated loop result"
+    fi
+
+    # Cleanup worktree
+    cd "$REPO_DIR"
+    git worktree remove "$WORKTREE"
+  ) &
+done
+
+# Wait for all loops to complete
+wait
+echo "All parallel loops finished."
+---/code---
+
+
+Idempotency: Safe Restarts
+--------------------------
+
+
+Loops must be safely restartable. If a loop crashes at iteration 17, restarting it should resume from the last good state, not re-do iterations 1-16 or create duplicate changes.
+
+Design principles for idempotent loops: use git commits as checkpoints (you can always reset to the last known good commit), use a state file that records what's been done (the loop reads this on startup to know where it left off), make each iteration's changes atomic (either fully committed or fully rolled back), and use deterministic task IDs (checking off a task by ID is idempotent — doing it twice has the same effect as doing it once).
+
+
+Beyond Code: The Universal Pattern
+----------------------------------
+
+
+Loop engineering isn't limited to coding agents. The same pattern — act, verify, decide, repeat — applies to any iterative task where you can define "done" in checkable terms. The key insight remains the same: build the verifier first, then wrap the loop around it.
+
+
+Content Generation Loops
+------------------------
+
+
+Write → Evaluate → Revise → Publish. Content loops work best when you have clear criteria for quality — word count, readability score, fact-checking against sources, SEO requirements, brand voice compliance.
+
+
+---code---
+python
+# content_loop.py — Write-evaluate-revise content loop
+import anthropic
+import re
+
+client = anthropic.Anthropic()
+
+def content_loop(topic: str, requirements: dict, max_rounds: int = 5):
+    """Loop that generates and refines content until quality criteria are met."""
+
+    draft = ""
+    for round_num in range(max_rounds):
+        # Generate or revise
+        if round_num == 0:
+            prompt = f"Write a blog post about: {topic}\nRequirements: {requirements}"
+        else:
+            prompt = f"Revise this draft based on the feedback:\n\n{draft}\n\nFeedback:\n{feedback}"
+
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=4096,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        draft = response.content[0].text
+
+        # Verify against criteria
+        checks = verify_content(draft, requirements)
+
+        if all(checks.values()):
+            print(f"Content approved after {round_num + 1} rounds!")
+            return draft
+
+        # Build feedback for next iteration
+        feedback = "\n".join(
+            f"- {check}: FAIL" for check, passed in checks.items() if not passed
+        )
+        print(f"Round {round_num + 1}: {sum(checks.values())}/{len(checks)} checks pass")
+
+    return draft  # Return best effort
+
+def verify_content(text: str, requirements: dict) -> dict:
+    """Multi-criteria content verification."""
+    checks = {}
+
+    # Word count check
+    word_count = len(text.split())
+    checks["word_count"] = (
+        requirements.get("min_words", 0) <= word_count <= requirements.get("max_words", 99999)
+    )
+
+    # Readability (Flesch-Kincaid approximation)
+    sentences = len(re.split(r'[.!?]+', text))
+    words = len(text.split())
+    checks["readability"] = (words / max(sentences, 1)) < 25  # avg sentence length
+
+    # Required sections
+    for section in requirements.get("required_sections", []):
+        checks[f"has_{section}"] = section.lower() in text.lower()
+
+    # LLM-based quality check
+    quality = llm_quality_check(text, requirements.get("quality_criteria", ""))
+    checks["quality"] = quality["score"] >= 7
+
+    return checks
+---/code---
+
+
+Research Loops
+--------------
+
+
+Search → Read → Synthesize → Verify → Iterate. Research loops are powerful for due diligence, competitive analysis, literature reviews, and market research. The verification step is crucial: cross-reference findings across multiple sources, check for contradictions, and flag claims that lack supporting evidence.
+
+
+---code---
+python
+# research_loop.py — Multi-source research with verification
+def research_loop(question: str, min_sources: int = 5, max_iterations: int = 10):
+    """Research loop that searches, synthesizes, and cross-verifies."""
+
+    findings = []
+    sources_checked = set()
+
+    for iteration in range(max_iterations):
+        # Search for new sources
+        new_queries = generate_search_queries(question, findings)
+
+        for query in new_queries:
+            results = web_search(query)
+            for result in results:
+                if result.url not in sources_checked:
+                    sources_checked.add(result.url)
+                    content = fetch_and_extract(result.url)
+
+                    # Extract relevant findings
+                    extracted = extract_findings(content, question)
+                    findings.extend(extracted)
+
+        # Synthesize current findings
+        synthesis = synthesize(findings, question)
+
+        # Verify: cross-reference, check for contradictions
+        verification = verify_research(synthesis, findings)
+
+        if (len(set(f.source for f in findings)) >= min_sources and
+            verification["confidence"] >= 0.8 and
+            not verification["contradictions"]):
+            return {
+                "answer": synthesis,
+                "sources": list(sources_checked),
+                "confidence": verification["confidence"],
+                "iterations": iteration + 1
+            }
+
+        # Generate follow-up queries to fill gaps
+        question = refine_question(question, verification["gaps"])
+
+    return {"answer": synthesis, "sources": list(sources_checked),
+            "confidence": verification["confidence"], "note": "Max iterations reached"}
+---/code---
+
+
+Data Processing Loops
+---------------------
+
+
+Extract → Transform → Validate → Load. Data loops are ideal for ETL pipelines where the transformation rules are complex or ambiguous. The agent handles edge cases, data quality issues, and format mismatches that would require dozens of conditional branches in traditional code.
+
+
+---code---
+python
+# data_loop.py — ETL with AI-powered edge case handling
+import pandas as pd
+
+def data_processing_loop(input_file: str, schema: dict, max_passes: int = 5):
+    """Process data iteratively, fixing quality issues each pass."""
+
+    df = pd.read_csv(input_file)
+
+    for pass_num in range(max_passes):
+        # Validate against schema
+        issues = validate_data(df, schema)
+
+        if not issues:
+            print(f"Data clean after {pass_num + 1} passes!")
+            return df
+
+        print(f"Pass {pass_num + 1}: {len(issues)} issues found")
+
+        # Use AI to fix issues
+        for issue in issues:
+            if issue["type"] == "missing_value":
+                df = ai_impute(df, issue["column"], issue["rows"])
+            elif issue["type"] == "format_mismatch":
+                df = ai_reformat(df, issue["column"], schema[issue["column"]])
+            elif issue["type"] == "outlier":
+                df = ai_handle_outlier(df, issue["column"], issue["rows"])
+            elif issue["type"] == "duplicate":
+                df = ai_deduplicate(df, issue["columns"])
+
+        # Save checkpoint
+        df.to_csv(f"checkpoint_pass{pass_num + 1}.csv", index=False)
+
+    return df
+---/code---
+
+
+Design Loops
+------------
+
+
+Generate → Critique → Refine → Test. Design loops work for UI/UX design, architecture design, system design, and any creative process that benefits from iterative refinement with structured feedback.
+
+
+---code---
+python
+# design_loop.py — Iterative design refinement
+def design_loop(design_brief: str, max_rounds: int = 6):
+    """Generate, critique, and refine a system design iteratively."""
+
+    design = None
+    critique_history = []
+
+    for round_num in range(max_rounds):
+        # Generate or refine
+        if design is None:
+            design = generate_design(design_brief)
+        else:
+            design = refine_design(design, critique_history[-1])
+
+        # Multi-perspective critique
+        critiques = {
+            "scalability": critique_aspect(design, "scalability and performance"),
+            "security": critique_aspect(design, "security and data protection"),
+            "maintainability": critique_aspect(design, "code maintainability and clarity"),
+            "user_experience": critique_aspect(design, "user experience and accessibility")
+        }
+
+        # Score aggregate
+        avg_score = sum(c["score"] for c in critiques.values()) / len(critiques)
+        print(f"Round {round_num + 1}: avg score {avg_score:.1f}/10")
+
+        if avg_score >= 8.0 and all(c["score"] >= 6 for c in critiques.values()):
+            print(f"Design approved after {round_num + 1} rounds!")
+            return design
+
+        # Combine critiques for next refinement
+        combined = "\n".join(
+            f"[{aspect}] score={c['score']}: {c['feedback']}"
+            for aspect, c in critiques.items()
+            if c["score"] < 8
+        )
+        critique_history.append(combined)
+
+    return design  # Best effort
+---/code---
+
+
+Design loops are particularly powerful for architecture decisions where multiple quality dimensions must be balanced — performance versus readability, security versus developer experience, flexibility versus simplicity. The loop ensures each dimension gets proper attention rather than optimizing for just one at the expense of others.
+
+
+Testing Loops
+-------------
+
+
+Generate Test Cases → Run → Analyze Coverage → Generate More. This is one of the highest-ROI applications of loop engineering: automatically expanding your test suite to cover edge cases, error paths, and boundary conditions.
+
+
+---code---
+bash
+#!/bin/bash
+# test-generation-loop.sh — Expand test coverage automatically
+
+TARGET_COVERAGE=85
+CURRENT_COVERAGE=0
+
+while [ $(echo "$CURRENT_COVERAGE < $TARGET_COVERAGE" | bc -l) -eq 1 ]; do
+  # Get current coverage with details
+  COVERAGE_OUTPUT=$(npx jest --coverage --coverageReporters=json-summary 2>&1)
+  CURRENT_COVERAGE=$(cat coverage/coverage-summary.json | \
+    jq '.total.statements.pct')
+
+  echo "Current coverage: ${CURRENT_COVERAGE}%  Target: ${TARGET_COVERAGE}%"
+
+  # Find uncovered lines
+  UNCOVERED=$(cat coverage/coverage-summary.json | \
+    jq -r 'to_entries[] | select(.value.statements.pct < 80) | .key')
+
+  # Generate tests for uncovered files
+  claude --print -p "Generate additional test cases for these files
+that have low coverage:
+
+$UNCOVERED
+
+Focus on:
+- Edge cases and boundary conditions
+- Error handling paths
+- Missing branch coverage
+Write tests that are meaningful, not just coverage padding.
+Save tests alongside existing test files."
+
+  # Re-run coverage
+  CURRENT_COVERAGE=$(npx jest --coverage --coverageReporters=json-summary 2>&1 | \
+    tail -1 | grep -oP '[\d.]+(?=%)')
+done
+
+echo "Target coverage of ${TARGET_COVERAGE}% reached!"
+git add -A && git commit -m "test: expand coverage to ${CURRENT_COVERAGE}%"
+---/code---
+
+
+Key Insight
+The common thread across all non-code loops: you need a machine-checkable definition of "done." For content, that's readability scores and required sections. For research, that's source count and confidence level. For data, that's schema validation. For tests, that's coverage percentage. If you can't define "done" in terms a program can check, you can't build a reliable loop.
+
+
+Nested Loops: Strategic and Tactical
+------------------------------------
+
+
+The most powerful production pattern: an outer strategic loop that plans and prioritizes, containing inner tactical loops that execute individual tasks. The DEV Community field guide calls this "the Mayor pattern" — a scheduler wakes the Mayor (outer loop), which hands each patrol agent one bounded task in its own worktree. Each patrol agent runs its own inner observe → act → check cycle.
+
+
+---code---
+python
+# nested_loops.py — Outer strategic loop with inner tactical loops
+import subprocess
+import json
+from pathlib import Path
+
+class StrategicLoop:
+    """Outer loop: discovers work, prioritizes, delegates to inner loops."""
+
+    def __init__(self, project_dir: str):
+        self.project_dir = project_dir
+        self.state_file = Path(project_dir) / "STRATEGIC_STATE.json"
+
+    def discover_work(self) -> list[dict]:
+        """Find tasks that need doing: CI failures, open issues, TODOs."""
+        tasks = []
+
+        # Check CI status
+        ci_failures = self._get_ci_failures()
+        for failure in ci_failures:
+            tasks.append({
+                "type": "ci_fix",
+                "priority": 1,  # Highest priority
+                "description": f"Fix CI failure: {failure['name']}",
+                "verification": failure["test_command"]
+            })
+
+        # Check for TODO comments added recently
+        todos = subprocess.run(
+            ["git", "log", "--since=1.day", "--diff-filter=A", "-p", "--", "*.ts"],
+            capture_output=True, text=True, cwd=self.project_dir
+        )
+        # Parse TODOs from diff...
+
+        # Check open issues
+        issues = self._get_open_issues()
+        for issue in issues:
+            tasks.append({
+                "type": "issue",
+                "priority": 2,
+                "description": issue["title"],
+                "verification": "npm test"
+            })
+
+        # Sort by priority
+        return sorted(tasks, key=lambda t: t["priority"])
+
+    def run(self, max_tasks: int = 10):
+        """Main strategic loop."""
+        tasks = self.discover_work()
+        print(f"Discovered {len(tasks)} tasks")
+
+        completed = 0
+        for task in tasks[:max_tasks]:
+            print(f"\n--- Delegating: {task['description']} ---")
+
+            # Each task gets its own tactical loop in an isolated worktree
+            success = TacticalLoop(
+                task=task,
+                project_dir=self.project_dir,
+                max_iterations=15
+            ).run()
+
+            if success:
+                completed += 1
+                print(f"  Completed ({completed}/{len(tasks)})")
+            else:
+                print(f"  Failed — escalating to human")
+                self._escalate(task)
+
+        print(f"\nStrategic loop complete: {completed}/{min(len(tasks), max_tasks)} tasks done")
+
+class TacticalLoop:
+    """Inner loop: executes a single task with verification."""
+
+    def __init__(self, task: dict, project_dir: str, max_iterations: int = 15):
+        self.task = task
+        self.project_dir = project_dir
+        self.max_iterations = max_iterations
+
+    def run(self) -> bool:
+        """Run the tactical loop in an isolated worktree."""
+        branch = f"loop/{self.task['type']}-{hash(self.task['description']) % 10000}"
+        worktree_dir = f"/tmp/{branch.replace('/', '-')}"
+
+        try:
+            # Create isolated worktree
+            subprocess.run(
+                ["git", "worktree", "add", worktree_dir, "-b", branch, "main"],
+                cwd=self.project_dir, check=True
+            )
+
+            # Run the inner loop
+            for i in range(self.max_iterations):
+                # Fresh agent per iteration (Ralph pattern)
+                result = subprocess.run(
+                    ["claude", "--print", "-p",
+                     f"Task: {self.task['description']}\n"
+                     f"Verify with: {self.task['verification']}\n"
+                     f"Iteration {i+1}/{self.max_iterations}"],
+                    capture_output=True, text=True, cwd=worktree_dir
+                )
+
+                # Verify
+                verify = subprocess.run(
+                    self.task["verification"], shell=True,
+                    capture_output=True, text=True, cwd=worktree_dir
+                )
+
+                if verify.returncode == 0:
+                    # Commit and create PR
+                    subprocess.run(["git", "add", "-A"], cwd=worktree_dir)
+                    subprocess.run(
+                        ["git", "commit", "-m", f"fix: {self.task['description']}"],
+                        cwd=worktree_dir
+                    )
+                    return True
+
+            return False
+        finally:
+            # Cleanup worktree
+            subprocess.run(
+                ["git", "worktree", "remove", worktree_dir, "--force"],
+                cwd=self.project_dir
+            )
+---/code---
+
+
+Competing Loops: Tournament Selection
+-------------------------------------
+
+
+Run multiple loops with different strategies or different models simultaneously. Compare results and pick the best one. This is particularly effective for tasks with multiple valid approaches — the tournament reveals which approach produces the best outcome.
+
+
+---code---
+python
+# competing_loops.py — Multiple approaches, best result wins
+import asyncio
+import subprocess
+
+async def competing_loop(task: str, strategies: list[dict]) -> dict:
+    """Run multiple strategies in parallel, pick the winner."""
+
+    async def run_strategy(strategy: dict) -> dict:
+        branch = f"compete/{strategy['name']}"
+        worktree = f"/tmp/{branch.replace('/', '-')}"
+
+        subprocess.run(["git", "worktree", "add", worktree, "-b", branch, "main"])
+
+        try:
+            # Run the loop with this strategy
+            result = subprocess.run(
+                ["claude", "--print", "-p",
+                 f"{task}\n\nApproach: {strategy['approach']}\n"
+                 f"Model: {strategy.get('model', 'claude-sonnet-4-6')}"],
+                capture_output=True, text=True, cwd=worktree,
+                timeout=300
+            )
+
+            # Score the result
+            test_result = subprocess.run(
+                "npm test -- --json", shell=True,
+                capture_output=True, text=True, cwd=worktree
+            )
+
+            score = calculate_score(test_result, worktree)
+            return {"strategy": strategy["name"], "score": score,
+                    "branch": branch, "worktree": worktree}
+        except Exception as e:
+            return {"strategy": strategy["name"], "score": 0, "error": str(e)}
+
+    # Run all strategies concurrently
+    results = await asyncio.gather(
+        *[run_strategy(s) for s in strategies]
+    )
+
+    # Pick the winner
+    winner = max(results, key=lambda r: r.get("score", 0))
+    print(f"Winner: {winner['strategy']} (score: {winner['score']})")
+
+    # Merge winner's branch
+    if winner.get("branch"):
+        subprocess.run(["git", "merge", winner["branch"]])
+
+    # Cleanup all worktrees
+    for r in results:
+        if "worktree" in r:
+            subprocess.run(["git", "worktree", "remove", r["worktree"], "--force"])
+
+    return winner
+
+# Usage
+asyncio.run(competing_loop(
+    task="Optimize the database query in src/db/users.ts to reduce latency",
+    strategies=[
+        {"name": "index-based", "approach": "Add database indexes and optimize query plan"},
+        {"name": "caching", "approach": "Add Redis caching layer for frequent queries"},
+        {"name": "denormalize", "approach": "Denormalize the schema to reduce JOINs"}
+    ]
+))
+---/code---
+
+
+Evolutionary Loops: Selection and Mutation
+----------------------------------------
+
+
+Inspired by genetic algorithms: maintain a population of solution candidates, evaluate their fitness, select the best, and create new candidates by mutating or combining them. Geoffrey Huntley's "Weaving Loom" takes this to its logical conclusion — software factories that evolve products automatically.
+
+
+---code---
+python
+# evolutionary_loop.py — Population-based solution evolution
+import random
+
+class EvolutionaryLoop:
+    """Evolve solutions through selection, mutation, and crossover."""
+
+    def __init__(self, fitness_fn, population_size: int = 5, generations: int = 10):
+        self.fitness_fn = fitness_fn
+        self.pop_size = population_size
+        self.generations = generations
+
+    def run(self, initial_prompt: str) -> dict:
+        # Generate initial population
+        population = [
+            self._generate_candidate(initial_prompt, strategy=f"variant_{i}")
+            for i in range(self.pop_size)
+        ]
+
+        for gen in range(self.generations):
+            # Evaluate fitness
+            scored = [(candidate, self.fitness_fn(candidate)) for candidate in population]
+            scored.sort(key=lambda x: x[1], reverse=True)
+
+            print(f"Gen {gen}: best={scored[0][1]:.2f}, avg={sum(s for _,s in scored)/len(scored):.2f}")
+
+            # Check if we've reached acceptable fitness
+            if scored[0][1] >= 0.95:
+                return {"solution": scored[0][0], "fitness": scored[0][1],
+                        "generations": gen + 1}
+
+            # Selection: keep top 40%
+            survivors = [c for c, _ in scored[:max(2, len(scored) * 2 // 5)]]
+
+            # Generate new population through mutation
+            population = survivors.copy()
+            while len(population) < self.pop_size:
+                parent = random.choice(survivors)
+                child = self._mutate(parent)
+                population.append(child)
+
+        return {"solution": scored[0][0], "fitness": scored[0][1],
+                "generations": self.generations}
+---/code---
+
+
+Self-Improving Loops
+--------------------
+
+
+A loop that analyzes its own failure patterns and adjusts its strategy. After each run, it examines what worked, what didn't, and updates its own instructions or configuration for the next run.
+
+
+---code---
+python
+# self_improving_loop.py — Loop that learns from its failures
+class SelfImprovingLoop:
+    def __init__(self):
+        self.run_history = []
+        self.strategy_file = "LOOP_STRATEGY.md"
+
+    def run_and_learn(self, task: str, max_runs: int = 5):
+        for run in range(max_runs):
+            # Load current strategy
+            strategy = Path(self.strategy_file).read_text()
+
+            # Execute the loop with current strategy
+            result = self._execute_loop(task, strategy)
+            self.run_history.append(result)
+
+            if result["success"]:
+                return result
+
+            # Analyze failure and update strategy
+            analysis = self._analyze_failures(self.run_history)
+            new_strategy = self._improve_strategy(strategy, analysis)
+            Path(self.strategy_file).write_text(new_strategy)
+
+            print(f"Run {run + 1} failed. Strategy updated based on: {analysis['key_insight']}")
+
+        return self.run_history[-1]
+
+    def _analyze_failures(self, history: list) -> dict:
+        """Use an LLM to analyze failure patterns across runs."""
+        failure_summary = "\n".join(
+            f"Run {i+1}: {r.get('error', 'unknown')}"
+            for i, r in enumerate(history) if not r["success"]
+        )
+
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,
+            messages=[{"role": "user", "content": f"""
+Analyze these loop failure patterns and identify the root cause:
+
+{failure_summary}
+
+What strategy change would fix the recurring issue?
+Output JSON: {{"key_insight": str, "strategy_changes": [str]}}"""}]
+        )
+        return json.loads(response.content[0].text)
+---/code---
+
+
+Meta-Loops: A Loop That Designs Better Loops
+----------------------------------------
+
+
+The ultimate recursion: a loop that takes a task description and automatically designs the optimal loop configuration — choosing the right pattern, verification strategy, model routing, and stop conditions.
+
+
+The Connection to Reinforcement Learning
+----------------------------------------
+
+
+Loop engineering shares deep structural similarities with reinforcement learning. The verification signal is analogous to a reward signal. The loop's decision to continue, retry, or change strategy is analogous to policy optimization. The connection isn't just theoretical — as models improve at using verification feedback to guide their actions, the line between "agent in a loop" and "RL agent" blurs.
+
+
+Key Concept
+The reward signal in loop engineering is the verification result. Better verifiers produce stronger reward signals, which lead to better loop outcomes. This is why verification-first design is so important — it's equivalent to reward shaping in RL. A well-designed verifier guides the loop toward the right solution faster.
+
+
+The key differences from classical RL: loop engineering uses external tools (tests, linters) as the reward function rather than learned reward models, the "policy" is the model's general capability rather than a task-specific policy, and the "environment" is a real codebase rather than a simulation. But the optimization dynamic is the same: iterate, get feedback, improve.
+
+
+Organizational Adoption: When to Use Loops
+----------------------------------------
+
+
+Not every task needs a loop. The decision framework is simple: use a loop when the task is (1) iterative by nature, (2) has a machine-checkable definition of "done," and (3) benefits from multiple attempts. Use manual prompting when the task is exploratory, creative, or requires judgment that can't be automated.
+
+
+Use a Loop When...	|	Use Manual Prompting When...
+Task has clear pass/fail criteria	|	Task requires creative judgment
+Work is repetitive across many items	|	Each item needs unique handling
+Tests exist or can be written first	|	No way to automatically verify
+Task can run unsupervised for a while	|	Every step needs human review
+You've done this type of task before	|	Exploring an unknown problem space
+Cost of a bad iteration is low (revertible)	|	Mistakes are expensive or irreversible
+
+
+Training Engineers on Loop Thinking
+-----------------------------------
+
+
+The mental model shift from "I use AI tools" to "I design systems that use AI tools" is significant. Here's how to train your team:
+
+Start with the Ralph Wiggum pattern. It's the "Hello World" of loop engineering — three files and a bash script. Have every engineer on the team build one. The simplicity makes the concepts concrete: fresh context per iteration, filesystem as memory, verification gates, exit conditions.
+
+Graduate to /goal commands. Once engineers understand the basic loop, introduce Claude Code's /goal. This is the most approachable production loop — one command, clear completion criteria, built-in maker/checker split.
+
+Build team loops. Start with low-risk, high-value loops: CI failure triage, test coverage expansion, dependency updates, documentation generation. These build confidence without putting production code at risk.
+
+Establish loop review practices. Just as you review code, review loop designs. What are the exit conditions? What's the verification strategy? What happens when the loop gets stuck? What's the cost ceiling? Loop review becomes a new type of engineering review.
+
+
+Measuring Loop Effectiveness
+----------------------------
+
+
+You need metrics to know if your loops are working. Track these at the individual loop level and aggregate across your organization:
+
+
+---code---
+python
+# loop_metrics.py — Measuring loop performance
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class LoopMetrics:
+    """Metrics for evaluating loop effectiveness."""
+
+    # Completion metrics
+    completion_rate: float        # % of loops that achieve their goal
+    avg_iterations: float         # Average iterations to completion
+    median_iterations: float      # Median (less skewed by outliers)
+
+    # Cost metrics
+    avg_cost_per_run: float       # Average $ per loop run
+    cost_per_completion: float    # $ per successful completion
+    tokens_per_iteration: float   # Average tokens per iteration
+
+    # Quality metrics
+    human_override_rate: float    # % of loop results humans reject
+    regression_rate: float        # % of loop changes that cause regressions
+    pr_merge_rate: float          # % of loop-generated PRs that get merged
+
+    # Efficiency metrics
+    time_saved_hours: float       # Estimated human hours saved
+    roi: float                    # (value_generated - cost) / cost
+
+    # Health metrics
+    stuck_rate: float             # % of loops that hit no-progress detection
+    escalation_rate: float        # % that require human intervention
+    avg_time_to_resolution: float # Hours from escalation to resolution
+
+def calculate_loop_roi(loop_name: str, period_days: int = 30) -> LoopMetrics:
+    """Calculate comprehensive ROI metrics for a loop."""
+    runs = get_loop_runs(loop_name, period_days)
+
+    completions = [r for r in runs if r.completed]
+    escalations = [r for r in runs if r.escalated]
+
+    # Estimate time saved: what would a human take for this task?
+    estimated_human_hours = sum(r.estimated_human_time for r in completions)
+    total_cost = sum(r.cost for r in runs)
+
+    return LoopMetrics(
+        completion_rate=len(completions) / max(len(runs), 1),
+        avg_iterations=sum(r.iterations for r in runs) / max(len(runs), 1),
+        median_iterations=sorted(r.iterations for r in runs)[len(runs)//2] if runs else 0,
+        avg_cost_per_run=total_cost / max(len(runs), 1),
+        cost_per_completion=total_cost / max(len(completions), 1),
+        tokens_per_iteration=sum(r.tokens for r in runs) / sum(r.iterations for r in runs),
+        human_override_rate=len([r for r in completions if r.human_overridden]) / max(len(completions), 1),
+        regression_rate=len([r for r in completions if r.caused_regression]) / max(len(completions), 1),
+        pr_merge_rate=len([r for r in completions if r.pr_merged]) / max(len(completions), 1),
+        time_saved_hours=estimated_human_hours,
+        roi=(estimated_human_hours * 75 - total_cost) / max(total_cost, 0.01),  # $75/hr eng cost
+        stuck_rate=len([r for r in runs if r.stuck]) / max(len(runs), 1),
+        escalation_rate=len(escalations) / max(len(runs), 1),
+        avg_time_to_resolution=sum(e.resolution_hours for e in escalations) / max(len(escalations), 1)
+    )
+---/code---
+
+
+Loop Libraries and Frameworks (2026 Landscape)
+----------------------------------------
+
+
+The loop engineering ecosystem is rapidly maturing. Here's the current landscape:
+
+Native tool support: Claude Code (/goal, /loop, /schedule, subagents), Codex App (Automations, /goal, subagents), Cursor (Composer, background agents), Kiro (spec-driven loops).
+
+Frameworks and libraries: LangChain (loop primitives via LangGraph), CrewAI (multi-agent orchestration), AutoGen (Microsoft's agent framework), Goose (open-source Ralph Loop support), Pydantic AI (typed agent loops).
+
+Infrastructure: GitHub Actions for CI/CD loops, Temporal for durable loop orchestration, Inngest for event-driven loops, Modal for serverless agent execution.
+
+Observability: LangSmith for loop tracing, Braintrust for loop evaluation, Arize for loop monitoring, OpenTelemetry for custom telemetry.
+
+
+The Future: Fully Autonomous Development Loops
+----------------------------------------
+
+
+Where is this heading? The trajectory is clear from the practitioners leading the field:
+
+Geoffrey Huntley's vision: Software factories — autonomous loops that evolve products and optimize for business outcomes. His "Weaving Loom" project aims for Level 9 on Steve Yegge's autonomy scale: "autonomous loops evolve products and optimize automatically for revenue generation."
+
+Boris Cherny's reality: At Anthropic, hundreds of agents run overnight, and 100% of PRs pass through Claude Code. The future isn't theoretical — it's operational at the company building the models.
+
+Andrew Ng's framework: Three nested loops — an agentic coding loop (the inner loop), a developer feedback loop (human oversight), and an external feedback loop (connecting user response back to product direction). The inner loop gets more autonomous; the outer loops keep it aligned with reality.
+
+
+Ethics and Safety: When Loops Shouldn't Run Unsupervised
+----------------------------------------
+
+
+Loop engineering raises important questions about oversight and accountability:
+
+Never automate destructive actions. Loops should never run rm -rf, drop database tables, or push directly to production without human approval. These should be hard-coded restrictions in your loop harness, not just instructions to the agent.
+
+Review gates for sensitive changes. Changes to authentication, authorization, payment processing, PII handling, or security configuration should always pause the loop for human review, regardless of how confident the verification is.
+
+Audit trails are non-negotiable. Every action a loop takes should be logged, traceable, and revertible. If a loop made a change six weeks ago that caused a subtle bug, you need to be able to find exactly what it did and why.
+
+Cost awareness. Addy Osmani warns: "you absolutely have to be careful about token costs — usage patterns can vary wildly if you are token rich or poor." A runaway loop can burn through thousands of dollars in API costs. Budget caps aren't optional.
+
+Comprehension debt. Osmani's concept: "The faster the loop ships code you did not write, the bigger the gap between what exists and what you actually get." Loops accelerate output, but they also accelerate the gap between what your codebase does and what you understand. Schedule regular code comprehension time — read what your loops wrote.
+
+
+Critical Warning
+Addy Osmani's final word: "Build the loop. But build it like someone who intends to stay the engineer, not just the person who presses go." Loop engineering is the cure when you do it with judgment and the accelerant when you do it to avoid thinking — same action, opposite result. The comfortable posture of letting loops run while you disengage is the dangerous one.
+
+
+Practical Starter Projects
+--------------------------
+
+
+Ready to build your first loops? Here are five progressively complex projects to get started:
+
+
+Project 1: The Test Fixer (Beginner)
+
+
+---code---
+bash
+#!/bin/bash
+# starter-project-1.sh — Your first loop
+# Goal: Fix all failing tests in a project
+# Time: 30 minutes to set up
+
+# 1. Create PROMPT.md with instructions
+cat > PROMPT.md << 'EOF'
+Run `npm test`. If any tests fail, read the failure messages,
+understand the root cause, and fix the source code (not the tests).
+After fixing, run `npm test` again to verify.
+Commit your fix with a descriptive message.
+EOF
+
+# 2. Run the loop
+MAX=20; I=0
+while [ $I -lt $MAX ]; do
+  I=$((I + 1))
+  echo "--- Attempt $I ---"
+
+  if npm test 2>&1 | grep -q "All tests passed"; then
+    echo "Done in $I iterations!"
+    exit 0
+  fi
+
+  cat PROMPT.md | claude --print
+done
+echo "Couldn't fix all tests in $MAX attempts."
+---/code---
+
+
+Project 2: The Coverage Expander (Intermediate)
+
+
+Write a loop that increases test coverage to a target percentage. The loop reads coverage reports, identifies uncovered code paths, generates meaningful tests, and verifies they pass.
+
+
+Project 3: The CI Babysitter (Intermediate)
+
+
+A scheduled loop that runs every 30 minutes, checks CI status for all open PRs, and automatically fixes simple failures (lint errors, type errors, test failures).
+
+
+Project 4: The Refactoring Campaign (Advanced)
+
+
+A plan-then-execute loop that takes a refactoring goal (e.g., "migrate all API routes from Express to Hono") and works through it systematically, verifying each step.
+
+
+Project 5: The Multi-Agent Code Review Pipeline (Expert)
+
+
+A nested loop with three agents: an explorer that analyzes code changes, an implementer that applies improvements, and a security reviewer that gates the final output. Run in parallel across multiple PRs.
+
+
+Final Thoughts: The Leverage Point Has Moved
+----------------------------------------
+
+
+Loop engineering isn't just a new technique — it's a new mental model for how engineers interact with AI. The leverage point has moved from crafting the perfect prompt to designing the system that crafts prompts on your behalf. From holding the tool to building the machine that holds the tool.
+
+But as Osmani, Cherny, and Huntley all emphasize in different ways: the human doesn't disappear from this picture. The human moves up a level — from writing code to designing the systems that write code, from reviewing individual changes to reviewing loop architectures, from debugging functions to debugging feedback loops.
+
+The best loop engineers will be the ones who understand both the power and the limits of automation. Who know when to let the loop run and when to step in. Who build verification they trust and stop conditions that work. Who use loops to move faster on work they understand deeply, not to avoid understanding the work at all.
+
+Build the loop. Stay the engineer.
+
+
+Glossary of Loop Engineering Terms
+----------------------------------
+
+
+Term	|	Definition
+Agentic Loop	|	An automated cycle where an AI agent acts, verifies, and decides whether to continue or stop — the fundamental unit of loop engineering.
+Generator	|	The AI model component that produces code, text, or other outputs. The creative, probabilistic half of the loop.
+Verifier	|	The component that checks the generator's output — tests, linters, type checkers, or a second AI model acting as reviewer.
+Maker/Checker Split	|	The principle of separating the agent that produces work from the agent that evaluates it, preventing self-grading bias.
+Ralph Wiggum Pattern	|	Geoffrey Huntley's technique of running a coding agent in a bash while-loop with fresh context each iteration and the filesystem as memory.
+Context Rot	|	Degradation of agent performance as the context window fills with old reasoning, dead ends, and stale information during long sessions.
+Turn Ceiling	|	A hard maximum on the number of loop iterations, preventing infinite loops and runaway costs.
+No-Progress Detection	|	A safety mechanism that detects when a loop is stuck — producing the same errors or making no meaningful changes across iterations.
+Cognitive Surrender	|	Addy Osmani's term for the risk of using loops to avoid understanding, rather than to accelerate work you understand deeply.
+Comprehension Debt	|	The growing gap between what your codebase does and what you actually understand, accelerated by autonomous loops.
+Harness Engineering	|	The discipline of designing environments, constraints, and feedback loops that make AI coding agents reliable at scale — the layer below loop engineering.
+Worktree Isolation	|	Using git worktrees to give each concurrent loop its own working directory, preventing file conflicts between parallel agents.
+
+
+Loop Engineering Course — Built July 2026
+Based on the work of Addy Osmani,
+Boris Cherny,
+Geoffrey Huntley, and
+the DEV Community.
+Fully offline — no external dependencies. Progress saved to localStorage.
