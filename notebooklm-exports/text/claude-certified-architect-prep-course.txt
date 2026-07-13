@@ -1,0 +1,1789 @@
+CLAUDE CERTIFIED ARCHITECT (CCA-F) — COMPLETE EXAM PREP
+=======================================================
+
+------------------------------------
+Module 1: 1 Exam Overview & Strategy
+------------------------------------
+
+
+The Claude Certified Architect — Foundational (CCA-F) is Anthropic's first official technical certification, launched on March 12, 2026 as a cornerstone of the Claude Partner Network (CPN). It validates that a practitioner can design, build, and operate production-grade systems on top of Claude. Unlike vendor-neutral AI certifications, the CCA-F focuses specifically on Anthropic's platform stack: the Messages API, Claude Code, MCP, agent orchestration, and the operational practices needed to run Claude reliably at scale.
+
+
+Why This Certification Matters
+The CCA-F is rapidly becoming the standard credential for teams building with Claude. Partner Network companies are requiring it for architects, senior engineers, and technical leads. Passing signals that you understand not just prompt engineering, but the full lifecycle — from multi-agent design through context management to production monitoring.
+
+
+Exam Format & Logistics
+-----------------------
+
+
+Detail	|	Specification
+Exam Code	|	CCA-F (Claude Certified Architect — Foundational)
+Questions	|	60 multiple-choice, scenario-based
+Time Limit	|	120 minutes
+Passing Score	|	720 / 1000 (scaled score)
+Exam Fee	|	$125 USD
+Delivery	|	Online proctored; migrated to Pearson VUE from June 30, 2026
+Certification Validity	|	12 months from pass date
+Renewal	|	Free non-proctored assessment if renewed on time; lapse = full exam at full price
+
+
+Retake Policy
+
+
+  * After 1st failed attempt: Wait 14 days
+
+  * After 2nd failed attempt: Wait 30 days
+
+  * After 3rd failed attempt: Wait 90 days
+
+  * Maximum: 4 attempts per 12-month period
+
+
+Free Voucher Program
+The first 5,000 employees at Claude Partner Network member companies receive a complimentary exam voucher. Check with your company's CPN administrator to see if vouchers remain available.
+
+
+Claude Certified Associate (CCAO-F)
+
+
+Anthropic also offers the Claude Certified Associate — Foundational (CCAO-F), which opened on July 13, 2026 at $99 USD. The CCAO-F targets non-developers — product managers, business analysts, and operational staff — and covers 7 domains focused on using Claude effectively without writing code. If you are preparing for the CCA-F (the architect-level exam), the CCAO-F content is a proper subset and completing the CCAO-F first can be good warm-up practice.
+
+
+The Five Exam Domains
+---------------------
+
+
+Every question on the CCA-F maps to one of five domains. Understanding the weight distribution is critical for allocating your study time efficiently.
+
+
+Domain	|	Weight	|	Description
+D1: Agentic Architecture & Orchestration	|	27%	|	Designing multi-agent systems, orchestration patterns, the agentic loop, subagent isolation, error handling
+D2: Tool Design & MCP Integration	|	18%	|	MCP protocol architecture, tool definitions, transport mechanisms, building servers, authentication
+D3: Claude Code Configuration & Workflows	|	20%	|	CLAUDE.md hierarchy, hooks, custom commands, CI/CD integration, the explore-plan-code-commit cycle
+D4: Prompt Engineering & Structured Output	|	20%	|	System prompts, XML structuring, extended thinking, JSON mode, constrained decoding, prompt chaining
+D5: Context Management & Reliability	|	15%	|	Token management, RAG, prompt caching, batch API, rate limiting, context rot mitigation
+
+
+High-Yield Focus Areas
+D1 (Agentic Architecture) and D3 (Claude Code) together account for 47% of the exam. If you must triage your study time, master these two domains first. A strong showing in D1 + D3 can carry you past the 720 threshold even with average performance elsewhere.
+
+
+Test-Taking Strategy
+--------------------
+
+
+The CCA-F is entirely scenario-based. Every question places you in a realistic production situation and asks you to make an architectural decision. There are no trivia questions about API parameter names or version numbers. Here is how to approach them:
+
+
+The STAR Method for Scenario Questions
+
+
+  1. Situation: Read the scenario carefully. Identify the constraints (scale, latency, cost, reliability requirements).
+
+  2. Task: What exactly is being asked? "Which architecture," "What is the primary reason," "Which approach best addresses" — the verb tells you the expected depth.
+
+  3. Action: Evaluate each option against the stated constraints. Eliminate options that violate a hard constraint first.
+
+  4. Result: The correct answer is the one that best satisfies all stated constraints simultaneously, not the one that is generically "best practice."
+
+
+Common Traps
+
+
+  * The "always" trap: Answers containing "always" or "never" are usually wrong. Production systems require nuance.
+
+  * The over-engineering trap: A multi-agent orchestration is not the right answer when a simple API call with prompt chaining would suffice. The exam rewards choosing the simplest adequate architecture.
+
+  * The recency trap: Newer features are not automatically better. Extended thinking is powerful but adds latency and cost — the exam tests whether you know when to use it vs. manual chain-of-thought.
+
+  * The context confusion trap: Questions about MCP often include an option that conflates Resources with Tools or mixes up transport types. Keep the primitives distinct in your mind.
+
+
+Time Management
+
+
+With 60 questions in 120 minutes, you have an average of 2 minutes per question. Strategy:
+
+  * First pass (70 minutes): Answer everything you are confident about. Flag uncertain questions.
+
+  * Second pass (40 minutes): Return to flagged questions. Re-read the scenario slowly.
+
+  * Final review (10 minutes): Scan for any unanswered questions. Never leave a question blank — there is no penalty for guessing.
+
+
+Recommended Learning Path
+-------------------------
+
+
+Before diving into this prep course, complete the free courses on Anthropic Academy (anthropic.skilljar.com). There are 17 courses covering the fundamentals. Recommended sequence:
+
+
+  5. Claude 101: Foundational concepts, model family overview, safety principles
+
+  6. Building with the Claude API: Messages API, streaming, tool use basics
+
+  7. Claude Code in Action: Setting up Claude Code, CLAUDE.md, workflows
+
+  8. MCP Fundamentals: Protocol architecture, building your first server
+
+  9. MCP Advanced Patterns: Authentication, remote servers, production deployment
+
+  10. Agent Skills: Agentic patterns, the agentic loop, multi-agent design
+
+  11. Subagents & Orchestration: Hub-and-spoke, context isolation, performance outcomes
+
+
+Recommended Prep Timeline
+
+  * 4 weeks: Ideal for experienced Claude developers. 1 hour/day.
+
+  * 8 weeks: Recommended for those newer to the platform. 45 min/day.
+
+  * 12 weeks: Comfortable pace with time for hands-on projects. 30 min/day.
+
+
+------------------------------------------------------
+Module 2: 2 Agentic Architecture & Orchestration (27%)
+------------------------------------------------------
+
+
+Domain 1 is the heaviest-weighted domain on the CCA-F, reflecting Anthropic's position that agentic architectures represent the primary way enterprises will deploy Claude in production. This domain tests your ability to design systems where Claude operates with varying degrees of autonomy, uses tools, manages multi-step workflows, and coordinates with other agents.
+
+
+Defining Agentic Systems
+------------------------
+
+
+An agentic system is any system where an AI model operates with a degree of autonomy — making decisions about which actions to take, executing those actions through tools, and iterating based on results. The defining characteristics are:
+
+
+  * Autonomy: The model decides what to do next, rather than following a fixed script
+
+  * Tool Use: The model can call external functions (APIs, databases, file systems) to interact with the world
+
+  * Iterative Reasoning: The model observes tool results and decides whether to continue or stop
+
+  * Goal-Directed Behavior: Actions are oriented toward completing a user-specified objective
+
+
+Agents vs. Workflows vs. Conversational Systems
+
+
+The exam frequently tests your ability to distinguish between these three system types and choose the right one for a given scenario.
+
+
+System Type	|	Control Flow	|	Best For	|	Example
+Conversational	|	User-driven, turn-by-turn	|	Interactive Q&A, chat assistants	|	Customer support chatbot
+Workflow	|	Predefined steps, deterministic routing	|	Structured processes with known steps	|	Document processing pipeline
+Agent	|	Model-driven, dynamic	|	Open-ended tasks requiring judgment	|	Code refactoring across a codebase
+
+
+Exam Tip
+When a scenario describes a task with well-known, repeatable steps (e.g., "extract data from PDF, validate against schema, insert into database"), the answer is usually a workflow, not an agent. Agents are the right choice when the number of steps is unknown or the path depends on intermediate results.
+
+
+The Fundamental Agentic Loop
+----------------------------
+
+
+Every agentic system built on Claude follows the same core loop. Understanding this loop is essential — at least 4-5 exam questions directly test it.
+
+
+---code---
+while True:
+    # 1. Send messages to Claude (including any tool results)
+    response = client.messages.create(
+        model="claude-sonnet-4-5-20250514",
+        max_tokens=4096,
+        system=system_prompt,
+        messages=messages,
+        tools=tool_definitions
+    )
+
+    # 2. Check stop_reason
+    if response.stop_reason == "end_turn":
+        # Claude has finished — extract final text response
+        break
+    elif response.stop_reason == "tool_use":
+        # Claude wants to call a tool — extract the tool call
+        tool_block = next(b for b in response.content if b.type == "tool_use")
+
+        # 3. Execute the tool
+        result = execute_tool(tool_block.name, tool_block.input)
+
+        # 4. Append assistant response and tool result to messages
+        messages.append({"role": "assistant", "content": response.content})
+        messages.append({
+            "role": "user",
+            "content": [{
+                "type": "tool_result",
+                "tool_use_id": tool_block.id,
+                "content": str(result)
+            }]
+        })
+    # Loop continues — Claude sees the tool result and decides next action
+---/code---
+
+
+The critical insight is the stop_reason field. When Claude returns "tool_use", the system must execute the requested tool and feed the result back. When Claude returns "end_turn", the task is complete. This loop continues until either: Claude signals completion, a maximum iteration count is reached, or an error occurs that cannot be recovered.
+
+
+Stop Reasons Reference
+
+
+stop_reason	|	Meaning	|	Action
+"end_turn"	|	Claude has finished its response	|	Extract text, exit loop
+"tool_use"	|	Claude wants to call one or more tools	|	Execute tools, feed results back
+"max_tokens"	|	Response hit the max_tokens limit	|	Continue conversation or increase limit
+"stop_sequence"	|	Custom stop sequence was matched	|	Process partial response
+
+
+Agent Patterns
+--------------
+
+
+ReAct (Reasoning + Acting)
+
+
+The ReAct pattern interleaves reasoning and action. The agent first reasons about what it knows and what it needs to find out, then takes an action (tool call), observes the result, reasons again, and repeats. This is the most common pattern for Claude agents because Claude's natural behavior already follows this pattern — it thinks through a problem, identifies what information it needs, and uses tools to get that information.
+
+In practice, ReAct emerges naturally when you give Claude tools and a task. You do not need to explicitly instruct Claude to "reason then act" — it does this by default. However, combining ReAct with extended thinking (where the reasoning happens in a separate thinking block before the response) produces measurably better results on complex multi-step tasks.
+
+
+Plan-and-Execute
+
+
+In the plan-and-execute pattern, the agent first creates an explicit plan (a list of steps), then executes each step sequentially, checking off items as it goes. This pattern is superior to pure ReAct when the task has many dependencies between steps and the order matters.
+
+Implementation approach: Use a system prompt that instructs Claude to first output a plan inside <plan> tags, then execute steps one by one, updating the plan after each step to handle any changes. This creates an auditable trail and helps Claude maintain coherence across long tasks.
+
+
+Multi-Agent Orchestration
+
+
+Multi-agent architectures use multiple Claude instances, each with a specialized role. Anthropic's research shows that multi-agent systems outperform single-agent by up to 90% on complex tasks when properly coordinated by a lead planner. The key architectures are:
+
+
+Hub-and-Spoke Model
+
+
+The hub-and-spoke model is the primary multi-agent pattern used in the Claude Agent SDK. One orchestrator agent (the hub) receives the user's task, breaks it down into subtasks, and delegates each subtask to a specialist subagent (the spokes). Each subagent has:
+
+
+  * Its own context window: Isolated from other subagents, so it only sees relevant information
+
+  * Its own tool permissions: A subagent that only needs to read files does not get write tools
+
+  * Its own model selection: A simple summarization subagent can use a cheaper model than a reasoning-heavy one
+
+  * A focused system prompt: Tailored to its specific role
+
+
+Key Insight for the Exam
+Context isolation beats context sharing for quality. When you give a subagent only the information it needs (rather than the entire conversation history), it produces higher quality output because it is not distracted by irrelevant information. This is tested frequently — if a question asks about improving subagent quality, "reduce context to only relevant information" is almost always correct.
+
+
+Claude Agent SDK Architecture
+-----------------------------
+
+
+The Claude Agent SDK provides first-class support for building multi-agent systems. Agents are defined as objects with their own configuration:
+
+
+---code---
+from claude_agent_sdk import Agent, tool
+
+# Define a specialist subagent
+research_agent = Agent(
+    name="researcher",
+    model="claude-sonnet-4-5-20250514",
+    system_prompt="""You are a research specialist.
+    Given a topic, search for relevant information and
+    return a structured summary.""",
+    tools=[web_search, read_document],
+    max_turns=10
+)
+
+# Define the orchestrator
+orchestrator = Agent(
+    name="orchestrator",
+    model="claude-sonnet-4-5-20250514",
+    system_prompt="""You coordinate research tasks.
+    Break complex questions into sub-questions and
+    delegate to the research agent.""",
+    subagents=[research_agent],
+    tools=[file_write]
+)
+---/code---
+
+
+Critical design principles in the Agent SDK:
+
+  * Agents are first-class objects: Each has its own context, tools, model, and system prompt
+
+  * Subagent invocation is a tool call: The orchestrator "calls" a subagent the same way it calls any other tool
+
+  * Context isolation is the default: Subagents get a fresh context window with only the information the orchestrator passes to them
+
+  * Results flow back to the orchestrator: The subagent's output becomes a tool result in the orchestrator's context
+
+
+Dynamic Workflows & Performance Outcomes
+----------------------------------------
+
+
+Dynamic Workflows (June 2026)
+
+
+Dynamic Workflows, introduced in June 2026, allow a lead agent to fan out tens to hundreds of parallel subagents. This is a significant capability upgrade from the earlier sequential subagent model. Use cases include:
+
+
+  * Large codebase refactoring: Fan out one subagent per file or module, each making the same type of change in parallel
+
+  * Document analysis: Process hundreds of documents simultaneously, with each subagent analyzing one document
+
+  * Multi-source research: Query multiple data sources in parallel, then synthesize results
+
+
+The lead agent defines the fan-out pattern, creates the subagent specifications, and then waits for all results. It then synthesizes the individual results into a coherent output. This pattern reduces wall-clock time dramatically compared to sequential processing.
+
+
+Performance Outcomes
+
+
+Performance Outcomes introduce a quality gate into the multi-agent pipeline. A separate grader agent evaluates each subagent's output against a rubric. If the output does not meet the rubric criteria, the grader sends the subagent back to revise its work, providing specific feedback about what needs improvement. This creates a revise-until-quality loop:
+
+
+  12. Subagent produces output
+
+  13. Grader evaluates against rubric
+
+  14. If passing: output is accepted
+
+  15. If failing: grader sends feedback to subagent, subagent revises
+
+  16. Repeat until passing or max retries exhausted
+
+
+Session Management and State
+----------------------------
+
+
+Long-running agents must manage state across multiple interactions. Key patterns:
+
+
+  * Conversation history as state: The messages array IS the state. Persist it between API calls to maintain continuity.
+
+  * External state stores: For state that must survive process restarts, use a database or file system. The agent reads current state at the beginning of each turn.
+
+  * Checkpoint-and-resume: For long tasks, periodically save progress so the agent can resume after failures without starting over.
+
+
+Error Handling and Recovery
+---------------------------
+
+
+Production agents must handle failures gracefully. The exam tests three critical patterns:
+
+
+Idempotent Tool Calls
+
+
+Design tools so that calling them twice with the same inputs produces the same result. This is essential for crash recovery — if the agent crashes after executing a tool but before recording the result, it must be safe to re-execute the tool on restart. Example: instead of increment_counter(), use set_counter(value=5).
+
+
+Crash Recovery Without Replaying Side Effects
+
+
+When an agent crashes mid-task, it must resume without re-executing tool calls that have already produced side effects (sent emails, created records, charged credit cards). Pattern:
+
+  17. Before each tool execution, write the tool call to a journal
+
+  18. After execution, write the result to the journal
+
+  19. On restart, replay the journal: skip tools that have results, re-execute tools that were started but not completed
+
+
+When to Use Agents vs. Simple API Calls
+
+
+Not every task requires an agent. The exam tests whether you can identify the appropriate level of complexity:
+
+
+Use Simple API Call When...	|	Use an Agent When...
+Task requires a single model response	|	Task requires multiple steps with tool use
+No external data or actions needed	|	External systems must be queried or modified
+Output format is predictable	|	The path to the answer depends on intermediate results
+Low latency is critical	|	Quality is more important than latency
+Cost must be minimized	|	The task justifies multiple API calls
+
+
+Practice Questions — Domain 1
+-----------------------------
+
+
+-------------------------------------------------------
+Module 3: 3 Claude Code Configuration & Workflows (20%)
+-------------------------------------------------------
+
+
+Claude Code is Anthropic's official agentic coding tool — a terminal-based AI assistant that operates directly in your development environment. Domain 3 tests your mastery of its configuration system, automation workflows, and integration into CI/CD pipelines. This domain is tightly coupled with Domain 1 (Agentic Architecture) and together they account for 47% of the exam.
+
+
+The Three-Level CLAUDE.md Hierarchy
+-----------------------------------
+
+
+CLAUDE.md files are the primary mechanism for giving Claude Code persistent context and instructions. They form a three-level hierarchy that determines scope and precedence:
+
+
+1. User-Level (~/.claude/CLAUDE.md)
+
+
+Applies across ALL projects for the current user. Use for personal preferences like coding style, preferred language patterns, or common tools. This file is never committed to version control.
+
+---code---
+# Example: ~/.claude/CLAUDE.md
+- I prefer functional programming patterns over OOP
+- Always use TypeScript strict mode
+- Use pnpm, not npm or yarn
+- My preferred test framework is Vitest
+---/code---
+
+
+2. Project-Level (./CLAUDE.md)
+
+
+Applies to the entire project. Committed to version control and shared with the team. Contains project-specific architecture decisions, coding standards, and important context about the codebase.
+
+---code---
+# Example: ./CLAUDE.md
+# Project: Acme Dashboard
+
+## Architecture
+- Next.js 14 with App Router
+- PostgreSQL via Drizzle ORM
+- Authentication via Clerk
+- Deployed on Vercel
+
+## Conventions
+- All API routes in app/api/
+- Database migrations in drizzle/migrations/
+- Use server actions for mutations, not API routes
+- Error handling: use Result type pattern, never throw
+
+## Important Notes
+- Never modify the auth middleware without team review
+- The legacy /api/v1 routes are frozen — do not change
+---/code---
+
+
+3. Directory-Level (./src/components/CLAUDE.md)
+
+
+Applies only when Claude Code is working on files within that directory or its children. Useful for specialized rules for particular parts of the codebase.
+
+---code---
+# Example: ./src/components/CLAUDE.md
+- All components use the compound component pattern
+- Props interfaces go in a separate types.ts file
+- Each component folder has: index.tsx, types.ts, styles.module.css, Component.test.tsx
+- Use forwardRef for all interactive components
+---/code---
+
+
+Path-Specific Rules with .claude/rules/
+
+
+For even more granular control, create rules files in .claude/rules/ with YAML glob frontmatter that specifies which files the rule applies to:
+
+---code---
+# .claude/rules/api-routes.md
+---
+globs: ["src/app/api/**/*.ts"]
+---
+- All API routes must validate input with Zod schemas
+- Return consistent error format: { error: string, code: number }
+- Include rate limiting middleware
+- Log all requests with structured logging
+---/code---
+
+
+---code---
+# .claude/rules/database.md
+---
+globs: ["src/db/**/*.ts", "drizzle/**/*.ts"]
+---
+- Always use transactions for multi-table operations
+- Include created_at and updated_at timestamps on all tables
+- Use soft deletes (deleted_at column) instead of hard deletes
+- Migration files must be reversible
+---/code---
+
+
+Custom Slash Commands
+---------------------
+
+
+Custom slash commands are reusable prompt templates stored in .claude/commands/. Each command is a Markdown file whose body becomes the prompt sent to Claude when the command is invoked.
+
+
+Creating a Custom Command
+
+
+---code---
+# .claude/commands/review.md
+---
+description: "Perform a thorough code review of the current changes"
+allowed-tools: ["Read", "Grep", "Glob"]
+model: "claude-sonnet-4-5-20250514"
+---
+Review the current git diff thoroughly. For each changed file:
+
+1. Check for bugs, logic errors, and edge cases
+2. Verify error handling is comprehensive
+3. Ensure naming conventions match the project style
+4. Look for security vulnerabilities (SQL injection, XSS, etc.)
+5. Check test coverage — flag any untested code paths
+
+Format your review as:
+## Summary
+(Overall assessment)
+
+## File-by-File Review
+(Detailed findings per file)
+
+## Action Items
+(Numbered list of required changes)
+---/code---
+
+
+Users invoke this command by typing /review in Claude Code. The optional YAML frontmatter controls:
+
+  * description: Shown in command listing and autocomplete
+
+  * allowed-tools: Restricts which tools the command can use
+
+  * model: Overrides the default model for this command
+
+
+Built-in Slash Commands
+
+
+Claude Code ships with several built-in commands that you should know for the exam:
+
+Command	|	Purpose
+/init	|	Generate an initial CLAUDE.md by analyzing the codebase
+/review	|	Review the current git diff
+/bug	|	Help diagnose and fix a bug
+/compact	|	Compress conversation context to free up tokens
+/clear	|	Reset conversation history entirely
+/help	|	Show available commands and capabilities
+
+
+The Hooks System
+----------------
+
+
+Hooks allow you to run custom code at specific points in Claude Code's execution lifecycle. They are configured in .claude/settings.json and execute shell commands or scripts.
+
+
+Hook Types
+
+
+Hook	|	Fires When	|	Primary Use Cases
+UserPromptSubmit	|	Before the model sees the user's message	|	Inject additional context, reject certain prompts, add metadata
+PreToolUse	|	Before each tool execution	|	Block dangerous tool calls, log tool usage, add guardrails
+PostToolUse	|	After each tool execution	|	Process tool results, trigger notifications, update dashboards
+
+
+Exam Favorite: UserPromptSubmit
+The exam frequently asks about the most useful hook for injecting additional context before Claude processes a message. The answer is UserPromptSubmit — it fires before the model sees the user's message, making it the ideal place to append dynamic context (current git branch, recent errors from a log file, the result of a linter run, etc.). This is considered the most useful hook because it allows you to silently enrich every prompt without requiring the user to remember to include context.
+
+
+Hook Configuration Example
+
+
+---code---
+// .claude/settings.json
+{
+  "hooks": {
+    "UserPromptSubmit": {
+      "command": "bash .claude/hooks/enrich-prompt.sh",
+      "timeout": 5000
+    },
+    "PreToolUse": {
+      "command": "python .claude/hooks/tool-guard.py",
+      "timeout": 3000
+    }
+  }
+}
+---/code---
+
+
+---code---
+# .claude/hooks/enrich-prompt.sh
+#!/bin/bash
+# Inject current git context and recent test results
+echo "Current branch: $(git branch --show-current)"
+echo "Last test run: $(cat .test-results/latest.txt 2>/dev/null || echo 'No recent tests')"
+echo "Uncommitted files: $(git status --porcelain | wc -l | tr -d ' ')"
+---/code---
+
+
+The Explore-Plan-Code-Commit Cycle
+----------------------------------
+
+
+Claude Code's recommended workflow follows a four-phase cycle that mirrors how experienced developers approach tasks:
+
+
+  20. Explore: Claude reads relevant files, understands the codebase structure, and identifies where changes need to be made. Uses tools like Read, Glob, Grep to build understanding.
+
+  21. Plan: Claude creates a concrete plan of changes. This may involve breaking a large task into smaller steps, identifying dependencies between changes, and flagging potential risks.
+
+  22. Code: Claude implements the changes using Edit and Write tools. Each edit is targeted and precise.
+
+  23. Commit: Claude creates a git commit with a descriptive message. The commit message follows conventional commit format and includes context about why the change was made.
+
+
+Claude Code in CI/CD
+--------------------
+
+
+Claude Code can run in non-interactive CI/CD pipelines using specific flags:
+
+
+The -p (Prompt) Flag
+
+
+The -p flag runs Claude Code in non-interactive mode with a single prompt. It processes the prompt, performs the requested actions, and exits. This is essential for CI/CD integration.
+
+---code---
+# Example: Automated code review in CI
+claude -p "Review the changes in this PR and create a summary of potential issues" \
+  --output-format json > review-results.json
+---/code---
+
+
+The --bare Flag
+
+
+The --bare flag skips all ambient discovery — it does not read CLAUDE.md files, does not scan the git history, and does not load project context. It requires an explicit ANTHROPIC_API_KEY environment variable. Use --bare when you want a clean, predictable environment for CI tasks.
+
+
+---code---
+# CI pipeline with bare mode
+export ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_KEY }}
+claude --bare -p "Analyze the test results in test-output.xml and create a summary"
+---/code---
+
+
+Skills
+
+
+Skills are reusable markdown instructions that Claude Code automatically discovers and applies based on the task context. They are similar to CLAUDE.md rules but are more portable — they can be shared across projects and teams. Skills are stored in a location Claude Code scans automatically, and they contain instructions that Claude applies when relevant to the current task.
+
+
+MCP Server Configuration
+
+
+Claude Code can connect to MCP servers for extended capabilities. Servers are configured in the settings and provide additional tools, resources, and prompts that Claude can use during sessions.
+
+
+Practice Questions — Domain 3
+-----------------------------
+
+
+--------------------------------------------------------
+Module 4: 4 Prompt Engineering & Structured Output (20%)
+--------------------------------------------------------
+
+
+Domain 4 covers the art and science of communicating effectively with Claude — from system prompt design through structured output enforcement. While prompt engineering might seem "soft" compared to architecture, the exam questions in this domain are precise and test deep understanding of how Claude processes and responds to different prompt structures.
+
+
+System Prompts vs. User Prompts
+-------------------------------
+
+
+System Prompts
+
+
+The system prompt sets Claude's persona, instructions, and behavioral constraints for the entire conversation. It is provided via the system parameter in the API call and is NOT part of the messages array. Best practices:
+
+
+  * Identity and role: Define who Claude is in this context ("You are a senior security analyst reviewing code for vulnerabilities")
+
+  * Behavioral constraints: What Claude should and should not do ("Never suggest deleting production data", "Always ask for confirmation before making changes")
+
+  * Output format: How responses should be structured ("Respond in JSON format with the following fields...")
+
+  * Context and background: Information Claude needs to do its job well ("The codebase uses PostgreSQL 15 with PostGIS extensions")
+
+  * Prioritization: What matters most ("Prioritize security over performance in all recommendations")
+
+
+Key Exam Concept
+System prompts have special precedence in Claude's processing. Instructions in the system prompt carry more weight than instructions in user messages. If there is a conflict between a system prompt instruction and a user message, Claude follows the system prompt. This is important for building reliable applications where user input should not override safety constraints.
+
+
+User Prompts
+
+
+User prompts are the individual messages in the messages array. They can include text, images, and tool results. Best practices for user prompts:
+
+  * Be specific: "Refactor the calculateTax function in src/utils/tax.ts to handle negative amounts" is better than "fix the tax code"
+
+  * Provide context: Include relevant code, error messages, or requirements directly in the prompt
+
+  * State the expected output: "Return only the modified function, no explanations" or "Explain your reasoning step by step"
+
+
+XML Tag Structuring
+-------------------
+
+
+Anthropic recommends XML tags as essential for complex prompts. XML tags help Claude parse multi-part prompts, distinguish between instructions and data, and produce structured output. This is one of Anthropic's strongest recommendations and is tested heavily on the exam.
+
+
+Common XML Tag Patterns
+
+
+---code---
+
+Analyze the following code for security vulnerabilities.
+Focus on: SQL injection, XSS, CSRF, authentication bypasses.
+Rate each finding as Critical, High, Medium, or Low.
+
+
+// The actual code to analyze goes here
+app.get('/users/:id', (req, res) => {
+  const query = `SELECT * FROM users WHERE id = ${req.params.id}`;
+  db.execute(query).then(result => res.json(result));
+});
+
+
+Return findings in this format:
+
+  Critical|High|Medium|Low
+  Vulnerability type
+  File and line
+  What the issue is
+  How to fix it
+
+
+---/code---
+
+
+Why XML Tags Work
+
+
+  * Clear boundaries: Claude can unambiguously distinguish between instructions, data, and format specifications
+
+  * Nesting support: Complex structures with parent-child relationships are naturally expressed
+
+  * Consistent extraction: Output wrapped in XML tags is easy to parse programmatically
+
+  * Resistance to injection: Data inside XML tags is less likely to be interpreted as instructions
+
+
+Few-Shot Prompting
+------------------
+
+
+Few-shot prompting provides examples of the desired input-output behavior. Claude learns the pattern from the examples and applies it to new inputs. Structure few-shot examples using XML tags for clarity:
+
+
+---code---
+
+
+  The server returned a 503 error when processing the batch job.
+  {"category": "infrastructure", "severity": "high", "component": "batch_processor"}
+
+
+  User reported that the login button is misaligned on mobile.
+  {"category": "ui", "severity": "low", "component": "auth_frontend"}
+
+
+Now classify this issue:
+The payment webhook is failing intermittently with timeout errors.
+---/code---
+
+
+Extended Thinking & Chain-of-Thought
+------------------------------------
+
+
+Manual Chain-of-Thought
+
+
+Before extended thinking was available, developers used manual chain-of-thought by instructing Claude to "think step by step" or reason inside <thinking> tags before producing an answer in <answer> tags:
+
+
+---code---
+Before answering, reason through the problem step by step
+inside  tags. Then provide your final answer
+inside  tags.
+
+
+(Claude reasons here — visible to the user)
+
+
+(Final answer here)
+
+---/code---
+
+
+Extended Thinking (GA June 26, 2026)
+
+
+Extended thinking is a first-class API feature that gives Claude a dedicated, private reasoning space before generating its response. Key differences from manual chain-of-thought:
+
+
+  * Private: Thinking blocks are separate from the response and can be hidden from users
+
+  * Controllable: The budget_tokens parameter lets you control how much reasoning to allow
+
+  * Higher quality: Extended thinking consistently outperforms manual chain-of-thought on complex reasoning tasks
+
+  * Cost trade-off: Thinking tokens are billed at input token rates, so more thinking = higher cost
+
+
+---code---
+response = client.messages.create(
+    model="claude-sonnet-4-5-20250514",
+    max_tokens=8192,
+    thinking={
+        "type": "enabled",
+        "budget_tokens": 4096  # Controls reasoning depth
+    },
+    messages=[{"role": "user", "content": "..."}]
+)
+---/code---
+
+
+When to Use Extended Thinking vs. Manual CoT
+
+  * Use extended thinking when: the task requires deep reasoning (math, logic, complex code analysis), you want higher quality output, and the cost of extra thinking tokens is acceptable.
+
+  * Use manual chain-of-thought when: you want the reasoning to be visible to the user, you are on a model that does not support extended thinking, or you need fine-grained control over the reasoning format.
+
+  * Use neither when: the task is simple and does not benefit from step-by-step reasoning (straightforward extraction, simple Q&A, basic formatting tasks).
+
+
+Structured Output
+-----------------
+
+
+JSON Mode
+
+
+When you need Claude to return valid JSON, you can instruct it in the system prompt and use the response format parameter. Claude reliably produces well-formed JSON when properly instructed:
+
+
+---code---
+response = client.messages.create(
+    model="claude-sonnet-4-5-20250514",
+    max_tokens=4096,
+    system="You are a data extraction API. Always respond with valid JSON.",
+    messages=[{
+        "role": "user",
+        "content": "Extract: name, email, company from: 'John Smith, john@acme.com, works at Acme Corp'"
+    }]
+)
+---/code---
+
+
+Tool Use for Structured Data Extraction
+
+
+A powerful pattern is to define a tool with a JSON Schema that describes the desired output structure, then ask Claude to "use" the tool. Claude's tool use mechanism guarantees that the output matches the schema:
+
+
+---code---
+tools = [{
+    "name": "extract_contact",
+    "description": "Extract contact information from text",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "name": {"type": "string"},
+            "email": {"type": "string", "format": "email"},
+            "company": {"type": "string"},
+            "role": {"type": "string"}
+        },
+        "required": ["name", "email"]
+    }
+}]
+
+response = client.messages.create(
+    model="claude-sonnet-4-5-20250514",
+    max_tokens=1024,
+    tools=tools,
+    tool_choice={"type": "tool", "name": "extract_contact"},
+    messages=[{"role": "user", "content": text_to_extract_from}]
+)
+---/code---
+
+
+Constrained Decoding
+
+
+Constrained decoding enforces schemas at the token level during generation. Unlike prompt-based JSON extraction (where Claude might occasionally produce invalid JSON), constrained decoding guarantees schema compliance by restricting which tokens can be generated at each step. This is particularly useful for production systems where invalid output cannot be tolerated and retries are expensive.
+
+
+Temperature and Sampling Parameters
+-----------------------------------
+
+
+Parameter	|	Default	|	Effect	|	Use When
+temperature	|	1.0	|	Controls randomness. 0 = deterministic, higher = more creative	|	Set to 0 for code generation, extraction. Higher for creative writing.
+top_p	|	1.0	|	Nucleus sampling — considers tokens in the top p probability mass	|	Alternative to temperature. Usually leave at default.
+top_k	|	—	|	Considers only the top k most likely tokens	|	Rare to use with Claude. More common in open-source models.
+
+
+Exam Tip
+The exam does not ask you to memorize default values. It DOES ask you to choose the right temperature for a given scenario. Rule of thumb: deterministic tasks (code, extraction, classification) → temperature 0. Creative tasks (brainstorming, writing) → temperature 0.7-1.0. Do not set temperature above 1.0 unless specifically asked to maximize creativity at the expense of coherence.
+
+
+Prompt Chaining and Decomposition
+---------------------------------
+
+
+For complex tasks, breaking the work into a chain of prompts — each handling one step — produces better results than a single monolithic prompt. This is because:
+
+
+  * Each step gets focused context: The prompt for step 2 only contains what it needs, not the entire task description
+
+  * Errors are isolated: If step 3 fails, you can retry it without re-running steps 1 and 2
+
+  * Intermediate results can be validated: Check each step's output before proceeding
+
+  * Different models for different steps: Use a powerful model for reasoning and a fast model for formatting
+
+
+Example: Document Analysis Pipeline
+
+
+  24. Step 1 (Extract): "Extract all dates, monetary amounts, and party names from this contract." (High accuracy needed → Claude Sonnet with extended thinking)
+
+  25. Step 2 (Classify): "Classify each extracted item by type: date, amount, party." (Simple task → fast model)
+
+  26. Step 3 (Analyze): "Given the classified items, identify any conflicts between dates or amounts." (Reasoning → extended thinking)
+
+  27. Step 4 (Format): "Format the analysis as a structured report with this template." (Formatting → fast model)
+
+
+Practice Questions — Domain 4
+-----------------------------
+
+
+-----------------------------------------------
+Module 5: 5 Tool Design & MCP Integration (18%)
+-----------------------------------------------
+
+
+The Model Context Protocol (MCP) is an open protocol that standardizes how AI models connect to external data sources and tools. Domain 5 tests your understanding of MCP architecture, the three core primitives, transport mechanisms, and best practices for building and deploying MCP servers.
+
+
+MCP Architecture: Host, Client, Server
+--------------------------------------
+
+
+MCP follows a three-tier architecture with clearly defined roles:
+
+
+Hosts
+
+
+Hosts are the applications that users interact with directly. They contain one or more MCP clients and expose the combined capabilities to the AI model. Examples:
+
+  * Claude Desktop: Anthropic's desktop application
+
+  * IDEs with Claude integration: VS Code, JetBrains, etc.
+
+  * Claude Code: The terminal-based coding assistant
+
+  * Custom applications: Any app that embeds Claude via the API
+
+
+Clients
+
+
+Clients live within the host application. Each client maintains a 1:1 connection with a single MCP server. The client handles:
+
+  * Establishing and maintaining the connection to a server
+
+  * Protocol negotiation during initialization
+
+  * Routing requests from the host to the appropriate server
+
+  * Translating between the host's internal format and the MCP protocol
+
+
+Servers
+
+
+Servers expose capabilities to clients. Each server provides some combination of tools, resources, and prompts. Servers can be:
+
+  * Local: Running on the same machine as the host (connected via stdio)
+
+  * Remote: Running on a separate machine (connected via Streamable HTTP)
+
+
+Key Architecture Concept
+The relationship is: Host → contains multiple Clients → each Client connects to one Server. A host can connect to many servers simultaneously (e.g., a GitHub server, a database server, and a Slack server), but each connection is managed by a separate client instance. This isolation ensures that a misbehaving server cannot affect other connections.
+
+
+Three Core Primitives
+---------------------
+
+
+MCP defines three types of capabilities that servers can expose:
+
+
+Primitive	|	Purpose	|	Control	|	Example
+Tools	|	Executable functions the model can invoke	|	Model-controlled (model decides when to call)	|	search_files, create_issue, send_email
+Resources	|	Data sources the model can read	|	Application-controlled (app decides when to fetch)	|	file contents, database schemas, API docs
+Prompts	|	Reusable prompt templates	|	User-controlled (user selects which to use)	|	code_review template, bug_report template
+
+
+Primitive Methods
+
+
+Each primitive type supports standard methods for interaction:
+
+  * */list — Discovery: Returns all available items of that type (e.g., tools/list returns all tools the server offers)
+
+  * */get — Retrieval: Fetches a specific item's details (e.g., resources/get returns a resource's content)
+
+  * tools/call — Execution: Invokes a specific tool with the provided arguments
+
+
+Tool Definition with JSON Schema
+
+
+Tools are defined using JSON Schema for their input parameters. This schema tells Claude what arguments the tool expects:
+
+
+---code---
+{
+    "name": "search_codebase",
+    "description": "Search for code patterns across the repository.
+        Returns matching file paths and line numbers. Use this when
+        you need to find where a function, class, or pattern is
+        defined or used.",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "The search pattern (supports regex)"
+            },
+            "file_type": {
+                "type": "string",
+                "description": "Filter by file extension (e.g., '.py', '.ts')",
+                "default": null
+            },
+            "max_results": {
+                "type": "integer",
+                "description": "Maximum number of results to return",
+                "default": 20
+            }
+        },
+        "required": ["query"]
+    }
+}
+---/code---
+
+
+Tool Description Best Practices (Heavily Tested)
+
+  * Be specific about when to use the tool: "Use this when you need to find where a function is defined" is better than "Searches code"
+
+  * Describe the return format: "Returns matching file paths and line numbers" helps Claude process the results
+
+  * Include examples in the description: Specific examples help Claude construct correct arguments
+
+  * Keep descriptions concise but complete: Every token in the tool description counts against the context window
+
+
+Transport Mechanisms
+--------------------
+
+
+stdio (Standard Input/Output)
+
+
+The stdio transport is used for local, same-machine connections. The host launches the server as a child process and communicates via standard input and standard output streams.
+
+  * Pros: Simple setup, no network configuration, low latency, secure (no network exposure)
+
+  * Cons: Server must run on the same machine, limited to single-client connections, requires the host to manage the server process lifecycle
+
+  * Use when: The server accesses local resources (file system, local databases) and runs on the user's machine
+
+
+Streamable HTTP
+
+
+Streamable HTTP is the transport for remote, multi-client connections. It uses HTTPS for requests and Server-Sent Events (SSE) for streaming responses.
+
+  * Pros: Supports remote servers, multiple clients can connect simultaneously, works through firewalls and proxies, supports authentication
+
+  * Cons: Requires network infrastructure, higher latency than stdio, must handle authentication and security
+
+  * Use when: The server is shared across multiple users, runs in the cloud, or accesses remote APIs
+
+
+Protocol Format
+
+
+MCP uses JSON-RPC 2.0 as its wire format. All messages are JSON-RPC requests, responses, or notifications. The protocol includes a lifecycle management system:
+
+  28. Initialize: Client sends initialize request with its capabilities. Server responds with its capabilities.
+
+  29. Capability negotiation: Both sides agree on which features they support.
+
+  30. Ready: After initialization, the client sends an initialized notification. The connection is now active.
+
+  31. Operation: Normal request/response flow for tools, resources, and prompts.
+
+  32. Shutdown: Either side can close the connection gracefully.
+
+
+Building Custom MCP Servers
+---------------------------
+
+
+Building an MCP server in Python using the official SDK:
+
+
+---code---
+from mcp.server import Server
+from mcp.types import Tool, TextContent
+import mcp.server.stdio
+
+# Create a server instance
+server = Server("my-tools-server")
+
+# Define available tools
+@server.list_tools()
+async def list_tools():
+    return [
+        Tool(
+            name="get_weather",
+            description="Get current weather for a city. Returns temperature,
+                conditions, and humidity.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "City name (e.g., 'San Francisco')"
+                    },
+                    "units": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "default": "celsius"
+                    }
+                },
+                "required": ["city"]
+            }
+        )
+    ]
+
+# Handle tool calls
+@server.call_tool()
+async def call_tool(name: str, arguments: dict):
+    if name == "get_weather":
+        city = arguments["city"]
+        units = arguments.get("units", "celsius")
+        # Fetch weather data (implementation details)
+        weather = await fetch_weather(city, units)
+        return [TextContent(
+            type="text",
+            text=f"Weather in {city}: {weather['temp']}°, "
+                 f"{weather['conditions']}, "
+                 f"Humidity: {weather['humidity']}%"
+        )]
+    raise ValueError(f"Unknown tool: {name}")
+
+# Run with stdio transport
+async def main():
+    async with mcp.server.stdio.stdio_server() as (read, write):
+        await server.run(read, write)
+
+import asyncio
+asyncio.run(main())
+---/code---
+
+
+Tool Error Handling
+
+
+When a tool call fails, the server should return an error result (not throw an exception that crashes the server). The error message becomes part of Claude's context, allowing it to decide how to proceed:
+
+
+---code---
+@server.call_tool()
+async def call_tool(name: str, arguments: dict):
+    try:
+        result = await execute_tool(name, arguments)
+        return [TextContent(type="text", text=str(result))]
+    except ToolNotFoundError:
+        return [TextContent(type="text",
+            text=f"Error: Tool '{name}' not found")]
+    except ValidationError as e:
+        return [TextContent(type="text",
+            text=f"Error: Invalid arguments - {e}")]
+    except ExternalServiceError as e:
+        return [TextContent(type="text",
+            text=f"Error: External service unavailable - {e}. "
+                 f"You may want to retry or try an alternative approach.")]
+---/code---
+
+
+Authentication Patterns
+
+
+For remote MCP servers, authentication is critical. Common patterns:
+
+  * OAuth 2.0: The standard for web-based MCP servers. The client obtains a token through an OAuth flow and includes it in subsequent requests.
+
+  * API keys: Simpler for internal servers. The key is configured in the client settings.
+
+  * mTLS: Mutual TLS for high-security environments where both client and server authenticate via certificates.
+
+
+Practice Questions — Domain 5
+-----------------------------
+
+
+--------------------------------------------------
+Module 6: 6 Context Management & Reliability (15%)
+--------------------------------------------------
+
+
+Domain 5 covers the operational layer of building with Claude — managing context windows, implementing retrieval-augmented generation, caching, batch processing, and handling the realities of rate limits and token economics. While it carries the lowest weight (15%), questions in this domain tend to be the most practical and directly applicable to day-to-day production work.
+
+
+Context Window Architecture
+---------------------------
+
+
+Token Limits by Model
+
+
+Understanding model context windows is essential for architectural decisions. As of mid-2026:
+
+
+Model	|	Context Window	|	Notes
+Claude Sonnet 4.5	|	200K tokens	|	Most widely used for production workloads
+Claude Fable 5	|	1M tokens	|	Specialized creative and narrative model
+Claude Opus 4.8	|	1M tokens	|	Highest capability model
+Claude Sonnet 5	|	1M tokens	|	Strong reasoning with improved speed
+
+
+Token Economics
+
+
+Tokens are the currency of Claude interactions. Every character of input (system prompt, messages, tool definitions, tool results) and output (Claude's response, tool calls) consumes tokens. Architectural decisions have massive cost implications:
+
+
+  * System prompts: Sent with every API call. A 2,000-token system prompt in a 20-turn conversation costs 40,000 input tokens just for the system prompt.
+
+  * Tool definitions: Each tool's JSON schema and description is included in every API call. 10 tools averaging 200 tokens each = 2,000 tokens per call.
+
+  * Conversation history: The entire message history is resent with each call. In turn 20, you are sending all 19 previous turns.
+
+
+The "Lost in the Middle" Effect
+
+
+Research has shown that Claude (and other LLMs) perform better on information at the beginning and end of the context window, with reduced recall for information in the middle. Mitigation strategies:
+
+
+  * Place critical instructions at the beginning (system prompt) and end (most recent user message) of the context
+
+  * Summarize long middle sections: Compress earlier conversation turns into summaries
+
+  * Use explicit references: When referring to earlier context, quote it directly rather than asking Claude to "recall" it
+
+  * Structure with XML tags: Clearly labeled sections are easier for Claude to navigate than unstructured text
+
+
+RAG Architecture
+----------------
+
+
+Retrieval-Augmented Generation (RAG) is the dominant pattern for giving Claude access to large knowledge bases that exceed the context window. Instead of cramming everything into the prompt, you retrieve only the relevant chunks and include them.
+
+
+The RAG Pipeline
+
+
+  33. Ingestion: Documents are split into chunks (typically 256-1024 tokens each)
+
+  34. Embedding: Each chunk is converted to a vector embedding using an embedding model
+
+  35. Indexing: Embeddings are stored in a vector database (Pinecone, Weaviate, pgvector, etc.)
+
+  36. Query: The user's question is embedded using the same model
+
+  37. Retrieval: The vector database finds the most similar chunks (typically top 5-20)
+
+  38. Augmentation: Retrieved chunks are inserted into the prompt as context
+
+  39. Generation: Claude generates a response grounded in the retrieved context
+
+
+Chunking Strategies
+
+
+Strategy	|	How It Works	|	Best For
+Fixed-size	|	Split at every N tokens/characters	|	Simple documents, consistent formatting
+Semantic	|	Split at paragraph/section boundaries	|	Documents with clear structure (reports, articles)
+Recursive	|	Split hierarchically: section → paragraph → sentence	|	Mixed-format documents
+Overlapping	|	Chunks overlap by a percentage (e.g., 20%)	|	When context at boundaries is important
+
+
+Retrieval Approaches
+
+
+  * Semantic search: Uses embeddings to find conceptually similar content. Good for natural language queries.
+
+  * BM25: Traditional keyword-based search. Good for exact term matching, specific names, error codes.
+
+  * Hybrid retrieval: Combines semantic search and BM25, typically with a reciprocal rank fusion to merge results. This is the recommended approach for production systems because it captures both conceptual similarity and keyword precision.
+
+
+Multi-Index RAG
+
+
+For complex knowledge bases, use multiple specialized indexes rather than a single index. For example, a customer support system might have separate indexes for:
+
+  * Product documentation (semantic search)
+
+  * Known issues and bugs (keyword search by error code)
+
+  * Previous support tickets (hybrid search)
+
+  * API reference (structured search by endpoint path)
+
+
+The query router determines which index(es) to search based on the user's question type, then merges results before passing to Claude.
+
+
+Prompt Caching & Batch API
+--------------------------
+
+
+Prompt Caching
+
+
+Prompt caching allows you to cache frequently reused prompt content (system prompts, tool definitions, large context blocks) so they are not re-processed on every API call.
+
+
+  * Cost savings: Cached tokens are billed at 10% of the base input token price
+
+  * Latency reduction: Cached content is processed faster because it does not need to be re-encoded
+
+  * Rate limit benefit: Cached tokens do not count toward the ITPM (Input Tokens Per Minute) rate limit
+
+
+Cache Eligibility Rules
+
+
+Content must meet specific criteria to be cacheable:
+
+  * Content must appear at the beginning of the prompt (system prompt, early messages)
+
+  * Cached content must be marked with cache control breakpoints
+
+  * The cache has a time-to-live (TTL) — content is evicted after a period of inactivity
+
+  * Minimum content size requirements apply (content must be large enough to justify caching overhead)
+
+
+---code---
+response = client.messages.create(
+    model="claude-sonnet-4-5-20250514",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": large_system_prompt,  # 5000+ tokens
+            "cache_control": {"type": "ephemeral"}
+        }
+    ],
+    messages=[{"role": "user", "content": "..."}]
+)
+---/code---
+
+
+Batch API
+
+
+The Batch API processes large volumes of requests asynchronously within a 24-hour processing window at 50% of the standard API cost. Design considerations:
+
+
+  * Use when: You have many independent requests that do not require real-time responses (bulk classification, batch extraction, mass analysis)
+
+  * Do not use when: You need real-time or near-real-time responses, or requests depend on each other's results
+
+  * Workload design: Break large datasets into individual requests, each self-contained with all necessary context
+
+  * Result retrieval: Poll for results or use a webhook callback
+
+
+Rate Limiting & Production Operations
+-------------------------------------
+
+
+Token Bucket Algorithm
+
+
+Claude's rate limiting uses a token bucket algorithm. Imagine a bucket that holds tokens (capacity) and refills at a steady rate. Each request consumes tokens from the bucket. When the bucket is empty, requests are rejected until tokens refill.
+
+
+Rate Limit Dimensions
+
+
+Dimension	|	Abbreviation	|	What It Measures
+Requests Per Minute	|	RPM	|	Number of API calls per minute
+Input Tokens Per Minute	|	ITPM	|	Total input tokens across all requests per minute
+Output Tokens Per Minute	|	OTPM	|	Total output tokens across all responses per minute
+
+
+Limits vary by model class and usage tier. The exam tests whether you understand that hitting ANY one of these limits will throttle your requests — you must stay under all three simultaneously.
+
+
+Server-Side Compaction
+
+
+For long-running conversations, the context window eventually fills up. Server-side compaction is a technique where the system summarizes older conversation turns to free up space while preserving essential context. Implementation:
+
+  40. When the conversation reaches 80% of the context window, trigger compaction
+
+  41. Summarize all turns except the most recent N (e.g., last 5 turns)
+
+  42. Replace the old turns with a single summary message
+
+  43. Continue the conversation with the summary + recent turns
+
+
+Context Rot
+
+
+Context rot refers to the phenomenon where accuracy and recall degrade as the token count grows. Even within the context window limit, more tokens means more noise and more opportunities for Claude to lose track of important details. Mitigations:
+
+  * Proactive compaction (do not wait until the window is full)
+
+  * Explicit anchoring (restate critical instructions periodically)
+
+  * Modular context (separate concerns into distinct messages rather than one monolithic blob)
+
+  * Session memory strategies (external knowledge bases that persist across sessions)
+
+
+Retry Strategies
+
+
+Production systems must handle transient failures gracefully:
+
+  * Exponential backoff: Wait 1s, 2s, 4s, 8s, 16s between retries. This is the standard approach.
+
+  * Jitter: Add random variation to backoff times to prevent thundering herd problems when many clients retry simultaneously.
+
+  * Circuit breaker: After N consecutive failures, stop trying for a cooldown period. This prevents cascading failures.
+
+  * Fallback models: If the primary model is rate-limited, fall back to an alternative model that has available capacity.
+
+
+Monitoring and Observability
+
+
+Production Claude deployments should monitor:
+
+  * Token usage: Track input/output tokens per request and over time to detect anomalies
+
+  * Latency: Time-to-first-token (TTFT) and total response time
+
+  * Error rates: Rate limit errors (429), server errors (500), timeout errors
+
+  * Quality metrics: Task success rate, user satisfaction, accuracy on known-answer tests
+
+  * Cost: Track spend per feature, per user, per model to optimize resource allocation
+
+
+Practice Questions — Domain 6
+-----------------------------
+
+
+---------------------------------------------
+Module 7: 7 Full Practice Exam (60 Questions)
+---------------------------------------------
+
+
+This practice exam simulates the CCA-F format: 60 scenario-based multiple-choice questions distributed by domain weight. Questions are distributed as: D1 Agentic Architecture (16 questions, 27%), D3 Claude Code (12 questions, 20%), D4 Prompt Engineering (12 questions, 20%), D2 Tool Design & MCP (11 questions, 18%), D5 Context & Reliability (9 questions, 15%). Click each question to reveal the answer and explanation. Use the timer to simulate exam conditions (120 minutes).
+
+
+Exam Timer:
+02:00:00
+
+
+0/60 revealed
+
+
+Domain 1: Agentic Architecture & Orchestration (Questions 1-16)
+----------------------------------------
+
+
+Domain 3: Claude Code Configuration & Workflows (Questions 17-28)
+----------------------------------------
+
+
+Domain 4: Prompt Engineering & Structured Output (Questions 29-40)
+----------------------------------------
+
+
+Domain 2: Tool Design & MCP Integration (Questions 41-51)
+----------------------------------------
+
+
+Domain 5: Context Management & Reliability (Questions 52-60)
+----------------------------------------
+
+
+-----------------------------------------
+Module 8: 8 Quick Reference & Cheat Sheet
+-----------------------------------------
+
+
+Key API Parameters
+------------------
+
+
+Parameter	|	Type	|	Description
+model	|	string	|	Model ID (e.g., "claude-sonnet-4-5-20250514")
+max_tokens	|	integer	|	Maximum tokens in Claude's response
+temperature	|	float	|	Randomness: 0 = deterministic, 1 = creative (default: 1.0)
+top_p	|	float	|	Nucleus sampling threshold (default: 1.0)
+top_k	|	integer	|	Limits to top k most likely tokens
+system	|	string/array	|	System prompt — highest-precedence instructions
+messages	|	array	|	Conversation history (role: user/assistant)
+tools	|	array	|	Tool definitions with name, description, inputSchema
+tool_choice	|	object	|	Force tool selection: auto, any, or specific tool
+stream	|	boolean	|	Enable streaming responses via SSE
+metadata	|	object	|	Custom metadata (e.g., user_id for tracking)
+
+
+Common Patterns & Anti-Patterns
+-------------------------------
+
+
+Pattern	|	Anti-Pattern
+Use workflows for known, fixed-step processes	|	Using agents for predictable, linear pipelines
+Context isolation for subagents — only pass relevant data	|	Sharing the full conversation history with every subagent
+Return tool errors to Claude as tool results	|	Hardcoding retry logic or crashing on tool failures
+Place security constraints in the system prompt	|	Relying on user messages to enforce security rules
+Use XML tags for complex prompt structuring	|	Unstructured, ambiguous prompts mixing data and instructions
+Use tool_choice + enum constraints for structured output	|	Relying on natural language instructions for format compliance
+Implement prompt caching for repeated content	|	Resending large static content without caching
+Use hybrid retrieval (semantic + BM25) for RAG	|	Using only keyword search or only semantic search
+Exponential backoff with jitter for retries	|	Fixed-interval retries (causes thundering herd)
+Server-side compaction at 80% context window	|	Waiting until context window is full to compact
+Use extended thinking for complex reasoning tasks	|	Using extended thinking for simple extraction/formatting
+Use the Batch API for high-volume non-real-time work	|	Processing bulk tasks sequentially via the standard API
+
+
+Architecture Decision Flowchart
+-------------------------------
+
+
+When to use Agents vs API Calls vs Claude Code
+
+  44. Is this a single-response task with no tool use? → Simple API call
+
+  45. Are the steps known and fixed? → Deterministic workflow (with Claude at individual steps)
+
+  46. Does the task require dynamic decision-making and tool use? → Agent (ReAct or plan-and-execute)
+
+  47. Are there independent subtasks that can run in parallel? → Multi-agent with Dynamic Workflows fan-out
+
+  48. Do subtask results need quality evaluation? → Add Performance Outcomes grading loop
+
+  49. Is this a coding task in a developer's environment? → Claude Code with appropriate CLAUDE.md config
+
+  50. Is this a CI/CD automation task? → Claude Code with -p and --bare flags
+
+
+MCP Server Checklist
+--------------------
+
+
+Before deploying an MCP server, verify:
+
+  * All tools have descriptive names, thorough descriptions, and complete inputSchema
+
+  * Tool descriptions include: when to use, what arguments to provide, what is returned
+
+  * Error handling returns descriptive error results, never crashes the server
+
+  * Transport is appropriate: stdio for local/single-client, Streamable HTTP for remote/multi-client
+
+  * Authentication is implemented for remote servers (OAuth 2.0, API keys, or mTLS)
+
+  * The initialize handshake correctly declares server capabilities
+
+  * All three primitive types (Tools, Resources, Prompts) have correct */list implementations
+
+  * Resource cleanup and connection lifecycle management are implemented
+
+
+CLAUDE.md Template
+------------------
+
+
+---code---
+# Project: [Project Name]
+
+## Architecture
+- Framework: [e.g., Next.js 14 with App Router]
+- Database: [e.g., PostgreSQL via Drizzle ORM]
+- Auth: [e.g., Clerk]
+- Hosting: [e.g., Vercel]
+
+## Directory Structure
+- src/app/ — Pages and API routes
+- src/components/ — Reusable UI components
+- src/lib/ — Utility functions and shared logic
+- src/db/ — Database schema and migrations
+
+## Coding Conventions
+- [Language/style preferences]
+- [Naming conventions]
+- [Error handling patterns]
+- [Testing requirements]
+
+## Important Context
+- [Key architectural decisions and rationale]
+- [Known limitations or technical debt]
+- [Areas that require special care]
+
+## Do NOT
+- [Things Claude should never do in this project]
+- [Protected files or patterns]
+---/code---
+
+
+Prompt Engineering Checklist
+----------------------------
+
+
+Before sending a complex prompt:
+
+  51. Is the task clearly defined with specific success criteria?
+
+  52. Are instructions separated from data using XML tags?
+
+  53. Is the output format explicitly specified?
+
+  54. Are security constraints in the system prompt (not user messages)?
+
+  55. Would few-shot examples improve clarity? (2-5 examples optimal)
+
+  56. Does this task benefit from extended thinking? (complex reasoning = yes)
+
+  57. Is the temperature appropriate? (0 for deterministic, 0.7-1.0 for creative)
+
+  58. For structured output: are you using tool_choice with schema constraints?
+
+  59. For long prompts: is critical information at the beginning or end (not middle)?
+
+  60. Is prompt caching configured for static content that repeats across calls?
+
+
+Official Resources & Links
+--------------------------
+
+
+Resource	|	URL
+Anthropic Academy (Free Courses)	|	anthropic.skilljar.com
+Claude Platform Docs	|	platform.claude.com/docs
+MCP Documentation	|	modelcontextprotocol.io
+Pearson VUE Exam Registration	|	pearsonvue.com/us/en/anthropic.html
+Claude Partner Network	|	anthropic.com/partners
+Claude API Reference	|	docs.anthropic.com/en/api
+Claude Code Documentation	|	docs.anthropic.com/en/docs/claude-code
+Agent SDK Documentation	|	docs.anthropic.com/en/docs/agents
+
+
+Study Plan Templates
+--------------------
+
+
+1-Week Intensive Plan (for experienced Claude developers)
+
+
+Day	|	Focus	|	Time
+Mon	|	Module 1 (Exam Overview) + Module 2 (Agentic Architecture) first half	|	2 hrs
+Tue	|	Module 2 second half + practice questions	|	2 hrs
+Wed	|	Module 3 (Claude Code) + Module 4 (Prompt Engineering)	|	2 hrs
+Thu	|	Module 5 (MCP) + Module 6 (Context Management)	|	2 hrs
+Fri	|	Module 7 (Practice Exam) — full timed simulation	|	2.5 hrs
+Sat	|	Review incorrect answers, revisit weak domains	|	2 hrs
+Sun	|	Module 8 (Quick Reference) review + second practice exam pass	|	1.5 hrs
+
+
+2-Week Balanced Plan
+
+
+Week	|	Days	|	Focus
+Week 1	|	Mon-Tue	|	Module 1 + Anthropic Academy courses
+	|	Wed-Thu	|	Module 2 (Agentic Architecture — heaviest domain)
+	|	Fri-Sat	|	Module 3 (Claude Code) + hands-on practice
+	|	Sun	|	Review + Module 2+3 practice questions
+Week 2	|	Mon-Tue	|	Module 4 (Prompt Engineering) + Module 5 (MCP)
+	|	Wed	|	Module 6 (Context Management)
+	|	Thu-Fri	|	Module 7 (Practice Exam) + review
+	|	Sat	|	Module 8 + weak area review
+	|	Sun	|	Final review + second practice exam pass
+
+
+4-Week Comfortable Plan
+
+
+Week	|	Focus	|	Daily Time
+Week 1	|	Anthropic Academy courses + Module 1	|	45 min
+Week 2	|	Modules 2 & 3 (47% of exam) — deep study + hands-on labs	|	1 hr
+Week 3	|	Modules 4, 5, & 6 + practice questions from each	|	1 hr
+Week 4	|	Module 7 (Practice Exam) + Module 8 (Reference) + weak area review	|	1 hr
+
+
+Key Numbers to Remember
+-----------------------
+
+
+Metric	|	Value
+CCA-F passing score	|	720 / 1000
+Number of questions	|	60
+Time limit	|	120 minutes
+Exam fee	|	$125 USD
+Certification validity	|	12 months
+Retake wait (1st attempt)	|	14 days
+Cached token cost	|	10% of base price
+Batch API savings	|	50%
+Multi-agent improvement	|	Up to 90%
+D1 (Agentic) weight	|	27%
+D1 + D3 combined weight	|	47%
+Claude Sonnet 4.5 context	|	200K tokens
+Claude Opus 4.8 / Sonnet 5 / Fable 5 context	|	1M tokens
+Compaction trigger	|	~80% of context window
+Rate limit dimensions	|	RPM, ITPM, OTPM
+MCP primitives	|	Tools, Resources, Prompts
+CLAUDE.md levels	|	User → Project → Directory → Globs
+Hook types	|	UserPromptSubmit, PreToolUse, PostToolUse
