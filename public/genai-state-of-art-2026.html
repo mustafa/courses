@@ -293,6 +293,7 @@ p code, li code {
   .container { padding: 0 16px; }
 }
 </style>
+  <link rel="stylesheet" href="course-framework.css">
 </head>
 <body>
 
@@ -565,6 +566,25 @@ p code, li code {
       <p>If you're still picking models by benchmark leaderboards, you're optimizing for the wrong thing. Build a task-specific eval suite with 200–500 examples from your actual production data. Run every candidate model against it. The winner will surprise you — it's rarely the one on top of the public leaderboard. At Coursera-scale, this eval suite investment pays for itself within a quarter.</p>
     </div>
 
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="Why does the module call model selection a 'portfolio decision' in mid-2026?" data-options="One model clearly dominates every task, so you just pick it|Leadership rotates quarterly, so the best teams run 2-3 models and route by task type, cost, and latency|Regulations require using at least three vendors|Only open-weight models are production-ready" data-answer="1" data-explanation="The frontier gap has compressed into a five-way race where leadership rotates, so the winning move is a portfolio: run 2-3 models and route by task, cost, and latency."></div>
+    <div class="quiz" data-question="In an MoE model such as DeepSeek-V3, roughly how many parameters activate per token relative to its 685B total?" data-options="All 685B|About 350B|About 100B|About 37B" data-answer="3" data-explanation="MoE activates only the experts it needs — ~37B of 685B for DeepSeek-V3 — making it cheaper to serve than a dense 70B model while being smarter."></div>
+    <div class="quiz" data-question="Why might you prefer a dense model over MoE for assessment grading or certification?" data-options="Dense models always have larger context windows|MoE models cannot perform reasoning|Expert routing is non-deterministic, so the same prompt can activate different experts and yield slightly different outputs|Dense models are always cheaper to serve" data-answer="2" data-explanation="MoE expert routing introduces non-determinism; for strict reproducibility you may prefer dense models or need to pin routing seeds."></div>
+    <div class="quiz" data-question="Around what monthly volume does self-hosting a Llama-class model on 8xH100 start to beat APIs on cost?" data-options="~1B tokens/month|~100M tokens/month|~10M tokens/month|~100K tokens/month" data-answer="1" data-explanation="The module puts the crossover near 100M tokens/month; below that, API providers win on convenience and burst capacity."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Mixture of Experts (MoE)" data-back="Architecture where only a subset of parameters (experts) activate per token — e.g., DeepSeek-V3 fires ~37B of 685B — making it cheaper to serve than a dense 70B model while being smarter."></div>
+    <div class="flashcard" data-front="Portfolio model selection" data-back="The 2026 approach of running 2-3 models and routing by task type, cost, and latency instead of picking one 'best' model."></div>
+    <div class="flashcard" data-front="Llama 4 Scout" data-back="Meta open-weight MoE, 109B total / 17B active, that fits on a single H100 and trades blows with models 5x its compute budget."></div>
+    <div class="flashcard" data-front="MoE reproducibility caveat" data-back="Expert routing is non-deterministic; for strict reproducibility (grading, certification) prefer dense models or pin routing seeds. MoE also has a higher memory footprint since all experts must be loaded."></div>
+    <div class="flashcard" data-front="Benchmark saturation" data-back="MMLU, HumanEval, and GSM-8K are maxed out (90%+), so the field moved to harder evals like SWE-bench Verified and GPQA Diamond."></div>
+    <div class="flashcard" data-front="Vibes-based evaluation" data-back="When benchmarks can't differentiate models, human blind-preference studies become the legitimate tiebreaker."></div>
+    <div class="flashcard" data-front="Self-hosting crossover" data-back="~100M tokens/month for a Llama-class model on 8xH100 is where self-hosting starts to beat APIs on cost."></div>
+    <div class="flashcard" data-front="Task-specific eval suite" data-back="Build 200-500 examples from real production data and run every candidate model; the winner is rarely the public-leaderboard leader."></div>
+    </div>
+    <!-- /cf:added -->
+
   </div>
 </div>
 
@@ -780,6 +800,25 @@ result = completion.choices[<span class="num">0</span>].message.parsed
       <p><strong>Build an abstraction layer.</strong> Use a thin wrapper (even 50 lines of code) that normalizes the message format across providers. The Anthropic and OpenAI message formats are close enough that a unified interface takes a day to build. This lets you A/B test models, fail over between providers, and avoid rewriting your codebase when the price war inevitably shifts. Anthropic's open MCP protocol for tool integration is the most future-proof bet for tooling standards.</p>
     </div>
 
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="Up to what discount does Anthropic's prompt caching offer on cached input tokens?" data-options="Up to 50%|Up to 25%|A flat 100% (free)|Up to 90%" data-answer="3" data-explanation="Prompt caching gives up to a 90% discount on cached input tokens, hugely favoring workloads with stable system prompts — potentially cutting Coursera-scale costs 40-60%."></div>
+    <div class="quiz" data-question="Why does the module say raw $/token comparisons tell only about 40% of the story?" data-options="Because token counts are impossible to measure|Because all providers secretly charge the same|Because hidden factors like prompt caching, unseen thinking tokens, rate-limit headroom, and reliability SLAs dominate real cost|Because output tokens are always free" data-answer="2" data-explanation="Prompt caching discounts, billed-but-invisible thinking tokens, rate limits, and reliability SLAs all reshape real cost beyond the sticker $/token."></div>
+    <div class="quiz" data-question="Which provider does the lock-in analysis rate as highest risk, and why?" data-options="Anthropic, due to the MCP protocol|OpenAI, due to Structured Outputs|Anthropic, due to prompt caching format|Google, due to Vertex AI GCP coupling and Grounding/GCS integration" data-answer="3" data-explanation="Google is rated High lock-in risk because of Vertex AI's GCP coupling; the mitigation is to use the Gemini API directly and avoid Vertex-specific features."></div>
+    <div class="quiz" data-question="What does the module recommend to avoid provider lock-in?" data-options="Commit fully to one provider's SDK|Only ever use open-weight models|Build a thin abstraction layer that normalizes the message format across providers|Always use the Assistants API for state" data-answer="2" data-explanation="A ~50-line wrapper normalizing message formats lets you A/B test, fail over, and avoid rewrites when the price war shifts."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Prompt caching" data-back="Up to 90% discount on cached input tokens (system prompts, few-shot examples, large docs); can cut Coursera-scale API costs 40-60%."></div>
+    <div class="flashcard" data-front="Batches API (Anthropic)" data-back="50% cost reduction for async workloads — submit up to 100K requests, results in ~24 hours. Good for grading, bulk analysis, translations."></div>
+    <div class="flashcard" data-front="Extended Thinking budget_tokens" data-back="Parameter controlling how many reasoning tokens Claude spends; critical for cost management on reasoning-heavy tasks."></div>
+    <div class="flashcard" data-front="Gemini 2.5 Flash economics" data-back="$0.15/M input tokens with a 1M context window — the economic winner for document-heavy workflows."></div>
+    <div class="flashcard" data-front="OpenAI Assistants API" data-back="Provides server-side state management but adds vendor lock-in; the module advises managing conversation state yourself."></div>
+    <div class="flashcard" data-front="Lock-in ratings" data-back="Anthropic Low (MCP is open), OpenAI Medium (Assistants API), Google High (Vertex AI GCP coupling)."></div>
+    <div class="flashcard" data-front="Abstraction layer" data-back="A thin (~50-line) wrapper normalizing message formats across providers, enabling A/B testing and failover."></div>
+    <div class="flashcard" data-front="Cost of intelligence trend" data-back="Dropped roughly 10x per year since GPT-4 — what cost $60/M tokens in early 2024 now costs $3-15/M for equivalent quality."></div>
+    </div>
+    <!-- /cf:added -->
+
   </div>
 </div>
 
@@ -940,6 +979,25 @@ server.<span class="fn">resource</span>(
       <p><strong>Start with a single agent and a good set of tools before going multi-agent.</strong> The industry over-invested in multi-agent architectures in 2025, and most teams learned that a single well-prompted agent with 10 tools outperforms a swarm of 5 specialized agents 80% of the time. Go multi-agent only when you need genuine parallelism or adversarial review. And adopt MCP now — it's becoming the standard integration layer and future-proofs your tooling investment.</p>
     </div>
 
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="What is the module's core definition of an agent?" data-options="An LLM in a loop with tool access and memory, where the value is in the orchestration|A fine-tuned model specialized for one task|A multi-model router|A vector database with retrieval" data-answer="0" data-explanation="The module reduces agents to 'LLMs in a loop with tool access and memory' — the magic is in the orchestration, not the individual model call."></div>
+    <div class="quiz" data-question="How does the module describe MCP (Model Context Protocol)?" data-options="A proprietary OpenAI feature for state management|A benchmark for agent performance|A fine-tuning technique|An open protocol (created by Anthropic) that standardizes how LLMs connect to tools and data — 'USB-C for AI'" data-answer="3" data-explanation="MCP is an open standard created by Anthropic that replaces the NxM integration problem with one protocol; servers expose resources and tools over JSON-RPC."></div>
+    <div class="quiz" data-question="Which multi-agent pattern has multiple agents argue positions while a judge synthesizes, at roughly 3x cost?" data-options="Orchestrator to Workers|Pipeline / Chain|Single-agent loop|Debate / Critique" data-answer="3" data-explanation="The Debate/Critique pattern suits assessment design and accuracy but costs ~3x, can be slow, and has diminishing returns."></div>
+    <div class="quiz" data-question="What does the takeaway recommend before going multi-agent?" data-options="Deploy at least five specialized agents|Avoid MCP until it stabilizes|Always add a judge agent|Start with a single well-prompted agent and a good set of tools" data-answer="3" data-explanation="A single well-prompted agent with 10 tools beats a swarm of 5 specialized agents ~80% of the time; go multi-agent only for genuine parallelism or adversarial review."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Agent (2026 definition)" data-back="An LLM in a loop with tool access and memory; value lives in the orchestration, not the individual model call."></div>
+    <div class="flashcard" data-front="Claude Agent SDK" data-back="Anthropic's opinionated 'put the model in a loop' SDK featuring an automatic agent loop, hooks, native MCP integration, and subagents."></div>
+    <div class="flashcard" data-front="MCP (Model Context Protocol)" data-back="Open standard created by Anthropic that standardizes how LLMs connect to tools/data — 'USB-C for AI' — solving the NxM integration problem."></div>
+    <div class="flashcard" data-front="MCP servers" data-back="Expose resources (data) and tools (actions) via a standardized JSON-RPC interface; transport-agnostic over stdio, HTTP/SSE, or WebSockets."></div>
+    <div class="flashcard" data-front="OpenAI Agents SDK handoffs" data-back="Defines specialized agents and routes between them; the stateless Responses API is the recommended path for tools, structured output, and web search."></div>
+    <div class="flashcard" data-front="Orchestrator to Workers" data-back="One agent decomposes tasks and delegates to sub-agents; watch for orchestrator bottleneck and cost multiplication."></div>
+    <div class="flashcard" data-front="Debate / Critique pattern" data-back="Multiple agents argue and a judge synthesizes; good for accuracy but ~3x cost with diminishing returns."></div>
+    <div class="flashcard" data-front="Multi-agent caution" data-back="A single well-prompted agent with 10 tools outperforms a swarm of 5 specialized agents ~80% of the time."></div>
+    </div>
+    <!-- /cf:added -->
+
   </div>
 </div>
 
@@ -1042,6 +1100,25 @@ server.<span class="fn">resource</span>(
       <p><strong>Reasoning models are compute/quality knobs, not magic.</strong> Use <code>budget_tokens</code> in Claude's Extended Thinking to control the trade-off: 1K tokens of thinking for quick sanity checks, 10K for complex analysis. For Coursera, the killer use case is assessment design and grading — let the model reason through rubric criteria step by step, then inspect the thinking chain for quality assurance. Train your team to read thinking blocks the way they'd review a colleague's work.</p>
     </div>
 
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="What did OpenAI's o1 (September 2024) prove about model performance?" data-options="Bigger pre-training always wins|Hidden reasoning is always more accurate than visible reasoning|Inference-time compute — letting the model spend more tokens reasoning internally — can dramatically improve hard-problem performance|Reasoning models are cheaper than standard models" data-answer="2" data-explanation="o1 demonstrated that spending more compute at inference time (reasoning) improves performance on hard problems, sparking the reasoning-model era."></div>
+    <div class="quiz" data-question="What distinguishes visible reasoning (Claude, DeepSeek-R1) from hidden reasoning (OpenAI o-series)?" data-options="Visible reasoning is free while hidden reasoning is billed|Visible reasoning returns an inspectable thinking block; hidden reasoning is a black box that returns only a summary|Hidden reasoning cannot use tools|Visible reasoning never uses chain-of-thought" data-answer="1" data-explanation="Claude returns a thinking block you can inspect and log; o-series reasoning tokens are billed but never shown, returning only a summary."></div>
+    <div class="quiz" data-question="What is GRPO's key twist relative to standard PPO-based RLHF?" data-options="It uses the relative ranking within a group of generated responses instead of a separate reward model|It requires a much larger reward model|It removes reinforcement learning entirely|It only works on dense models" data-answer="0" data-explanation="GRPO (from DeepSeek) generates K responses, scores them with a verifier, and optimizes toward higher-ranked ones — no separate reward model needed."></div>
+    <div class="quiz" data-question="For which task does the module say you should SKIP reasoning mode?" data-options="Complex code debugging|Simple classification and extraction|Mathematical proofs|Nuanced assessment rubrics" data-answer="1" data-explanation="Reasoning mode is slower and pricier; skip it for classification, extraction, and simple Q&amp;A where a standard Sonnet 4.6 call performs identically at ~5x lower cost."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Inference-time compute" data-back="Spending more tokens reasoning at inference; proven by OpenAI o1 (Sept 2024) to boost hard-problem performance."></div>
+    <div class="flashcard" data-front="Extended thinking mechanism" data-back="The model generates a chain of intermediate reasoning steps autoregressively, letting it 'correct course' mid-thought — impossible in a single forward pass."></div>
+    <div class="flashcard" data-front="Hidden reasoning (o-series)" data-back="Internal reasoning tokens you pay for but never see; the API returns only a summary — a black box you can't inspect."></div>
+    <div class="flashcard" data-front="Visible reasoning (Claude / DeepSeek-R1)" data-back="Reasoning chain returned in a separate, inspectable block — better for production debugging and accountability."></div>
+    <div class="flashcard" data-front="GRPO" data-back="Group Relative Policy Optimization (DeepSeek); no separate reward model — generate K responses and optimize toward the higher-ranked ones."></div>
+    <div class="flashcard" data-front="GRPO practical benefit" data-back="Makes it feasible to add reasoning to smaller, cheaper models (e.g., run GRPO on Llama 4 Scout with math/code verifiers)."></div>
+    <div class="flashcard" data-front="When to use reasoning" data-back="Use for complex multi-step problems, code debugging, math proofs, and nuanced rubrics; skip for classification, extraction, and simple Q&amp;A."></div>
+    <div class="flashcard" data-front="budget_tokens" data-back="Claude Extended Thinking knob: ~1K tokens for quick sanity checks, ~10K for complex analysis — trading compute for quality."></div>
+    </div>
+    <!-- /cf:added -->
+
   </div>
 </div>
 
@@ -1130,6 +1207,25 @@ server.<span class="fn">resource</span>(
       <div class="callout-title">Key Takeaway</div>
       <p><strong>Multimodal is ready for education, with caveats.</strong> Vision for grading visual work: ready. Audio for lecture analysis: ready. Real-time voice for tutoring: ready (but use OpenAI Realtime or Gemini Live, not Claude). Video understanding for course QA: emerging. Image/video generation for content creation: useful for drafts, not final assets. Code generation for internal tooling: a genuine force multiplier — expect 30–50% productivity gains for your engineering team.</p>
     </div>
+
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="Why does the module say Gemini has a structural advantage in vision?" data-options="It has the most parameters|It was designed 'natively multimodal', processing images through the same transformer weights as text|It only accepts high-resolution images|It uses a separate vision-only model" data-answer="1" data-explanation="Gemini is natively multimodal — images go through the same weights as text — whereas Claude/GPT-5 use a vision encoder feeding the LM, which can miss subtle spatial relationships."></div>
+    <div class="quiz" data-question="Which model does the module say NOT to use for real-time voice, and why?" data-options="Gemini, because its Live API lacks tool use|GPT-5, because its latency is too high|Claude, because it processes audio via transcription rather than native audio understanding|Llama 4, because it has no audio support at all" data-answer="2" data-explanation="Claude currently transcribes audio rather than understanding it natively, so it is not competitive for real-time voice — use OpenAI Realtime or Gemini Live instead."></div>
+    <div class="quiz" data-question="What SWE-bench Verified progression does the module cite for autonomous GitHub issue resolution?" data-options="~13% (GPT-4, early 2024) to ~70%+ (Claude Opus 4.6, May 2026)|~50% (2023) to ~60% (2026)|~30% to ~45%|~70% (2024) to ~99% (2026)" data-answer="0" data-explanation="Scores jumped from ~13% for GPT-4 in early 2024 to ~70%+ for Claude Opus 4.6 by May 2026 — meaning it can resolve about 70% of real GitHub issues autonomously."></div>
+    <div class="quiz" data-question="What accuracy does handwritten math recognition reach, and what use does that justify?" data-options="~99%, suitable for high-stakes exams|~95% on well-lit photos, good for formative assessment but not high-stakes exams|~80%, suitable only for demos|~60%, not usable at all" data-answer="1" data-explanation="Handwritten math recognition is ~95% accurate on well-lit photos — good enough for formative assessment, not yet reliable for high-stakes exams."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Natively multimodal" data-back="Gemini processes images through the same transformer weights as text; Claude/GPT-5 use a vision encoder that can miss subtle spatial relationships."></div>
+    <div class="flashcard" data-front="Handwritten math recognition" data-back="~95% accuracy on well-lit photos — good for formative assessment, not yet reliable for high-stakes exams."></div>
+    <div class="flashcard" data-front="OpenAI Realtime API" data-back="Best-in-class real-time speech-to-speech (~300ms latency), with interruption handling and mid-conversation function calling."></div>
+    <div class="flashcard" data-front="Claude audio limitation" data-back="Processes audio via transcription, not native understanding; not competitive for real-time voice (use OpenAI Realtime or Gemini Live)."></div>
+    <div class="flashcard" data-front="Video understanding" data-back="Gemini leads, processing up to an hour of video natively; Claude/GPT-5 use keyframe extraction and miss temporal dynamics."></div>
+    <div class="flashcard" data-front="Agentic coding" data-back="Models that navigate a codebase, run tests, read errors, and iterate — e.g., Claude Code and Copilot Workspace turning a GitHub issue into a working PR."></div>
+    <div class="flashcard" data-front="SWE-bench Verified jump" data-back="From ~13% (GPT-4, early 2024) to ~70%+ (Claude Opus 4.6, May 2026) of real GitHub issues resolved autonomously."></div>
+    <div class="flashcard" data-front="Video generation reality" data-back="Sora produces 5-20s clips with physics and coherence issues beyond ~10s; not reliable for educational content at scale."></div>
+    </div>
+    <!-- /cf:added -->
 
   </div>
 </div>
@@ -1267,6 +1363,25 @@ server.<span class="fn">resource</span>(
       <p><strong>For most teams, the answer is: don't fine-tune yet.</strong> The quality of base models has improved so dramatically that prompt engineering + RAG covers 90% of use cases. Fine-tune only when you have a clear behavior change that prompting can't achieve, at least 500 quality examples, and a robust eval suite to measure improvement. If you do fine-tune, start with SFT + LoRA on an open model (Llama 4 Scout). If you need preference alignment, DPO is the pragmatic choice — it's 90% of RLHF quality at 20% of the complexity. Reserve GRPO for tasks with verifiable correctness (math, code, structured outputs).</p>
     </div>
 
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="What does the module call the most common fine-tuning mistake?" data-options="Fine-tuning to inject knowledge (facts) — because fine-tuning changes behavior, not knowledge|Using too many training examples|Choosing LoRA over full fine-tuning|Holding out a validation set" data-answer="0" data-explanation="Teams fine-tune to inject facts and it almost always fails; fine-tuning changes behavior. For knowledge (e.g., your 2,000 courses) use RAG."></div>
+    <div class="quiz" data-question="With LoRA, what fraction of the model's parameters do you typically train?" data-options="0.1-1% (adapter parameters only)|About 25%|About 50%|100% (all parameters)" data-answer="0" data-explanation="LoRA trains only a small set of adapter parameters — typically 0.1-1% of the full model — making it feasible to fine-tune even large models on a single GPU."></div>
+    <div class="quiz" data-question="What does QLoRA enable in terms of hardware?" data-options="Training a 7B model only on CPUs|Serving 100 models on one GPU with zero memory|Fine-tuning a 70B model on a single 48GB GPU by combining a 4-bit quantized base with full-precision LoRA adapters|Removing the need for any GPU" data-answer="2" data-explanation="QLoRA fine-tunes a 4-bit quantized model with full-precision LoRA adapters, letting you fine-tune a 70B model on a single 48GB GPU with minimal quality loss."></div>
+    <div class="quiz" data-question="For preference alignment without a reward model, which technique does the module call the pragmatic choice?" data-options="RLHF (PPO)|DPO — about 90% of RLHF quality at 20% of the complexity|KTO|SFT" data-answer="1" data-explanation="DPO trains directly on (prompt, chosen, rejected) pairs with no reward model, delivering roughly 90% of RLHF quality at 20% of the complexity."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Fine-tuning vs knowledge" data-back="Fine-tuning changes behavior (format, tone, style, terminology), not knowledge; to inject facts use RAG instead."></div>
+    <div class="flashcard" data-front="Prompt engineering first" data-back="Always start here — good prompts plus few-shot examples solve ~80% of use cases at $0."></div>
+    <div class="flashcard" data-front="SFT (Supervised Fine-Tuning)" data-back="Train on (input, desired_output) pairs so the model learns to produce outputs that look like your examples."></div>
+    <div class="flashcard" data-front="LoRA" data-back="Low-Rank Adaptation; trains only 0.1-1% of parameters (adapters). Rank 8-16 for behavior changes, 32-64 for domain knowledge."></div>
+    <div class="flashcard" data-front="QLoRA" data-back="Fine-tune a 4-bit quantized model with full-precision LoRA adapters, enabling fine-tuning a 70B model on a single 48GB GPU."></div>
+    <div class="flashcard" data-front="Data quality rule" data-back="500 high-quality examples beat 5,000 mediocre ones; hold out 10-20% as a validation set to catch overfitting."></div>
+    <div class="flashcard" data-front="DPO vs GRPO vs KTO" data-back="DPO: preference pairs, no reward model. GRPO: group-relative ranking for verifiable tasks (math, code). KTO: binary thumbs up/down data."></div>
+    <div class="flashcard" data-front="Anthropic fine-tuning" data-back="No public fine-tuning for Claude (as of May 2026) — offered as a managed service for enterprise customers; OpenAI supports GPT-5 Mini, Google via Vertex AI."></div>
+    </div>
+    <!-- /cf:added -->
+
   </div>
 </div>
 
@@ -1370,6 +1485,25 @@ server.<span class="fn">resource</span>(
       <div class="callout-title">Key Takeaway</div>
       <p><strong>The best RAG system is the one you don't build.</strong> Before investing in an embedding pipeline, try: (1) can you fit the data in the context window with prompt caching? (2) can you use MCP tools to query your existing search infrastructure? If neither works, build RAG — but do it properly: hybrid search (BM25 + vector), always re-rank, use contextual chunking, and eval relentlessly. The difference between good and bad RAG is 40+ percentage points on retrieval accuracy. Don't ship bad RAG — it's worse than no RAG because users lose trust.</p>
     </div>
+
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="Which two things does the module say you should 'always' do in a RAG pipeline?" data-options="Always fine-tune the embedding model and always use GraphRAG|Always use the largest context window and always skip chunking|Always use Pinecone and always embed whole documents|Always re-rank results and always combine keyword (BM25) + semantic search" data-answer="3" data-explanation="The module says always re-rank (Cohere Rerank 3 as default) and always combine keyword + semantic search — 'BM25 is embarrassingly effective'."></div>
+    <div class="quiz" data-question="What does Anthropic's 'Contextual Retrieval' technique do?" data-options="Prepends a short generated context description to each chunk before embedding it|Builds a knowledge graph from documents|Embeds the entire document then splits at chunk boundaries|Removes stop words before embedding" data-answer="0" data-explanation="Contextual Retrieval prepends a short context description (from a cheap model) to each chunk before embedding, improving retrieval for chunks only meaningful in context."></div>
+    <div class="quiz" data-question="When does the module recommend MCP over RAG?" data-options="When you must process the entire knowledge base against every query|When latency is the top priority|When you need semantic similarity keyword search can't provide|When you already have good search infrastructure, data changes frequently, and the model should make targeted queries" data-answer="3" data-explanation="MCP shines when good search infra already exists, data changes frequently, queries are targeted, and you are building an agentic system anyway — no embedding pipeline needed."></div>
+    <div class="quiz" data-question="What is GraphRAG (Microsoft) best and worst at?" data-options="Best at global questions spanning many documents; worst at rapidly changing data and expensive upfront processing|Best at single-fact lookups; worst at summaries|Best at low-latency retrieval; worst at accuracy|Best at cheap indexing; worst at global questions" data-answer="0" data-explanation="GraphRAG builds a knowledge graph to answer global questions well, but requires costly upfront processing and handles rapidly changing data poorly."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Naive RAG" data-back="embed then retrieve top-K then prompt; the best 2026 systems instead combine semantic + keyword search, re-ranking, query expansion, and smart chunking."></div>
+    <div class="flashcard" data-front="Hybrid search" data-back="Always combine keyword (BM25) + vector/semantic search; 'BM25 is embarrassingly effective'."></div>
+    <div class="flashcard" data-front="Re-ranking" data-back="Always re-rank retrieved results; Cohere Rerank 3 is the default choice."></div>
+    <div class="flashcard" data-front="Contextual Retrieval (Anthropic)" data-back="Prepend a short generated context description to each chunk before embedding, improving retrieval of context-dependent chunks."></div>
+    <div class="flashcard" data-front="GraphRAG (Microsoft)" data-back="Build a knowledge graph and retrieve from it; excels at global questions but is expensive upfront and weak on rapidly changing data."></div>
+    <div class="flashcard" data-front="MCP as a RAG alternative" data-back="Give the agent a tool to query existing search infrastructure directly — no embedding pipeline, vector DB, or chunking strategy."></div>
+    <div class="flashcard" data-front="Long-context escape hatch" data-back="If your corpus fits in ~200K tokens (~150K words), stuff it all into the prompt and rely on prompt caching (pay full price once, 90% less after)."></div>
+    <div class="flashcard" data-front="Bad RAG warning" data-back="The good-vs-bad RAG gap is 40+ points on retrieval accuracy; bad RAG is worse than none because users lose trust."></div>
+    </div>
+    <!-- /cf:added -->
 
   </div>
 </div>
@@ -1476,6 +1610,25 @@ server.<span class="fn">resource</span>(
       <div class="callout-title">Key Takeaway</div>
       <p><strong>Safety is not a feature — it's the foundation.</strong> For education AI: (1) Assume prompt injection will happen and design defensively with privilege separation and output validation. (2) Start EU AI Act compliance now — the high-risk requirements for educational AI are substantial and take time to implement. (3) Don't use AI detection tools for academic integrity — the false positive rate is too high. Redesign assessments instead. (4) Audit for bias quarterly, with real student data and disaggregated metrics.</p>
     </div>
+
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="What is the core idea of Anthropic's Constitutional AI (CAI)?" data-options="Train the model on human feedback for every possible scenario|Filter any prompt containing dangerous-sounding words|Give the model a set of principles (a 'constitution') and train it to self-critique and revise its outputs to comply|Require human approval for every response" data-answer="2" data-explanation="CAI trains the model against principles via SL-CAI (critique and revise) then RL-CAI (constitution-trained model as its own reward model), so it follows rules rather than pattern-matching scary words."></div>
+    <div class="quiz" data-question="Which prompt injection type is described as hardest to catch, and why?" data-options="Indirect injection, because malicious instructions are embedded in retrieved content and the model can't tell trusted from untrusted|Direct injection, because users write 'ignore previous instructions'|Multi-turn escalation, because it needs many messages|Output injection, because it happens after generation" data-answer="0" data-explanation="Indirect injection hides instructions in documents, web pages, or databases the model retrieves; it's hard to catch because the model doesn't know which content is trusted."></div>
+    <div class="quiz" data-question="Which defense does the module call 'the best architectural defense' against prompt injection?" data-options="Privilege separation (different trust levels for system prompt, user input, retrieved content)|Input/output classifiers|Human-in-the-loop approval|Sandboxing" data-answer="0" data-explanation="Privilege separation assigns different trust levels to system prompt, user input, and retrieved content — rated the best architectural defense at medium implementation cost."></div>
+    <div class="quiz" data-question="Under the EU AI Act, how is AI used for educational assessment classified, and what does the module say about AI-detection tools for integrity?" data-options="Low-risk; detection tools are reliable enough for high-stakes use|High-risk; detection tools (~85% accuracy, 10-15% false positives) are too unreliable for high-stakes decisions|Prohibited outright; detection tools should always be used|Unregulated; detection tools are mandatory" data-answer="1" data-explanation="Educational assessment AI is high-risk (conformity assessments, human oversight); AI-detection tools have a 10-15% false-positive rate — unacceptable for high stakes, so redesign assessments instead."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Constitutional AI (CAI)" data-back="Give the model a 'constitution' of principles and train it to self-critique and revise; two phases — SL-CAI then RL-CAI."></div>
+    <div class="flashcard" data-front="CAI benefit" data-back="Claude follows rules rather than pattern-matching 'dangerous' words — fewer false positives on legit content (e.g., chemistry) and more robust protection."></div>
+    <div class="flashcard" data-front="Prompt injection" data-back="The most serious LLM security vulnerability with no complete solution; user or retrieved content carries instructions that override the system prompt."></div>
+    <div class="flashcard" data-front="Indirect injection" data-back="Malicious instructions embedded in retrieved documents or web pages; hardest to catch because the model can't distinguish trusted from untrusted content."></div>
+    <div class="flashcard" data-front="Privilege separation" data-back="Assign different trust levels to system prompt, user input, and retrieved content — the best architectural defense against injection."></div>
+    <div class="flashcard" data-front="EU AI Act and education" data-back="Educational assessment/access AI is classified high-risk (conformity assessments, human oversight); AI grading must be disclosed."></div>
+    <div class="flashcard" data-front="Prohibited practices (EU)" data-back="Social scoring, real-time biometric identification, and emotion recognition in educational settings."></div>
+    <div class="flashcard" data-front="AI detection tools" data-back="~85% accuracy with a 10-15% false-positive rate — too unreliable for high-stakes integrity decisions; redesign assessments instead."></div>
+    </div>
+    <!-- /cf:added -->
 
   </div>
 </div>
@@ -1598,6 +1751,25 @@ server.<span class="fn">resource</span>(
       <p><strong>The model layer is commoditizing; the application layer is where value accrues.</strong> Coursera's competitive advantage is not which model it uses (everyone has access to Claude, GPT-5, Gemini) but how it integrates AI into the learning experience. The companies winning in AI are those with unique data (your learner data and course content), unique workflows (your assessment and credentialing pipeline), and unique distribution (your university and enterprise relationships). Invest in the application layer, not in chasing the latest model release.</p>
     </div>
 
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="What does the module call the single biggest constraint on AI progress in 2026?" data-options="Algorithmic breakthroughs|Data privacy regulation|Compute — GPU supply (H100/H200/B200), creating a 'GPU-rich vs GPU-poor' divide|A shortage of ML engineers" data-answer="2" data-explanation="The biggest constraint is compute, not algorithms; scarce NVIDIA GPUs split the field into GPU-rich (Google, Meta, Microsoft/OpenAI) and GPU-poor."></div>
+    <div class="quiz" data-question="What does the module identify as Anthropic's competitive moat?" data-options="The lowest API prices|The largest model|Exclusive GPU access|Trust built through safety research and Constitutional AI — a procurement requirement in regulated industries" data-answer="3" data-explanation="By investing in safety research, Anthropic built trust as a moat; in regulated industries like education, trust in your AI provider is a procurement requirement."></div>
+    <div class="quiz" data-question="How does the module describe Meta's open-weight Llama strategy?" data-options="Pure altruism with no business goal|A play to commoditize the model layer (where Meta doesn't earn) and drive value to the application layer, which keeps API prices falling|An attempt to sell GPU capacity|A way to lock developers into GCP" data-answer="1" data-explanation="Open weights commoditize the model layer to push value toward Meta's application products; every self-hosting company also pressures API prices downward."></div>
+    <div class="quiz" data-question="Where does the module argue value accrues in the AI stack?" data-options="The model layer, which keeps differentiating|The GPU-manufacturing layer|The application layer — unique data, workflows, and distribution — while the model layer commoditizes|The benchmark-publishing layer" data-answer="2" data-explanation="The model layer is commoditizing; value accrues at the application layer through unique data, workflows, and distribution."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="AI compute bottleneck" data-back="The biggest 2026 constraint is compute, not algorithms; the NVIDIA H100/H200/B200 shortage creates a 'GPU-rich vs GPU-poor' divide."></div>
+    <div class="flashcard" data-front="Anthropic's moat" data-back="Trust built via safety research and Constitutional AI; in regulated industries, provider trust is a procurement requirement, not a nice-to-have."></div>
+    <div class="flashcard" data-front="OpenAI platform play" data-back="Shift from 'best model' to 'best platform'; ChatGPT has 400M+ weekly users, and the API partly feeds ChatGPT upsell."></div>
+    <div class="flashcard" data-front="Google infrastructure advantage" data-back="Gemini embedded in Search, Gmail, Docs, Android, and Cloud; it needs only 'good enough' quality plus unmatched distribution."></div>
+    <div class="flashcard" data-front="Meta open-source kingmaker" data-back="Open weights commoditize the model layer (where Meta doesn't earn) to drive value to the app layer, keeping API prices falling."></div>
+    <div class="flashcard" data-front="Anthropic compute" data-back="Secured significant compute capacity through its Amazon (AWS) partnership."></div>
+    <div class="flashcard" data-front="Application-layer value" data-back="The model is a commodity input; value lives in domain-specific data, workflows, and UX (Harvey, Abridge, Cursor at $100M+ ARR)."></div>
+    <div class="flashcard" data-front="AI-native education window" data-back="Coursera's window to build a defensible AI-native product is ~12-18 months (competitors: Khanmigo, Duolingo Max)."></div>
+    </div>
+    <!-- /cf:added -->
+
   </div>
 </div>
 
@@ -1679,6 +1851,25 @@ server.<span class="fn">resource</span>(
       <div class="callout-title">Key Takeaway</div>
       <p><strong>The window to build a defensible AI-native education product is now.</strong> Models are good enough. Infrastructure is maturing. Regulation is arriving but hasn't yet locked in winners. The companies that build deep AI integration into their learning products in 2026–2027 will have data flywheels (AI-generated interactions produce data that improves the AI) that late movers can't replicate. Don't wait for AGI — build with what's here today and architect for what's coming.</p>
     </div>
+
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="When pre-training scale hit diminishing returns, what did labs shift to instead?" data-options="Abandoning large models entirely|Only training on synthetic data|Test-time compute scaling — spending more compute at inference (reasoning) rather than training|Reducing context windows" data-answer="2" data-explanation="The o-series, Claude Extended Thinking, and DeepSeek-R1 show quality gains from inference-time reasoning — a fundamental paradigm shift from training-time scaling."></div>
+    <div class="quiz" data-question="What is the 'data wall' the module describes?" data-options="The public internet's high-quality training text is approximately exhausted, and synthetic data risks quality ceilings and model collapse|A firewall protecting training data|A legal limit on data collection|A hardware limit on storage" data-answer="0" data-explanation="Labs have roughly exhausted high-quality public text; synthetic data supplements it but introduces quality ceilings and potential model collapse."></div>
+    <div class="quiz" data-question="Which of these does the module say current models still struggle with?" data-options="Recombining existing knowledge|Answering simple questions|Novel reasoning, long-horizon planning, self-knowledge, and robust generalization|Basic classification" data-answer="2" data-explanation="Capabilities expand in breadth faster than depth; models remain weak at genuinely novel reasoning, long-horizon planning, calibrated self-knowledge, and distribution-shift generalization."></div>
+    <div class="quiz" data-question="What share of AI engineering effort does the module recommend spending on evaluation and monitoring?" data-options="Under 5%|About 50%|None, once models are good enough|20-30%" data-answer="3" data-explanation="Without evals you're flying blind — the module advises planning to spend 20-30% of AI engineering effort on evaluation and monitoring."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="Scaling laws crack (2025)" data-back="Pre-training scale hit diminishing returns due to the data wall, benchmark saturation, and cost ($10M GPT-4 to $100M+ GPT-5)."></div>
+    <div class="flashcard" data-front="Data wall" data-back="The public internet's high-quality training text is roughly exhausted; synthetic data risks quality ceilings and model collapse."></div>
+    <div class="flashcard" data-front="Test-time compute scaling" data-back="The paradigm shift to gaining quality by spending compute at inference (reasoning) rather than training — o-series, Extended Thinking, DeepSeek-R1."></div>
+    <div class="flashcard" data-front="AGI reality check" data-back="Capabilities grow in breadth faster than depth; models still struggle with novel reasoning, long-horizon planning, self-knowledge, and robust generalization."></div>
+    <div class="flashcard" data-front="Bloom's 2-sigma problem" data-back="One-on-one tutoring is the gold standard; AI tutors can deliver ~80% of the benefit at ~0.1% of the cost when grounded in verified content."></div>
+    <div class="flashcard" data-front="Invest in eval" data-back="Build task-specific eval suites for every feature; plan to spend 20-30% of AI engineering effort on evaluation and monitoring."></div>
+    <div class="flashcard" data-front="Assessment adoption constraint" data-back="Automated grading's limit is trust, not capability — instructors must see and verify AI grading before adopting it."></div>
+    <div class="flashcard" data-front="Data flywheel" data-back="AI-generated interactions produce data that improves the AI; early deep integration builds an advantage late movers can't replicate."></div>
+    </div>
+    <!-- /cf:added -->
 
   </div>
 </div>
@@ -2234,6 +2425,25 @@ server.<span class="fn">resource</span>(
       <p>GLM-5.2 is the most important open-weight release of 2026. It proves that open models can lead on coding and agentic benchmarks, not just follow. For engineering teams: evaluate it seriously alongside your API providers. For the industry: the era of closed-model dominance is ending &mdash; the question is how fast.</p>
     </div>
 
+    <!-- cf:added interactive review -->
+    <h3>✅ Knowledge Check</h3>
+    <div class="quiz" data-question="What is GLM-5.2's headline architectural innovation and its effect?" data-options="Dense attention on every layer for maximum quality|IndexShare sparse attention — a full indexer pass every 4 layers, reused for the next 3 — giving a ~2.9x FLOP reduction at 1M context|Multi-latent attention only|Fixed-pattern sparsity that halves parameters" data-answer="1" data-explanation="IndexShare runs a full indexer every 4 layers and reuses the selected token indices for 3 layers, cutting FLOPs ~2.9x at 1M context without the quality loss of simpler sparsity."></div>
+    <div class="quiz" data-question="Per OSAID 1.0, why do GLM-5.2, Llama 4, Qwen 3, and DeepSeek V4 NOT qualify as 'open source'?" data-options="Their weights are not downloadable|They release weights but not their training data, so they are 'open weight', not 'open source'|Their licenses forbid commercial use|They were trained on proprietary chips" data-answer="1" data-explanation="OSAID 1.0 requires weights + training code + training data; these models release weights (and often code) but not training data, making them open weight rather than open source."></div>
+    <div class="quiz" data-question="Which local runtime is explicitly NOT production-ready on Apple Silicon (built for NVIDIA/AMD)?" data-options="Ollama|llama.cpp|MLX|vLLM" data-answer="3" data-explanation="vLLM is the production GPU-serving standard (PagedAttention, 16-20x throughput) but is designed for CUDA/ROCm and is not production-ready on Apple Silicon."></div>
+    <div class="quiz" data-question="Why is the self-hosting cost crossover for GLM-5.2 as high as 500M+ tokens/month?" data-options="Because its API is already so cheap (~$1.40/$4.40 per 1M tokens) that self-hosting rarely wins until very high volume|Because its weights are too large to download|Because it can't be self-hosted at all|Because it requires 64 H100s to run" data-answer="0" data-explanation="At ~$1.40 input / $4.40 output per 1M tokens, the GLM-5.2 API is so cheap that you'd need 500M+ tokens/month before an 8xH100 cluster pays off — much higher than the ~100M crossover for Llama-class models."></div>
+    <h3>🃏 Flashcards</h3>
+    <div class="flashcards">
+    <div class="flashcard" data-front="GLM-5.2" data-back="Z.ai's MIT-licensed model (June 13, 2026): 753B total / ~40B active, 1M context; leads coding/agentic benchmarks (62.1 SWE-bench Pro vs GPT-5.5's 58.6)."></div>
+    <div class="flashcard" data-front="IndexShare sparse attention" data-back="Run a full indexer pass every 4 layers, reuse the selected token indices for the next 3 layers; ~2.9x FLOP reduction at 1M context without quality loss."></div>
+    <div class="flashcard" data-front="Open weight vs open source" data-back="OSAID 1.0 (Oct 2024) requires weights + training code + training data; almost all models release only weights, so they are 'open weight', not 'open source'."></div>
+    <div class="flashcard" data-front="License landscape" data-back="MIT (GLM-5.2, DeepSeek V4, Phi-4; attribution only), Apache 2.0 (Qwen, Gemma, Mistral; patent grant), Llama Community (700M MAU cap)."></div>
+    <div class="flashcard" data-front="DeepSeek V4 Pro" data-back="Largest open-weight model at 1.6T params / 49B active, MIT, 1M context; hybrid multi-head + multi-latent attention (MLA) to control memory at scale."></div>
+    <div class="flashcard" data-front="vLLM" data-back="Production GPU-serving standard; PagedAttention gives 16-20x throughput but is NOT production-ready on Apple Silicon (CUDA/ROCm only)."></div>
+    <div class="flashcard" data-front="MLX (Apple)" data-back="On M5 silicon, 30-60% faster than llama.cpp's Metal backend; Neural Accelerator makes prefill 3-4x faster for long-context workloads."></div>
+    <div class="flashcard" data-front="Self-host crossover" data-back="Llama-class on 8xH100 ~100M tokens/month; GLM-5.2's API is so cheap the crossover is 500M+/month; small models ~20-30M/month."></div>
+    </div>
+    <!-- /cf:added -->
+
   </div>
 </div>
 
@@ -2331,5 +2541,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script src="course-framework.js"></script>
 </body>
 </html>

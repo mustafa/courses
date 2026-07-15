@@ -1,19 +1,28 @@
-const CACHE_NAME = 'mustafa-courses-v2';
+const CACHE_NAME = 'mustafa-courses-v3';
 
+// Framework + all courses. Individual cache.add (below) means one failure
+// never breaks the rest, and the network-first fetch handler backfills anything
+// not pre-cached on first visit.
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/manifest.json',
+  '/course-framework.css',
+  '/course-framework.js',
   '/Iceland_Driving_Guide.html',
   '/agent-tracing-observability-course.html',
   '/ai-agents-production-course.html',
   '/ai-evals-measurement-course.html',
+  '/ai-frontier-voices-course.html',
   '/ai-infrastructure-at-scale-course.html',
   '/ai-native-product-building-course.html',
   '/ai-product-strategy-edtech-course.html',
+  '/anthropic-academy-study-guide.html',
   '/bending-spoons-course.html',
   '/claims-system-architecture-course.html',
   '/claude-agent-network-course.html',
   '/claude-agent-sdk-course.html',
+  '/claude-certified-architect-prep-course.html',
   '/cloudflare-platform-course.html',
   '/coding-agents-course.html',
   '/cybersecurity-tech-leaders-course.html',
@@ -25,6 +34,7 @@ const ASSETS_TO_CACHE = [
   '/genai-state-of-art-2026.html',
   '/instructure-company-course.html',
   '/kiddom-company-cto-course.html',
+  '/loop-engineering-course.html',
   '/mcp-agentic-stack-course.html',
   '/openai-realtime-course.html',
   '/pe-playbook-tech-course.html',
@@ -33,8 +43,7 @@ const ASSETS_TO_CACHE = [
   '/rl-for-llms-course.html',
   '/system-design-at-scale-course.html',
   '/voice-ai-education-course.html',
-  '/wealth-planning-course.html',
-  '/manifest.json'
+  '/wealth-planning-course.html'
 ];
 
 // Install — cache assets individually so one failure doesn't break everything
