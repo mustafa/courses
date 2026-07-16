@@ -90,6 +90,10 @@ Opinionated Take
 
 If you're still picking models by benchmark leaderboards, you're optimizing for the wrong thing. Build a task-specific eval suite with 200–500 examples from your actual production data. Run every candidate model against it. The winner will surprise you — it's rarely the one on top of the public leaderboard. At Coursera-scale, this eval suite investment pays for itself within a quarter.
 
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
+
 ## Module 02: The API Wars: Pricing, Platforms & Lock-in
 
 ### Pricing Comparison (as of May 2026)
@@ -196,6 +200,10 @@ The caveat: Google's API reliability and documentation quality still lag. Enterp
 Key Takeaway
 
 **Build an abstraction layer.** Use a thin wrapper (even 50 lines of code) that normalizes the message format across providers. The Anthropic and OpenAI message formats are close enough that a unified interface takes a day to build. This lets you A/B test models, fail over between providers, and avoid rewriting your codebase when the price war inevitably shifts. Anthropic's open MCP protocol for tool integration is the most future-proof bet for tooling standards.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ## Module 03: Agents & Orchestration: The Year Agents Got Real
 
@@ -326,6 +334,10 @@ Key Takeaway
 
 **Start with a single agent and a good set of tools before going multi-agent.** The industry over-invested in multi-agent architectures in 2025, and most teams learned that a single well-prompted agent with 10 tools outperforms a swarm of 5 specialized agents 80% of the time. Go multi-agent only when you need genuine parallelism or adversarial review. And adopt MCP now — it's becoming the standard integration layer and future-proofs your tooling investment.
 
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
+
 ## Module 04: Reasoning & Chain-of-Thought: When Models Think
 
 ### The Reasoning Revolution
@@ -375,6 +387,10 @@ Reasoning models are **not** universally better. They're slower and more expensi
 Key Takeaway
 
 **Reasoning models are compute/quality knobs, not magic.** Use `budget_tokens` in Claude's Extended Thinking to control the trade-off: 1K tokens of thinking for quick sanity checks, 10K for complex analysis. For Coursera, the killer use case is assessment design and grading — let the model reason through rubric criteria step by step, then inspect the thinking chain for quality assurance. Train your team to read thinking blocks the way they'd review a colleague's work.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ## Module 05: The Multimodal Frontier: Vision, Audio, Video & Beyond
 
@@ -428,6 +444,10 @@ Claude Code (Anthropic's CLI tool) and GitHub Copilot Workspace represent the st
 Key Takeaway
 
 **Multimodal is ready for education, with caveats.** Vision for grading visual work: ready. Audio for lecture analysis: ready. Real-time voice for tutoring: ready (but use OpenAI Realtime or Gemini Live, not Claude). Video understanding for course QA: emerging. Image/video generation for content creation: useful for drafts, not final assets. Code generation for internal tooling: a genuine force multiplier — expect 30–50% productivity gains for your engineering team.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ## Module 06: The Fine-Tuning Playbook: When, Why & How
 
@@ -484,6 +504,10 @@ If you don't want to manage GPUs, both OpenAI and Google offer fine-tuning throu
 Key Takeaway
 
 **For most teams, the answer is: don't fine-tune yet.** The quality of base models has improved so dramatically that prompt engineering + RAG covers 90% of use cases. Fine-tune only when you have a clear behavior change that prompting can't achieve, at least 500 quality examples, and a robust eval suite to measure improvement. If you do fine-tune, start with SFT + LoRA on an open model (Llama 4 Scout). If you need preference alignment, DPO is the pragmatic choice — it's 90% of RLHF quality at 20% of the complexity. Reserve GRPO for tasks with verifiable correctness (math, code, structured outputs).
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ## Module 07: RAG & Knowledge Systems: Beyond Naive Retrieval
 
@@ -547,6 +571,10 @@ Key Takeaway
 
 **The best RAG system is the one you don't build.** Before investing in an embedding pipeline, try: (1) can you fit the data in the context window with prompt caching? (2) can you use MCP tools to query your existing search infrastructure? If neither works, build RAG — but do it properly: hybrid search (BM25 + vector), always re-rank, use contextual chunking, and eval relentlessly. The difference between good and bad RAG is 40+ percentage points on retrieval accuracy. Don't ship bad RAG — it's worse than no RAG because users lose trust.
 
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
+
 ## Module 08: Safety, Alignment & Governance: The Guardrails
 
 ### The Safety Landscape Has Matured
@@ -605,6 +633,10 @@ The safety concerns specific to education:
 Key Takeaway
 
 **Safety is not a feature — it's the foundation.** For education AI: (1) Assume prompt injection will happen and design defensively with privilege separation and output validation. (2) Start EU AI Act compliance now — the high-risk requirements for educational AI are substantial and take time to implement. (3) Don't use AI detection tools for academic integrity — the false positive rate is too high. Redesign assessments instead. (4) Audit for bias quarterly, with real student data and disaggregated metrics.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ## Module 09: The Business Landscape: Money, Strategy & Power
 
@@ -665,6 +697,10 @@ The real money is moving to the application layer. Notable patterns:
 Key Takeaway
 
 **The model layer is commoditizing; the application layer is where value accrues.** Coursera's competitive advantage is not which model it uses (everyone has access to Claude, GPT-5, Gemini) but how it integrates AI into the learning experience. The companies winning in AI are those with unique data (your learner data and course content), unique workflows (your assessment and credentialing pipeline), and unique distribution (your university and enterprise relationships). Invest in the application layer, not in chasing the latest model release.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ## Module 10: What's Next: Scaling Laws, AGI & the Future of Education AI
 
@@ -728,6 +764,10 @@ For a VP of Engineering at an education company, the action items are clear:
 Key Takeaway
 
 **The window to build a defensible AI-native education product is now.** Models are good enough. Infrastructure is maturing. Regulation is arriving but hasn't yet locked in winners. The companies that build deep AI integration into their learning products in 2026–2027 will have data flywheels (AI-generated interactions produce data that improves the AI) that late movers can't replicate. Don't wait for AGI — build with what's here today and architect for what's coming.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ## Module 11: The Open-Weight Revolution: GLM-5.2 & the 2026 Landscape
 
@@ -965,6 +1005,10 @@ This hybrid approach captures most of the cost savings of self-hosting while mai
 Key Takeaway
 
 GLM-5.2 is the most important open-weight release of 2026. It proves that open models can lead on coding and agentic benchmarks, not just follow. For engineering teams: evaluate it seriously alongside your API providers. For the industry: the era of closed-model dominance is ending — the question is how fast.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 State of Generative AI — June 2026
 

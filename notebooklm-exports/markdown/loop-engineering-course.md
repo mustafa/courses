@@ -91,6 +91,10 @@ Loop engineering isn't all-or-nothing. There's a spectrum from fully manual to f
 >
 > Addy Osmani adds a critical warning: "Two people can build the exact same loop and get completely opposite results. One uses it to move faster on work they understand deeply. The other uses it to avoid understanding the work at all. The loop doesn't know the difference. You do." He calls this risk **cognitive surrender** — designing a loop is the cure when you do it with judgment and the accelerant when you do it to avoid thinking.
 
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
+
 ### Generator vs Verifier: The Two Halves
 
 Every agentic loop has two fundamental components, and understanding the distinction between them is the most important concept in loop engineering.
@@ -284,6 +288,10 @@ Exit conditions are the most critical safety mechanism in loop engineering. A lo
 > **Tip:** Practical Tip
 >
 > Claude Code's `/goal` command implements this separation elegantly: the goal condition is checked by a separate, smaller, faster model after every turn. The model that wrote the code isn't the one grading it. This is the maker/checker split applied to the stop condition itself.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ### Why the Verifier is the Bottleneck
 
@@ -516,6 +524,10 @@ Production loops use a tiered verification strategy to balance speed and thoroug
 > **Tip:** Practical Tip
 >
 > The single most impactful thing you can do before running any loop is to ensure your project has a fast, reliable test suite. If `npm test` takes 30 minutes, your loop will crawl. Invest in test speed — parallel test runners, test sharding, mocking external services — and your loops will fly.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ### Pattern 1: The Simple While Loop (Huntley Pattern)
 
@@ -868,6 +880,10 @@ typescript
 >
 > Start with the simplest pattern that could work. The Simple While Loop handles 80% of use cases. Add complexity only when the simple pattern demonstrably fails. As the industry advice goes: "prefer the simplest pattern that works, and compose patterns rather than reaching for a heavy framework."
 
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
+
 ### Claude Code's Built-in Loop Capabilities
 
 Claude Code has evolved from a coding assistant into a loop-native platform. As of mid-2026, it ships with first-party loop primitives that implement the exact patterns described by Osmani, Cherny, and Steinberger. Here's the complete toolkit:
@@ -1148,6 +1164,10 @@ $ claude
   Only act on PRs authored by the team (check CODEOWNERS)
 ```
 
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
+
 ### The Universal Shape of Loops
 
 Addy Osmani's key observation: the shape of a loop is the same regardless of which tool you use. Both Codex and Claude Code now have all five building blocks (automations, worktrees, skills, connectors, sub-agents). Once you notice the shape is the same, you stop arguing about which tool and start designing loops that work no matter which agent you're running.
@@ -1354,6 +1374,10 @@ Regardless of which tool or API you use, these principles apply to every loop:
 **4\. Design for restartability.** If the loop crashes at iteration 17, it should be able to resume from the last good state, not start over from scratch.
 
 **5\. Log everything.** Every iteration, every verification result, every decision. You will need to debug your loops, and logs are the only way.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ### Hard Stops: The Safety Net
 
@@ -1618,6 +1642,10 @@ echo "All parallel loops finished."
 Loops must be safely restartable. If a loop crashes at iteration 17, restarting it should resume from the last good state, not re-do iterations 1-16 or create duplicate changes.
 
 Design principles for idempotent loops: use git commits as checkpoints (you can always reset to the last known good commit), use a state file that records what's been done (the loop reads this on startup to know where it left off), make each iteration's changes atomic (either fully committed or fully rolled back), and use deterministic task IDs (checking off a task by ID is idempotent — doing it twice has the same effect as doing it once).
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ### Beyond Code: The Universal Pattern
 
@@ -1884,6 +1912,10 @@ git add -A && git commit -m "test: expand coverage to ${CURRENT_COVERAGE}%"
 Key Insight
 
 The common thread across all non-code loops: you need a **machine-checkable definition of "done."** For content, that's readability scores and required sections. For research, that's source count and confidence level. For data, that's schema validation. For tests, that's coverage percentage. If you can't define "done" in terms a program can check, you can't build a reliable loop.
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 ### Nested Loops: Strategic and Tactical
 
@@ -2207,6 +2239,10 @@ The reward signal in loop engineering is the verification result. Better verifie
 
 The key differences from classical RL: loop engineering uses external tools (tests, linters) as the reward function rather than learned reward models, the "policy" is the model's general capability rather than a task-specific policy, and the "environment" is a real codebase rather than a simulation. But the optimization dynamic is the same: iterate, get feedback, improve.
 
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
+
 ### Organizational Adoption: When to Use Loops
 
 Not every task needs a loop. The decision framework is simple: use a loop when the task is (1) iterative by nature, (2) has a machine-checkable definition of "done," and (3) benefits from multiple attempts. Use manual prompting when the task is exploratory, creative, or requires judgment that can't be automated.
@@ -2418,6 +2454,10 @@ Build the loop. Stay the engineer.
 | Comprehension Debt | The growing gap between what your codebase does and what you actually understand, accelerated by autonomous loops. |
 | Harness Engineering | The discipline of designing environments, constraints, and feedback loops that make AI coding agents reliable at scale — the layer below loop engineering. |
 | Worktree Isolation | Using git worktrees to give each concurrent loop its own working directory, preventing file conflicts between parallel agents. |
+
+### ✅ Knowledge Check
+
+### 🃏 Flashcards
 
 Loop Engineering Course — Built July 2026
 
