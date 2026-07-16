@@ -6,9 +6,9 @@ New Discipline — July 2026
 
 Designing systems that run AI agents in automated, self-correcting loops. The definitive course on the practice that replaced prompt engineering — from the people who invented it.
 
-📚 10 Modules ⏱ ~4 hour read 💻 30+ Code Examples 🎓 Practitioner Level 🔌 Fully Offline
+📚 13 Modules ⏱ ~5 hour read 💻 40+ Code Examples 🎓 Practitioner Level 🔌 Fully Offline
 
-0 / 10 completed
+0 / 13 completed
 
 🔍
 
@@ -22,12 +22,17 @@ Designing systems that run AI agents in automated, self-correcting loops. The de
 8.  [8 Loop Engineering for Non-Code Tasks](#mod8)
 9.  [9 Advanced Loop Patterns](#mod9)
 10.  [10 Building a Loop Engineering Practice](#mod10)
+11.  [11 Industry Leaders on Loops: The 2026 Consensus](#mod11)
+12.  [12 The Three-Agent Loop Pattern](#mod12)
+13.  [13 Loop Platforms: No-Code Loops for Everyone](#mod13)
 
 ### The Shift from Prompt Engineering to Loop Engineering
 
 In June 2026, a seismic shift occurred in how software engineers work with AI. On June 8th, Peter Steinberger — creator of OpenClaw, now at OpenAI — posted two sentences on X that hit 6.5 million views in a single day: *"Here's your monthly reminder that you shouldn't be prompting coding agents anymore. You should be designing loops that prompt your agents."*
 
-The same week, Addy Osmani, Google's engineering leader who spent over 14 years leading developer experience across Chrome and more recently AI at Google Cloud, published an essay that gave the practice its name. And Boris Cherny, head of Claude Code at Anthropic, put his own job description the same way in a video that got 870 reposts in eleven hours: *"I don't prompt Claude anymore. I have loops running that prompt Claude and figuring out what to do. My job is to write loops."*
+The same week, Addy Osmani, Google's engineering leader who spent over 14 years leading developer experience across Chrome and more recently AI at Google Cloud, published an essay that gave the practice its name. And Boris Cherny, head of Claude Code at Anthropic, put his own job description the same way in a video that got 870 reposts in eleven hours: *"I don't prompt Claude anymore. I have loops running that prompt Claude and figuring out what to do. My job is to write loops."* In a follow-up that reached millions more, he revealed the scale: *"Every night I have hundreds, sometimes thousands of agents running in loops for 5, 10, 20 hours straight. This is just how engineering is done now."*
+
+Cherny's daily setup became a blueprint. He runs five instances of Claude Code simultaneously in separate git checkouts, numbered tabs 1–5, with system notifications alerting him when any agent needs input. On top of those five terminal sessions, he runs 5–10 more Claude sessions on the web, and starts additional sessions from his phone each morning. His workflow follows a strict discipline: never let Claude write a single line of code until the plan is approved. He uses Plan Mode where Claude writes a detailed spec, iterates back and forth until the plan is exactly right, then switches to auto-accept mode — and with a good plan in place, Claude one-shots the implementation almost every time.
 
 Loop engineering was born — or rather, it was finally named. The practice had been emerging for months among practitioners like Geoffrey Huntley, who had been running coding agents inside bash while-loops since early 2026 with his "Ralph Wiggum" technique. But Steinberger's viral post, Osmani's definitive essay, and Cherny's public embrace at Anthropic crystallized it into a discipline.
 
@@ -90,10 +95,6 @@ Loop engineering isn't all-or-nothing. There's a spectrum from fully manual to f
 > **Warning:** Caution
 >
 > Addy Osmani adds a critical warning: "Two people can build the exact same loop and get completely opposite results. One uses it to move faster on work they understand deeply. The other uses it to avoid understanding the work at all. The loop doesn't know the difference. You do." He calls this risk **cognitive surrender** — designing a loop is the cure when you do it with judgment and the accelerant when you do it to avoid thinking.
-
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
 
 ### Generator vs Verifier: The Two Halves
 
@@ -288,10 +289,6 @@ Exit conditions are the most critical safety mechanism in loop engineering. A lo
 > **Tip:** Practical Tip
 >
 > Claude Code's `/goal` command implements this separation elegantly: the goal condition is checked by a separate, smaller, faster model after every turn. The model that wrote the code isn't the one grading it. This is the maker/checker split applied to the stop condition itself.
-
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
 
 ### Why the Verifier is the Bottleneck
 
@@ -524,10 +521,6 @@ Production loops use a tiered verification strategy to balance speed and thoroug
 > **Tip:** Practical Tip
 >
 > The single most impactful thing you can do before running any loop is to ensure your project has a fast, reliable test suite. If `npm test` takes 30 minutes, your loop will crawl. Invest in test speed — parallel test runners, test sharding, mocking external services — and your loops will fly.
-
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
 
 ### Pattern 1: The Simple While Loop (Huntley Pattern)
 
@@ -880,10 +873,6 @@ typescript
 >
 > Start with the simplest pattern that could work. The Simple While Loop handles 80% of use cases. Add complexity only when the simple pattern demonstrably fails. As the industry advice goes: "prefer the simplest pattern that works, and compose patterns rather than reaching for a heavy framework."
 
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
-
 ### Claude Code's Built-in Loop Capabilities
 
 Claude Code has evolved from a coding assistant into a loop-native platform. As of mid-2026, it ships with first-party loop primitives that implement the exact patterns described by Osmani, Cherny, and Steinberger. Here's the complete toolkit:
@@ -954,6 +943,64 @@ terminal
   security vulnerabilities, and available updates.
   Create a PR with safe updates.
 ```
+
+### Boris Cherny's Production Workflow: Loops at Anthropic Scale
+
+Boris Cherny, the creator of Claude Code, has publicly described his daily workflow — and it reveals what loop engineering looks like when practiced by the person who built the tool. His setup has become a reference architecture for serious practitioners.
+
+#### The Daily Setup
+
+Cherny runs five instances of Claude Code simultaneously in his terminal, each in a separate git checkout of the same repository. He numbers his tabs 1–5 for quick reference and uses system notifications to know when any Claude instance needs input. Beyond terminal sessions, he runs 5–10 additional sessions through the Claude web interface and starts new sessions from his phone throughout the day — checking in on them later as they progress.
+
+#### Plan First, Then Auto-Accept
+
+His cardinal rule: never let Claude write code until the plan is approved. He uses Plan Mode to have Claude write a detailed specification or design document, then iterates on that plan until it's exactly right. Only then does he switch to auto-accept mode. The payoff is remarkable — with a solid plan in place, Claude one-shots the implementation almost every time.
+
+#### Overnight Agent Fleets
+
+The most striking aspect of Cherny's workflow is the overnight operation. He typically runs five to ten sessions during the day, with multiple sub-agents per session. At night, he has "a few thousand" AI sub-agents doing what he calls "deeper work." The `/loop` feature lets Claude run recurring tasks for up to three days unattended, and Routines run tasks on a server so agents keep working after laptops close.
+
+#### Dynamic Workflows (June 2026)
+
+Cherny's latest evolution is the "dynamic workflow" — an orchestrator pattern where a top-level Claude kicks off N tasks (where N can be in the hundreds). Each task fans out with an implementer that branches into two independent verifiers, both feeding into a single fixer. Each task's loop runs until both verifiers pass. This is the maker/checker split scaled to industrial proportions.
+
+```
+text
+Dynamic Workflow Architecture (Boris Cherny, June 2026)
+
+┌─────────────────────────────────────────────────┐
+│              TOP-LEVEL ORCHESTRATOR             │
+│         (kicks off N tasks, N can be 100s)      │
+└───────┬──────────┬──────────┬───────────────────┘
+        │          │          │
+   ┌────▼───┐ ┌───▼────┐ ┌──▼─────┐
+   │ Task 1 │ │ Task 2 │ │ Task N │  ... (parallel)
+   └────┬───┘ └───┬────┘ └──┬─────┘
+        │         │         │
+   Each task follows this inner loop:
+        │
+   ┌────▼────────────────┐
+   │    IMPLEMENTER      │
+   │  (writes code/fix)  │
+   └────┬────────────────┘
+        │
+   ┌────▼──────┐  ┌───────────┐
+   │ VERIFIER  │  │ VERIFIER  │  (two independent checks)
+   │    A      │  │    B      │
+   └────┬──────┘  └─────┬─────┘
+        │               │
+        └───────┬───────┘
+                │
+         ┌──────▼──────┐
+         │   FIXER     │  (addresses both verifiers' feedback)
+         └──────┬──────┘
+                │
+         Loop until BOTH verifiers pass
+```
+
+Quote
+
+"I don't prompt Claude anymore. I have loops running that prompt Claude and figuring out what to do. My job is to write loops." — Boris Cherny, Head of Claude Code, Anthropic
 
 ### CLAUDE.md as Loop Configuration
 
@@ -1164,10 +1211,6 @@ $ claude
   Only act on PRs authored by the team (check CODEOWNERS)
 ```
 
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
-
 ### The Universal Shape of Loops
 
 Addy Osmani's key observation: the shape of a loop is the same regardless of which tool you use. Both Codex and Claude Code now have all five building blocks (automations, worktrees, skills, connectors, sub-agents). Once you notice the shape is the same, you stop arguing about which tool and start designing loops that work no matter which agent you're running.
@@ -1374,10 +1417,6 @@ Regardless of which tool or API you use, these principles apply to every loop:
 **4\. Design for restartability.** If the loop crashes at iteration 17, it should be able to resume from the last good state, not start over from scratch.
 
 **5\. Log everything.** Every iteration, every verification result, every decision. You will need to debug your loops, and logs are the only way.
-
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
 
 ### Hard Stops: The Safety Net
 
@@ -1642,10 +1681,6 @@ echo "All parallel loops finished."
 Loops must be safely restartable. If a loop crashes at iteration 17, restarting it should resume from the last good state, not re-do iterations 1-16 or create duplicate changes.
 
 Design principles for idempotent loops: use git commits as checkpoints (you can always reset to the last known good commit), use a state file that records what's been done (the loop reads this on startup to know where it left off), make each iteration's changes atomic (either fully committed or fully rolled back), and use deterministic task IDs (checking off a task by ID is idempotent — doing it twice has the same effect as doing it once).
-
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
 
 ### Beyond Code: The Universal Pattern
 
@@ -1912,10 +1947,6 @@ git add -A && git commit -m "test: expand coverage to ${CURRENT_COVERAGE}%"
 Key Insight
 
 The common thread across all non-code loops: you need a **machine-checkable definition of "done."** For content, that's readability scores and required sections. For research, that's source count and confidence level. For data, that's schema validation. For tests, that's coverage percentage. If you can't define "done" in terms a program can check, you can't build a reliable loop.
-
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
 
 ### Nested Loops: Strategic and Tactical
 
@@ -2239,10 +2270,6 @@ The reward signal in loop engineering is the verification result. Better verifie
 
 The key differences from classical RL: loop engineering uses external tools (tests, linters) as the reward function rather than learned reward models, the "policy" is the model's general capability rather than a task-specific policy, and the "environment" is a real codebase rather than a simulation. But the optimization dynamic is the same: iterate, get feedback, improve.
 
-### ✅ Knowledge Check
-
-### 🃏 Flashcards
-
 ### Organizational Adoption: When to Use Loops
 
 Not every task needs a loop. The decision framework is simple: use a loop when the task is (1) iterative by nature, (2) has a machine-checkable definition of "done," and (3) benefits from multiple attempts. Use manual prompting when the task is exploratory, creative, or requires judgment that can't be automated.
@@ -2455,12 +2482,418 @@ Build the loop. Stay the engineer.
 | Harness Engineering | The discipline of designing environments, constraints, and feedback loops that make AI coding agents reliable at scale — the layer below loop engineering. |
 | Worktree Isolation | Using git worktrees to give each concurrent loop its own working directory, preventing file conflicts between parallel agents. |
 
-### ✅ Knowledge Check
+### The Week Everything Changed
 
-### 🃏 Flashcards
+In a single week in June 2026, the concept of loop engineering went from practitioner jargon to industry consensus. CEOs, engineering leaders, and the creators of the most widely used AI tools all converged on the same message: the era of manual prompting is over. The job now is designing the systems that prompt for you.
+
+What made this moment different from previous AI hype cycles was who was saying it — not pundits or consultants, but the people actually building and deploying AI at scale. And they weren't speculating about the future. They were describing what they were already doing.
+
+### Jensen Huang (NVIDIA CEO): "Nobody Writes Prompts Anymore"
+
+Quote
+
+"Nobody writes prompts anymore. The new job is to write and handle loops." — Jensen Huang, NVIDIA CEO, June 2026
+
+When the CEO of the company that makes the hardware powering every major AI model declares that prompt engineering is dead, the industry listens. Huang's statement, amplified by Anatoli Kopadze's viral coverage (which reached over 16 million views), crystallized what practitioners had been feeling: the interaction model had fundamentally shifted.
+
+Huang's framing was deliberately simple — from "writing prompts" to "writing loops" — but it captured an architectural transformation. The value creation in AI moved from crafting individual instructions to designing autonomous systems. The GPU king was telling the world that the software paradigm had caught up with the hardware.
+
+### Boris Cherny (Head of Claude Code, Anthropic): "This Is Just How Engineering Is Done Now"
+
+Quote
+
+"Every night I have hundreds, sometimes thousands of agents running in loops for 5, 10, 20 hours straight. This is just how engineering is done now." — Boris Cherny, June 2026
+
+Cherny didn't just advocate for loops — he revealed that Anthropic, the company building Claude, had already made them the default mode of operation. 100% of internal pull requests pass through Claude Code. Hundreds of agents run overnight. The tool's creator doesn't prompt it; he designs the loops that prompt it.
+
+His earlier statement — *"I don't prompt Claude anymore. I have loops that figure out what to do. My job is to create loops"* — reached millions through Kopadze's amplification and became the defining quote of the loop engineering movement. In a 30-minute breakdown, Cherny walked through his daily Claude Code setup step by step, showing that the person who built the tool doesn't use it the way most people think.
+
+### Farhan Thawar (Head of Engineering, Shopify): 3,000 Engineers Redesigned Around Loops
+
+Quote
+
+"AI writes the code, AI reviews the code. Your job is just to write the loops around it." — Farhan Thawar, Head of Engineering, Shopify
+
+Shopify's transformation is the most concrete case study of loop engineering at organizational scale. Thawar described how 3,000 engineers inside a $150 billion company changed the way they work:
+
+**The new workflow:** Senior engineers now launch several AI agents simultaneously to work on different parts of a codebase. The engineer reviews outputs, discards what doesn't work, and merges the pieces that do. The human role shifted from writing code to orchestrating agents — designing loops.
+
+**The cultural shift:** Thawar framed 2026 as the year of "agentic harnesses," meaning the move to delegate repetitive coding work to AI while engineers focus on higher-level decisions. His warning was blunt: *"If you don't figure out how to harness the agents in 2026, you'll be behind."*
+
+**The organizational impact:** Shopify didn't just adopt AI tools — they restructured engineering workflows around them. The company invested in junior engineers (not cutting them), recognizing that the ability to design and oversee loops would be the critical skill, regardless of seniority level.
+
+### Peter Steinberger (OpenClaw, Now at OpenAI): The Post That Started It
+
+Quote
+
+"Here's your monthly reminder that you shouldn't be prompting coding agents anymore. You should be designing loops that prompt your agents." — Peter Steinberger, June 7, 2026
+
+Steinberger's two-sentence post on June 7, 2026 was the spark. It hit 6.5 million views in a single day and dominated the agent conversation for the following week. What made it land wasn't just the clarity of the message — it was that Steinberger, as the creator of OpenClaw (now one of the most referenced open-source agent projects), had the credibility to back it up.
+
+OpenClaw became a concrete reference implementation of loop engineering patterns. It gave thousands of developers a working, readable codebase that showed what a properly designed loop looks like in practice. Steinberger demonstrated that the shape of a loop is the same regardless of which tool you use — Codex or Claude Code — because the underlying primitives map one-to-one.
+
+### Anatoli Kopadze: The Amplifier
+
+No discussion of the June 2026 moment is complete without acknowledging Kopadze's role. His article "Loops explained: Claude, GPT, Mira and what actually works" hit 8.4 million views (and climbing) with 17,000+ bookmarks. He didn't create the concepts, but he translated them for the broader audience — explaining loops to the millions of AI users who had been typing one prompt at a time.
+
+Kopadze's coverage connected the dots between the executive statements (Huang, Thawar), the practitioner workflows (Cherny, Steinberger), the platform implementations (Mira, Claude Code), and the practical how-to. His series of posts quoting each leader individually created a cascade effect that made loop engineering impossible to ignore.
+
+### The Consensus: What They All Agree On
+
+Despite coming from different companies, roles, and perspectives, these leaders converge on the same core principles:
+
+| Principle | Who Said It | How They Practice It |
+| --- | --- | --- |
+| Loops replace prompts | All of them | Individual prompting is a bottleneck; the system should prompt itself |
+| Verification is the bottleneck | Cherny, Steinberger | The quality of the loop depends on the quality of the checker, not the generator |
+| Engineers become loop designers | Huang, Thawar | The job shifts from writing code to designing systems that write code |
+| Loops run overnight | Cherny | Hundreds to thousands of agents, 5-20 hours, unattended |
+| Organizational transformation required | Thawar | 3,000 engineers changed workflows; culture shift, not just tool adoption |
+| Tool-agnostic patterns | Steinberger | Same loop shape works across Claude Code, Codex, custom implementations |
+
+> **Warning:** Historical Context
+>
+> The convergence of June 2026 didn't happen in a vacuum. Addy Osmani had been writing about loop engineering concepts since early June. Geoffrey Huntley's Ralph Wiggum pattern had been circulating among practitioners for months. Andrew Ng's three-nested-loops framework provided the theoretical foundation. What changed in June was that the CEOs and engineering leaders of the world's most influential tech companies validated what practitioners had been building — and declared it the new standard.
+
+### Anthropic's Architecture: Planner → Generator → Evaluator
+
+In a blog post that became the technical reference for loop engineering, Anthropic engineer Prithvi Rajasekaran described a three-agent architecture that produced rich full-stack applications over multi-hour autonomous coding sessions. The pattern was amplified by Kopadze's coverage — "Anthropic engineers just showed how they build a full app from scratch, using a loop of agents" — reaching 1.7 million views.
+
+The insight behind separating into three agents is simple but powerful: **when asked to evaluate work they've produced, agents tend to respond by confidently praising the work — even when the quality is obviously mediocre.** Splitting the agent doing the work from the agent judging it proves to be a strong lever to address this issue.
+
+THE THREE-AGENT LOOP PATTERN (Anthropic Harness Design, 2026) ┌──────────────────────────────────────────────────────┐ │ │ │ ┌──────────────┐ │ │ │ PLANNER │ Takes a 1-4 sentence prompt │ │ │ │ and expands into a full │ │ │ (1 pass) │ product spec with features, │ │ │ │ design language, and sprints │ │ └──────┬───────┘ │ │ │ │ │ │ Detailed spec │ │ ▼ │ │ ┌──────────────┐ ┌──────────────┐ │ │ │ GENERATOR │────────▶│ EVALUATOR │ │ │ │ │ hands │ │ │ │ │ Implements │ off │ Uses │ │ │ │ one sprint │ build │ Playwright │ │ │ │ at a time │ │ to click │ │ │ │ │◀────────│ through the │ │ │ │ Fixes bugs │ sends │ running app │ │ │ │ from eval │ back │ │ │ │ │ │ scores │ Grades each │ │ │ └──────────────┘ & │ criterion │ │ │ ▲ bugs │ with a hard │ │ │ │ │ threshold │ │ │ │ └──────┬───────┘ │ │ │ │ │ │ │ Below threshold? │ │ │ └────────────────────────┘ │ │ │ │ All criteria pass? ──▶ NEXT SPRINT │ │ All sprints done? ──▶ DONE │ │ │ └──────────────────────────────────────────────────────┘
+
+### The Three Agents in Detail
+
+#### The Planner
+
+The Planner takes a simple 1–4 sentence prompt and expands it into a full product specification. It's prompted to be ambitious about scope while staying focused on product context and high-level technical design rather than detailed implementation. The key design decision: if the planner tries to specify granular technical details upfront and gets something wrong, errors in the spec cascade into the downstream implementation. It's smarter to constrain on deliverables and let the agents figure out the path.
+
+In Anthropic's tests, a one-sentence prompt like "Create a 2D retro game maker with features including a level editor, sprite editor, entity behaviors, and a playable test mode" was expanded into a 16-feature spec spread across ten sprints — including AI-assisted sprite generation, sound effects, and game export with shareable links.
+
+#### The Generator
+
+The Generator works in sprints, picking up one feature at a time from the spec. Before each sprint, the Generator and Evaluator negotiate a "sprint contract" — agreeing on what "done" looks like for that chunk of work before any code is written. This bridges the gap between user stories and testable implementation. The Generator proposes what it will build and how success will be verified, and the Evaluator reviews to make sure the right thing is being built.
+
+#### The Evaluator
+
+The Evaluator is the quality gate. It uses Playwright MCP to click through the running application like a real user — testing UI features, API endpoints, and database states. It grades each sprint against criteria with hard thresholds, and if any criterion falls below its threshold, the sprint fails and the Generator gets detailed feedback.
+
+Key Detail
+
+Getting the Evaluator to perform well took significant work. Out of the box, Claude is a poor QA agent — it tends to identify legitimate issues, then talk itself into deciding they aren't a big deal and approving the work anyway. The Anthropic team used few-shot examples with detailed score breakdowns to calibrate the Evaluator, and it took several rounds of tuning before the Evaluator's judgment aligned with human preferences.
+
+### The Self-Evaluation Problem
+
+The three-agent pattern exists because of a fundamental limitation: models are bad at evaluating their own work. When asked to assess code they just wrote, agents "tend to respond by confidently praising the work — even when, to a human observer, the quality is obviously mediocre."
+
+The separation doesn't immediately eliminate leniency — the evaluator is still an LLM inclined to be generous toward LLM-generated outputs. But tuning a standalone evaluator to be skeptical turns out to be far more tractable than making a generator critical of its own work. Once external feedback exists, the generator has something concrete to iterate against.
+
+### Grading Criteria: Making Subjective Quality Measurable
+
+For frontend design, Anthropic developed four grading criteria that worked for both generator and evaluator:
+
+**Design Quality:** Does the design feel like a coherent whole rather than a collection of parts? Colors, typography, layout, and imagery should combine to create a distinct mood and identity.
+
+**Originality:** Evidence of custom decisions, not template layouts and library defaults. Unmodified stock components — or telltale "AI slop" patterns like purple gradients over white cards — fail here.
+
+**Craft:** Technical execution: typography hierarchy, spacing consistency, color harmony, contrast ratios. A competence check rather than a creativity check.
+
+**Functionality:** Usability independent of aesthetics. Can users understand the interface, find primary actions, and complete tasks?
+
+Design quality and originality were weighted more heavily because Claude already scored well on craft and functionality by default.
+
+### Results: Solo Agent vs Three-Agent Harness
+
+| Metric | Solo Agent | Three-Agent Harness |
+| --- | --- | --- |
+| Duration | 20 minutes | 6 hours |
+| Cost | $9 | $200 |
+| Core functionality | Broken — game didn't respond to input | Working — playable game with physics |
+| Visual polish | Wasted space, rigid layout | Full viewport, consistent visual identity |
+| Feature depth | Basic editors | 16 features including AI sprite generation, sound, export |
+| QA issues found | N/A (no evaluator) | 27 criteria per sprint, specific actionable bugs |
+
+The harness was over 20x more expensive, but it produced a working application where the solo agent produced a broken one. The evaluator kept finding real issues — route ordering bugs, missing event handlers, incorrect state management — that a self-evaluating agent would have glossed over.
+
+### Implementing the Three-Agent Pattern
+
+```
+python
+# three_agent_loop.py — Planner / Generator / Evaluator
+# Based on Anthropic's harness design (March 2026)
+
+from anthropic_agent_sdk import Agent, AgentRunner
+import json, subprocess
+
+class ThreeAgentLoop:
+    """Three-agent loop: Plan → Build → Evaluate → Iterate."""
+
+    def __init__(self, user_prompt: str):
+        self.user_prompt = user_prompt
+        self.spec = None
+        self.evaluator_criteria = {
+            "functionality": {"threshold": 7, "weight": 1.0},
+            "design_quality": {"threshold": 6, "weight": 1.2},
+            "originality": {"threshold": 6, "weight": 1.2},
+            "code_quality": {"threshold": 7, "weight": 0.8}
+        }
+
+    def plan(self) -> dict:
+        """Phase 1: Expand prompt into full product spec."""
+        planner = Agent(
+            model="claude-sonnet-4-6",
+            system="""You are a product planner. Take a short prompt
+and expand it into a detailed product spec with:
+- Feature list organized into sprints
+- High-level technical design (stack, architecture)
+- Design language (colors, typography, visual identity)
+- Success criteria for each feature
+Be ambitious about scope. Focus on WHAT, not HOW."""
+        )
+        result = planner.run(self.user_prompt)
+        self.spec = result.output
+        return self.spec
+
+    def build_sprint(self, sprint: dict, feedback: str = "") -> str:
+        """Phase 2: Generator implements one sprint."""
+        context = f"SPEC:\n{json.dumps(self.spec)}\n\nSPRINT:\n{json.dumps(sprint)}"
+        if feedback:
+            context += f"\n\nEVALUATOR FEEDBACK (fix these issues):\n{feedback}"
+
+        generator = Agent(
+            model="claude-sonnet-4-6",
+            system="""You are an expert full-stack developer.
+Implement one sprint at a time from the spec.
+Self-evaluate before handing off to QA.
+Use git for version control — commit after each feature.""",
+            tools=["bash", "text_editor"]
+        )
+        return generator.run(context)
+
+    def evaluate(self, sprint: dict) -> dict:
+        """Phase 3: Evaluator tests the running app via Playwright."""
+        evaluator = Agent(
+            model="claude-sonnet-4-6",
+            system=f"""You are a strict QA evaluator.
+Test the running application against the sprint contract.
+Use Playwright to click through the app like a real user.
+Grade each criterion. Threshold scores: {json.dumps(self.evaluator_criteria)}
+Be skeptical. Do NOT approve mediocre work.
+Find specific bugs with file paths and line numbers.""",
+            tools=["bash", "playwright_mcp"]
+        )
+
+        result = evaluator.run(f"Sprint contract:\n{json.dumps(sprint)}\nTest the running app.")
+        return json.loads(result.output)
+
+    def run(self, max_eval_rounds: int = 3):
+        """Run the full three-agent loop."""
+        # Phase 1: Plan
+        spec = self.plan()
+        sprints = spec.get("sprints", [])
+
+        for sprint in sprints:
+            print(f"\n--- Sprint: {sprint['name']} ---")
+
+            feedback = ""
+            for eval_round in range(max_eval_rounds):
+                # Phase 2: Build
+                self.build_sprint(sprint, feedback)
+
+                # Phase 3: Evaluate
+                eval_result = self.evaluate(sprint)
+
+                if eval_result["all_pass"]:
+                    print(f"  Sprint approved (round {eval_round + 1})")
+                    subprocess.run(["git", "add", "-A"])
+                    subprocess.run(["git", "commit", "-m",
+                        f"sprint: {sprint['name']} - approved"])
+                    break
+
+                feedback = eval_result["detailed_feedback"]
+                print(f"  Round {eval_round + 1}: {len(eval_result['issues'])} issues")
+            else:
+                print(f"  Sprint not approved after {max_eval_rounds} rounds")
+
+# Usage
+loop = ThreeAgentLoop("Build a project management app with kanban boards, "
+                      "timeline view, and team collaboration features")
+loop.run()
+```
+
+### When to Use (and Skip) the Three-Agent Pattern
+
+| Use Three Agents When... | Skip It When... |
+| --- | --- |
+| Building complete applications from scratch | Fixing a specific bug with clear test |
+| Quality is subjective (design, UX, content) | Pass/fail is binary (tests, lint) |
+| Multi-hour autonomous coding sessions | Quick 10-minute tasks |
+| The task is near the edge of model capability | Well within model capability (waste of evaluator cost) |
+| You need production-grade output quality | Prototyping or exploration |
+
+> **Tip:** Practical Tip
+>
+> Anthropic's team found that as models improve (Opus 4.5 → Opus 4.6), some harness components become unnecessary. They recommend regularly stress-testing each component: "every component in a harness encodes an assumption about what the model can't do on its own, and those assumptions are worth stress testing." Strip away what's no longer load-bearing, and add new components to push capability further.
+
+### The Platform Shift: From Build to Configure
+
+Everything in this course so far assumes you're building loops from code — writing bash scripts, Python orchestrators, or configuring Claude Code commands. But a parallel movement is making loops accessible to people who never write code at all. The shift from "build your own loops" to "configure loops in platforms" is one of the most significant developments in the loop engineering space.
+
+Anatoli Kopadze's viral article (8.4M+ views) drew attention to this divide. He argued that the heavy version of loops — agents, harnesses, verification gates, token budgets — belongs to teams with the engineering resources to build and maintain them. But the core concept — a task that runs itself, on a schedule or event trigger, without you being there — is valuable for everyone. Platforms like Mira are bridging this gap.
+
+### Mira: Loops as Telegram Messages
+
+Mira is an AI agent platform that lives inside Telegram. Instead of writing code, you describe what you want in plain language, and Mira runs it as a "Skill" — which is, structurally, a loop with a trigger, an action, and persistent memory.
+
+What makes Mira architecturally interesting from a loop engineering perspective:
+
+**500+ app integrations via Composio:** Gmail, Google Calendar, GitHub, Notion, Figma, Linear, Stripe, and hundreds more. The agent doesn't suggest actions — it performs them. It doesn't draft an email, it sends the email. It doesn't describe a ticket, it creates one in Linear with the right priority and owner.
+
+**Long-term memory across sessions:** Unlike a stateless chatbot, Mira remembers context across conversations and group chats. This is the "persistent state" that every loop needs — but implemented at the platform level so users don't have to manage TODO.md files or state databases.
+
+**Model-agnostic routing:** Mira runs GPT, Claude, or Gemini depending on the task. This is invisible to the user but architecturally significant — it's the model-routing-per-iteration cost optimization described in Module 7, automated by the platform.
+
+### Platform Loops vs Coded Loops
+
+| Dimension | Coded Loops (Claude Code, Scripts) | Platform Loops (Mira, etc.) |
+| --- | --- | --- |
+| Setup effort | Hours to days | Minutes (natural language) |
+| Verification | Tests, linters, custom harnesses | Platform-defined checks, human review |
+| Customization | Unlimited | Constrained to platform capabilities |
+| Use case | Software engineering, complex workflows | Productivity, content, communications |
+| Cost control | You manage tokens, budgets, limits | Platform manages costs |
+| Persistence | You build state management | Built-in memory |
+| Target user | Engineers | Everyone |
+
+### Composio: The Integration Layer
+
+Composio provides 1,000+ pre-built, LLM-optimized toolkits for connecting AI agents to external applications. It functions as a framework-agnostic platform designed to solve the single biggest bottleneck in agent development: the integration and action layer.
+
+Where it fits in loop engineering: Composio doesn't run loops itself — it provides the connectors that let loops act in the real world. Whether your loop is a bash script, a Claude Code workflow, or a Mira Skill, Composio handles the authentication, API integration, and action execution for hundreds of services.
+
+```
+python
+# composio_loop.py — Using Composio as the action layer
+# Composio handles auth, API calls, and tool execution
+# Your loop handles the orchestration logic
+
+from composio import ComposioToolset
+from anthropic import Anthropic
+
+client = Anthropic()
+toolset = ComposioToolset()
+
+# Get tools for specific apps
+gmail_tools = toolset.get_tools(apps=["gmail"])
+linear_tools = toolset.get_tools(apps=["linear"])
+github_tools = toolset.get_tools(apps=["github"])
+
+def morning_triage_loop():
+    """Platform-style loop: check email, create tickets, update team."""
+
+    # Step 1: Read unread emails
+    emails = toolset.execute_action("gmail_get_unread", {})
+
+    # Step 2: AI categorizes and prioritizes
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=2048,
+        messages=[{
+            "role": "user",
+            "content": f"""Categorize these emails:
+{emails}
+
+For each: priority (P0-P3), action needed, suggested assignee.
+Output JSON array."""
+        }]
+    )
+
+    categorized = json.loads(response.content[0].text)
+
+    # Step 3: Create Linear tickets for P0/P1 items
+    for item in categorized:
+        if item["priority"] in ["P0", "P1"]:
+            toolset.execute_action("linear_create_issue", {
+                "title": item["subject"],
+                "priority": 1 if item["priority"] == "P0" else 2,
+                "assignee": item["assignee"],
+                "description": item["summary"]
+            })
+
+    # Step 4: Post digest to team channel
+    digest = format_digest(categorized)
+    toolset.execute_action("slack_post_message", {
+        "channel": "#morning-triage",
+        "text": digest
+    })
+```
+
+### Example Platform Loops
+
+These examples show the kinds of loops that platforms make accessible without code:
+
+#### Work Loops
+
+```
+text
+# Morning Brief (runs every weekday at 7am)
+"Check my Gmail and Google Calendar. Send me a brief:
+my 3 most important meetings, anything urgent in inbox,
+and one thing I said I'd follow up on but haven't.
+Keep it under 120 words."
+
+# Meeting Prep (runs 1 hour before each meeting)
+"Remind me with the context and decisions from our
+last conversation with that person."
+
+# Ticket Creator (triggered by forwarded message)
+"When I forward a message here, turn it into a Linear
+ticket with the right priority and assign the owner."
+
+# Weekly Digest (runs Fridays at 4pm)
+"Collect the team's task status and metrics and post
+a clean weekly digest in our chat."
+```
+
+#### Content Loops
+
+```
+text
+# Voice-to-Post (triggered by voice note)
+"I'll send a voice note with a raw idea. Turn it into
+a finished post with a caption and hashtags."
+
+# Cross-Platform Repurpose (triggered on demand)
+"Take this one idea and write versions for X, Instagram,
+LinkedIn, Email, and a newsletter, each in the right format."
+```
+
+#### Life Loops
+
+```
+text
+# Habit Tracker (runs every evening at 7pm)
+"Ask if I trained today. Keep a streak and don't let
+me quietly skip more than one day."
+
+# Daily Journal (runs every night)
+"Ask me 3 questions about my day, remember the answers,
+and once a week tell me what changed."
+```
+
+### The Spectrum: From Manual to Platform
+
+Loop engineering now spans a full spectrum of accessibility:
+
+THE LOOP ACCESSIBILITY SPECTRUM Manual Prompting ─── Self-Check Prompt ─── Bash Script ─── Claude Code /goal ─── Platform Skill │ │ │ │ │ You do every You paste a You write a One command, Natural language, step by hand loop protocol while-true built-in runs in Telegram into the LLM with a CLI maker/checker with 500+ apps │ │ │ │ │ No setup ~2 minutes ~30 minutes ~5 minutes ~30 seconds │ │ │ │ │ Anyone Anyone Engineers Engineers Anyone
+
+Key Insight
+
+The existence of platform loops doesn't diminish the value of coded loops — they serve different audiences and use cases. But it does mean that the core concept of loop engineering — designing systems that act autonomously on your behalf — is no longer limited to engineers. Kopadze's observation was precise: "For 99% of everyday tasks, there's already a ready, dead-simple solution." The heavy engineering version is for the 1% that demands it.
 
 Loop Engineering Course — Built July 2026
 
-Based on the work of [Addy Osmani](https://addyosmani.com/blog/loop-engineering/), [Boris Cherny](https://thenewstack.io/loop-engineering/), [Geoffrey Huntley](https://ghuntley.com/loop/), and [the DEV Community](https://dev.to/truongpx396/the-agentic-loop-a-practical-field-guide-mnc).
+Based on the work of [Addy Osmani](https://addyosmani.com/blog/loop-engineering/), [Boris Cherny](https://thenewstack.io/loop-engineering/), [Geoffrey Huntley](https://ghuntley.com/loop/), [Anthropic Engineering](https://www.anthropic.com/engineering/harness-design-long-running-apps), [Anatoli Kopadze](https://x.com/AnatoliKopadze/article/2068328135611822149), and [the DEV Community](https://dev.to/truongpx396/the-agentic-loop-a-practical-field-guide-mnc).
 
 Fully offline — no external dependencies. Progress saved to localStorage.
