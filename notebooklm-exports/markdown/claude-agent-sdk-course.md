@@ -37,6 +37,12 @@ Course Modules
 
 *Significant Anthropic news since this course was written. Newest first; entries older than 8 weeks are pruned.*
 
+### Week of July 26, 2026
+
+-   **Claude Opus 5 released (July 24):** Anthropic's fourth Claude 5 model in under two months — new state-of-the-art on coding and knowledge-work evals at about half Fable 5's price ($5/$25 per Mtok), with a low/medium/high effort toggle you can set per request. It's the new default on Claude Max and the strongest model on Pro, and a strong new default for SDK agent workloads where you want to tune the capability/cost trade-off.
+-   **Effort control moves into the model:** Opus 5's built-in effort setting lets you dial reasoning depth up or down per call — a cleaner alternative to prompt-based "think harder" tricks when balancing latency and cost across an agent's steps.
+-   **AMD investment & IPO run-up:** AMD may invest up to $5B in Anthropic tied to deployment milestones, and Opus 5 lands as Anthropic preps a possible October IPO (a $965B Series H valuation) — signals of the compute capacity and platform stability behind the SDK.
+
 ### Week of July 12, 2026
 
 -   **Claude Cowork goes cloud (July 7):** Cowork is expanding to web and mobile with cloud execution — agent tasks keep running when devices are offline. Rolling out starting with Max, with doubled usage limits through August 5. A preview of where SDK-based agents are heading: long-lived, device-independent sessions.

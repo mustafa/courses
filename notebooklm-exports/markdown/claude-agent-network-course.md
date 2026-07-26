@@ -83,6 +83,12 @@ Capstone — Deploy Your Agent Network
 
 *Significant Anthropic news since this course was written. Newest first; entries older than 8 weeks are pruned.*
 
+### Week of July 26, 2026
+
+-   **Claude Opus 5 released (July 24):** Anthropic's fourth Claude 5 model in under two months — new state-of-the-art on coding and knowledge-work evals at roughly half Fable 5's price ($5/$25 per Mtok), with a low/medium/high effort toggle. New default on Claude Max, strongest on Pro — a strong candidate for both dispatcher and specialist agents, letting you match effort to each agent's role.
+-   **Effort control per call:** Opus 5's built-in low/medium/high setting lets you run cheap, fast reasoning on routing/dispatch agents and reserve high effort for specialists doing the heavy lifting — right-sizing cost across a network.
+-   **AMD stake & IPO run-up:** AMD may invest up to $5B in Anthropic on deployment milestones, and Opus 5 arrives as Anthropic preps a possible October IPO (a $965B Series H valuation) — more compute and platform maturity underneath your agent networks.
+
 ### Week of July 12, 2026
 
 -   **Claude Cowork goes cloud (July 7):** Cowork is expanding to web and mobile with cloud execution — agent networks can keep running when your devices are offline. Rolling out starting with Max, with doubled usage limits through August 5. This removes the "laptop must be awake" constraint on scheduled-task agent networks.

@@ -14,6 +14,15 @@ Last updated: July 5, 2026 • ~2.5–3.5 hours reading • 11 Modules
 
 *A running log of significant developments since this course was written. Newest first; entries older than 8 weeks are pruned.*
 
+### Week of July 26, 2026
+
+-   **Anthropic — Claude Opus 5 (July 24):** Anthropic's fourth Claude 5 model in under two months lands as the new state-of-the-art on coding and knowledge-work evals (Frontier-Bench, GDPval-AA) at roughly half Fable 5's price — $5/$25 per Mtok — with a low/medium/high effort toggle. It's now the default on Claude Max and the strongest model on Pro. The cadence signals the shift from blockbuster launches to rapid cost-and-capability iteration.
+-   **Google — Gemini 3.6 Flash family (July 21):** Google shipped Gemini 3.6 Flash (new default), 3.5 Flash-Lite, and a security-tuned 3.5 Flash Cyber, then teased Gemini 4. 3.6 Flash keeps a 1M-token context, uses ~17% fewer output tokens than 3.5 Flash, runs ~280 tok/s, and is cheaper at $1.50/$7.50 per Mtok — the "fast/cheap" tier keeps overtaking last generation's flagships.
+-   **OpenAI — enterprise agents + a $30B+ data center (July 23):** OpenAI launched an enterprise agent platform and unveiled a data-center campus that could exceed $30 billion. It also disclosed an internal red-team test in which a guardrail-reduced GPT-5.6 Sol variant chained zero-days to remote code execution — frontier cyber-risk disclosures are becoming routine.
+-   **Anthropic — AMD stake & IPO run-up:** AMD may invest up to $5B in Anthropic tied to deployment milestones, and Opus 5 arrives as Anthropic preps a possible October IPO (a $965B Series H valuation). Compute suppliers are increasingly taking equity in the model labs they supply.
+-   **Meta — Llama stalls:** By July 21 Llama's flat trajectory had become the go-to example in the "Chinese open weights vs. American closed AI" debate, with Meta reportedly leaning closed-source after heavy talent departures. The leading US open-weight effort is faltering just as Chinese open models surge.
+-   **Open weights & geopolitics:** US OSTP director Michael Kratsios alleged Moonshot AI distilled Anthropic's Fable model to build Kimi K3; OpenAI, Anthropic, and Google are now sharing intelligence to detect distillation and have tightened terms of service. Mistral's new "fat but sparse" open-weight MoE also entered early access.
+
 ### Week of July 12, 2026
 
 -   **OpenAI — GPT-5.6 general availability (July 9):** The new flagship family rolled out across ChatGPT, Codex, and the API after June's limited partner preview — Sol is the flagship, Terra the balanced tier, Luna the fast/low-cost option. It's also now the preferred model in Microsoft 365 Copilot, an unusually fast preview-to-GA turnaround.
@@ -62,7 +71,7 @@ The practical implication for engineering leaders: model selection is now a **po
 
 Key Takeaway
 
-**The "which model is best" question is dead.** For Coursera's use case, the winning move is Sonnet 4.6 as your workhorse (fast, reliable, great at structured output), Opus 4.6 for complex content generation and assessment design, and Gemini Flash for bulk processing where cost matters. Keep Llama 4 Scout on your radar for on-prem inference when data sovereignty is a concern for international markets. *(Update July 2026: Claude Sonnet 5 shipped June 30 and supersedes Sonnet 4.6 as the workhorse recommendation — frontier coding/agentic performance, 1M-token context, and $2/$10 per Mtok introductory pricing through August 31. See Weekly Updates above.)*
+**The "which model is best" question is dead.** For Coursera's use case, the winning move is Sonnet 4.6 as your workhorse (fast, reliable, great at structured output), Opus 4.6 for complex content generation and assessment design, and Gemini Flash for bulk processing where cost matters. Keep Llama 4 Scout on your radar for on-prem inference when data sovereignty is a concern for international markets. *(Update July 2026: Claude Sonnet 5 shipped June 30 and supersedes Sonnet 4.6 as the workhorse recommendation — frontier coding/agentic performance, 1M-token context, and $2/$10 per Mtok introductory pricing through August 31. Claude Opus 5 followed on July 24 — new state-of-the-art on coding/knowledge-work evals at $5/$25 per Mtok with a low/medium/high effort toggle — and now supersedes Opus 4.6 for complex content generation and assessment design. See Weekly Updates above.)*
 
 ### The MoE Revolution
 
