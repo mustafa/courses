@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mustafa-courses-v3';
+const CACHE_NAME = 'mustafa-courses-v5';
 
 // Framework + all courses. Individual cache.add (below) means one failure
 // never breaks the rest, and the network-first fetch handler backfills anything
@@ -11,10 +11,14 @@ const ASSETS_TO_CACHE = [
   '/course-framework.js',
   '/Iceland_Driving_Guide.html',
   '/agent-tracing-observability-course.html',
+  '/ai-adoption-steps-course.html',
   '/ai-agents-production-course.html',
   '/ai-evals-measurement-course.html',
   '/ai-frontier-voices-course.html',
+  '/ai-governance-hassabis-course.html',
   '/ai-infrastructure-at-scale-course.html',
+  '/ai-models-landscape-2026-course.html',
+  '/ai-native-learning-course.html',
   '/ai-native-product-building-course.html',
   '/ai-product-strategy-edtech-course.html',
   '/anthropic-academy-study-guide.html',
@@ -23,8 +27,10 @@ const ASSETS_TO_CACHE = [
   '/claude-agent-network-course.html',
   '/claude-agent-sdk-course.html',
   '/claude-certified-architect-prep-course.html',
+  '/citizenship-interview-prep-course.html',
   '/cloudflare-platform-course.html',
   '/coding-agents-course.html',
+  '/context-engineering-claude5-course.html',
   '/cybersecurity-tech-leaders-course.html',
   '/data-engineering-analytics-course.html',
   '/engineering-leadership-course.html',
