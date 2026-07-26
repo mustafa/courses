@@ -1,0 +1,73 @@
+# The 5 Steps of AI Adoption — Boris Cherny's Framework | Course
+
+[← All courses](index.html) Framework — 2026
+
+# The 5 Steps of AI Adoption
+
+Boris Cherny's ladder for how a team grows into working with AI — from every action gated behind a human, to a thousand agents running in loops overnight. Where are you on it?
+
+🧠 5-step framework ▶ 42-second explainer 👤 After Boris Cherny, Head of Claude Code 🔌 Fully offline
+
+▶ Watch first
+
+## Watch the animated explainer
+
+The whole ladder in forty seconds — the five rungs, the gate where teams first stall on autonomy, and how leverage climbs from zero agents to a thousand.
+
+**Key takeaway:** the gate is Supervised Autonomy — you only pass it once your verification is strong enough to trust the loop.
+
+## The five rungs
+
+Each step hands more of the work to the agents — and multiplies what one engineer can ship.
+
+1
+
+### Gated
+
+AI is boxed in. Every action waits for explicit human approval before it runs. You review each suggestion by hand; nothing happens autonomously.
+
+0agents
+
+2
+
+### Assisted
+
+AI works alongside you — autocomplete, chat, single-shot edits. One agent, but the human stays firmly in the driver's seat and makes every call.
+
+1agent
+
+3
+
+### Parallel
+
+You run several agents at once on independent tasks. You stop typing the work and start orchestrating it — dispatching, merging, and steering.
+
+10agents
+
+4
+
+### Supervised Autonomy • THE GATE
+
+Agents run end-to-end; you review outcomes, not steps. Most teams stall here on the first try — you only pass once your verification is strong enough to trust the loop. Fail it, and you drop back to build that trust. Pass it, and autonomy compounds.
+
+100agents
+
+5
+
+### AI-Native
+
+AI-first by default. Humans set direction, write the loops, and handle escalations while agents do the work — hundreds to thousands of them, running in loops around the clock.
+
+1000+agents
+
+## Agents per engineer
+
+The same climb, as a single number. Each rung is roughly an order of magnitude.
+
+0Gated 1Assisted 10Parallel 100Supervised 1000+AI-Native
+
+> “I don't prompt Claude anymore. I have loops running that prompt Claude and figuring out what to do. My job is to write loops.” — Boris Cherny, Head of Claude Code, Anthropic
+
+Ready for the rung above? The companion course goes deep on the practice that makes autonomy safe: [Loop Engineering →](loop-engineering-course.html)
+
+Animated explainer rendered with Remotion · [Back to all courses](index.html)

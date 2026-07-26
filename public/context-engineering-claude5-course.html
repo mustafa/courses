@@ -1,0 +1,2968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The New Rules of Context Engineering for Claude 5 Models | Comprehensive Course</title>
+<style>
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #1c2333;
+  --bg-card: #1a1f2e;
+  --bg-code: #0d1117;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent: #ff8f6b;
+  --accent-hover: #ffb094;
+  --accent-dim: #46231a;
+  --green: #3fb950;
+  --green-dim: #1a3a2a;
+  --orange: #d29922;
+  --orange-dim: #3d2e00;
+  --red: #f85149;
+  --purple: #bc8cff;
+  --border: #30363d;
+  --border-light: #21262d;
+  --shadow: 0 8px 24px rgba(0,0,0,0.4);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --transition: 0.2s ease;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* ========== HEADER ========== */
+.course-header {
+  background: linear-gradient(135deg, #0d1117 0%, #331a12 38%, #1a1040 72%, #0d1117 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 3rem 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.course-header::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 30% 50%, rgba(255,143,107,0.10) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 50%, rgba(188,140,255,0.07) 0%, transparent 60%);
+  animation: headerGlow 8s ease-in-out infinite alternate;
+}
+
+@keyframes headerGlow {
+  0% { transform: translateX(-5%); }
+  100% { transform: translateX(5%); }
+}
+
+.header-content {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.course-badge {
+  display: inline-block;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255,143,107,0.25);
+}
+
+.course-header h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #e6edf3, #ff8f6b, #bc8cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.course-header .subtitle {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.meta-item .icon { font-size: 1.1rem; }
+
+/* ========== PROGRESS BAR ========== */
+.progress-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0.6rem 2rem;
+}
+
+.progress-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  min-width: 90px;
+  text-align: right;
+}
+
+/* ========== SEARCH ========== */
+.search-container {
+  max-width: 900px;
+  margin: 1.5rem auto;
+  padding: 0 2rem;
+}
+
+.search-box {
+  width: 100%;
+  padding: 0.8rem 1.2rem 0.8rem 2.8rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.search-box:focus { border-color: var(--accent); }
+
+.search-wrapper { position: relative; }
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-results-info {
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: none;
+}
+
+/* ========== TOC ========== */
+.toc-container {
+  max-width: 900px;
+  margin: 1rem auto 2rem;
+  padding: 0 2rem;
+}
+
+.toc {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.toc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+
+.toc-header:hover { background: var(--bg-tertiary); }
+
+.toc-header h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toc-toggle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  transition: transform var(--transition);
+}
+
+.toc-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.toc-body.open { max-height: 2000px; }
+
+.toc-toggle.open { transform: rotate(180deg); }
+
+.toc-list {
+  list-style: none;
+  padding: 0 1.5rem 1rem;
+}
+
+.toc-list li { border-bottom: 1px solid var(--border-light); }
+
+.toc-list li:last-child { border-bottom: none; }
+
+.toc-list a {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.92rem;
+  transition: all var(--transition);
+}
+
+.toc-list a:hover { color: var(--accent); padding-left: 1rem; }
+
+.toc-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.toc-check {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-dim);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+/* ========== MODULES ========== */
+.modules-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 2rem 4rem;
+}
+
+.module {
+  margin-bottom: 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+
+.module.highlight { border-color: var(--accent); }
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+
+.module-header:hover { background: var(--bg-tertiary); }
+
+.module-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--accent-dim);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.module-number.completed {
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+.module-title {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.module-chevron {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.module-chevron.open { transform: rotate(180deg); }
+
+.module-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+
+.module-content {
+  padding: 0 1.5rem 2rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.module-content h3 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 2rem 0 1rem;
+  color: var(--text-primary);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.module-content h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.6rem;
+  color: var(--accent);
+}
+
+.module-content p {
+  margin: 0.8rem 0;
+  color: var(--text-primary);
+  line-height: 1.8;
+}
+
+.module-content ul, .module-content ol {
+  margin: 0.8rem 0;
+  padding-left: 1.5rem;
+}
+
+.module-content li {
+  margin: 0.4rem 0;
+  color: var(--text-primary);
+  line-height: 1.7;
+}
+
+.module-content strong { color: var(--accent); font-weight: 600; }
+
+.complete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.6rem 1.2rem;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid rgba(255,143,107,0.3);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all var(--transition);
+}
+
+.complete-btn:hover { background: rgba(255,143,107,0.2); }
+.complete-btn.completed { background: var(--green-dim); color: var(--green); border-color: rgba(63,185,80,0.3); }
+
+/* ========== CODE BLOCKS ========== */
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem 1.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+  position: relative;
+}
+
+pre code {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+code {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  background: var(--bg-tertiary);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.88em;
+  color: var(--purple);
+}
+
+pre code { background: none; padding: 0; }
+
+.code-label {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  padding: 0.2rem 0.7rem;
+  font-size: 0.72rem;
+  border-radius: 0 var(--radius) 0 var(--radius);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* ========== CALLOUTS ========== */
+.callout {
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius);
+  margin: 1.2rem 0;
+  border-left: 3px solid;
+}
+
+.callout-key {
+  background: rgba(255,143,107,0.08);
+  border-color: var(--accent);
+}
+
+.callout-warning {
+  background: rgba(210,153,34,0.08);
+  border-color: var(--orange);
+}
+
+.callout-tip {
+  background: rgba(63,185,80,0.08);
+  border-color: var(--green);
+}
+
+.callout-quote {
+  background: rgba(188,140,255,0.06);
+  border-color: var(--purple);
+  font-style: italic;
+}
+
+.callout-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+}
+
+.callout-key .callout-label { color: var(--accent); }
+.callout-warning .callout-label { color: var(--orange); }
+.callout-tip .callout-label { color: var(--green); }
+.callout-quote .callout-label { color: var(--purple); }
+
+/* ========== THEN / NOW ========== */
+.thennow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.2rem 0;
+}
+
+.thennow > div {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  background: var(--bg-tertiary);
+}
+
+.thennow .tn-then { border-top: 3px solid var(--text-muted); }
+.thennow .tn-now { border-top: 3px solid var(--accent); }
+
+.tn-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.tn-then .tn-label { color: var(--text-muted); }
+.tn-now .tn-label { color: var(--accent); }
+
+.thennow p { margin: 0.4rem 0 !important; font-size: 0.94rem; line-height: 1.65; }
+
+@media (max-width: 640px) { .thennow { grid-template-columns: 1fr; } }
+
+/* ========== TABLES ========== */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th {
+  background: var(--bg-tertiary);
+  padding: 0.7rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  vertical-align: top;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,143,107,0.03); }
+
+/* ========== DIAGRAM ========== */
+.diagram {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin: 1.2rem 0;
+  text-align: center;
+  font-family: 'SF Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--text-secondary);
+}
+
+/* ========== FOOTER ========== */
+.course-footer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.course-footer a { color: var(--accent); text-decoration: none; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 640px) {
+  .course-header { padding: 2rem 1.2rem 1.5rem; }
+  .module-header { padding: 1rem; }
+  .module-content { padding: 0 1rem 1.5rem; }
+  .progress-container { padding: 0.5rem 1rem; }
+  .search-container, .toc-container, .modules-container { padding-left: 1rem; padding-right: 1rem; }
+  .course-meta { gap: 0.8rem; }
+  pre { padding: 1rem; font-size: 0.82rem; }
+}
+
+/* ========== SEARCH HIGHLIGHT ========== */
+mark {
+  background: rgba(210,153,34,0.3);
+  color: var(--text-primary);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.hidden { display: none !important; }
+
+/* ========== PRINT ========== */
+@media print {
+  .progress-container, .search-container, .complete-btn, .toc-toggle { display: none; }
+  .module-body { max-height: none !important; overflow: visible !important; }
+  body { background: white; color: black; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== HEADER ========== -->
+<header class="course-header">
+<div class="header-content">
+  <span class="course-badge">AI Engineering &middot; July 2026</span>
+  <h1>The New Rules of Context Engineering</h1>
+  <p class="subtitle">Anthropic deleted more than 80% of Claude Code's system prompt for Opus 5 and Fable 5 &mdash; with no measurable loss on their coding evals. This course unpacks why, turns the six then&rarr;now shifts into a working method, and shows you how to rightsize your own system prompts, CLAUDE.md files, skills, tools, and references.</p>
+  <div class="course-meta">
+    <span class="meta-item"><span class="icon">&#128218;</span> 15 Modules</span>
+    <span class="meta-item"><span class="icon">&#9201;</span> ~2 hour read</span>
+    <span class="meta-item"><span class="icon">&#128260;</span> 6 Then&rarr;Now Shifts</span>
+    <span class="meta-item"><span class="icon">&#128736;</span> Practitioner Level</span>
+    <span class="meta-item"><span class="icon">&#128268;</span> Fully Offline</span>
+  </div>
+</div>
+</header>
+
+<!-- ========== PROGRESS ========== -->
+<div class="progress-container">
+<div class="progress-inner">
+  <div class="progress-bar-track">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <span class="progress-text" id="progressText">0 / 15 completed</span>
+</div>
+</div>
+
+<!-- ========== SEARCH ========== -->
+<div class="search-container">
+<div class="search-wrapper">
+  <span class="search-icon">&#128269;</span>
+  <input type="text" class="search-box" id="searchBox" placeholder="Search course content..." autocomplete="off">
+</div>
+<div class="search-results-info" id="searchInfo"></div>
+</div>
+
+<!-- ========== TOC ========== -->
+<div class="toc-container">
+<div class="toc">
+  <div class="toc-header" onclick="toggleToc()">
+    <h2>Table of Contents</h2>
+    <span class="toc-toggle" id="tocToggle">&#9660;</span>
+  </div>
+  <div class="toc-body" id="tocBody">
+    <ol class="toc-list" id="tocList">
+      <li><a href="#mod1"><span class="toc-num" data-mod="1">1</span> From Prompt Engineering to Context Engineering</a></li>
+      <li><a href="#mod2"><span class="toc-num" data-mod="2">2</span> The 80% Deletion: What Anthropic Cut and What Happened</a></li>
+      <li><a href="#mod3"><span class="toc-num" data-mod="3">3</span> Unhobbling: How Over-Constraint Actually Breaks Claude</a></li>
+      <li><a href="#mod4"><span class="toc-num" data-mod="4">4</span> Shift 1 &mdash; Rules &rarr; Judgement</a></li>
+      <li><a href="#mod5"><span class="toc-num" data-mod="5">5</span> Shift 2 &mdash; Examples &rarr; Interface Design</a></li>
+      <li><a href="#mod6"><span class="toc-num" data-mod="6">6</span> Shift 3 &mdash; Upfront &rarr; Progressive Disclosure</a></li>
+      <li><a href="#mod7"><span class="toc-num" data-mod="7">7</span> Shift 4 &mdash; Repetition &rarr; Simple Tool Descriptions</a></li>
+      <li><a href="#mod8"><span class="toc-num" data-mod="8">8</span> Shift 5 &mdash; CLAUDE.md Memory &rarr; Auto-Memory</a></li>
+      <li><a href="#mod9"><span class="toc-num" data-mod="9">9</span> Shift 6 &mdash; Simple Specs &rarr; Rich References</a></li>
+      <li><a href="#mod10"><span class="toc-num" data-mod="10">10</span> The Four Layers: Where Each Instruction Belongs</a></li>
+      <li><a href="#mod11"><span class="toc-num" data-mod="11">11</span> Writing a CLAUDE.md That Earns Its Tokens</a></li>
+      <li><a href="#mod12"><span class="toc-num" data-mod="12">12</span> Designing Skills for Progressive Disclosure</a></li>
+      <li><a href="#mod13"><span class="toc-num" data-mod="13">13</span> Tool &amp; Interface Design in Practice</a></li>
+      <li><a href="#mod14"><span class="toc-num" data-mod="14">14</span> Rightsizing: The Deletion Protocol</a></li>
+      <li><a href="#mod15"><span class="toc-num" data-mod="15">15</span> Anti-Patterns, Myths &amp; the Migration Playbook</a></li>
+    </ol>
+  </div>
+</div>
+</div>
+
+<!-- ========== MODULES ========== -->
+<div class="modules-container" id="modulesContainer">
+
+
+<!-- ==================== MODULE 1 ==================== -->
+<div class="module" id="mod1" data-module="1">
+<div class="module-header" onclick="toggleModule(1)">
+  <span class="module-number" id="modNum1">1</span>
+  <span class="module-title">From Prompt Engineering to Context Engineering</span>
+  <span class="module-chevron" id="modChev1">&#9660;</span>
+</div>
+<div class="module-body" id="modBody1">
+<div class="module-content">
+
+<h3>The Prompt Is the Small Part</h3>
+
+<p>In July 2026, Thariq (<code>@trq212</code>), who works on Claude Code at Anthropic, published an article titled <em>"The new rules of context engineering for Claude 5 models."</em> Its opening move is a reframing that most practitioners have not fully absorbed: when you send a message to Claude, <strong>your prompt is only a small part of the context the model actually receives</strong>.</p>
+
+<p>Everything else &mdash; the system prompt, the tool definitions, the skills that got loaded, the CLAUDE.md file sitting in your repo, auto-saved memories, files pulled in as references, the accumulated conversation and tool results &mdash; is assembled around your prompt before the model sees a single token of it. The discipline of deciding what goes into that assembly is <strong>context engineering</strong>.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">Core Definition</div>
+<p><strong>Context engineering</strong> is the practice of designing everything that gets assembled into a model's context window across many requests &mdash; system prompt, tool definitions, skills, project files, memory, and references &mdash; as opposed to <strong>prompt engineering</strong>, which optimizes a single request you can see and iterate on directly.</p>
+</div>
+
+<h3>Why It Is Harder Than Prompting</h3>
+
+<p>The article names the difficulty precisely: <em>"Unlike a prompt, context is used generally across many requests, so it cannot be as specific."</em> You are writing guidance for a distribution of future requests you have not seen yet.</p>
+
+<p>That single constraint generates most of the failure modes covered in this course. When you cannot know the specific ask, the tempting move is to cover every branch &mdash; write a rule for each case you can imagine, add an example for each tool, restate the important stuff so it cannot be missed. That instinct produced the bloated system prompts of the 2023&ndash;2025 era, and it is exactly what the new generation of models no longer needs.</p>
+
+<div class="diagram">WHAT ACTUALLY REACHES THE MODEL
+
+  ┌──────────────────────────────────────────────┐
+  │  SYSTEM PROMPT      product framing, policy   │  ← rarely changes
+  ├──────────────────────────────────────────────┤
+  │  TOOL DEFINITIONS   names, params, docs       │  ← per-harness
+  ├──────────────────────────────────────────────┤
+  │  SKILLS             loaded on demand          │  ← progressive
+  ├──────────────────────────────────────────────┤
+  │  CLAUDE.md          repo-specific gotchas     │  ← per-project
+  ├──────────────────────────────────────────────┤
+  │  MEMORY             auto-saved, cross-session │  ← accumulates
+  ├──────────────────────────────────────────────┤
+  │  REFERENCES         @files, specs, mockups    │  ← per-task
+  ├──────────────────────────────────────────────┤
+  │  CONVERSATION       history + tool results    │  ← grows fast
+  ├──────────────────────────────────────────────┤
+  │  YOUR PROMPT        one message               │  ← the small part
+  └──────────────────────────────────────────────┘</div>
+
+<h3>The Moving Target</h3>
+
+<p>The second complication is that Claude's own capabilities keep changing. Guidance written to compensate for a 2024-era model's weaknesses does not become neutral when a stronger model arrives &mdash; it becomes <em>actively harmful</em>, because it forces a model with better judgement to follow a rule written for a model without it.</p>
+
+<p>This is the central insight of the whole article, and it is worth stating bluntly: <strong>context engineering is not write-once</strong>. Every instruction in your system prompt or CLAUDE.md file has an implicit expiry date tied to the model generation it was written for. The maintenance task nobody schedules is deletion.</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"This can be surprisingly difficult as Claude's own capabilities evolve. Most recently, we noticed a large jump in the way we prompt the newest generation of Claude models."</p>
+</div>
+
+<h3>Who Wrote This and Why It Carries Weight</h3>
+
+<p>The claims in this course are unusual in that they come from inside the harness. Thariq works on Claude Code at Anthropic (previously YC W20, South Park Commons, MIT Media Lab). The evidence he cites &mdash; what was cut from Claude Code's system prompt and what happened to the coding evaluations afterward &mdash; is internal experimental data from the team that ships the product, not a blog-post hypothesis. The article reached roughly 1.4 million views and 17,000 bookmarks within days, which tells you how much latent uncertainty there was about how to prompt this model generation.</p>
+
+<p>Anthropic also shipped the findings as tooling rather than only as prose: the article points readers to the <code>/doctor</code> command in Claude Code, which exists to help you rightsize your skills and CLAUDE.md files against these practices. Module 14 covers that workflow.</p>
+
+<h3>What This Course Covers</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Modules</th><th>What you get</th></tr></thead>
+<tbody>
+<tr><td><strong>1&ndash;3</strong></td><td>The reframe, the 80% deletion evidence, and a diagnostic model of how over-constraint actually degrades output.</td></tr>
+<tr><td><strong>4&ndash;9</strong></td><td>The six then&rarr;now shifts, each with the original reasoning, the concrete before/after, and when the old rule still applies.</td></tr>
+<tr><td><strong>10&ndash;13</strong></td><td>Applying it: the four layers of context, CLAUDE.md, skills, and tool interface design.</td></tr>
+<tr><td><strong>14&ndash;15</strong></td><td>The deletion protocol, anti-patterns, and a staged migration playbook for an existing setup.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">Scope Note</div>
+<p>These rules are calibrated to the <strong>Claude 5 generation</strong> (Opus 5, Fable 5, Sonnet 5) and to agentic harnesses in particular. If you are running an older or much smaller model, or a tightly-scoped single-turn classification prompt, several of the "then" practices remain correct for you. Module 15 marks each one explicitly.</p>
+</div>
+
+<div class="quiz" data-question="What distinguishes context engineering from prompt engineering, according to the article?" data-options="Context engineering only applies to open-source models|Context is used generally across many requests, so it cannot be as specific as a prompt|Prompt engineering is done by the model, context engineering by the user|They are two names for the same practice" data-answer="1" data-explanation="The article's framing: a prompt targets one known request, while context is assembled across many unseen future requests. That generality is what makes it hard — you cannot tailor it, so the temptation is to over-cover, which is precisely the failure mode the new rules address."></div>
+
+<div class="quiz" data-question="Why does the article say context engineering gets harder over time rather than easier?" data-options="Context windows keep shrinking|Because Claude's own capabilities evolve, so guidance written for an older model can become wrong for a newer one|Because tool APIs change every quarter|Because users write longer prompts each year" data-answer="1" data-explanation="Guidance is written against a specific model generation's weaknesses. When the model improves, that guidance does not go neutral — it actively constrains a model that no longer needs it. This is why deletion, not accumulation, is the core maintenance task."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Context engineering, in one line" data-back="Designing everything assembled into the model's context — system prompt, tools, skills, CLAUDE.md, memory, references — for a distribution of future requests you cannot see."></div>
+  <div class="flashcard" data-front="Who wrote 'The new rules of context engineering'?" data-back="Thariq (@trq212), who works on Claude Code at Anthropic. Published July 2026; ~1.4M views. The evidence is internal Claude Code eval data."></div>
+  <div class="flashcard" data-front="The implicit expiry date" data-back="Every instruction was written against a model generation. When the model improves, unrevised guidance stops being neutral and starts constraining. Deletion is the unscheduled maintenance task."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(1)" id="completeBtn1">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 2 ==================== -->
+<div class="module" id="mod2" data-module="2">
+<div class="module-header" onclick="toggleModule(2)">
+  <span class="module-number" id="modNum2">2</span>
+  <span class="module-title">The 80% Deletion: What Anthropic Cut and What Happened</span>
+  <span class="module-chevron" id="modChev2">&#9660;</span>
+</div>
+<div class="module-body" id="modBody2">
+<div class="module-content">
+
+<h3>The Headline Result</h3>
+
+<p>The empirical anchor of the entire article is a single sentence:</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">The Finding</div>
+<p>"We removed over 80% of Claude Code's system prompt for models like Claude Opus 5 and Claude Fable 5 with no measurable loss on our coding evaluations."</p>
+</div>
+
+<p>Read that carefully, because three details do the work:</p>
+
+<p><strong>"Over 80%."</strong> Not a trim. Four out of five tokens of accumulated guidance in a flagship, heavily-tuned production agent were removable. This was not a system prompt written by amateurs &mdash; it was written by the team that builds Claude Code, iterated against real usage for years.</p>
+
+<p><strong>"For models like Opus 5 and Fable 5."</strong> The deletion is model-generation-scoped. The same cut against an older model would not have been safe. Claude Code ships different prompt weights per model precisely because the right amount of scaffolding depends on the model's own judgement.</p>
+
+<p><strong>"No measurable loss on our coding evaluations."</strong> The claim is bounded by a measurement instrument. It is not "it felt better" &mdash; it is "our evals did not move." That bounding is itself a lesson: the deletion was safe <em>because it was measured</em>. Module 14 builds the protocol around this.</p>
+
+<h3>Why So Much Was Removable</h3>
+
+<p>Bloat in a mature system prompt is not laziness. It accumulates through an entirely rational process:</p>
+
+<div class="diagram">THE ACCUMULATION RATCHET
+
+  bug report  ──►  add a rule to prevent it
+       │
+       ▼
+  new edge case  ──►  add a caveat to the rule
+       │
+       ▼
+  model misreads caveat  ──►  add an example
+       │
+       ▼
+  model ignores it late in context  ──►  repeat it elsewhere
+       │
+       ▼
+  ┌──────────────────────────────────────────┐
+  │  Nobody ever files a bug that says       │
+  │  "this instruction is now unnecessary."  │
+  └──────────────────────────────────────────┘</div>
+
+<p>Every addition had a justification at the moment it was added. What is missing is the reverse pressure. A failure caused by a missing rule is visible and attributable; a failure caused by an obsolete rule is diffuse &mdash; slightly worse code, slightly more rigid behavior, an odd refusal to write a docstring &mdash; and almost never traced back to its source.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">The Asymmetry That Creates Bloat</div>
+<p>Adding an instruction has an <strong>obvious, attributable benefit</strong> and a <strong>diffuse, unattributable cost</strong>. So instructions only ever accumulate. Any team that does not run explicit deletion passes will end up with an over-constrained harness, no matter how disciplined they are about additions.</p>
+</div>
+
+<h3>What "No Measurable Loss" Does and Does Not Mean</h3>
+
+<p>It is worth being precise here, because this is the number people will quote at you.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>The claim supports</th><th>The claim does not support</th></tr></thead>
+<tbody>
+<tr><td>Most accumulated guidance in a mature agentic coding harness is removable for Claude 5-class models.</td><td>That 80% of <em>your</em> prompt is removable &mdash; your baseline bloat and your model may differ.</td></tr>
+<tr><td>Deletion at scale is safe when you have an eval to catch regressions.</td><td>Deletion is safe without measurement. The eval is load-bearing in the claim.</td></tr>
+<tr><td>The removed content was, on net, not helping on coding tasks.</td><td>That nothing was lost on dimensions the coding evals do not measure (tone, formatting preferences, rare safety edge cases).</td></tr>
+<tr><td>Newer models need less scaffolding than older ones.</td><td>That system prompts are unnecessary. Claude Code still has one — it is the product framing that survived.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>What Survived the Cut</h3>
+
+<p>The article's later "Applying this to your context" section tells you implicitly what a post-deletion system prompt is <em>for</em>: <em>"A system prompt is heavily tied to the product context. It tells Claude what product it's operating in and what it's doing."</em></p>
+
+<p>That is the durable core. Product identity, the environment and its constraints, the shape of the interaction, genuine policy that must hold regardless of the model's judgement. What got cut was the compensatory layer: the micro-rules, the worst-case guardrails, the examples, the repetitions.</p>
+
+<div class="callout callout-tip">
+<div class="callout-label">The Test to Carry Forward</div>
+<p>For each line in your system prompt, ask: <strong>"Is this telling the model what situation it is in, or is it telling the model how to think?"</strong> The first category is context and usually survives. The second is scaffolding and is the first thing to try deleting.</p>
+</div>
+
+<h3>The Tooling Consequence</h3>
+
+<p>Anthropic did not leave this as advice. The article notes that these best practices were built into <code>claude doctor</code> &mdash; run <code>/doctor</code> in Claude Code to rightsize your skills and CLAUDE.md files. Shipping the guidance as a command is a signal about how the team expects it to be used: not read once, but run periodically against a codebase whose context has drifted.</p>
+
+<div class="quiz" data-question="How much of Claude Code's system prompt was removed for models like Opus 5 and Fable 5?" data-options="About 20%|Roughly half|Over 80%|The entire system prompt was eliminated" data-answer="2" data-explanation="Over 80%, with no measurable loss on Anthropic's coding evaluations. Note the two qualifiers that matter: it was scoped to the newest model generation, and it was validated against an eval suite."></div>
+
+<div class="quiz" data-question="Why do system prompts accumulate bloat even on disciplined teams?" data-options="Engineers are paid per token written|Adding a rule has a visible, attributable benefit while its cost is diffuse and rarely traced back|Model providers require minimum prompt lengths|Longer prompts cache better" data-answer="1" data-explanation="The asymmetry is structural. A failure from a missing rule is visible and gets a rule added; a failure from an obsolete rule shows up as diffuse mediocrity that nobody attributes. Without a scheduled deletion pass, instructions only accumulate."></div>
+
+<div class="quiz" data-question="What makes the '80% with no measurable loss' claim credible rather than just bold?" data-options="It was posted on X|It was bounded by a coding evaluation suite that would have caught regressions|It came from a large company|It applied to every model ever released" data-answer="1" data-explanation="The eval is load-bearing. 'No measurable loss on our coding evaluations' is a falsifiable, instrumented claim — and it implies the corresponding rule for you: delete aggressively, but only behind a measurement you trust."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The headline number" data-back="Over 80% of Claude Code's system prompt removed for Opus 5 / Fable 5, with no measurable loss on Anthropic's coding evals."></div>
+  <div class="flashcard" data-front="Why bloat accumulates" data-back="Adding a rule = visible benefit, diffuse cost. Nobody files a bug saying 'this instruction is now unnecessary.' Deletion must be scheduled, not spontaneous."></div>
+  <div class="flashcard" data-front="What a system prompt is still for" data-back="Product context: what product Claude is operating in and what it's doing. Identity and environment survive; compensatory micro-rules get cut."></div>
+  <div class="flashcard" data-front="The line-by-line test" data-back="'Is this telling the model what situation it's in, or how to think?' Situation = keep. How to think = candidate for deletion."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(2)" id="completeBtn2">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 3 ==================== -->
+<div class="module" id="mod3" data-module="3">
+<div class="module-header" onclick="toggleModule(3)">
+  <span class="module-number" id="modNum3">3</span>
+  <span class="module-title">Unhobbling: How Over-Constraint Actually Breaks Claude</span>
+  <span class="module-chevron" id="modChev3">&#9660;</span>
+</div>
+<div class="module-body" id="modBody3">
+<div class="module-content">
+
+<h3>The Diagnosis</h3>
+
+<p>The article's section title is <strong>"Unhobbling Claude,"</strong> and the diagnosis is direct: <em>"we found that we were over-constraining Claude Code, both through our system prompt and in our CLAUDE.md files and skills."</em></p>
+
+<p>Note where the problem lives &mdash; not in one file but across all three layers at once. That is what makes over-constraint hard to see: no single document looks unreasonable. The damage is emergent.</p>
+
+<h3>The Mechanism: Conflicting Messages</h3>
+
+<p>The concrete failure mode the team observed came from reading their own transcripts:</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"For example, when we read transcripts of our own internal usage of Claude Code, we see several conflicting messages like <em>'leave documentation as appropriate,'</em> or <em>'DO NOT add comments'</em> as our system prompt, skills, and user requests clash with each other."</p>
+</div>
+
+<p>Trace how that pair comes to exist. Nobody wrote them together. The system prompt says never add comments (added in 2024, when models over-commented). A skill for a documentation-heavy repo says leave documentation as appropriate (added by a different person, for a real need). The user asks for a well-documented module (a legitimate request). Each instruction is defensible alone; together they present the model with an unresolvable instruction set at the exact moment it needs to act.</p>
+
+<div class="diagram">HOW A CONFLICT ASSEMBLES ITSELF
+
+   system prompt     "DO NOT add comments"          (2024, anti-verbosity)
+         +
+   skill file        "leave documentation as
+                      appropriate"                   (2025, docs repo)
+         +
+   CLAUDE.md         "match house style"             (2026, this repo)
+         +
+   user prompt       "add docstrings to this API"    (right now)
+         │
+         ▼
+   ┌────────────────────────────────────────────────────┐
+   │  Model must now spend reasoning on ARBITRATION     │
+   │  instead of on the actual task.                    │
+   └────────────────────────────────────────────────────┘</div>
+
+<h3>The Two Distinct Costs</h3>
+
+<p>Over-constraint charges you twice, and the two costs need separating because they have different fixes.</p>
+
+<p><strong>Cost 1 &mdash; Arbitration overhead.</strong> The article puts it plainly: <em>"Claude must think more carefully about these overlapping and conflicting messages before deciding what to do."</em> Reasoning capacity spent resolving your instruction set is reasoning capacity not spent on the user's problem. The model usually still gets there &mdash; "Claude can interpret the user's intent to get to the right answer" &mdash; but at a cost.</p>
+
+<p><strong>Cost 2 &mdash; Wrong outcomes in the tail.</strong> A rule written to prevent a worst case is, by construction, wrong for some subset of cases. The article's example: a blanket no-comments rule is simply incorrect when the user has their own documentation preferences, or when a genuinely complex piece of code needs a multi-line comment block. Under an older model, you accepted that tradeoff because the alternative &mdash; unconstrained commenting &mdash; was worse. That tradeoff no longer pencils out.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">The Reframe</div>
+<p>Guardrails were never free. They were a <strong>purchase</strong>: you bought worst-case protection and paid for it with tail-case correctness. The Claude 5 result is that the price went up (models make better judgements now) while the thing you were buying got cheaper (worst cases are rarer). So many old purchases should be unwound.</p>
+</div>
+
+<h3>The Diagnostic Method: Read Your Transcripts</h3>
+
+<p>The most transferable thing in this section is not the conclusion &mdash; it is the method. Anthropic found the conflicts by <strong>reading transcripts of their own internal usage</strong>. Not by auditing the system prompt in isolation, not by reasoning about it abstractly. By watching the assembled context in the wild.</p>
+
+<p>This works because conflicts are only visible at assembly time. Your system prompt looks fine. Your skill looks fine. Only the transcript shows them landing in the same window alongside a user request that pulls a third direction.</p>
+
+<h4>A practical transcript audit</h4>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Look for</th><th>What it usually indicates</th></tr></thead>
+<tbody>
+<tr><td>The model hedging or asking permission for something routine</td><td>A guardrail is firing where it should not. Find it and scope it down.</td></tr>
+<tr><td>Reasoning that visibly litigates your own instructions</td><td>Direct evidence of arbitration overhead. Two sources are in conflict.</td></tr>
+<tr><td>Output that satisfies a rule but misses the request</td><td>A rule is outranking user intent. It is too absolute ("never", "DO NOT").</td></tr>
+<tr><td>The model restating your constraints back at you</td><td>Constraints are consuming attention proportional to their emphasis.</td></tr>
+<tr><td>Inconsistent behavior on the same task across sessions</td><td>Different context assembled — a skill or memory loading non-deterministically.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>What Changed on the Model Side</h3>
+
+<p>The article gives two reasons the old scaffolding is no longer load-bearing.</p>
+
+<p><strong>Better judgement.</strong> <em>"While these constraints were once needed to avoid worst case scenarios, we have since found we can delete many of them and let the model use surrounding context and judgement instead."</em> The model can now infer from the codebase, the conversation, and the request what the right call is &mdash; which is exactly what your rule was a crude proxy for.</p>
+
+<p><strong>More places to put things.</strong> <em>"Claude Code now has many more tools. Claude used to rely on CLAUDE.md as a source of memory, information, and guidance. Now we have memory, artifacts, and skills, which Claude can use to create new ways of loading and sharing context across sessions."</em> When CLAUDE.md was the only container, everything went into CLAUDE.md. Now there are purpose-built containers, and the right move is to distribute rather than concentrate.</p>
+
+<div class="callout callout-warning">
+<div class="callout-label">Do Not Over-Correct</div>
+<p>"Unhobbling" is not "delete all guidance." Genuine policy &mdash; safety constraints, destructive-action confirmations, legal or compliance requirements, hard product invariants &mdash; still belongs in the system prompt and should be stated absolutely. The target is <strong>compensatory scaffolding</strong>: rules that exist to substitute for judgement the model now has. Module 14 gives you the triage.</p>
+</div>
+
+<div class="quiz" data-question="How did the Claude Code team discover they were over-constraining the model?" data-options="By running a static linter on the system prompt|By reading transcripts of their own internal usage and spotting conflicting messages|By surveying users|By comparing prompt length to competitors" data-answer="1" data-explanation="They read real transcripts. Conflicts between the system prompt, skills, and user requests are only visible at assembly time — each document looks fine in isolation, which is exactly why abstract audits miss them."></div>
+
+<div class="quiz" data-question="What are the two distinct costs of over-constraint identified in this module?" data-options="Latency and price|Arbitration overhead (reasoning spent resolving conflicts) and wrong outcomes in the tail cases the rule mis-covers|Token cost and rate limits|Training drift and hallucination" data-answer="1" data-explanation="Cost 1: the model spends reasoning resolving overlapping and conflicting instructions instead of on the task. Cost 2: a rule written for the worst case is by construction wrong for some legitimate cases — like a blanket no-comments rule when the user wants documentation."></div>
+
+<div class="quiz" data-question="Why did having 'many more tools' (memory, artifacts, skills) reduce the pressure on CLAUDE.md?" data-options="Tools replaced the need for any written context|CLAUDE.md was the only container before, so everything went into it; now context can be distributed to purpose-built places and loaded when needed|Tools are cheaper than tokens|CLAUDE.md was deprecated" data-answer="1" data-explanation="When CLAUDE.md was the sole store of memory, information, and guidance, it necessarily became a dumping ground. Memory, artifacts, and skills give each kind of context its own home and its own loading moment — the foundation for progressive disclosure (Module 6)."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The canonical conflict example" data-back="'leave documentation as appropriate' (a skill) vs 'DO NOT add comments' (the system prompt) vs a user asking for docs. Three defensible instructions, one unresolvable moment."></div>
+  <div class="flashcard" data-front="Arbitration overhead" data-back="Reasoning spent deciding which of your conflicting instructions wins is reasoning not spent on the user's problem. Claude usually still lands right — but it pays for it."></div>
+  <div class="flashcard" data-front="Guardrails as a purchase" data-back="You buy worst-case protection and pay in tail-case correctness. For Claude 5, the price went up and the product got cheaper — so unwind old purchases."></div>
+  <div class="flashcard" data-front="The diagnostic method" data-back="Read your own transcripts. Conflicts only exist at assembly time; auditing each file in isolation cannot find them."></div>
+  <div class="flashcard" data-front="What unhobbling is NOT" data-back="Not deleting all guidance. Genuine policy — safety, destructive-action confirmation, hard invariants — stays and stays absolute. The target is compensatory scaffolding."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(3)" id="completeBtn3">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 4 ==================== -->
+<div class="module" id="mod4" data-module="4">
+<div class="module-header" onclick="toggleModule(4)">
+  <span class="module-number" id="modNum4">4</span>
+  <span class="module-title">Shift 1 &mdash; Then: Give Claude Rules &rarr; Now: Let Claude Use Judgement</span>
+  <span class="module-chevron" id="modChev4">&#9660;</span>
+</div>
+<div class="module-body" id="modBody4">
+<div class="module-content">
+
+<h3>The Shift</h3>
+
+<div class="thennow">
+  <div class="tn-then"><span class="tn-label">Then</span><p>Give Claude rules. Write explicit, absolute constraints for every behavior you care about, because the model cannot be trusted to infer the right call.</p></div>
+  <div class="tn-now"><span class="tn-label">Now</span><p>Let Claude use judgement. Describe the standard you want met and let the model read the surrounding context to decide how to meet it.</p></div>
+</div>
+
+<h3>Why the Rules Existed</h3>
+
+<p>The article is candid about the original motivation: <em>"When we first rolled out Claude Code, we needed to be sure that Claude avoided worst case scenarios, such as deleting files. This meant we would give particularly strong guidance that might not always be true."</em></p>
+
+<p>That last clause is the whole thing. <strong>Guidance that might not always be true.</strong> The team knew the rules were over-broad when they wrote them. They wrote them anyway, because with a 2024-era model the cost of being occasionally wrong was lower than the cost of being occasionally catastrophic.</p>
+
+<h3>The Before and After</h3>
+
+<p>Here is the actual text that was removed from the Claude Code system prompt:</p>
+
+<pre><code>In code: default to writing no comments. Never write multi-paragraph
+docstrings or multi-line comment blocks — one short line max. Don't
+create planning, decision, or analysis documents unless the user asks
+for them — work from conversation context, not intermediate files.</code><span class="code-label">Old system prompt</span></pre>
+
+<p>And here is what replaced it:</p>
+
+<pre><code>Write code that reads like the surrounding code: match its comment
+density, naming, and idiom.</code><span class="code-label">New system prompt</span></pre>
+
+<p>Four sentences of absolute prohibition became one sentence describing a standard. Look at what structurally changed:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Old</th><th>New</th></tr></thead>
+<tbody>
+<tr><td>Specifies the <em>action</em> ("no comments", "one short line max")</td><td>Specifies the <em>goal</em> ("reads like the surrounding code")</td></tr>
+<tr><td>Fixed regardless of repo</td><td>Resolves differently per repo, automatically</td></tr>
+<tr><td>Conflicts with any user or repo preference</td><td>Absorbs user and repo preference as input</td></tr>
+<tr><td>Needs a new exception clause for each edge case</td><td>Edge cases resolve without amendment</td></tr>
+<tr><td>Absolute language: "Never", "Don't"</td><td>Directional language: "match"</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-key">
+<div class="callout-label">The Pattern</div>
+<p>Replace <strong>"do X, never Y"</strong> with <strong>"achieve S, where S is readable from context."</strong> A rule you have to maintain becomes a standard the model evaluates fresh against each situation. The new instruction is shorter, never conflicts with a legitimate request, and is <em>more</em> correct in the cases the old rule got wrong.</p>
+</div>
+
+<h3>Why the Old Rule Was Wrong &mdash; And Why They Kept It Anyway</h3>
+
+<p>The article names the tradeoff explicitly: <em>"for a certain subset of prompts, this guidance would be wrong. In the case of documentation, the user may have their own preferences, or specific parts of very complex code might need multi-line comment blocks."</em></p>
+
+<p>Then the key admission: <em>"Still, without these guardrails for older models, the comments Claude wrote would be incorrect in many cases and we had to accept this tradeoff. But newer models have better judgement and can handle these decisions well without explicit rules."</em></p>
+
+<p>This is the cleanest statement of the whole article's logic. The rule was never <em>right</em>. It was a hedge whose expected value flipped when the model got better. If you are still running rules you wrote in 2024, you are still paying a premium on insurance you no longer need.</p>
+
+<h3>How to Rewrite a Rule as a Standard</h3>
+
+<p>A repeatable transformation, in four steps:</p>
+
+<ol>
+<li><strong>Recover the intent.</strong> Ask what the rule was defending against. "No comments" was defending against noisy, redundant, obvious comments.</li>
+<li><strong>Name the property you actually want.</strong> Not "no comments" but "comments carry information a reader could not get from the code."</li>
+<li><strong>Point at an available signal.</strong> The surrounding code, the repo's conventions, the user's stated preference, the file's existing style. Something Claude can actually read.</li>
+<li><strong>Drop the absolutes.</strong> Cut "never", "always", "DO NOT", "under no circumstances" &mdash; unless you genuinely mean them (see the exception below).</li>
+</ol>
+
+<h4>Worked examples</h4>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Rule (then)</th><th>Standard (now)</th></tr></thead>
+<tbody>
+<tr><td>"Never write tests unless asked."</td><td>"Add tests where the repo's existing coverage pattern suggests they belong."</td></tr>
+<tr><td>"Always respond in under 200 words."</td><td>"Match the density of the question — short answers to short questions."</td></tr>
+<tr><td>"Never use external libraries."</td><td>"Prefer what's already in package.json; flag it if a new dependency is genuinely warranted."</td></tr>
+<tr><td>"Always create a plan file before coding."</td><td>"For multi-step work, write down the plan where the user can see it."</td></tr>
+<tr><td>"Never refactor code you weren't asked about."</td><td>"Keep the diff scoped to the request; mention adjacent problems rather than fixing them."</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">When Absolute Rules Are Still Correct</div>
+<p>Judgement is the default, not a universal. Keep hard rules when the cost of a rare violation is <strong>unbounded or irreversible</strong>: destructive operations, credential handling, spending money, sending communications on someone's behalf, regulated-domain restrictions, and safety policy. The test: <em>if the model exercised its best judgement and still got it wrong once in a thousand runs, could you live with that outcome?</em> If no, keep the rule and make it absolute.</p>
+</div>
+
+<h3>Sharpening the Signals You Give</h3>
+
+<p>"Let Claude use judgement" only works if there is something to judge <em>against</em>. If you delete a rule and provide no signal, you have not enabled judgement &mdash; you have removed information. The counterpart to deleting rules is making the real signals legible:</p>
+
+<ul>
+<li>Consistent conventions in the codebase itself (the strongest signal &mdash; the model reads it directly)</li>
+<li>A linter or formatter config that encodes house style mechanically</li>
+<li>A short note in CLAUDE.md for conventions that are <em>not</em> discoverable from the files</li>
+<li>A representative file the model can pattern-match against</li>
+</ul>
+
+<p>This is why the new instruction works: "the surrounding code" is a signal that is always present, always current, and always specific to the situation. It never goes stale, because it is not a claim about the world &mdash; it is a pointer to the world.</p>
+
+<div class="callout callout-tip">
+<div class="callout-label">Pointer, Not Claim</div>
+<p>The most durable instructions <strong>point at a source of truth</strong> rather than restating it. "Match the surrounding code" cannot go out of date. "This repo uses 2-space indent" can — and will, silently, the day someone changes it.</p>
+</div>
+
+<div class="quiz" data-question="What replaced the four-sentence no-comments rule in Claude Code's system prompt?" data-options="A longer, more detailed rule with exceptions|'Write code that reads like the surrounding code: match its comment density, naming, and idiom.'|Nothing — comments guidance was removed entirely|A per-language lookup table" data-answer="1" data-explanation="One sentence describing a standard replaced four sentences of prohibition. It specifies the goal rather than the action, resolves per-repo automatically, and absorbs rather than conflicts with user preference."></div>
+
+<div class="quiz" data-question="According to the article, why did the team keep the over-broad no-comments rule for older models even knowing it was sometimes wrong?" data-options="They didn't know it was wrong|Without the guardrail, the comments older models wrote would be incorrect in many cases — they accepted the tradeoff|Users demanded it|It saved tokens" data-answer="1" data-explanation="They explicitly accepted a bad tradeoff: over-broad guidance was better than the failure mode of an unconstrained older model. The point is that this was always a hedge, and its expected value flipped once models had better judgement."></div>
+
+<div class="quiz" data-question="When should you still write an absolute rule instead of a standard?" data-options="Whenever you feel strongly about it|When the cost of a rare violation is unbounded or irreversible — destructive ops, credentials, spending money, safety policy|Never — absolutes are always obsolete|Only for models older than Claude 5" data-answer="1" data-explanation="The test is whether you could live with the outcome if the model used its best judgement and got it wrong once in a thousand runs. For deleting data, spending money, or sending communications, the answer is no — keep those absolute."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The transformation" data-back="'Do X, never Y' → 'Achieve S, where S is readable from context.' Rules specify actions; standards specify goals and let the model resolve them per situation."></div>
+  <div class="flashcard" data-front="The exact old text" data-back="'In code: default to writing no comments. Never write multi-paragraph docstrings or multi-line comment blocks — one short line max. Don't create planning, decision, or analysis documents unless the user asks for them...'"></div>
+  <div class="flashcard" data-front="The exact new text" data-back="'Write code that reads like the surrounding code: match its comment density, naming, and idiom.'"></div>
+  <div class="flashcard" data-front="Pointer, not claim" data-back="'Match the surrounding code' points at a live source of truth and can never go stale. 'This repo uses 2-space indent' is a claim that silently expires."></div>
+  <div class="flashcard" data-front="The absolutes that stay" data-back="Destructive operations, credentials, spending money, acting on someone's behalf, regulated domains, safety policy. Test: could you live with one failure in a thousand?"></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(4)" id="completeBtn4">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 5 ==================== -->
+<div class="module" id="mod5" data-module="5">
+<div class="module-header" onclick="toggleModule(5)">
+  <span class="module-number" id="modNum5">5</span>
+  <span class="module-title">Shift 2 &mdash; Then: Give Claude Examples &rarr; Now: Design Interfaces</span>
+  <span class="module-chevron" id="modChev5">&#9660;</span>
+</div>
+<div class="module-body" id="modBody5">
+<div class="module-content">
+
+<h3>The Shift</h3>
+
+<div class="thennow">
+  <div class="tn-then"><span class="tn-label">Then</span><p>Give Claude examples. The number one rule for tool usage was to show the model worked examples of how to call each tool.</p></div>
+  <div class="tn-now"><span class="tn-label">Now</span><p>Design interfaces. Put the effort into the tool, script, and file design itself &mdash; what parameters exist, and how expressive they can be.</p></div>
+</div>
+
+<h3>The Counterintuitive Claim</h3>
+
+<p>This is the shift most practitioners will resist, because few-shot examples have been the single most reliable prompting technique since 2020. The article's claim:</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"The number one rule for tool usage was to give Claude examples on how to use them. With our newest models, we've found that giving examples actually constrains them to a certain exploration space."</p>
+</div>
+
+<p><strong>Constrains them to a certain exploration space.</strong> That phrase is the mechanism. An example does not merely illustrate &mdash; it anchors. Show three examples of a search tool being called with single keywords, and the model will under-explore multi-term and filtered queries, not because it cannot construct them but because your examples defined the apparent shape of legitimate use.</p>
+
+<p>For a weaker model this anchoring is a feature: it collapses a space the model would otherwise wander in. For a model that would have explored that space productively, the same anchoring is pure loss.</p>
+
+<div class="diagram">WHAT AN EXAMPLE DOES TO THE SEARCH SPACE
+
+  WEAKER MODEL                      CLAUDE 5-CLASS MODEL
+  ┌────────────────────┐            ┌────────────────────┐
+  │  ·   ·  ✗   ·   ·  │            │  ·  ✓  ·  ✓ ·  ✓   │
+  │ ✗  ┌──────┐  ·  ✗  │            │  ✓ ┌──────┐ ✓   ✓  │
+  │  · │ ✓  ✓ │ ✗   ·  │            │  · │ ✓  ✓ │  ·  ✓  │
+  │ ✗  └──────┘  ·  ·  │            │  ✓ └──────┘ ✓   ·  │
+  │  ·  ✗   ·  ✗    ·  │            │  ✓  ·  ✓  ·  ✓  ✓  │
+  └────────────────────┘            └────────────────────┘
+    box = what examples                box = what examples
+    anchor it to                       anchor it to
+
+    Anchoring EXCLUDES failures        Anchoring EXCLUDES good
+    → net win                          solutions → net loss</div>
+
+<h3>What to Do Instead: Make the Interface Teach</h3>
+
+<p>The article redirects the effort: <em>"Instead of using examples, think more about the design of your tools, scripts and files &mdash; what parameters does Claude have and how can they be more expressive?"</em></p>
+
+<p>The worked example given is the Todo tool:</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">The Todo Tool Example</div>
+<p>"Just listing status as an enumeration between <code>pending</code>, <code>in_progress</code>, and <code>completed</code>, hints to Claude how to use it. The instruction on keeping one item <code>in_progress</code> helps define our requested behavior."</p>
+</div>
+
+<p>Unpack what those two design choices accomplish without a single example:</p>
+
+<ul>
+<li><strong>The enum itself teaches the lifecycle.</strong> Three ordered states imply a progression. The model infers that items move forward through them, that <code>pending</code> is the entry state, and that <code>completed</code> is terminal &mdash; none of which is stated.</li>
+<li><strong>The one-<code>in_progress</code> constraint teaches the workflow.</strong> A single sentence in the schema encodes "work on one thing at a time, sequentially" &mdash; a behavioral norm that would otherwise take a paragraph of system prompt and several examples.</li>
+<li><strong>Both live at the point of use.</strong> They are in the tool definition, so they are present exactly when the model is deciding how to call the tool, and absent otherwise.</li>
+</ul>
+
+<div class="callout callout-key">
+<div class="callout-label">The Principle</div>
+<p><strong>Encode intent in the type system, not in prose.</strong> An enum, a required field, a well-chosen parameter name, or a constrained shape communicates more reliably than an example &mdash; because it is a constraint the model reasons <em>within</em>, rather than a sample it reasons <em>from</em>.</p>
+</div>
+
+<h3>A Design Vocabulary</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Device</th><th>What it teaches</th><th>Instead of</th></tr></thead>
+<tbody>
+<tr><td><strong>Enum</strong> over free string</td><td>The complete legal space, and often an implied ordering</td><td>Examples of each valid value</td></tr>
+<tr><td><strong>Required vs optional</strong></td><td>What is essential to the operation</td><td>"Always include X when calling..."</td></tr>
+<tr><td><strong>Parameter names</strong></td><td>Semantics — <code>max_results</code> vs <code>n</code>; <code>dry_run</code> vs <code>flag</code></td><td>A description explaining what <code>n</code> means</td></tr>
+<tr><td><strong>Structured over free-form</strong></td><td>The expected decomposition of the input</td><td>An example showing the right shape</td></tr>
+<tr><td><strong>Narrow types</strong> (ranges, patterns)</td><td>Validity, enforced rather than requested</td><td>"Make sure the value is between 1 and 100"</td></tr>
+<tr><td><strong>Tool granularity</strong></td><td>What operations are distinct and safe to compose</td><td>Examples of multi-step call sequences</td></tr>
+<tr><td><strong>Defaults</strong></td><td>The common case, without forcing a decision</td><td>"Usually you want X"</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>Before and after</h4>
+
+<pre><code>// BEFORE — thin interface, meaning carried by prose + examples
+{
+  name: "update_task",
+  description: "Updates a task. Example: update_task({id: 'a', s: 'p'}).
+    Example: update_task({id: 'b', s: 'ip'}). Remember s can be 'p',
+    'ip', or 'c'. Always keep only one task as 'ip' at a time. Don't
+    forget to set 'c' when finished...",
+  parameters: { id: "string", s: "string" }
+}</code><span class="code-label">Then</span></pre>
+
+<pre><code>// AFTER — the interface carries the meaning
+{
+  name: "update_task",
+  description: "Update a task's status. Exactly one task may be
+    in_progress at a time — complete it before starting the next.",
+  parameters: {
+    task_id: { type: "string", required: true },
+    status:  { type: "enum", values: ["pending", "in_progress", "completed"] }
+  }
+}</code><span class="code-label">Now</span></pre>
+
+<p>The second version is shorter, has no examples, and is harder to misuse. The enum removed the need to enumerate valid values in prose; the parameter rename removed the need to explain what <code>s</code> means; the one remaining sentence carries the only thing the schema genuinely cannot express.</p>
+
+<h3>Beyond Tools: Scripts and Files</h3>
+
+<p>The article says "tools, scripts and files" &mdash; the principle is not limited to JSON schemas.</p>
+
+<ul>
+<li><strong>Scripts:</strong> a CLI with clear subcommands, a <code>--dry-run</code> flag, and good <code>--help</code> output is self-documenting. The model can discover the interface at runtime rather than needing it in context.</li>
+<li><strong>File layout:</strong> a directory structure that mirrors the domain teaches the domain. <code>skills/verification/SKILL.md</code> tells the model what lives there without a manifest.</li>
+<li><strong>Naming:</strong> the single highest-leverage and most-neglected device. A function named <code>archive_and_notify</code> needs no comment explaining that it does two things.</li>
+<li><strong>Error messages:</strong> an error that states what was expected is a just-in-time interface lesson, delivered exactly when the model needs it.</li>
+</ul>
+
+<div class="callout callout-tip">
+<div class="callout-label">When Examples Still Earn Their Place</div>
+<p>Keep an example when the correct usage is genuinely <strong>not inferable</strong> from the interface: a non-obvious domain convention, a format with hidden requirements (a specific date encoding, an escaping rule), or a counterintuitive interaction between two parameters. The test: <em>could a competent engineer who read only the schema get this right?</em> If yes, delete the example. If no, first ask whether you can fix the interface &mdash; and only if you cannot, add the example.</p>
+</div>
+
+<div class="quiz" data-question="Why does the article say examples now hurt rather than help with the newest models?" data-options="Examples use too many tokens|Giving examples constrains the model to a certain exploration space|The model ignores examples entirely|Examples are often written incorrectly" data-answer="1" data-explanation="Examples anchor. For a weaker model, anchoring usefully excludes failure modes. For a Claude 5-class model that would have explored the space productively, the same anchoring excludes good solutions — the constraint becomes pure loss."></div>
+
+<div class="quiz" data-question="In the Todo tool, what does the status enumeration (pending, in_progress, completed) accomplish without any example?" data-options="It reduces token cost only|It hints at how to use the tool — the three ordered states imply a lifecycle and progression|It prevents the model from calling the tool|It enables autocomplete in the IDE" data-answer="1" data-explanation="The enum teaches the complete legal space and an implied ordering: pending is the entry state, completed is terminal, items move forward. None of that is written down — the type carries it."></div>
+
+<div class="quiz" data-question="What is the design principle replacing few-shot tool examples?" data-options="Write longer tool descriptions|Encode intent in the interface — enums, required fields, expressive parameter names, narrow types — rather than in prose or samples|Use more tools|Let the model write its own tools" data-answer="1" data-explanation="A constraint the model reasons within beats a sample it reasons from. Enums, required/optional distinctions, good names, and narrow types communicate reliably and live exactly at the point of use."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Why examples hurt now" data-back="They constrain the model to a certain exploration space. Anchoring helps a weak model (excludes failures) and hurts a strong one (excludes good solutions)."></div>
+  <div class="flashcard" data-front="The Todo tool lesson" data-back="The status enum (pending/in_progress/completed) hints at the lifecycle; 'only one in_progress' defines the workflow. Two design choices replace a paragraph of prose and several examples."></div>
+  <div class="flashcard" data-front="Encode intent in the type system" data-back="Enum > free string. Required > 'always include'. max_results > n. Narrow type > 'make sure it's between 1 and 100'."></div>
+  <div class="flashcard" data-front="When an example still earns its place" data-back="When correct usage is genuinely not inferable from the schema — hidden format requirements, non-obvious domain conventions. But first try to fix the interface."></div>
+  <div class="flashcard" data-front="Not just tools" data-back="Scripts (subcommands, --dry-run, --help), file layout (structure mirrors domain), naming, and error messages are all interfaces that teach."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(5)" id="completeBtn5">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 6 ==================== -->
+<div class="module" id="mod6" data-module="6">
+<div class="module-header" onclick="toggleModule(6)">
+  <span class="module-number" id="modNum6">6</span>
+  <span class="module-title">Shift 3 &mdash; Then: Put It All Upfront &rarr; Now: Use Progressive Disclosure</span>
+  <span class="module-chevron" id="modChev6">&#9660;</span>
+</div>
+<div class="module-body" id="modBody6">
+<div class="module-content">
+
+<h3>The Shift</h3>
+
+<div class="thennow">
+  <div class="tn-then"><span class="tn-label">Then</span><p>Put everything the model might need in the context upfront, because if it is not there the model will never find it.</p></div>
+  <div class="tn-now"><span class="tn-label">Now</span><p>Load the right context at the right time. Structure information so the model can go get what it needs, when it needs it.</p></div>
+</div>
+
+<p>This is the most structurally important shift in the article &mdash; the one that changes your architecture rather than your wording.</p>
+
+<h3>The Origin of the Problem</h3>
+
+<p>The article's example: <em>"Because Claude Code was focused on coding, our system prompt included detailed information on how to do code review and verification. These were not always needed, but when they were, it was crucial information."</em></p>
+
+<p>That is the classic upfront-loading dilemma. Information that is <strong>rarely needed but critical when needed</strong> has no good home under an upfront-only regime. Include it and you pay for it on every single request, including the 95% where it is irrelevant &mdash; and worse, it competes for attention with what actually matters. Exclude it and you fail badly in the 5%.</p>
+
+<p>Progressive disclosure dissolves the dilemma: <em>"Since then, Claude Code has gotten very competent at using progressive disclosure &mdash; loading the right context at the right time. For example, we moved verification and code review into their own skills that Claude Code could selectively call."</em></p>
+
+<div class="callout callout-key">
+<div class="callout-label">Core Definition</div>
+<p><strong>Progressive disclosure</strong> is structuring context so that only a lightweight pointer is always present, and the full content loads on demand when the model determines it is relevant. The always-loaded cost drops to a line or two; the full detail is still reachable at full fidelity.</p>
+</div>
+
+<h3>Three Mechanisms</h3>
+
+<h4>1. Skills</h4>
+
+<p>A skill is a body of guidance with a short description. Only the name and description sit in context permanently; the model reads the full skill when it decides the task calls for it. Verification and code review &mdash; previously permanent system-prompt residents &mdash; became skills the model selectively invokes.</p>
+
+<div class="diagram">SKILL LOADING
+
+  ALWAYS IN CONTEXT              LOADED ON DEMAND
+  ┌───────────────────────┐      ┌──────────────────────────┐
+  │ verification — checks │ ───► │ SKILL.md    (full guide) │
+  │   a change end-to-end │      │ references/checklist.md  │
+  │ code-review — reviews │      │ references/patterns.md   │
+  │   the working diff    │      │ scripts/verify.sh        │
+  └───────────────────────┘      └──────────────────────────┘
+    ~2 lines, every request        ~3000 tokens, when relevant</div>
+
+<h4>2. Deferred tools and ToolSearch</h4>
+
+<p>The same idea applied to tool definitions: <em>"Some of our tools are 'deferred loading,' which means the agent must search for their full definitions using ToolSearch before using them. This allows us to have more tools (such as our Task tools) that don't take up context until they're needed."</em></p>
+
+<p>This matters more than it sounds. Tool definitions are expensive &mdash; a rich schema with descriptions can run hundreds of tokens, and a serious harness may have dozens of tools. Deferred loading means <strong>the number of available tools stops being bounded by the context budget.</strong> A harness can expose a hundred capabilities while paying for only the handful in play.</p>
+
+<pre><code>Always present:  a name list only
+  → CronCreate, CronDelete, TaskCreate, TaskList, WebFetch, ...
+
+To call one:     ToolSearch("select:TaskCreate,TaskList")
+  → returns full JSONSchema definitions, now callable</code><span class="code-label">Deferred loading</span></pre>
+
+<h4>3. Trees of files</h4>
+
+<p>For your own CLAUDE.md and skill files, the article makes the recommendation explicit &mdash; and names the myth it is correcting:</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"A common myth is that you want to make these a central repository for every known practice that you <em>might</em> run into, because Claude would not find it otherwise. Instead, consider having a tree of files that can be loaded at the right time."</p>
+</div>
+
+<p>The myth had a real basis: an older model given a pointer often would not follow it. Claude 5-class models in an agentic harness will &mdash; they have file tools and they use them. So the monolith is no longer necessary, and its costs (attention dilution, staleness, merge conflicts, conflicting rules living side by side) are no longer justified.</p>
+
+<pre><code>Then — one monolith                Now — a tree
+┌────────────────────────┐         ┌──────────────────────────┐
+│ CLAUDE.md   (4,000 tk) │         │ CLAUDE.md        (300 tk)│
+│  · repo overview       │         │  · what this repo is     │
+│  · full deploy runbook │         │  · gotchas               │
+│  · full test policy    │         │  · "deploys: see         │
+│  · full style guide    │         │     skills/deploy"       │
+│  · migration history   │         └──────────────────────────┘
+│  · onboarding notes    │             └─ skills/deploy/SKILL.md
+│  · 12 edge cases       │             └─ skills/testing/SKILL.md
+└────────────────────────┘             └─ docs/migrations.md
+  paid on every request                  paid only when relevant</code><span class="code-label">Structure</span></pre>
+
+<h3>Designing for Discovery</h3>
+
+<p>Progressive disclosure has one failure mode: <strong>the model does not know the content exists.</strong> Everything therefore rides on the pointer.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Practice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Write descriptions in <em>trigger</em> terms, not <em>topic</em> terms</td><td>"Use when deploying to production or debugging a failed deploy" beats "Deployment documentation." The model matches on situation.</td></tr>
+<tr><td>Include the vocabulary a user would actually use</td><td>If your team says "ship it," put "ship" in the description alongside "deploy."</td></tr>
+<tr><td>Name files for their content</td><td><code>references/rate-limits.md</code> is discoverable by name alone; <code>notes3.md</code> is not.</td></tr>
+<tr><td>Keep the pointer at the level above</td><td>CLAUDE.md points to skills; a skill's main file points to its references. One hop at a time.</td></tr>
+<tr><td>Make the always-loaded layer complete <em>as an index</em></td><td>It does not need the content, but it must mention that the content exists.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">The Real Tradeoff</div>
+<p>Progressive disclosure trades <strong>context cost</strong> for <strong>retrieval risk</strong>. If the model does not load the file, it behaves as if the guidance does not exist. So the decision rule is: <strong>how bad is it if this is missed?</strong> Critical-and-rare → progressive disclosure with a strong pointer. Critical-and-always-relevant → keep it upfront. Nice-to-have → progressive disclosure, and accept the occasional miss.</p>
+</div>
+
+<h3>A Decision Table</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Frequency needed</th><th>Cost of missing it</th><th>Where it goes</th></tr></thead>
+<tbody>
+<tr><td>Every request</td><td>High</td><td>System prompt / CLAUDE.md &mdash; upfront</td></tr>
+<tr><td>Every request</td><td>Low</td><td>Upfront if it's one line; otherwise cut it</td></tr>
+<tr><td>Occasionally</td><td>High</td><td>Skill with an unmissable trigger description</td></tr>
+<tr><td>Occasionally</td><td>Low</td><td>Skill or reference file</td></tr>
+<tr><td>Rarely</td><td>High</td><td>Skill + a one-line pointer in the always-loaded layer</td></tr>
+<tr><td>Rarely</td><td>Low</td><td>A file in the repo. Let the model find it if it needs it.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="quiz" data-question="What problem does progressive disclosure solve that upfront loading cannot?" data-options="Rate limiting|Information that is rarely needed but crucial when needed has no good home — include it and you pay always, exclude it and you fail badly|Model hallucination|Slow inference" data-answer="1" data-explanation="Claude Code's code review and verification guidance was exactly this: not always needed, but crucial when it was. Moving it into selectively-called skills means the always-loaded cost is a description while the full detail stays reachable."></div>
+
+<div class="quiz" data-question="What does 'deferred loading' of tools mean in Claude Code?" data-options="Tools load slowly on first use|The agent must search for a tool's full definition with ToolSearch before using it, so tools don't consume context until needed|Tools are disabled by default|Tools run in the background" data-answer="1" data-explanation="Only names are always present; full JSONSchema definitions load on demand via ToolSearch. This decouples the number of available tools from the context budget — a harness can expose many capabilities (like the Task tools) while paying only for those in play."></div>
+
+<div class="quiz" data-question="What is the myth the article corrects about CLAUDE.md and Skill.md files?" data-options="That they should be short|That you should make them a central repository for every practice you might run into, because Claude wouldn't find it otherwise|That they should be written in YAML|That only one is allowed per repo" data-answer="1" data-explanation="The monolith myth had a real basis — older models given a pointer often wouldn't follow it. Claude 5-class agents will. So the recommendation is a tree of files loaded at the right time, not one central repository."></div>
+
+<div class="quiz" data-question="What is the main risk introduced by progressive disclosure?" data-options="Higher token cost|Retrieval risk — if the model never loads the file, the guidance effectively doesn't exist|Slower responses|Merge conflicts" data-answer="1" data-explanation="You trade context cost for retrieval risk. That's why the pointer matters so much: write descriptions in trigger terms ('use when deploying'), include the vocabulary people actually use, and keep the always-loaded layer complete as an index."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Progressive disclosure" data-back="Only a lightweight pointer is always present; full content loads on demand. Always-loaded cost drops to a line or two, full detail stays reachable."></div>
+  <div class="flashcard" data-front="The three mechanisms" data-back="(1) Skills — verification and code review moved out of the system prompt. (2) Deferred tools via ToolSearch. (3) Trees of files instead of monolithic CLAUDE.md."></div>
+  <div class="flashcard" data-front="Why deferred tools matter" data-back="Tool count stops being bounded by context budget. Expose a hundred capabilities, pay for the handful in play."></div>
+  <div class="flashcard" data-front="Trigger terms, not topic terms" data-back="'Use when deploying to production or debugging a failed deploy' beats 'Deployment documentation.' The model matches on situation, not subject."></div>
+  <div class="flashcard" data-front="The decision rule" data-back="How bad is it if this is missed? Critical + always → upfront. Critical + rare → skill with a strong pointer. Nice-to-have → file in the repo."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(6)" id="completeBtn6">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 7 ==================== -->
+<div class="module" id="mod7" data-module="7">
+<div class="module-header" onclick="toggleModule(7)">
+  <span class="module-number" id="modNum7">7</span>
+  <span class="module-title">Shift 4 &mdash; Then: Repeat Yourself &rarr; Now: Simple Tool Descriptions</span>
+  <span class="module-chevron" id="modChev7">&#9660;</span>
+</div>
+<div class="module-body" id="modBody7">
+<div class="module-content">
+
+<h3>The Shift</h3>
+
+<div class="thennow">
+  <div class="tn-then"><span class="tn-label">Then</span><p>Repeat yourself. State important instructions more than once, and place them late in the context where the model is more likely to follow them.</p></div>
+  <div class="tn-now"><span class="tn-label">Now</span><p>Say it once, in the right place. Instructions about how to use a tool live in the tool's description &mdash; not in the system prompt.</p></div>
+</div>
+
+<h3>The Position Bias That Justified Repetition</h3>
+
+<p>The article explains the original reason: <em>"Earlier Claude models could sometimes need repeated instructions or be more likely to listen to instructions at the end of their context window than at the start. This meant our system prompt would sometimes have references to tools in the main system prompt as well as instructions in the tool description."</em></p>
+
+<p>Position sensitivity was a real, measurable property of earlier models &mdash; instructions buried early in a long context genuinely got less weight than instructions near the end. Practitioners responded rationally: duplicate the critical stuff, and put a copy where attention was strongest.</p>
+
+<p>The fix: <em>"We found we could delete these repeat examples and put instructions on how to use tools in the tool descriptions rather than the system prompt."</em></p>
+
+<h3>Why Repetition Is Now Actively Harmful</h3>
+
+<p>Repetition is not simply neutral-but-wasteful once you no longer need it. It creates three specific problems:</p>
+
+<p><strong>Drift.</strong> Two copies of an instruction are two things to maintain. One gets updated; the other does not. Now you have a conflict &mdash; exactly the pathology from Module 3 &mdash; manufactured by your own duplication.</p>
+
+<p><strong>False emphasis.</strong> Repetition is an emphasis signal. Saying something three times tells the model it is three times as important as the things said once. That is rarely the weighting you actually intend; it is an artifact of which instructions happened to be added during a bad week.</p>
+
+<p><strong>Displacement.</strong> Every duplicated token displaces something else &mdash; and in an agentic session, the thing it displaces is usually the working state that actually matters: file contents, tool results, the evolving plan.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">Single Source of Truth</div>
+<p>Each instruction should have exactly <strong>one canonical home</strong>, chosen by what the instruction is about. Tool usage &rarr; the tool description. Repo-specific gotcha &rarr; CLAUDE.md. Domain practice &rarr; a skill. Product framing and policy &rarr; the system prompt. If it appears twice, one of the two is wrong.</p>
+</div>
+
+<h3>Why the Tool Description Is the Right Home</h3>
+
+<p>Putting tool guidance in the tool description is not just about deduplication &mdash; the location is genuinely better:</p>
+
+<ul>
+<li><strong>Co-location.</strong> The instruction arrives attached to the thing it governs, at the moment the model is considering that thing.</li>
+<li><strong>Progressive disclosure compatibility.</strong> With deferred tool loading (Module 6), guidance in the description loads exactly when the tool loads. Guidance in the system prompt is paid for even by sessions that never touch the tool.</li>
+<li><strong>Portability.</strong> The tool carries its own semantics. Move it to another harness, another agent, another product &mdash; the instructions come with it. System-prompt guidance is left behind and silently lost.</li>
+<li><strong>Maintainability.</strong> Whoever changes the tool sees the description in the same diff. Nobody remembers to grep the system prompt.</li>
+</ul>
+
+<h4>Before and after</h4>
+
+<pre><code>SYSTEM PROMPT
+  ...
+  When searching the codebase, always prefer the Grep tool over
+  running grep in Bash. Remember that Grep supports regex. Do not
+  use Bash for file search. Use Grep. Also remember the Read tool
+  takes an absolute path — never a relative path. Always Read a
+  file before editing it.
+  ...
+
+TOOL: Grep
+  description: "Search files."
+
+TOOL: Read
+  description: "Read a file."</code><span class="code-label">Then — instructions in the system prompt</span></pre>
+
+<pre><code>SYSTEM PROMPT
+  ...
+  (nothing about tool mechanics)
+  ...
+
+TOOL: Grep
+  description: "Search file contents with a regex. Prefer this over
+    shelling out to grep — it is faster and respects ignore files."
+
+TOOL: Read
+  description: "Read a file from the local filesystem. file_path must
+    be absolute."
+
+TOOL: Edit
+  description: "Exact string replacement in a file. You must Read the
+    file in this conversation before editing, or the call will fail."</code><span class="code-label">Now — instructions at the point of use</span></pre>
+
+<p>The second version deletes six sentences from the always-loaded system prompt, cannot drift out of sync, and delivers each constraint precisely when it is actionable. Note also that "you must Read before editing, or the call will fail" is stated as a <em>property of the tool</em> rather than an order &mdash; the model can reason about it instead of merely obeying it.</p>
+
+<h3>Writing a Good Tool Description</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Include</th><th>Leave out</th></tr></thead>
+<tbody>
+<tr><td>What the tool does, in one line</td><td>Multiple worked examples (Module 5)</td></tr>
+<tr><td>Hard preconditions and failure modes</td><td>Restating the parameter schema in prose</td></tr>
+<tr><td>When to prefer it over an alternative</td><td>Motivational emphasis ("IMPORTANT!!", "ALWAYS")</td></tr>
+<tr><td>Non-obvious semantics or side effects</td><td>Anything already obvious from the name and types</td></tr>
+<tr><td>Cost or risk signals ("this is expensive", "irreversible")</td><td>General workflow advice unrelated to this tool</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-tip">
+<div class="callout-label">The Grep Test</div>
+<p>Search your system prompt for the name of every tool you expose. Each hit is a candidate for relocation into that tool's description. The exception worth keeping: genuine <em>cross-tool</em> guidance &mdash; when to use A versus B &mdash; which belongs in whichever description makes the comparison actionable, not in both.</p>
+</div>
+
+<div class="quiz" data-question="Why did earlier practice call for repeating instructions?" data-options="Models had smaller context windows|Earlier models could need repeated instructions and were more likely to follow instructions at the end of the context window than at the start|Repetition improved caching|Users requested it" data-answer="1" data-explanation="Position sensitivity was a real, measurable property of earlier models. Practitioners duplicated critical instructions and placed a copy where attention was strongest. Claude 5-class models no longer need this compensation."></div>
+
+<div class="quiz" data-question="Which is NOT one of the three harms of repetition described in this module?" data-options="Drift — two copies get maintained separately and eventually conflict|False emphasis — repetition signals importance you may not intend|Displacement — duplicated tokens crowd out working state|Latency — repeated text slows down inference proportionally" data-answer="3" data-explanation="The three harms are drift, false emphasis, and displacement. Latency isn't the argument — the case against repetition is about correctness and attention, not speed."></div>
+
+<div class="quiz" data-question="Why is the tool description a better home for tool guidance than the system prompt?" data-options="It's shorter|Co-location with the thing it governs, compatibility with deferred loading, portability across harnesses, and it stays in the same diff as the tool|Tool descriptions are cached separately|The system prompt is read-only" data-answer="1" data-explanation="Four reasons: the instruction arrives attached to the tool at the moment of decision; it loads only when the tool loads; it travels with the tool to other harnesses; and whoever edits the tool sees it in the same diff."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Single source of truth" data-back="Tool usage → tool description. Repo gotcha → CLAUDE.md. Domain practice → skill. Product framing/policy → system prompt. If it appears twice, one copy is wrong."></div>
+  <div class="flashcard" data-front="The three harms of repetition" data-back="Drift (copies diverge into conflicts), false emphasis (repetition = importance signal you didn't intend), displacement (crowds out working state)."></div>
+  <div class="flashcard" data-front="The Grep test" data-back="Search your system prompt for every tool name you expose. Each hit is a candidate for relocation into that tool's description."></div>
+  <div class="flashcard" data-front="State properties, not orders" data-back="'You must Read the file before editing, or the call will fail' lets the model reason about the constraint. 'ALWAYS Read first!' only lets it obey."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(7)" id="completeBtn7">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 8 ==================== -->
+<div class="module" id="mod8" data-module="8">
+<div class="module-header" onclick="toggleModule(8)">
+  <span class="module-number" id="modNum8">8</span>
+  <span class="module-title">Shift 5 &mdash; Then: Memory in CLAUDE.md &rarr; Now: Auto-Memory</span>
+  <span class="module-chevron" id="modChev8">&#9660;</span>
+</div>
+<div class="module-body" id="modBody8">
+<div class="module-content">
+
+<h3>The Shift</h3>
+
+<div class="thennow">
+  <div class="tn-then"><span class="tn-label">Then</span><p>Memory lives in CLAUDE.md. Use the <code>#</code> hotkey to write facts you want remembered into the file yourself.</p></div>
+  <div class="tn-now"><span class="tn-label">Now</span><p>Auto-memory. Claude automatically saves memories that are relevant to the work and to you, across sessions.</p></div>
+</div>
+
+<p>The article states it directly: <em>"We used to encourage users to save things to Claude's memory, by using the <code>#</code> hotkey to write to their CLAUDE.md automatically. Instead, Claude now automatically saves memories that are relevant to the work and to you."</em></p>
+
+<h3>Why This Is More Than a Convenience</h3>
+
+<p>The <code>#</code>-to-CLAUDE.md workflow had a structural defect that is easy to miss: it <strong>conflated two different kinds of information in one file.</strong></p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th></th><th>Project instructions</th><th>Memories</th></tr></thead>
+<tbody>
+<tr><td><strong>About</strong></td><td>The repo</td><td>You, the work in flight, past decisions</td></tr>
+<tr><td><strong>Lifetime</strong></td><td>As long as the repo</td><td>Often days or weeks</td></tr>
+<tr><td><strong>Audience</strong></td><td>Every collaborator</td><td>Usually just you</td></tr>
+<tr><td><strong>Belongs in git?</strong></td><td>Yes</td><td>Usually not</td></tr>
+<tr><td><strong>Written by</strong></td><td>Humans, deliberately</td><td>Claude, as a side effect of working</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Putting both in CLAUDE.md meant every session-specific fact permanently inflated a file that every future session pays for. It is the single biggest driver of CLAUDE.md rot: a file that started as a crisp repo description and became a sediment layer of half-true observations from past sessions.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">The Separation</div>
+<p><strong>CLAUDE.md is for the repo. Memory is for you and the work.</strong> If a fact would be useless to a new teammate cloning the repo, it is a memory, not a project instruction. If it would be useless to you next month, it may not belong anywhere.</p>
+</div>
+
+<h3>What Auto-Memory Actually Does</h3>
+
+<p>In current Claude Code, memories are individual files, each holding one fact, with frontmatter carrying a name, a one-line description used for recall, and a type. The types map onto genuinely different things:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Type</th><th>What it holds</th></tr></thead>
+<tbody>
+<tr><td><code>user</code></td><td>Who you are — role, expertise, working preferences</td></tr>
+<tr><td><code>feedback</code></td><td>Guidance you've given on how the assistant should work, with the reasoning behind it</td></tr>
+<tr><td><code>project</code></td><td>Ongoing work, goals, and constraints not derivable from the code or git history</td></tr>
+<tr><td><code>reference</code></td><td>Pointers to external resources — dashboards, tickets, docs URLs</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Two design decisions in that scheme are worth stealing for any memory system you build:</p>
+
+<p><strong>One fact per file.</strong> Granularity is what makes selective recall possible. A single 500-line memory file is just CLAUDE.md again, wearing a different hat. Separate files can be recalled, updated, and deleted independently.</p>
+
+<p><strong>The description is the recall key.</strong> Each memory's one-line description is what gets matched to decide relevance. This is progressive disclosure again: descriptions are cheap and always available; bodies load when they match.</p>
+
+<div class="callout callout-warning">
+<div class="callout-label">The Rule That Prevents Memory Rot</div>
+<p>Do not save what the repo already records &mdash; code structure, past fixes, git history, or anything already in CLAUDE.md. A memory should capture what was <strong>non-obvious</strong>: a preference you'd otherwise have to restate, a constraint invisible in the code, a decision whose reasoning would be lost. Everything else is retrievable and does not need a copy.</p>
+</div>
+
+<h3>Memories Are Snapshots, Not Facts</h3>
+
+<p>A memory reflects what was true when it was written. This has a practical consequence that catches people out: <strong>a memory that names a file, function, or flag may be describing something that no longer exists.</strong> Treat recalled memories as background context to verify, not as ground truth to act on. The same applies to any memory system you build &mdash; store when it was written, and prefer memories that point at durable things (preferences, constraints, reasoning) over volatile ones (line numbers, file paths, version numbers).</p>
+
+<h3>What This Means for Your CLAUDE.md</h3>
+
+<p>If you have been using <code>#</code> for a year, your CLAUDE.md almost certainly contains memories that should be evicted. A quick triage:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Line in your CLAUDE.md</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>"The auth service must be started before the API or requests 500."</td><td><strong>Keep</strong> — a repo gotcha, true for everyone</td></tr>
+<tr><td>"Mustafa prefers Tailwind over styled-components."</td><td><strong>Memory</strong> — about a person, not the repo</td></tr>
+<tr><td>"We decided to skip the Redis migration in Q2."</td><td><strong>Memory</strong> (project) — a decision with a lifetime</td></tr>
+<tr><td>"Run tests with <code>pnpm test</code>."</td><td><strong>Keep</strong> if not obvious from package.json; otherwise delete</td></tr>
+<tr><td>"The staging dashboard is at grafana.internal/xyz."</td><td><strong>Memory</strong> (reference) — or a link in the README</td></tr>
+<tr><td>"Fixed the flaky login test on 2026-03-04."</td><td><strong>Delete</strong> — git history already has this</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="quiz" data-question="What replaced the '#' hotkey workflow for saving things to memory?" data-options="A dedicated memory API you call manually|Claude automatically saves memories relevant to the work and to you|Memory was removed as a feature|Memories now live in git commit messages" data-answer="1" data-explanation="The article: 'Instead, Claude now automatically saves memories that are relevant to the work and to you.' The user no longer has to decide what to persist at the moment of the conversation."></div>
+
+<div class="quiz" data-question="What structural problem did the '#'-to-CLAUDE.md workflow create?" data-options="It was too slow|It conflated repo instructions with personal/session memories in one file that every future session pays for|It broke git|It only worked on macOS" data-answer="1" data-explanation="Project instructions (about the repo, for everyone, permanent) and memories (about you and the work in flight, often short-lived) have different lifetimes and audiences. Merging them is the main driver of CLAUDE.md rot."></div>
+
+<div class="quiz" data-question="What is the test for whether something belongs in CLAUDE.md rather than memory?" data-options="Whether it's longer than one line|Whether it would still be useful to a new teammate who just cloned the repo|Whether you wrote it or Claude did|Whether it mentions a file path" data-answer="1" data-explanation="CLAUDE.md is for the repo; memory is for you and the work. If a new teammate cloning the repo would find the fact useless, it's a memory. If it would be useless to you next month too, it may not belong anywhere."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The shift" data-back="Then: '#' hotkey writes to CLAUDE.md. Now: Claude automatically saves memories relevant to the work and to you."></div>
+  <div class="flashcard" data-front="CLAUDE.md vs memory" data-back="CLAUDE.md = about the repo, for every collaborator, lives in git, written deliberately. Memory = about you and the work, usually private, often short-lived, written as a side effect."></div>
+  <div class="flashcard" data-front="One fact per file" data-back="Granularity enables selective recall. A single giant memory file is just CLAUDE.md wearing a hat. The one-line description is the recall key."></div>
+  <div class="flashcard" data-front="Memories are snapshots" data-back="They reflect what was true when written. If one names a file, function, or flag, verify it still exists before acting on it."></div>
+  <div class="flashcard" data-front="The anti-rot rule" data-back="Don't save what the repo already records. Save what was non-obvious: preferences, invisible constraints, reasoning that would otherwise be lost."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(8)" id="completeBtn8">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 9 ==================== -->
+<div class="module" id="mod9" data-module="9">
+<div class="module-header" onclick="toggleModule(9)">
+  <span class="module-number" id="modNum9">9</span>
+  <span class="module-title">Shift 6 &mdash; Then: Simple Specs &rarr; Now: Rich References</span>
+  <span class="module-chevron" id="modChev9">&#9660;</span>
+</div>
+<div class="module-body" id="modBody9">
+<div class="module-content">
+
+<h3>The Shift</h3>
+
+<div class="thennow">
+  <div class="tn-then"><span class="tn-label">Then</span><p>Write plans and specs as markdown files. Store them in the codebase so Claude can refer back to them across a long project.</p></div>
+  <div class="tn-now"><span class="tn-label">Now</span><p>Use richer references. Claude can handle HTML artifacts, code, test suites, and rubrics as specifications &mdash; higher-fidelity than prose.</p></div>
+</div>
+
+<p>The article's setup: <em>"In plan mode, Claude Code has heavily relied on markdown files with plans. Storing these files as plans helped Claude refer to them when needed. Another similar best practice was to store specs in the codebase for Claude to refer to while working across longer projects. But we've found that Claude can handle increasingly more complicated references."</em></p>
+
+<h3>The Fidelity Ladder</h3>
+
+<p>Every reference is a lossy encoding of an intention. The question is how much gets lost. The article's own example is a screenshot versus a description versus an HTML mockup:</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"Generally you should prefer files that are in code as it provides clear, high-fidelity instructions to Claude in a language it knows very well. For example, a HTML mockup of a design will generally produce better results than a description of the design or a screenshot."</p>
+</div>
+
+<div class="diagram">FIDELITY OF REFERENCE TYPES  (low → high)
+
+  "make it look nicer"              ← ambiguous, unverifiable
+        │
+  a prose spec                      ← precise-ish, still interpreted
+        │
+  a screenshot                      ← exact appearance, no structure,
+        │                             no behavior, no reasoning
+  an HTML/CSS mockup                ← structure + style + behavior,
+        │                             in a language the model knows
+  a passing test suite              ← executable, verifiable, complete
+        │                             for the behavior it covers
+  working code to port              ← every decision already made</div>
+
+<p>The insight behind the ladder is that <strong>code is a language the model knows very well.</strong> A screenshot shows you what something looks like; an HTML mockup tells you what it <em>is</em> &mdash; the hierarchy, the spacing system, the states, the responsive behavior. The prose description sits below both because it must be re-interpreted every time it is read.</p>
+
+<h3>The Four Reference Types the Article Names</h3>
+
+<h4>1. HTML artifacts</h4>
+
+<p><em>"Instead of simple markdown files, Claude can reference HTML artifacts created by our new artifacts feature."</em> A plan or design rendered as an artifact is richer than markdown: it can carry layout, interactive states, a rendered diagram, or a working prototype. It is also a shareable page rather than a file buried in a repo.</p>
+
+<h4>2. Code as spec</h4>
+
+<p><em>"You may also give Claude references in the form of code."</em> The purest form: point at a function in another codebase that already does the thing, and ask for a port. Every design decision the original author made is preserved &mdash; error handling, edge cases, naming &mdash; without anyone having to articulate it.</p>
+
+<h4>3. A detailed test suite</h4>
+
+<p><em>"A spec may also be a detailed test suite."</em> This one deserves emphasis, because it is the only reference type that is <strong>self-verifying</strong>. A prose spec can be satisfied in the model's judgement and still be wrong. A test suite either passes or does not. Writing the tests first turns "build this" into a closed-loop task with an unambiguous completion signal.</p>
+
+<h4>4. Rubrics</h4>
+
+<p>The most novel item: <em>"Rubrics are another form of references. Rubrics allow Claude to try and verify your taste in a particular field (e.g. what does a good API design look like) by using dynamic workflows and spinning up verifier agents with those rubrics."</em></p>
+
+<p>Read that carefully &mdash; it describes a two-part pattern:</p>
+
+<ul>
+<li><strong>The rubric</strong> encodes a judgement you would otherwise have to make yourself. Not "what to build" but "what good looks like." Taste, made explicit and reusable.</li>
+<li><strong>The verifier agent</strong> applies it. A separate agent, spun up via dynamic workflows, evaluates the work against the rubric &mdash; giving you an independent check rather than the same context grading its own output.</li>
+</ul>
+
+<pre><code># rubric: API design review
+
+Score each dimension 1-5 and justify with a specific line reference.
+
+RESOURCE MODELING
+  5 — Nouns are resources; verbs live in HTTP methods. No RPC-in-REST.
+  1 — Endpoints are verbs: /getUser, /doThingNow.
+
+ERROR CONTRACT
+  5 — Every failure returns a typed, documented shape callers can switch on.
+  1 — 500 with a stringified stack trace.
+
+PAGINATION
+  5 — Cursor-based, stable under insertion, limit is bounded server-side.
+  1 — offset/limit with no maximum.
+
+BACKWARD COMPATIBILITY
+  5 — Additive only; removals go through a deprecation window.
+  1 — Fields renamed in place.
+
+Fail the review if any dimension scores below 3.</code><span class="code-label">rubrics/api-design.md</span></pre>
+
+<p>That file is worth more than a paragraph of "design good APIs" in your system prompt, for three reasons: it is specific enough to disagree with, it produces a decision rather than a vibe, and it can be handed to a verifier agent that has not seen the implementation being judged.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">Why Rubrics Matter Strategically</div>
+<p>A rubric converts <strong>taste into infrastructure.</strong> The knowledge of what good looks like in your domain usually lives in a few senior people's heads and gets applied inconsistently at review time. Written as a rubric and handed to verifier agents, it applies to every piece of work, every time, without those people being in the room.</p>
+</div>
+
+<h3>Using References in Practice</h3>
+
+<p>The article's mechanical note: <em>"You can @ mention files to include them as references. References allow Claude to refer to in-depth information about the current plan. This might be in specs files, mockups, or even entire codebases."</em></p>
+
+<p>Note "even entire codebases." With large context windows and file tools, the unit of reference has grown from a paragraph to a repository.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>You want</th><th>Best reference</th><th>Not</th></tr></thead>
+<tbody>
+<tr><td>A specific UI built</td><td>An HTML/CSS mockup</td><td>A screenshot or a prose description</td></tr>
+<tr><td>A behavior implemented exactly</td><td>A failing test suite</td><td>A bulleted acceptance-criteria list</td></tr>
+<tr><td>A pattern followed</td><td>A pointer to the file that already does it</td><td>A written description of the pattern</td></tr>
+<tr><td>A quality bar met</td><td>A rubric + verifier agent</td><td>"Make it production-quality"</td></tr>
+<tr><td>An API matched</td><td>The type definitions or OpenAPI spec</td><td>A table of endpoints in markdown</td></tr>
+<tr><td>A migration done consistently</td><td>One completed example + the rubric for the rest</td><td>Step-by-step prose instructions</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-tip">
+<div class="callout-label">The Reference Test</div>
+<p>Before writing a paragraph describing what you want, ask: <strong>does an artifact already exist that embodies it?</strong> A file, a test, a mockup, a similar implementation, a type definition. Pointing is almost always higher fidelity than describing &mdash; and it cannot go stale the way a description can.</p>
+</div>
+
+<div class="quiz" data-question="Why does an HTML mockup generally beat both a screenshot and a prose description as a design reference?" data-options="It's smaller in file size|Code is a language the model knows very well, and the mockup carries structure, style, and behavior rather than just appearance|Screenshots can't be uploaded|Prose is always ambiguous by definition" data-answer="1" data-explanation="The article's exact reasoning: prefer files that are in code, as it provides clear, high-fidelity instructions in a language Claude knows very well. A screenshot shows appearance; the mockup encodes hierarchy, spacing, states, and responsive behavior."></div>
+
+<div class="quiz" data-question="What makes a test suite unique among reference types?" data-options="It's the shortest to write|It is self-verifying — it either passes or it doesn't, giving an unambiguous completion signal|It works only for Python|It requires no maintenance" data-answer="1" data-explanation="Every other reference type can be satisfied 'in the model's judgement' and still be wrong. A test suite closes the loop: writing tests first turns 'build this' into a task with an objective completion criterion."></div>
+
+<div class="quiz" data-question="According to the article, what do rubrics let Claude do?" data-options="Grade user prompts|Verify your taste in a particular field by using dynamic workflows to spin up verifier agents with those rubrics|Replace unit tests entirely|Generate documentation automatically" data-answer="1" data-explanation="Rubrics encode what good looks like — e.g. what a good API design is — and verifier agents apply them independently. This converts taste that normally lives in senior engineers' heads into infrastructure that applies to every piece of work."></div>
+
+<div class="quiz" data-question="What is the 'reference test' before writing a description of what you want?" data-options="Check whether the description is under 100 words|Ask whether an artifact already exists that embodies it — a file, test, mockup, type definition, or similar implementation|Verify the model supports your file format|Confirm the context window is large enough" data-answer="1" data-explanation="Pointing beats describing. An existing artifact is higher fidelity, requires no interpretation, and can't drift out of sync with reality the way a written description silently does."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The fidelity ladder" data-back="vague ask < prose spec < screenshot < HTML/CSS mockup < passing test suite < working code to port. Code wins because it's a language the model knows very well."></div>
+  <div class="flashcard" data-front="The four rich reference types" data-back="HTML artifacts, code (port this function), a detailed test suite, and rubrics applied by verifier agents."></div>
+  <div class="flashcard" data-front="Why test suites are special" data-back="They're the only self-verifying reference. Everything else can be satisfied in judgement and still be wrong."></div>
+  <div class="flashcard" data-front="Rubrics = taste as infrastructure" data-back="Encode what good looks like (e.g. good API design), then spin up verifier agents via dynamic workflows to apply it independently to every piece of work."></div>
+  <div class="flashcard" data-front="The unit of reference grew" data-back="@ mention files as references — specs, mockups, 'or even entire codebases.' Large context plus file tools moved the unit from paragraph to repository."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(9)" id="completeBtn9">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 10 ==================== -->
+<div class="module" id="mod10" data-module="10">
+<div class="module-header" onclick="toggleModule(10)">
+  <span class="module-number" id="modNum10">10</span>
+  <span class="module-title">The Four Layers: Where Each Instruction Belongs</span>
+  <span class="module-chevron" id="modChev10">&#9660;</span>
+</div>
+<div class="module-body" id="modBody10">
+<div class="module-content">
+
+<h3>Assembling Your Context</h3>
+
+<p>The article's synthesis section asks the practical question: <em>"Pulling this all together, what does this look like when you assemble your context?"</em> The answer is four layers, each with a distinct job. Most context-engineering mistakes are <strong>layer errors</strong> &mdash; putting the right instruction in the wrong place.</p>
+
+<div class="diagram">THE FOUR LAYERS
+
+  ┌─────────────────────────────────────────────────────────────┐
+  │ 1. SYSTEM PROMPT     What product am I, what am I doing?    │
+  │    scope: the product    changes: rarely    always loaded   │
+  ├─────────────────────────────────────────────────────────────┤
+  │ 2. CLAUDE.md         What is odd about THIS repo?           │
+  │    scope: one repo       changes: monthly   always loaded   │
+  ├─────────────────────────────────────────────────────────────┤
+  │ 3. SKILLS            How do we do X here?                   │
+  │    scope: a task type    changes: as needed  on demand      │
+  ├─────────────────────────────────────────────────────────────┤
+  │ 4. REFERENCES        What exactly do I build right now?     │
+  │    scope: one task       changes: per task   per request    │
+  └─────────────────────────────────────────────────────────────┘
+        ▲                                              ▲
+        └── general, stable, expensive       specific, ─┘
+            (paid every request)             disposable, cheap</div>
+
+<h3>Layer 1 &mdash; System Prompt</h3>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"A system prompt is heavily tied to the product context. It tells Claude what product it's operating in and what it's doing. For Claude Code, you will likely never modify this, but if you are building your own agent harness, this is where you should spend a lot of time."</p>
+</div>
+
+<p>Two distinct audiences in that one paragraph:</p>
+
+<p><strong>If you use Claude Code:</strong> you do not touch this layer. Anthropic owns it. Your work is in layers 2&ndash;4. This is worth saying explicitly because a lot of "prompt engineering" effort gets misdirected at trying to override system-prompt behavior from a CLAUDE.md file &mdash; which is precisely how you manufacture the conflicts from Module 3.</p>
+
+<p><strong>If you build your own harness:</strong> this is where to spend a lot of time. It is the highest-leverage layer, because it is loaded on every request and it frames everything else. What belongs here:</p>
+
+<ul>
+<li><strong>Product identity and situation</strong> &mdash; what this agent is, who it serves, what surface it runs on</li>
+<li><strong>Environment</strong> &mdash; what the model can see and do, what it cannot</li>
+<li><strong>Interaction shape</strong> &mdash; how output is rendered, what the user sees, session lifecycle</li>
+<li><strong>Genuine policy</strong> &mdash; safety, irreversibility, confirmation requirements (the absolutes from Module 4)</li>
+<li><strong>Standards, not rules</strong> &mdash; the quality bar, expressed as something to be judged against</li>
+</ul>
+
+<p>What does not belong: tool mechanics (layer: tool descriptions), repo specifics (layer 2), task-type procedures (layer 3), the current task (layer 4).</p>
+
+<h3>Layer 2 &mdash; CLAUDE.md</h3>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"Keep your CLAUDE.md lightweight and briefly describe what your repo is for, but spend most of the tokens on gotchas inside of the codebase. For example, you may organize your code to keep types in one monolithic file and nowhere else. Avoid stating 'the obvious' things Claude should know by looking at your file system or repo."</p>
+</div>
+
+<p>The token-allocation instruction is unusually specific and worth taking literally: <strong>brief on purpose, most of the budget on gotchas.</strong> A gotcha is something that is true, consequential, and <em>not discoverable by looking</em>. Module 11 is entirely about writing this file.</p>
+
+<p>The article also gives the progressive-disclosure hook for this layer: <em>"Use progressive disclosure for more details, for example if you have several unique instructions on how to verify your work, create a verification skill and reference it from your CLAUDE.md."</em> That is the canonical pattern &mdash; CLAUDE.md holds the pointer, the skill holds the content.</p>
+
+<h3>Layer 3 &mdash; Skills</h3>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"Think of skills as lightweight guides to let Claude find information when needed. Avoid making them overconstrained, except in highly important areas. For long skills, try and use progressive disclosure as much as possible &mdash; divide it into many files and split them out. It's best when skills encode particular opinions, knowledge, or best practices that are particular to you, your team, or product."</p>
+</div>
+
+<p>Three instructions packed in there. <strong>Lightweight guides</strong> &mdash; a skill helps the model find information, it does not dictate every step. <strong>Not overconstrained, except in highly important areas</strong> &mdash; the judgement default from Module 4 applies inside skills too, with the same carve-out for genuinely critical things. <strong>Split long skills into many files</strong> &mdash; progressive disclosure recurses; a skill that loads 5,000 tokens the moment it triggers has just recreated the problem it was meant to solve, one level down.</p>
+
+<p>And the content test: skills should encode what is <strong>particular to you, your team, or your product.</strong> Not general knowledge. If Claude already knows how to write a React component, a skill telling it how to write a React component is pure cost. A skill describing <em>your</em> component conventions, <em>your</em> state management opinion, and the three mistakes new hires always make &mdash; that is worth loading.</p>
+
+<h3>Layer 4 &mdash; References</h3>
+
+<div class="callout callout-quote">
+<div class="callout-label">From the Article</div>
+<p>"You can @ mention files to include them as references. References allow Claude to refer to in-depth information about the current plan. This might be in specs files, mockups, or even entire codebases."</p>
+</div>
+
+<p>The per-task layer, covered in Module 9. The key property is that it is <strong>disposable</strong> &mdash; it costs nothing on requests that do not need it, which is why it can afford to be high-fidelity and large.</p>
+
+<h3>The Routing Table</h3>
+
+<p>The single most useful artifact in this course. When you have an instruction and do not know where it goes:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>The instruction is about...</th><th>Layer</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td>What the agent is and what surface it runs on</td><td>System prompt</td><td>"Output is rendered as markdown in a terminal."</td></tr>
+<tr><td>A hard safety or irreversibility constraint</td><td>System prompt</td><td>"Confirm before actions that are hard to reverse."</td></tr>
+<tr><td>The general quality bar</td><td>System prompt</td><td>"Write code that reads like the surrounding code."</td></tr>
+<tr><td>How to call a specific tool</td><td>Tool description</td><td>"file_path must be absolute."</td></tr>
+<tr><td>Choosing between two tools</td><td>Tool description</td><td>"Prefer this over shelling out to grep."</td></tr>
+<tr><td>Something surprising about this repo</td><td>CLAUDE.md</td><td>"All types live in types.ts and nowhere else."</td></tr>
+<tr><td>A repo-specific command that isn't inferable</td><td>CLAUDE.md</td><td>"Integration tests need the docker stack up first."</td></tr>
+<tr><td>A procedure for one kind of task</td><td>Skill</td><td>Deploy runbook; verification checklist.</td></tr>
+<tr><td>Your team's opinion about how to do something</td><td>Skill</td><td>"How we structure API error handling."</td></tr>
+<tr><td>What to build right now</td><td>Reference</td><td>An HTML mockup, a failing test suite.</td></tr>
+<tr><td>What "good" means, for grading work</td><td>Reference (rubric)</td><td>rubrics/api-design.md</td></tr>
+<tr><td>A preference of yours, across projects</td><td>Memory</td><td>"Prefers pnpm; wants tests before commits."</td></tr>
+<tr><td>A decision made about work in flight</td><td>Memory (project)</td><td>"Skipping the Redis migration this quarter."</td></tr>
+<tr><td>Anything discoverable by reading the repo</td><td><strong>Nowhere</strong></td><td>"This is a Next.js app." (package.json says so.)</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">The Most Common Layer Errors</div>
+<ul>
+<li><strong>Tool mechanics in the system prompt</strong> &mdash; the Module 7 mistake. Relocate to the tool description.</li>
+<li><strong>Task-type procedures in CLAUDE.md</strong> &mdash; a deploy runbook everyone pays for. Make it a skill; leave a pointer.</li>
+<li><strong>Personal preferences in CLAUDE.md</strong> &mdash; committed to git and imposed on teammates. That is memory.</li>
+<li><strong>General knowledge in skills</strong> &mdash; teaching Claude React. Delete; keep only what is particular to you.</li>
+<li><strong>Task specifics in CLAUDE.md</strong> &mdash; "we are currently building the export feature." That is a memory or a reference, and it will be false in three weeks.</li>
+<li><strong>The obvious, anywhere</strong> &mdash; anything the model can read off the file system is pure cost.</li>
+</ul>
+</div>
+
+<div class="quiz" data-question="If you use Claude Code (rather than building your own harness), which layer do you not touch?" data-options="CLAUDE.md|Skills|The system prompt — Anthropic owns it; your work is in CLAUDE.md, skills, and references|References" data-answer="2" data-explanation="The article: 'For Claude Code, you will likely never modify this, but if you are building your own agent harness, this is where you should spend a lot of time.' Trying to override system-prompt behavior from CLAUDE.md is how you manufacture conflicts."></div>
+
+<div class="quiz" data-question="How should tokens be allocated inside CLAUDE.md?" data-options="Evenly across all topics|Briefly describe what the repo is for, then spend most of the tokens on gotchas inside the codebase|Mostly on setup instructions|Mostly on architecture diagrams" data-answer="1" data-explanation="Brief on purpose, most of the budget on gotchas — things that are true, consequential, and not discoverable by looking. Explicitly avoid stating 'the obvious' things Claude could learn from the file system or repo."></div>
+
+<div class="quiz" data-question="What content test does the article give for skills?" data-options="They should be under 500 words|They should encode opinions, knowledge, or best practices particular to you, your team, or your product|They should include at least three examples|They should be written in YAML" data-answer="1" data-explanation="General knowledge in a skill is pure cost — Claude already knows how to write a React component. What's worth loading is your component conventions, your opinions, and the mistakes specific to your codebase."></div>
+
+<div class="quiz" data-question="Where does 'all types live in types.ts and nowhere else' belong?" data-options="System prompt|CLAUDE.md — it's a repo-specific organizational gotcha that isn't obvious from browsing|A skill|A rubric" data-answer="1" data-explanation="This is the article's own example of a CLAUDE.md gotcha: a codebase organization decision that is consequential and not discoverable at a glance. It's specific to one repo, so it doesn't belong in the system prompt or a general skill."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The four layers" data-back="System prompt (product context) → CLAUDE.md (repo gotchas) → Skills (task-type procedures, on demand) → References (this task, disposable). Plus tool descriptions and memory."></div>
+  <div class="flashcard" data-front="System prompt: two audiences" data-back="Claude Code users: never modify it. Harness builders: spend a lot of time here — it's loaded every request and frames everything else."></div>
+  <div class="flashcard" data-front="CLAUDE.md token allocation" data-back="Brief on what the repo is for; most tokens on gotchas. Avoid 'the obvious' — anything Claude can read off the file system."></div>
+  <div class="flashcard" data-front="Skills in one line" data-back="Lightweight guides encoding what's particular to you, your team, or product. Not overconstrained except in highly important areas. Split long ones into many files."></div>
+  <div class="flashcard" data-front="The canonical progressive-disclosure pattern" data-back="Several unique verification instructions? Create a verification skill and reference it from CLAUDE.md. Pointer in the always-loaded layer, content in the on-demand one."></div>
+  <div class="flashcard" data-front="Most common layer error" data-back="Tool mechanics in the system prompt. Second: a full runbook in CLAUDE.md that every request pays for. Third: personal preferences committed to git."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(10)" id="completeBtn10">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 11 ==================== -->
+<div class="module" id="mod11" data-module="11">
+<div class="module-header" onclick="toggleModule(11)">
+  <span class="module-number" id="modNum11">11</span>
+  <span class="module-title">Writing a CLAUDE.md That Earns Its Tokens</span>
+  <span class="module-chevron" id="modChev11">&#9660;</span>
+</div>
+<div class="module-body" id="modBody11">
+<div class="module-content">
+
+<h3>The One Question</h3>
+
+<p>Every line in CLAUDE.md is loaded on every request in that repo, forever, for every person on the team. That is the most expensive real estate in your context. There is one test for admission:</p>
+
+<div class="callout callout-key">
+<div class="callout-label">The Admission Test</div>
+<p><strong>Would Claude get this wrong if it just looked at the repo?</strong> If no &mdash; delete the line, it is "the obvious." If yes &mdash; is it consequential enough to justify permanent residence? If yes, keep it. If it is only <em>sometimes</em> relevant, make it a skill and leave a pointer.</p>
+</div>
+
+<h3>What "The Obvious" Looks Like</h3>
+
+<p>The article warns specifically against <em>"stating 'the obvious' things Claude should know by looking at your file system or repo."</em> In practice this is where most CLAUDE.md bloat lives, because it is the easiest content to write:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Common line</th><th>Why it's dead weight</th></tr></thead>
+<tbody>
+<tr><td>"This is a Next.js app using TypeScript and Tailwind."</td><td>package.json, tsconfig, and the file tree all say so.</td></tr>
+<tr><td>"Components live in <code>src/components/</code>."</td><td>Visible in one <code>ls</code>.</td></tr>
+<tr><td>"Run <code>npm run dev</code> to start the dev server."</td><td>It's the <code>dev</code> script in package.json.</td></tr>
+<tr><td>"Use meaningful variable names."</td><td>General good practice; Claude does not need telling.</td></tr>
+<tr><td>"Write clean, maintainable code."</td><td>Says nothing actionable. Pure noise.</td></tr>
+<tr><td>"We use git for version control."</td><td>There is a <code>.git</code> directory.</td></tr>
+<tr><td>"Follow the existing code style."</td><td>Already in the Claude Code system prompt.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>What a Real Gotcha Looks Like</h3>
+
+<p>A gotcha has three properties: it is <strong>true</strong>, it is <strong>consequential</strong> (getting it wrong costs real time or breaks something), and it is <strong>invisible</strong> (you would not learn it by reading the code in a reasonable amount of time).</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Category</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><strong>Non-obvious organization</strong></td><td>"All types live in <code>types.ts</code> — do not co-locate type definitions with components, even though a few old files still do."</td></tr>
+<tr><td><strong>Traps</strong></td><td>"<code>db.ts</code> exports a singleton that connects at import time. Importing it in a test without the docker stack up hangs for 30s then fails."</td></tr>
+<tr><td><strong>Load-bearing weirdness</strong></td><td>"The retry wrapper in <code>api/client.ts</code> looks redundant — it isn't. The upstream returns 200 with an error body."</td></tr>
+<tr><td><strong>Deviations from convention</strong></td><td>"We do not use the App Router's default caching. Every fetch passes explicit cache options; adding one without them will serve stale data in prod."</td></tr>
+<tr><td><strong>Cross-cutting requirements</strong></td><td>"Any new API route must be added to <code>middleware.ts</code>'s matcher or it silently bypasses auth."</td></tr>
+<tr><td><strong>Verified-by-pain knowledge</strong></td><td>"Do not bump <code>sharp</code> — versions above 0.33 break the Lambda build with no useful error."</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Notice that every one of these would cost a competent engineer &mdash; human or model &mdash; real time to discover, and several would produce a silent failure rather than an error.</p>
+
+<h3>A Before and After</h3>
+
+<pre><code># CLAUDE.md
+
+## About
+This is our main web application. It's a Next.js 15 project using the
+App Router, TypeScript, Tailwind CSS, and Prisma with PostgreSQL. We
+use pnpm as our package manager.
+
+## Structure
+- `src/app/` — routes
+- `src/components/` — React components
+- `src/lib/` — utilities
+- `prisma/` — schema and migrations
+
+## Commands
+- `pnpm dev` — start dev server
+- `pnpm build` — production build
+- `pnpm test` — run tests
+- `pnpm lint` — run eslint
+
+## Code style
+Write clean, readable, maintainable code. Use meaningful names. Add
+comments where the logic is complex. Follow existing patterns. Prefer
+functional components with hooks. Use TypeScript strictly — avoid any.
+Handle errors properly. Write tests for new features.
+
+## Deployment
+We deploy to Vercel. Push to main triggers a production deploy. Preview
+deploys happen on every PR. Environment variables are managed in the
+Vercel dashboard. Make sure to run the build locally before pushing.
+To roll back, use the Vercel dashboard to promote a previous deployment.
+Check the deploy logs if something fails. The build takes about 4 minutes.
+...</code><span class="code-label">Before — ~450 tokens, almost none of it earning its place</span></pre>
+
+<pre><code># CLAUDE.md
+
+Customer-facing web app. The parts that will surprise you:
+
+## Gotchas
+- **Auth bypass risk.** Every new route under `src/app/api/` must be
+  added to the matcher in `middleware.ts`. Miss it and the route is
+  publicly reachable with no error anywhere.
+- **Prisma client is a build-time singleton.** Importing `lib/db.ts`
+  in a unit test opens a real connection. Use `lib/db.mock.ts` — the
+  three existing tests that don't are known-flaky.
+- **No default caching.** Every `fetch` must pass explicit cache
+  options; we disabled the App Router defaults in `next.config.ts`.
+  A fetch without them serves stale data in production only.
+- **`src/lib/legacy/` is frozen.** It's read by the mobile app through
+  a shared build. Changes there need a coordinated release.
+
+## Conventions not visible from the tree
+- All shared types live in `src/types/`. Component-local types are
+  allowed; anything imported twice moves to `src/types/`.
+- Server actions go in `actions.ts` next to the route, never in `lib/`.
+
+## Deploys
+See `.claude/skills/deploy/SKILL.md` — non-obvious rollback procedure.</code><span class="code-label">After — ~260 tokens, every line load-bearing</span></pre>
+
+<p>The "after" version is 40% shorter and contains strictly more information, because everything that a file listing or package.json already communicated has been removed and the space reallocated to things that cause real bugs. The deploy runbook moved to a skill, leaving one pointer &mdash; the canonical progressive-disclosure move from Module 10.</p>
+
+<h3>Structure and Style Notes</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Practice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Lead with the surprise, not the summary</td><td>The first lines get the most attention. Spend them on what matters.</td></tr>
+<tr><td>State the consequence, not just the rule</td><td>"Miss it and the route is publicly reachable" tells the model <em>why</em>, so it generalizes to cases you didn't list.</td></tr>
+<tr><td>Point at files, don't reproduce them</td><td>"See <code>middleware.ts</code>" stays correct; a pasted snippet goes stale.</td></tr>
+<tr><td>Mark known-bad areas explicitly</td><td>"The three tests that don't are known-flaky" prevents the model from pattern-matching on broken examples.</td></tr>
+<tr><td>Date or delete anything time-bound</td><td>If you must write "currently", add a date so its staleness is visible.</td></tr>
+<tr><td>Nest by directory when repos are large</td><td>Directory-scoped CLAUDE.md files load contextually — progressive disclosure by location.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-tip">
+<div class="callout-label">The Quarterly Read-Through</div>
+<p>Read your CLAUDE.md end to end once a quarter and ask of each line: <em>is this still true?</em> The failure mode is not a file that is too long &mdash; it is a file that is <strong>confidently wrong</strong>, because it was written when the code was different. A stale gotcha is worse than no gotcha: it actively misleads.</p>
+</div>
+
+<div class="quiz" data-question="What is the admission test for a line in CLAUDE.md?" data-options="Is it under 20 words?|Would Claude get this wrong if it just looked at the repo — and is it consequential enough for permanent residence?|Did a senior engineer write it?|Does it mention a file path?" data-answer="1" data-explanation="Two gates. First: is it discoverable by looking? If yes, it's 'the obvious' and should be deleted. Second: if it's genuinely non-obvious but only sometimes relevant, it belongs in a skill with a pointer, not permanently loaded."></div>
+
+<div class="quiz" data-question="What three properties make something a real gotcha?" data-options="Short, technical, and recent|True, consequential, and invisible — you wouldn't learn it by reading the code in reasonable time|Written by the tech lead, tested, and documented|Unusual, funny, and memorable" data-answer="1" data-explanation="A gotcha must be accurate, must cost real time or break something when violated, and must not be discoverable at a glance. 'Every new API route must be added to middleware.ts's matcher or it silently bypasses auth' hits all three."></div>
+
+<div class="quiz" data-question="Why is a stale CLAUDE.md worse than a short one?" data-options="It costs more tokens|A stale line is confidently wrong and actively misleads, whereas a missing line just leaves the model to figure it out|It breaks the parser|Git blames get confusing" data-answer="1" data-explanation="The failure mode isn't length — it's a file that describes a codebase that no longer exists. The model trusts it over what it reads. Hence the quarterly read-through: check each line is still true."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The admission test" data-back="Would Claude get this wrong by just looking at the repo? No → delete. Yes but only sometimes relevant → skill + pointer. Yes and always relevant → keep."></div>
+  <div class="flashcard" data-front="The three properties of a gotcha" data-back="True, consequential (costs time or breaks things), invisible (not discoverable by reading the code in reasonable time)."></div>
+  <div class="flashcard" data-front="State the consequence" data-back="'Miss it and the route is publicly reachable' beats 'add routes to the matcher.' The why generalizes to cases you didn't enumerate."></div>
+  <div class="flashcard" data-front="Point, don't reproduce" data-back="'See middleware.ts' stays correct forever. A pasted snippet goes stale the moment someone edits the file."></div>
+  <div class="flashcard" data-front="The real failure mode" data-back="Not a file that's too long — a file that's confidently wrong. Read it end to end quarterly and ask of each line: is this still true?"></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(11)" id="completeBtn11">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 12 ==================== -->
+<div class="module" id="mod12" data-module="12">
+<div class="module-header" onclick="toggleModule(12)">
+  <span class="module-number" id="modNum12">12</span>
+  <span class="module-title">Designing Skills for Progressive Disclosure</span>
+  <span class="module-chevron" id="modChev12">&#9660;</span>
+</div>
+<div class="module-body" id="modBody12">
+<div class="module-content">
+
+<h3>What a Skill Is For</h3>
+
+<p>A skill is a packaged body of guidance that loads on demand. Structurally it is the answer to "this is important but not always relevant" &mdash; the exact problem that made Claude Code's system prompt bloat with code-review and verification detail.</p>
+
+<p>The article's definition is deliberately modest: <em>"Think of skills as lightweight guides to let Claude find information when needed."</em> A guide, not a script. The model still drives.</p>
+
+<h3>The Two-Part Anatomy</h3>
+
+<p>Every skill has a permanently-loaded part and an on-demand part, and they have completely different design constraints.</p>
+
+<div class="diagram">SKILL ANATOMY
+
+  ┌── ALWAYS IN CONTEXT ─────────────────────────────────────┐
+  │  name: deploy                                            │
+  │  description: Deploy this service to staging or prod,    │
+  │    including rollback. Use when shipping, promoting a    │
+  │    build, or debugging a failed deploy.                  │
+  └──────────────────────────────────────────────────────────┘
+      ~35 tokens · paid on every request · optimized for MATCHING
+
+  ┌── LOADED WHEN TRIGGERED ─────────────────────────────────┐
+  │  SKILL.md              the procedure, decision points    │
+  │  references/rollback.md   the hairy details              │
+  │  references/envs.md       environment matrix             │
+  │  scripts/preflight.sh     executable, not prose          │
+  └──────────────────────────────────────────────────────────┘
+      ~3000 tokens · paid only when relevant · optimized for DOING</div>
+
+<h3>Writing the Description &mdash; the Highest-Leverage Sentence</h3>
+
+<p>The description is the entire retrieval mechanism. Get it wrong and the skill is invisible; the content quality is irrelevant if it never loads.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Weak</th><th>Strong</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>"Deployment documentation."</td><td>"Deploy to staging or production, including rollback. Use when shipping, promoting a build, or debugging a failed deploy."</td><td>Names the <em>situations</em>, not the topic.</td></tr>
+<tr><td>"Testing guide."</td><td>"How we write and run tests here. Use before committing, when a test is flaky, or when adding coverage for new code."</td><td>Triggers on moments, not on a noun.</td></tr>
+<tr><td>"Database stuff."</td><td>"Schema changes and migrations for the Postgres database. Use when adding a column, changing a type, or backfilling data."</td><td>Concrete actions a user would actually request.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-key">
+<div class="callout-label">Write for the Trigger, Not the Table of Contents</div>
+<p>A description is not a summary of contents &mdash; it is a <strong>predicate over situations.</strong> The model is asking "does this apply to what I'm doing right now?" So write the <em>when</em>, use the vocabulary people actually say out loud, and include the adjacent phrasings ("ship it" as well as "deploy").</p>
+</div>
+
+<h3>Splitting Long Skills</h3>
+
+<p>The article: <em>"For long skills, try and use progressive disclosure as much as possible &mdash; divide it into many files and split them out."</em></p>
+
+<p>This is the recursion that people miss. A 6,000-token skill that fully loads on trigger has moved the bloat, not removed it &mdash; you are now paying it on every deploy-adjacent task instead of every task. Better: a slim main file with the decision structure, and detail files it reads only along the path it actually takes.</p>
+
+<pre><code>skills/deploy/
+├── SKILL.md                 ~400 tokens — the procedure and branch points
+├── references/
+│   ├── rollback.md          read only when a deploy failed
+│   ├── environments.md      read only when targeting a non-default env
+│   └── secrets.md           read only when env vars changed
+└── scripts/
+    └── preflight.sh         executed, never read into context</code><span class="code-label">A well-split skill</span></pre>
+
+<pre><code># Deploy
+
+## Preflight
+Run `scripts/preflight.sh`. It checks the build, migrations, and env
+parity. Do not proceed on a non-zero exit.
+
+## Standard deploy
+1. `pnpm build` locally — the CI build does not catch type errors in
+   the edge runtime.
+2. Merge to `main`. Production deploy is automatic.
+3. Watch the first 200 requests in the dashboard before walking away.
+
+## Branches
+- Deploy failed, need to revert → read `references/rollback.md`
+- Targeting staging or a preview env → read `references/environments.md`
+- This change touches env vars → read `references/secrets.md` FIRST,
+  before deploying; secrets propagate on a delay and a mismatch causes
+  a partial outage.</code><span class="code-label">skills/deploy/SKILL.md</span></pre>
+
+<p>The main file is a <strong>router</strong>. It handles the common path inline and points at detail files for the branches. A deploy that goes fine never loads the rollback doc. A deploy that touches secrets loads exactly the one file that matters, before it can do damage.</p>
+
+<h3>"Not Overconstrained, Except in Highly Important Areas"</h3>
+
+<p>The judgement default from Module 4 applies inside skills &mdash; with the same carve-out. In the example above, notice the asymmetry: the standard deploy steps are described loosely enough that the model can adapt, but the secrets branch says <strong>FIRST</strong> and <strong>before deploying</strong> in absolute terms. That is the "highly important area" exception, applied surgically to the one step where being wrong causes an outage.</p>
+
+<div class="callout callout-warning">
+<div class="callout-label">Constrain the Blast Radius, Not the Path</div>
+<p>Inside a skill, be loose about <em>how</em> and strict about <em>what must not happen.</em> "Run the migration however makes sense, but never against prod without a backup" is the right shape. "Run exactly these nine commands in this order" is the wrong one &mdash; it breaks the first time reality differs from the runbook.</p>
+</div>
+
+<h3>What Belongs in a Skill</h3>
+
+<p>The content test: <em>"It's best when skills encode particular opinions, knowledge, or best practices that are particular to you, your team, or product."</em></p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Good skill content</th><th>Bad skill content</th></tr></thead>
+<tbody>
+<tr><td>Your team's opinion on API error shapes</td><td>How REST works</td></tr>
+<tr><td>The five-step release process you actually follow</td><td>General CI/CD concepts</td></tr>
+<tr><td>Which of the 12 internal services owns what</td><td>Microservices theory</td></tr>
+<tr><td>Your escalation path and who to page</td><td>Incident management best practices</td></tr>
+<tr><td>The three mistakes every new hire makes here</td><td>Common programming pitfalls</td></tr>
+<tr><td>Your brand's voice, with real before/afters</td><td>How to write clearly</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The pattern: the left column would be <strong>wrong for another company</strong>. The right column is true everywhere, which means the model already has it.</p>
+
+<h3>Executable Over Prose</h3>
+
+<p>One more device worth calling out, visible in the <code>scripts/preflight.sh</code> above. If a step can be a script, make it a script. Scripts never enter the context window at all &mdash; the model runs them and reads only the output. A 60-line checklist written as prose costs 800 tokens every time the skill loads; the same checklist as a script costs the tokens of one command and its result, and it cannot be performed half-heartedly.</p>
+
+<div class="quiz" data-question="Which part of a skill is always in context?" data-options="The whole SKILL.md file|Only the name and description — the body loads on demand when the model judges it relevant|Nothing; skills load only when named explicitly|The scripts directory" data-answer="1" data-explanation="The name and description sit in context permanently (a few dozen tokens); the full content loads when triggered. That's why the description is the highest-leverage sentence in the whole skill — it's the entire retrieval mechanism."></div>
+
+<div class="quiz" data-question="How should a skill description be written?" data-options="As a summary of the file's contents|As a predicate over situations — the 'when', using vocabulary people actually say|As a formal specification|As a list of keywords" data-answer="1" data-explanation="The model is asking 'does this apply to what I'm doing right now?' So 'Use when shipping, promoting a build, or debugging a failed deploy' beats 'Deployment documentation.' Include the phrasings your team actually uses, like 'ship it.'"></div>
+
+<div class="quiz" data-question="What's wrong with a 6,000-token skill that fully loads on trigger?" data-options="It exceeds the context limit|It has moved the bloat rather than removed it — split it so the main file routes and detail files load only along the path taken|Skills can't exceed 1,000 tokens|Nothing, that's the intended design" data-answer="1" data-explanation="Progressive disclosure recurses. The main SKILL.md should be a router: common path inline, branches pointing at reference files. A deploy that goes fine never loads the rollback doc."></div>
+
+<div class="quiz" data-question="What distinguishes good skill content from bad?" data-options="Length|Good content would be wrong for another company; bad content is true everywhere, which means the model already has it|Good content has examples|Good content is written in markdown" data-answer="1" data-explanation="Skills should encode opinions, knowledge, and practices particular to you, your team, or product. 'Your team's opinion on API error shapes' is worth loading; 'how REST works' is pure cost."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Skill anatomy" data-back="Name + description (always loaded, ~35 tokens, optimized for MATCHING) + body (on demand, optimized for DOING)."></div>
+  <div class="flashcard" data-front="The description is a predicate" data-back="Not a table of contents — a test over situations. Write the 'when', use spoken vocabulary, include adjacent phrasings."></div>
+  <div class="flashcard" data-front="Split long skills" data-back="Main file = router with the common path inline and pointers for branches. Detail files load only along the path actually taken."></div>
+  <div class="flashcard" data-front="Constrain the blast radius, not the path" data-back="Loose about how; strict about what must not happen. 'However makes sense, but never against prod without a backup.'"></div>
+  <div class="flashcard" data-front="Executable over prose" data-back="Scripts never enter the context window — the model runs them and reads the output. A 60-line prose checklist costs 800 tokens every load."></div>
+  <div class="flashcard" data-front="The content test" data-back="Would this be wrong for another company? If yes, it belongs in a skill. If it's true everywhere, the model already knows it."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(12)" id="completeBtn12">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 13 ==================== -->
+<div class="module" id="mod13" data-module="13">
+<div class="module-header" onclick="toggleModule(13)">
+  <span class="module-number" id="modNum13">13</span>
+  <span class="module-title">Tool &amp; Interface Design in Practice</span>
+  <span class="module-chevron" id="modChev13">&#9660;</span>
+</div>
+<div class="module-body" id="modBody13">
+<div class="module-content">
+
+<h3>Why This Module Exists</h3>
+
+<p>Module 5 established the principle: design interfaces instead of giving examples. This module is the practice &mdash; because for anyone building their own harness, tool design has quietly become the highest-leverage context engineering work there is. A well-designed tool eliminates paragraphs of system prompt, survives model upgrades, and travels between products.</p>
+
+<h3>Six Design Moves</h3>
+
+<h4>1. Name for the intent, not the implementation</h4>
+
+<p>The tool name is the first and most-read token of the interface. <code>run_query</code> tells the model what it mechanically does; <code>search_customers</code> tells it when to reach for it. Names that describe the caller's goal get selected correctly; names that describe the internals get selected by trial and error.</p>
+
+<h4>2. Make the type system carry the constraint</h4>
+
+<pre><code>// Weak — every constraint lives in prose the model must remember
+{ status: "string", priority: "number", assignee: "string" }
+
+// Strong — the constraints are enforced and self-documenting
+{
+  status:   { enum: ["open", "in_review", "closed"] },
+  priority: { type: "integer", minimum: 1, maximum: 5 },
+  assignee: { type: "string", format: "email", nullable: true }
+}</code><span class="code-label">Constraints belong in the schema</span></pre>
+
+<p><code>nullable: true</code> on assignee communicates "unassigned is a legal state" without a sentence explaining it. The range on priority means "1 is highest, 5 is lowest" is the only thing left to say.</p>
+
+<h4>3. Choose granularity deliberately</h4>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Too coarse</th><th>Too fine</th><th>Right</th></tr></thead>
+<tbody>
+<tr><td><code>manage_deployment(action, ...)</code> — one tool, a mode flag, and parameters that only apply in some modes</td><td><code>open_file</code>, <code>seek</code>, <code>read_bytes</code>, <code>close_file</code> — forces the model to orchestrate mechanics</td><td><code>deploy</code>, <code>rollback</code>, <code>get_deploy_status</code> — one tool per intent the caller has</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The heuristic: <strong>one tool per thing a user would ask for.</strong> If a parameter is only meaningful when another parameter has a particular value, you probably have two tools wearing a trench coat.</p>
+
+<h4>4. Make dangerous operations look dangerous</h4>
+
+<pre><code>{
+  name: "delete_records",
+  description: "Permanently delete records matching a filter. This is
+    irreversible and there is no undo. Prefer archive_records unless
+    the user has explicitly asked for permanent deletion.",
+  parameters: {
+    filter:  { type: "object", required: true },
+    dry_run: { type: "boolean", default: true,
+               description: "Returns what would be deleted without
+                 deleting. Run once with dry_run before deleting." }
+  }
+}</code><span class="code-label">Risk encoded in the interface</span></pre>
+
+<p>Three devices at once: the description states irreversibility as a fact, it names the safer alternative, and <code>dry_run</code> defaults to <code>true</code> so the safe path is the path of least resistance. None of this is in the system prompt, and all of it travels with the tool.</p>
+
+<h4>5. Design the return value, not just the call</h4>
+
+<p>Under-appreciated: tool <em>output</em> is context too, and usually far more of it than the definition. Three rules:</p>
+
+<ul>
+<li><strong>Return what the model needs to decide the next step</strong> &mdash; not the raw upstream payload. A search that returns 40 fields per result when 4 would do burns context on every call.</li>
+<li><strong>Make errors instructive.</strong> <code>"Error: invalid status 'done'. Valid values: open, in_review, closed."</code> is a just-in-time interface lesson. <code>"400 Bad Request"</code> is a guessing game that costs two more turns.</li>
+<li><strong>Paginate and summarize by default.</strong> A tool that can return 50,000 tokens will, eventually, at the worst moment. Cap it, say what was truncated, and offer the way to get more.</li>
+</ul>
+
+<h4>6. Let the interface be discovered at runtime</h4>
+
+<p>For scripts and CLIs, the strongest move is to make the interface self-describing rather than pre-loading it. A tool with good <code>--help</code>, clear subcommands, and informative errors can be learned by the model in one cheap call &mdash; and costs zero context in every session that does not use it. This is progressive disclosure applied to your own tooling.</p>
+
+<h3>An Audit Checklist</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Check</th><th>If it fails</th></tr></thead>
+<tbody>
+<tr><td>Does the name say what the caller wants?</td><td>Rename. This is the cheapest fix with the biggest effect.</td></tr>
+<tr><td>Is every free-form string genuinely free-form?</td><td>Convert to an enum. Most "status", "type", "mode" strings should be.</td></tr>
+<tr><td>Does the description restate the schema?</td><td>Delete the restatement. The schema is already in context.</td></tr>
+<tr><td>Does the description contain examples?</td><td>Ask whether a schema change removes the need (Module 5).</td></tr>
+<tr><td>Are any parameters conditionally meaningful?</td><td>Consider splitting into two tools.</td></tr>
+<tr><td>Can this tool cause irreversible harm?</td><td>Add a dry-run default and say so in the description.</td></tr>
+<tr><td>What's the p99 size of the return value?</td><td>Cap and summarize. Unbounded output eats the session.</td></tr>
+<tr><td>Do errors say what was expected?</td><td>Rewrite them. Each vague error costs at least one extra turn.</td></tr>
+<tr><td>Is this tool used in fewer than ~10% of sessions?</td><td>Candidate for deferred loading via ToolSearch.</td></tr>
+<tr><td>Does the system prompt mention this tool by name?</td><td>Move that text into the description (Module 7).</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-tip">
+<div class="callout-label">The Compounding Argument</div>
+<p>Tool design compounds in a way prompt text does not. A prompt fix helps until the next model. A well-designed tool keeps working across model generations, gets better as models get better at using interfaces, and carries its semantics with it into every harness you paste it into. When choosing where to spend an hour, spend it on the interface.</p>
+</div>
+
+<div class="quiz" data-question="What's the heuristic for tool granularity?" data-options="One tool per API endpoint|One tool per thing a user would actually ask for — if a parameter is only meaningful when another has a specific value, you likely have two tools|As few tools as possible|One tool per database table" data-answer="1" data-explanation="Too coarse (manage_deployment with a mode flag) forces the model to reason about which parameters apply. Too fine (open_file/seek/read_bytes) forces it to orchestrate mechanics. Conditionally-meaningful parameters are the tell that a tool should be split."></div>
+
+<div class="quiz" data-question="Why is designing the tool's return value as important as designing the call?" data-options="It affects API latency|Tool output is context too — usually far more of it than the definition — so verbose returns, vague errors, and unbounded results all cost the session|Return values are billed separately|Models can't parse JSON reliably" data-answer="1" data-explanation="A search returning 40 fields when 4 would do burns context on every call. A vague error costs extra turns. A tool that can return 50,000 tokens eventually will, at the worst moment."></div>
+
+<div class="quiz" data-question="How should a dangerous tool encode its risk?" data-options="With capital letters in the system prompt|State irreversibility as a fact in the description, name the safer alternative, and default dry_run to true so the safe path is the default|Require a password parameter|Disable it entirely" data-answer="1" data-explanation="All three devices live in the tool itself, so they travel with it and load only when it loads. Making dry_run default to true means the safe path is the path of least resistance rather than something the model has to remember."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Name for intent" data-back="search_customers (what the caller wants) beats run_query (what it mechanically does). Names describing internals get selected by trial and error."></div>
+  <div class="flashcard" data-front="Two tools in a trench coat" data-back="If a parameter is only meaningful when another parameter has a particular value, split the tool."></div>
+  <div class="flashcard" data-front="Errors are interface lessons" data-back="'Invalid status: done. Valid: open, in_review, closed' teaches at the moment of failure. '400 Bad Request' costs two more turns."></div>
+  <div class="flashcard" data-front="Deferred-loading candidate" data-back="A tool used in fewer than ~10% of sessions. Move it behind ToolSearch and stop paying for its schema everywhere else."></div>
+  <div class="flashcard" data-front="Why tool design compounds" data-back="Prompt text helps until the next model. A good interface keeps working across generations, improves as models improve, and travels between harnesses."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(13)" id="completeBtn13">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 14 ==================== -->
+<div class="module" id="mod14" data-module="14">
+<div class="module-header" onclick="toggleModule(14)">
+  <span class="module-number" id="modNum14">14</span>
+  <span class="module-title">Rightsizing: The Deletion Protocol</span>
+  <span class="module-chevron" id="modChev14">&#9660;</span>
+</div>
+<div class="module-body" id="modBody14">
+<div class="module-content">
+
+<h3>Try Simplifying</h3>
+
+<p>The article's closing section is titled <strong>"Try simplifying,"</strong> and the recommendation runs across all of it: your system prompt, your skills, and your CLAUDE.md files are almost certainly carrying instructions written for a model generation that no longer needs them. Anthropic shipped the practices as tooling too &mdash; run <code>/doctor</code> in Claude Code to rightsize your skills and CLAUDE.md files against these guidelines.</p>
+
+<p>This module turns that into a protocol you can actually run, because "delete a lot" without a method is how people break working systems.</p>
+
+<div class="callout callout-warning">
+<div class="callout-label">The One Prerequisite</div>
+<p>Anthropic's 80% deletion was safe because it was measured &mdash; "no measurable loss on our coding evaluations." <strong>Set up your measurement before you delete anything.</strong> It does not have to be sophisticated: ten real tasks you can run and judge consistently is enough to catch a serious regression. Deleting without a baseline is not following the article's advice; it is skipping the part that made the advice safe.</p>
+</div>
+
+<h3>Step 1 &mdash; Inventory</h3>
+
+<p>List every instruction across every layer, one row each. The act of putting them in a single table is itself diagnostic: duplicates and contradictions that were invisible across four files become obvious in one list.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Column</th><th>What to record</th></tr></thead>
+<tbody>
+<tr><td>Instruction</td><td>The line, verbatim</td></tr>
+<tr><td>Layer</td><td>System prompt / CLAUDE.md / skill / tool description / memory</td></tr>
+<tr><td>Written when &amp; why</td><td>Git blame it. "Because a model over-commented in 2024" is the answer you are looking for.</td></tr>
+<tr><td>Category</td><td>Policy / standard / rule / mechanic / obvious / duplicate</td></tr>
+<tr><td>Frequency relevant</td><td>Every request / often / rarely</td></tr>
+<tr><td>Cost if missed</td><td>Catastrophic / expensive / mildly annoying</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Step 2 &mdash; Triage</h3>
+
+<p>Every instruction lands in exactly one bucket:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Bucket</th><th>Test</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td><strong>KEEP</strong></td><td>Genuine policy, or a fact about the environment the model cannot observe</td><td>Leave it. Consider strengthening the wording so it stands out now that there is less noise.</td></tr>
+<tr><td><strong>REWRITE</strong></td><td>A rule that encodes a real intent but specifies the action instead of the goal</td><td>Convert to a standard pointing at an available signal (Module 4).</td></tr>
+<tr><td><strong>RELOCATE</strong></td><td>Right instruction, wrong layer</td><td>Move it per the routing table (Module 10). Tool mechanics → tool descriptions is the biggest single win.</td></tr>
+<tr><td><strong>DEFER</strong></td><td>Important but rarely relevant</td><td>Move into a skill; leave a one-line pointer with a trigger-shaped description.</td></tr>
+<tr><td><strong>DELETE</strong></td><td>Obvious, duplicated, stale, or compensating for a weakness this model no longer has</td><td>Cut it. This should be the largest bucket by a wide margin.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Step 3 &mdash; Delete in Priority Order</h3>
+
+<p>Order matters, because the early categories are near-zero-risk and often account for most of the volume. Getting the free wins first means you reach the judgement calls with a much smaller pile.</p>
+
+<ol>
+<li><strong>The obvious.</strong> Anything readable off the file system, package.json, or the code. Zero risk.</li>
+<li><strong>Duplicates.</strong> Keep the copy in the correct layer, delete the rest. Zero risk, and it eliminates future drift.</li>
+<li><strong>Stale facts.</strong> Instructions describing a codebase that has changed. Negative risk &mdash; these were actively misleading.</li>
+<li><strong>Examples.</strong> Few-shot tool examples where the schema already communicates usage (Module 5). Low risk.</li>
+<li><strong>Emphasis markup.</strong> "IMPORTANT", "ALWAYS", "NEVER", "YOU MUST", capitals, exclamation marks &mdash; on instructions that are not actually policy. Low risk, and it restores meaning to the emphasis you keep.</li>
+<li><strong>Micro-rules about code style.</strong> The Module 4 category. Replace with one standard sentence. Medium risk &mdash; measure this one.</li>
+<li><strong>Worst-case guardrails on non-destructive operations.</strong> The real judgement calls. Medium risk &mdash; measure, and keep anything guarding something irreversible.</li>
+</ol>
+
+<div class="callout callout-key">
+<div class="callout-label">The Ordering Insight</div>
+<p>Categories 1&ndash;5 are essentially free and frequently make up the bulk of a bloated prompt. Many teams never get past them &mdash; and do not need to. Do the free work first; you may find the remaining file is already the right size.</p>
+</div>
+
+<h3>Step 4 &mdash; Measure</h3>
+
+<p>Run your task set before and after. What to watch:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Signal</th><th>Reading</th></tr></thead>
+<tbody>
+<tr><td>Task success unchanged</td><td>Expected. The deletion was safe.</td></tr>
+<tr><td>Task success <em>improved</em></td><td>Common. You removed a constraint that was causing wrong behavior in the tail.</td></tr>
+<tr><td>One specific task regressed</td><td>You cut something load-bearing. Restore <em>that one instruction</em> — as a standard, in the right layer — not the whole batch.</td></tr>
+<tr><td>Broad, mild degradation</td><td>You likely cut environment facts, not scaffolding. Re-examine the KEEP test.</td></tr>
+<tr><td>Behavior got more variable</td><td>You removed a constraint the model genuinely needed. Reinstate it, scoped narrowly.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-tip">
+<div class="callout-label">Delete in Batches, Restore Individually</div>
+<p>Deleting one line at a time and re-measuring is too slow to ever finish. Delete a whole category, measure, and if something regresses, restore only the specific instruction responsible. Reverting the entire batch throws away the wins along with the one mistake.</p>
+</div>
+
+<h3>Step 5 &mdash; Make Deletion Recurring</h3>
+
+<p>The accumulation ratchet from Module 2 does not stop. Without a scheduled counter-pressure, you will be back where you started within a year.</p>
+
+<ul>
+<li><strong>On every model upgrade.</strong> A new generation is the strongest trigger &mdash; it is exactly the moment old scaffolding becomes obsolete. Re-run the protocol.</li>
+<li><strong>Quarterly read-through.</strong> Read CLAUDE.md end to end and check each line is still <em>true</em> (Module 11).</li>
+<li><strong>On every addition.</strong> When adding an instruction, ask what it makes redundant. Add-and-remove, not add-and-add.</li>
+<li><strong>When you see a conflict in a transcript.</strong> Do not resolve it by adding a tiebreaker. Delete one of the two conflicting instructions.</li>
+<li><strong>Run <code>/doctor</code>.</strong> The practices are built into the tool; let it flag what has drifted.</li>
+</ul>
+
+<div class="callout callout-warning">
+<div class="callout-label">Add-and-Remove</div>
+<p>The single habit that prevents re-accumulation: <strong>every time you add an instruction, name one you can delete.</strong> Usually the thing you are about to add is a more precise version of something already there. If you genuinely cannot find one, that is a signal the addition is covering new ground &mdash; which is fine, but worth having noticed.</p>
+</div>
+
+<div class="quiz" data-question="What is the one prerequisite before starting an aggressive deletion pass?" data-options="Approval from your manager|A measurement baseline — Anthropic's 80% cut was safe because it was validated against coding evals|A backup of the repo|A new model version" data-answer="1" data-explanation="'No measurable loss on our coding evaluations' is what made the claim safe, not bold. Ten real tasks you can run and judge consistently is enough. Deleting without a baseline skips the part that made the advice safe."></div>
+
+<div class="quiz" data-question="In what order should you delete, and why?" data-options="Longest instructions first, for maximum token savings|Obvious → duplicates → stale → examples → emphasis → micro-rules → guardrails, because the early categories are near-zero-risk and often account for most of the volume|Newest first|Alphabetically" data-answer="1" data-explanation="Categories 1–5 are essentially free and frequently make up the bulk of a bloated prompt. Doing them first means you reach the genuine judgement calls with a much smaller pile — and you may find the file is already right-sized."></div>
+
+<div class="quiz" data-question="What should you do if one specific task regresses after deleting a batch?" data-options="Restore the entire batch|Restore only the specific instruction responsible — as a standard, in the right layer|Ignore it|Switch models" data-answer="1" data-explanation="Delete in batches, restore individually. Reverting the whole batch throws away all the wins to fix one mistake. And when restoring, rewrite it as a standard in the correct layer rather than pasting the old rule back."></div>
+
+<div class="quiz" data-question="What is the 'add-and-remove' habit?" data-options="Adding a rule then testing it|Every time you add an instruction, name one you can delete — usually the addition is a more precise version of something already there|Removing a rule every Friday|Rotating instructions weekly" data-answer="1" data-explanation="It's the counter-pressure to the accumulation ratchet. If you genuinely can't find something to remove, the addition is covering new ground — fine, but worth having noticed rather than assumed."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The five triage buckets" data-back="KEEP (real policy / unobservable environment facts), REWRITE (rule → standard), RELOCATE (right instruction, wrong layer), DEFER (rare but important → skill), DELETE (obvious/duplicate/stale/obsolete)."></div>
+  <div class="flashcard" data-front="The free wins, in order" data-back="1. The obvious. 2. Duplicates. 3. Stale facts. 4. Examples. 5. Emphasis markup. All near-zero risk, often most of the volume."></div>
+  <div class="flashcard" data-front="Delete in batches, restore individually" data-back="Line-by-line deletion never finishes. Cut a category, measure, restore only the specific instruction that caused a regression."></div>
+  <div class="flashcard" data-front="Success got BETTER after deleting" data-back="Common, not surprising. You removed a constraint that was producing wrong behavior in the tail cases it mis-covered."></div>
+  <div class="flashcard" data-front="The strongest trigger to re-run the protocol" data-back="A model upgrade. That's exactly the moment old scaffolding becomes obsolete. Also: quarterly CLAUDE.md read-through, and /doctor."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(14)" id="completeBtn14">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+<!-- ==================== MODULE 15 ==================== -->
+<div class="module" id="mod15" data-module="15">
+<div class="module-header" onclick="toggleModule(15)">
+  <span class="module-number" id="modNum15">15</span>
+  <span class="module-title">Anti-Patterns, Myths &amp; the Migration Playbook</span>
+  <span class="module-chevron" id="modChev15">&#9660;</span>
+</div>
+<div class="module-body" id="modBody15">
+<div class="module-content">
+
+<h3>The Six Shifts on One Page</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>#</th><th>Then</th><th>Now</th><th>The move</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Give Claude rules</td><td>Let Claude use judgement</td><td>"Do X, never Y" &rarr; "achieve S, readable from context"</td></tr>
+<tr><td>2</td><td>Give Claude examples</td><td>Design interfaces</td><td>Encode intent in enums, types, and names</td></tr>
+<tr><td>3</td><td>Put it all upfront</td><td>Progressive disclosure</td><td>Skills, deferred tools, trees of files</td></tr>
+<tr><td>4</td><td>Repeat yourself</td><td>Simple tool descriptions</td><td>One canonical home per instruction</td></tr>
+<tr><td>5</td><td>Memory in CLAUDE.md</td><td>Auto-memory</td><td>Repo facts vs. personal/session facts, separated</td></tr>
+<tr><td>6</td><td>Simple specs</td><td>Rich references</td><td>Mockups, code, test suites, rubrics + verifiers</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>The Myths, Named</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Myth</th><th>Reality</th></tr></thead>
+<tbody>
+<tr><td>"If it isn't in the context, Claude won't find it."</td><td>The origin of the monolith. Claude 5-class agents follow pointers and read files. Use a tree.</td></tr>
+<tr><td>"More instructions means more control."</td><td>Past a point it means more conflict, and the model spends its reasoning arbitrating instead of working.</td></tr>
+<tr><td>"Examples are always the best way to teach a tool."</td><td>They now constrain the exploration space. Fix the interface first.</td></tr>
+<tr><td>"Say it twice so it definitely lands."</td><td>Duplicates drift into contradictions and create emphasis you didn't intend.</td></tr>
+<tr><td>"A longer CLAUDE.md is a more helpful CLAUDE.md."</td><td>Length dilutes. Most of it is usually 'the obvious' and costs you on every request.</td></tr>
+<tr><td>"Capital letters make instructions stick."</td><td>When everything is IMPORTANT, nothing is. Emphasis only works if it's scarce.</td></tr>
+<tr><td>"Guardrails are free insurance."</td><td>They're a purchase: worst-case protection paid for in tail-case correctness.</td></tr>
+<tr><td>"Context engineering is a one-time setup."</td><td>Every instruction has an expiry tied to a model generation. Deletion is recurring maintenance.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>When the Old Rules Still Apply</h3>
+
+<p>Intellectual honesty matters here &mdash; these shifts are not universal laws. Each "then" practice remains correct in identifiable circumstances:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Old practice</th><th>Still correct when...</th></tr></thead>
+<tbody>
+<tr><td>Explicit rules</td><td>The action is irreversible or unbounded in cost: deleting data, spending money, sending communications, regulated domains, safety policy.</td></tr>
+<tr><td>Examples</td><td>Correct usage genuinely isn't inferable — hidden format requirements, non-obvious domain conventions, counterintuitive parameter interactions.</td></tr>
+<tr><td>Upfront loading</td><td>The information is needed on essentially every request, or the cost of missing it is severe and the trigger is hard to describe.</td></tr>
+<tr><td>Repetition</td><td>Running a small or older model with genuine position sensitivity. Verify before assuming.</td></tr>
+<tr><td>Manual memory</td><td>You need a durable, reviewable, version-controlled record — an architecture decision the whole team must see.</td></tr>
+<tr><td>Simple markdown specs</td><td>The reader is a human as much as the model, or the thing being specified genuinely has no code representation.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">Scope Check</div>
+<p>These rules are calibrated to <strong>Claude 5-class models in agentic harnesses</strong>. If you're running a smaller or older model, a single-turn classification prompt, or a pipeline with no file access, several "then" practices are still your best option. The meta-rule survives regardless: <strong>match the scaffolding to the model's actual judgement, and re-check that match on every upgrade.</strong></p>
+</div>
+
+<h3>The Migration Playbook</h3>
+
+<p>A staged plan for taking an existing setup from the old rules to the new ones. Each stage is independently valuable &mdash; stop whenever the returns flatten.</p>
+
+<h4>Stage 0 &mdash; Baseline (before touching anything)</h4>
+<ul>
+<li>Assemble 10&ndash;20 representative tasks with a consistent way to judge them.</li>
+<li>Record current results. Note token counts per layer.</li>
+<li>Read five recent transcripts and write down every conflict you spot (Module 3).</li>
+</ul>
+
+<h4>Stage 1 &mdash; Free wins (a couple of hours)</h4>
+<ul>
+<li>Delete "the obvious" from CLAUDE.md.</li>
+<li>Delete duplicates; keep the copy in the correct layer.</li>
+<li>Delete stale facts about code that has changed.</li>
+<li>Strip emphasis markup from anything that is not genuine policy.</li>
+<li>Re-measure. Expect: unchanged or slightly better.</li>
+</ul>
+
+<h4>Stage 2 &mdash; Relocate (half a day)</h4>
+<ul>
+<li>Grep the system prompt for every tool name; move that guidance into tool descriptions.</li>
+<li>Move personal preferences out of CLAUDE.md into memory.</li>
+<li>Move task-type procedures into skills, leaving trigger-shaped pointers.</li>
+<li>Re-measure.</li>
+</ul>
+
+<h4>Stage 3 &mdash; Rewrite (a day)</h4>
+<ul>
+<li>Convert rules to standards: "do X, never Y" &rarr; "achieve S, readable from context."</li>
+<li>Keep absolutes only for irreversible or unbounded-cost actions.</li>
+<li>Re-measure carefully &mdash; this is the first stage with real regression risk.</li>
+</ul>
+
+<h4>Stage 4 &mdash; Redesign (ongoing)</h4>
+<ul>
+<li>Audit tool interfaces: enums over strings, intent-based names, dry-run defaults, bounded returns, instructive errors (Module 13).</li>
+<li>Delete tool examples that a schema change makes redundant.</li>
+<li>Put rarely-used tools behind deferred loading.</li>
+<li>Split any skill over ~1,000 tokens into a router plus reference files.</li>
+</ul>
+
+<h4>Stage 5 &mdash; Upgrade references (ongoing)</h4>
+<ul>
+<li>Replace prose specs with mockups, failing test suites, or pointers to existing implementations.</li>
+<li>Write rubrics for the two or three quality dimensions you care most about; wire them to verifier agents.</li>
+</ul>
+
+<h4>Stage 6 &mdash; Institutionalize</h4>
+<ul>
+<li>Add "re-run the deletion protocol" to your model-upgrade checklist.</li>
+<li>Schedule the quarterly CLAUDE.md read-through.</li>
+<li>Adopt add-and-remove for every future instruction.</li>
+<li>Run <code>/doctor</code> periodically.</li>
+</ul>
+
+<h3>The Self-Audit</h3>
+
+<p>Ten questions. Each "no" is a specific piece of work with a module attached.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>#</th><th>Question</th><th>Module</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Could you delete 50% of your CLAUDE.md without losing information a model couldn't get from the repo?</td><td>11</td></tr>
+<tr><td>2</td><td>Does every instruction live in exactly one place?</td><td>7, 10</td></tr>
+<tr><td>3</td><td>Have you read five recent transcripts looking for conflicts?</td><td>3</td></tr>
+<tr><td>4</td><td>Are your absolutes limited to irreversible or unbounded-cost actions?</td><td>4</td></tr>
+<tr><td>5</td><td>Do your tool descriptions carry their own usage guidance?</td><td>7, 13</td></tr>
+<tr><td>6</td><td>Are your "status"/"type"/"mode" string parameters enums?</td><td>5, 13</td></tr>
+<tr><td>7</td><td>Are your skill descriptions written as triggers rather than topics?</td><td>12</td></tr>
+<tr><td>8</td><td>Is anything over ~1,000 tokens split into a router plus reference files?</td><td>6, 12</td></tr>
+<tr><td>9</td><td>Do you point at artifacts — mockups, tests, existing code — instead of describing them?</td><td>9</td></tr>
+<tr><td>10</td><td>Do you have a baseline you could measure a deletion against right now?</td><td>14</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>The Meta-Lesson</h3>
+
+<p>Strip away the six shifts and one idea remains. Every instruction you write is a <strong>substitute for a judgement the model cannot yet make.</strong> That is what a rule is. That is what an example is. That is what a repetition is.</p>
+
+<p>So as the model's judgement improves, the correct amount of instruction goes <em>down</em>. Not because instructions are bad, but because they were only ever proxies &mdash; and a proxy that outlives the gap it was filling becomes a constraint on something better than itself.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">The Bottom Line</div>
+<p>Anthropic deleted over 80% of Claude Code's system prompt and their coding evals did not move. The specific practices in this course will keep evolving with each model generation. The durable skill is the habit underneath them: <strong>treat every instruction as a hypothesis about what the model cannot do, and re-test that hypothesis every time the model changes.</strong></p>
+</div>
+
+<div class="quiz" data-question="Which myth is the origin of the monolithic CLAUDE.md?" data-options="That markdown is the best format|That if it isn't in the context, Claude won't find it|That longer prompts cache better|That models can't read files" data-answer="1" data-explanation="The belief had a real basis with older models, which often wouldn't follow a pointer. Claude 5-class agents read files and follow pointers, so the article recommends a tree of files loaded at the right time instead of one central repository."></div>
+
+<div class="quiz" data-question="In which situation are explicit absolute rules still the right choice?" data-options="Any time you feel strongly|When the action is irreversible or unbounded in cost — deleting data, spending money, sending communications, regulated domains|When the model is new|Only for code style" data-answer="1" data-explanation="The judgement default has a carve-out. Test: if the model used its best judgement and got it wrong once in a thousand runs, could you live with the outcome? For irreversible actions the answer is no."></div>
+
+<div class="quiz" data-question="Why does Stage 1 of the migration playbook come before Stage 3?" data-options="It's alphabetical|Stages 1–2 are near-zero-risk and often account for most of the bloat, so you reach the genuine judgement calls with a much smaller pile|Stage 3 requires a new model|Stage 1 is optional" data-answer="1" data-explanation="Deleting the obvious, duplicates, stale facts, and emphasis markup is essentially free and frequently the bulk of the problem. Rewriting rules as standards (Stage 3) is the first stage with real regression risk — do the free work first."></div>
+
+<div class="quiz" data-question="What is the meta-lesson underneath all six shifts?" data-options="Shorter prompts are always better|Every instruction substitutes for a judgement the model cannot yet make — so as judgement improves, the correct amount of instruction goes down|Models will eventually need no context|Tool design is all that matters" data-answer="1" data-explanation="Rules, examples, and repetitions are all proxies for missing judgement. A proxy that outlives the gap it was filling becomes a constraint on something better than itself. Hence: treat every instruction as a hypothesis, and re-test it whenever the model changes."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The six shifts" data-back="Rules→judgement · Examples→interfaces · Upfront→progressive disclosure · Repetition→tool descriptions · CLAUDE.md memory→auto-memory · Simple specs→rich references."></div>
+  <div class="flashcard" data-front="The biggest myth" data-back="'If it isn't in context, Claude won't find it.' True for older models, false now — and it's what produced the monolithic CLAUDE.md."></div>
+  <div class="flashcard" data-front="Migration stages" data-back="0 baseline → 1 free wins → 2 relocate → 3 rewrite rules as standards → 4 redesign interfaces → 5 upgrade references → 6 institutionalize."></div>
+  <div class="flashcard" data-front="When old rules still apply" data-back="Irreversible actions, genuinely non-inferable usage, always-needed info, small/older models, decisions that need a version-controlled record."></div>
+  <div class="flashcard" data-front="The meta-lesson" data-back="Every instruction substitutes for judgement the model can't yet make. As judgement improves, correct instruction volume goes down. Treat instructions as hypotheses; re-test on every model change."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(15)" id="completeBtn15">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+
+</div><!-- /modules-container -->
+
+<!-- ========== FOOTER ========== -->
+<footer class="course-footer">
+<p>An interactive course on context engineering for the Claude 5 generation &middot; Built on <a href="https://x.com/trq212/status/2080710971228918066">"The new rules of context engineering for Claude 5 models"</a> by Thariq (@trq212), Claude Code at Anthropic, July 2026.</p>
+<p style="margin-top:0.5rem;">Quotations are from the source article; the applied modules, playbooks, and worked examples are this course's extension of it. Educational summary &middot; <a href="index.html">&larr; Back to all courses</a></p>
+</footer>
+
+<!-- ========== SCRIPTS ========== -->
+<script>
+(function() {
+  'use strict';
+
+  const TOTAL_MODULES = 15;
+  const STORAGE_KEY = 'context-engineering-claude5-course-progress';
+
+  let completedModules = new Set();
+  let openModules = new Set();
+
+  function loadProgress() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        completedModules = new Set(data.completed || []);
+        openModules = new Set(data.open || []);
+      }
+    } catch(e) { /* ignore */ }
+  }
+
+  function saveProgress() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        completed: [...completedModules],
+        open: [...openModules]
+      }));
+    } catch(e) { /* ignore */ }
+  }
+
+  function updateProgress() {
+    const pct = (completedModules.size / TOTAL_MODULES) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent =
+      completedModules.size + ' / ' + TOTAL_MODULES + ' completed';
+  }
+
+  window.toggleModule = function(num) {
+    const body = document.getElementById('modBody' + num);
+    const chevron = document.getElementById('modChev' + num);
+    if (openModules.has(num)) {
+      body.style.maxHeight = '0';
+      chevron.classList.remove('open');
+      openModules.delete(num);
+    } else {
+      body.style.maxHeight = body.scrollHeight + 'px';
+      chevron.classList.add('open');
+      openModules.add(num);
+      setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 100);
+    }
+    saveProgress();
+  };
+
+  window.completeModule = function(num) {
+    const btn = document.getElementById('completeBtn' + num);
+    const modNum = document.getElementById('modNum' + num);
+    if (completedModules.has(num)) {
+      completedModules.delete(num);
+      btn.textContent = 'Mark as Complete';
+      btn.classList.remove('completed');
+      modNum.classList.remove('completed');
+      modNum.textContent = num;
+    } else {
+      completedModules.add(num);
+      btn.textContent = 'Completed!';
+      btn.classList.add('completed');
+      modNum.classList.add('completed');
+      modNum.innerHTML = '&#10003;';
+    }
+    updateProgress();
+    updateToc();
+    saveProgress();
+  };
+
+  window.toggleToc = function() {
+    const body = document.getElementById('tocBody');
+    const toggle = document.getElementById('tocToggle');
+    if (body.classList.contains('open')) {
+      body.classList.remove('open');
+      toggle.classList.remove('open');
+    } else {
+      body.classList.add('open');
+      toggle.classList.add('open');
+    }
+  };
+
+  function updateToc() {
+    for (let i = 1; i <= TOTAL_MODULES; i++) {
+      const tocNums = document.querySelectorAll('.toc-num[data-mod="' + i + '"], .toc-check[data-mod="' + i + '"]');
+      tocNums.forEach(el => {
+        if (completedModules.has(i)) {
+          el.className = 'toc-check';
+          el.setAttribute('data-mod', i);
+          el.innerHTML = '&#10003;';
+        } else {
+          el.className = 'toc-num';
+          el.setAttribute('data-mod', i);
+          el.textContent = i;
+        }
+      });
+    }
+  }
+
+  const searchBox = document.getElementById('searchBox');
+  const searchInfo = document.getElementById('searchInfo');
+  let searchTimeout = null;
+
+  searchBox.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performSearch, 300);
+  });
+
+  function performSearch() {
+    const query = searchBox.value.trim().toLowerCase();
+    const modules = document.querySelectorAll('.module');
+    document.querySelectorAll('mark').forEach(m => {
+      const parent = m.parentNode;
+      parent.replaceChild(document.createTextNode(m.textContent), m);
+      parent.normalize();
+    });
+    if (!query || query.length < 2) {
+      modules.forEach(m => m.classList.remove('hidden'));
+      searchInfo.style.display = 'none';
+      return;
+    }
+    let matchCount = 0;
+    let moduleMatchCount = 0;
+    modules.forEach(mod => {
+      const content = mod.querySelector('.module-content');
+      const text = content ? content.textContent.toLowerCase() : '';
+      const titleEl = mod.querySelector('.module-title');
+      const titleText = titleEl ? titleEl.textContent.toLowerCase() : '';
+      if (text.includes(query) || titleText.includes(query)) {
+        mod.classList.remove('hidden');
+        moduleMatchCount++;
+        const regex = new RegExp(escapeRegex(query), 'gi');
+        const matches = text.match(regex);
+        matchCount += matches ? matches.length : 0;
+        if (content) { highlightText(content, query); }
+      } else {
+        mod.classList.add('hidden');
+      }
+    });
+    searchInfo.style.display = 'block';
+    searchInfo.textContent = matchCount + ' matches in ' + moduleMatchCount + ' module' + (moduleMatchCount !== 1 ? 's' : '');
+  }
+
+  function highlightText(element, query) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) {
+      let parent = walker.currentNode.parentNode;
+      let inCode = false;
+      while (parent && parent !== element) {
+        if (parent.tagName === 'CODE' || parent.tagName === 'PRE') { inCode = true; break; }
+        parent = parent.parentNode;
+      }
+      if (!inCode) { textNodes.push(walker.currentNode); }
+    }
+    const regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
+    textNodes.forEach(node => {
+      if (regex.test(node.textContent)) {
+        const span = document.createElement('span');
+        span.innerHTML = node.textContent.replace(regex, '<mark>$1</mark>');
+        node.parentNode.replaceChild(span, node);
+      }
+    });
+  }
+
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // ===== Init =====
+  loadProgress();
+  updateProgress();
+
+  completedModules.forEach(num => {
+    const btn = document.getElementById('completeBtn' + num);
+    const modNum = document.getElementById('modNum' + num);
+    if (btn) { btn.textContent = 'Completed!'; btn.classList.add('completed'); }
+    if (modNum) { modNum.classList.add('completed'); modNum.innerHTML = '&#10003;'; }
+  });
+
+  openModules.forEach(num => {
+    const body = document.getElementById('modBody' + num);
+    const chevron = document.getElementById('modChev' + num);
+    if (body) { body.style.maxHeight = body.scrollHeight + 'px'; chevron.classList.add('open'); }
+  });
+
+  updateToc();
+
+  document.getElementById('tocBody').classList.add('open');
+  document.getElementById('tocToggle').classList.add('open');
+
+  document.querySelectorAll('.toc-list a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        const moduleNum = parseInt(target.dataset.module);
+        if (!openModules.has(moduleNum)) { toggleModule(moduleNum); }
+        setTimeout(() => {
+          const yOffset = -60;
+          const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({top: y, behavior: 'smooth'});
+        }, 100);
+      }
+    });
+  });
+
+})();
+</script>
+
+<link rel="stylesheet" href="course-framework.css">
+<script src="course-framework.js"></script>
+</body>
+</html>

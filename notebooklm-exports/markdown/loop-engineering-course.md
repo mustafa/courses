@@ -26,6 +26,14 @@ Designing systems that run AI agents in automated, self-correcting loops. The de
 12.  [12 The Three-Agent Loop Pattern](#mod12)
 13.  [13 Loop Platforms: No-Code Loops for Everyone](#mod13)
 
+▶ Animated explainer · 54s
+
+## The whole discipline, in one loop
+
+Watch the read → plan → execute → verify cycle run, fail the gate, retry, and pass — then the generator-vs-verifier split, the three-agent pattern, the hard stops, and why Boris Cherny says his job is writing loops now. Use the chapters to jump to an act.
+
+**Key takeaway:** the verifier is the bottleneck — design the check before the builder, and give every loop a hard stop.
+
 ### The Shift from Prompt Engineering to Loop Engineering
 
 In June 2026, a seismic shift occurred in how software engineers work with AI. On June 8th, Peter Steinberger — creator of OpenClaw, now at OpenAI — posted two sentences on X that hit 6.5 million views in a single day: *"Here's your monthly reminder that you shouldn't be prompting coding agents anymore. You should be designing loops that prompt your agents."*
@@ -95,6 +103,8 @@ Loop engineering isn't all-or-nothing. There's a spectrum from fully manual to f
 > **Warning:** Caution
 >
 > Addy Osmani adds a critical warning: "Two people can build the exact same loop and get completely opposite results. One uses it to move faster on work they understand deeply. The other uses it to avoid understanding the work at all. The loop doesn't know the difference. You do." He calls this risk **cognitive surrender** — designing a loop is the cure when you do it with judgment and the accelerant when you do it to avoid thinking.
+
+▶ 12s One iteration, animated — read state → plan → execute → verify → commit. The pulse fails the gate once, retries, then passes.
 
 ### Generator vs Verifier: The Two Halves
 
@@ -289,6 +299,8 @@ Exit conditions are the most critical safety mechanism in loop engineering. A lo
 > **Tip:** Practical Tip
 >
 > Claude Code's `/goal` command implements this separation elegantly: the goal condition is checked by a separate, smaller, faster model after every turn. The model that wrote the code isn't the one grading it. This is the maker/checker split applied to the stop condition itself.
+
+▶ 12s Generator-first vs verifier-first — if you can’t verify it, don’t automate it.
 
 ### Why the Verifier is the Bottleneck
 
@@ -2554,6 +2566,8 @@ Despite coming from different companies, roles, and perspectives, these leaders 
 > **Warning:** Historical Context
 >
 > The convergence of June 2026 didn't happen in a vacuum. Addy Osmani had been writing about loop engineering concepts since early June. Geoffrey Huntley's Ralph Wiggum pattern had been circulating among practitioners for months. Andrew Ng's three-nested-loops framework provided the theoretical foundation. What changed in June was that the CEOs and engineering leaders of the world's most influential tech companies validated what practitioners had been building — and declared it the new standard.
+
+▶ 12s Planner → Generator ⇆ Evaluator — the volley continues until the step passes.
 
 ### Anthropic's Architecture: Planner → Generator → Evaluator
 

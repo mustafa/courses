@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: July 12, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: July 20, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,14 @@ Last updated: July 12, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of July 19, 2026
+
+-   **@bcherny (Anthropic):** Published ["Steps of AI Adoption"](https://shellypalmer.com/2026/07/boris-chernys-steps-of-ai-adoption-a-roadmap/) (July 16), naming five maturity levels — Gated (0) → Assisted (~1) → Parallel (~10) → Supervised autonomy (~100) → AI-native (1,000+ agents). His argument: the 10× gap between teams isn't "more tokens," it's bottlenecks and guardrails at each step, so companies should measure human hours saved, not token burn.
+-   **@skcd42 (xAI):** xAI [open-sourced Grok Build under Apache 2.0](https://simonwillison.net/2026/Jul/15/grok-build/) (July 15) and made Grok 4.5 its default model. The terminal agent runs up to 8 parallel subagents in isolated git worktrees; xAI also disabled a data-upload feature after community security feedback. Grok Build going open source is a direct shot at Claude Code and Codex.
+-   **@leerob & @ericzakariasson (Cursor):** Cursor [doubled included model usage on all plans](https://x.com/leerob/status/2077552106014154846) (July 16), widening access to Grok 4.5 and Composer 2.5. Cursor in Slack (July 17) now shares a plan before it executes and works across multi-repo environments and threads — agents you can redirect early rather than after the fact.
+-   **@karpathy (Anthropic):** His nano series (nanoGPT, nanochat, micrograd) crossed a [combined ~120,000 GitHub stars](https://www.startuphub.ai/ai-news/ai-figures/2026/figure-andrej-karpathy-nano-series-technical-contribution-2026-07-16), cementing him as ML's most-followed educator. Anthropic's hiring run continued alongside his pre-training work — Monzo co-founder Tom Blomfield joined the compute team.
+-   **@OfficialLoganK (Google AI):** Gemini 3.5 Pro slipped again — the widely-reported July 17 launch passed with no release after the rebuilt model reportedly missed Google's internal quality bars (its third delay). AI Studio still surfaces gemini-3.5-flash and a 3.1-pro-preview; the new Pro (2M-token context, "Deep Think" reasoning) remains in limited enterprise preview.
 
 ### Week of July 12, 2026
 
@@ -301,4 +309,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated July 12, 2026.
+Updated weekly by an automated research task. Last updated July 20, 2026.
