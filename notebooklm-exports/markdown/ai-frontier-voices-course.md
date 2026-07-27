@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: July 20, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: July 27, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,15 @@ Last updated: July 20, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of July 26, 2026
+
+-   **@OfficialLoganK (Google AI):** Google [shipped three Gemini models on July 21 — and none of them was 3.5 Pro](https://techcrunch.com/2026/07/21/google-releases-three-new-gemini-models-but-no-3-5-pro/): Gemini 3.6 Flash ($1.50/$7.50 per Mtok, 1M context, ~17% fewer tokens than 3.5 Flash), 3.5 Flash-Lite ($0.30/$2.50), and a gated 3.5 Flash Cyber tuned for finding and fixing vulnerabilities. Kilpatrick said 3.5 Pro is still testing with partners. The footnote was the real news: Google has begun pre-training *Gemini 4*.
+-   **@karpathy (Anthropic):** A bio tweak on X plus Anthropic's absence from Jensen Huang's open-weights letter spun up a ["Karpathy quit Anthropic" rumor](https://explainx.ai/blog/karpathy-anthropic-resignation-rumor-debunked-july-2026), which he flatly denied on July 26. He remains on pre-training under Nick Joseph. Worth noting how fast a profile edit became a narrative — a reminder to read primary sources on this list, not the repost layer.
+-   **@milichab & @skcd42 (xAI):** Musk announced Grok 4.6 — a 2T-parameter model — [finished its initial training run the week of July 20](https://dataconomy.com/2026/07/20/musk-xai-grok-4-6-2t-model-training-next-week/), with a 4–6T Grok 4.7 already on the roadmap weeks behind it. That's a back-to-back cadence no other frontier lab is matching. xAI also pushed Grok into Google Workspace as a free Sheets/Slides/Docs add-on with cited-cell answers.
+-   **@ammaar (Google AI):** Reshi [compiled Command & Conquer: Generals — Zero Hour to run natively on iPhone, iPad and Apple Silicon](https://www.pcgamer.com/software/ai/googles-ai-studio-lead-has-vibe-coded-a-port-of-command-and-conquer-for-ios/) — no emulator — using Claude Code with Fable 5, then open-sourced it. First build in ~40 minutes, roughly two days total. The AI Studio product lead shipping his best demo on a competitor's tool is its own signal about where agentic coding actually stands.
+-   **@jxnlco (OpenAI):** Published his full system for running an entire workday inside Codex (July 26) — a "chief of staff" thread that handles Slack and email, plus long-running tasks defined against verifiable goals. The through-line of his Codex-maxxing series: the win isn't code generation, it's giving an agent work that can be checked when it finishes.
+-   **Ecosystem context:** Moonshot's [Kimi K3 open weights land July 27](https://www.interconnects.ai/p/kimi-k3-the-open-weights-escalation) — 2.8T parameters, sparse MoE, 1M context, Modified MIT. It benchmarks above Grok 4.5 and is the immediate target Grok 4.6 was built to beat. The catch: ~1.4TB of fast memory even at four-bit, so "open" here means open to whoever owns the hardware.
 
 ### Week of July 19, 2026
 
@@ -258,7 +267,8 @@ xAI ships faster than any other lab, and these two accounts are how you keep up:
 -   **Grok Build (May 2026):** skcd's project — a coding agent "built by engineers who live in the terminal: people who reach for vim, think in keybindings, and treat the alt-screen as home." xAI's answer to Claude Code.
 -   **Grok Voice (June 4):** Conversational spoken interaction in the Grok mobile app.
 -   **Grok Imagine Video 1.5:** #1 on the Image-to-Video Arena — 720p clips up to 15 seconds with native audio.
--   **Grok 5 watch:** The 6T-parameter model is still training on Colossus 2 after Q1 and Q2 windows slipped; Q3 2026 or later is the realistic window.
+-   **Grok 4.6 (training complete, week of July 20):** A 2T-parameter model built explicitly to beat Moonshot's Kimi K3 on benchmarks; in post-training as of late July.
+-   **Grok 4.7 watch:** Estimated 4–6T parameters, already on the roadmap only weeks behind 4.6. The 6T Grok 5 line has effectively been renumbered into this cadence; Q3 2026 or later remains the realistic window for the largest model.
 
 Why Follow xAI Accounts
 
@@ -309,4 +319,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated July 20, 2026.
+Updated weekly by an automated research task. Last updated July 27, 2026.
