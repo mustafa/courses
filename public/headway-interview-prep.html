@@ -1,0 +1,2241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Headway — Head of Provider Experience (Engineering) Interview Prep | Aug 4&ndash;5, 2026</title>
+<style>
+:root {
+  --bg-primary: #0b0f14;
+  --bg-secondary: #121820;
+  --bg-tertiary: #18202b;
+  --bg-card: #141c26;
+  --bg-code: #0a0e13;
+  --text-primary: #e4ecf2;
+  --text-secondary: #8fa0b0;
+  --text-muted: #6b7a89;
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-dim: #0f3d3a;
+  --gold: #f0b429;
+  --gold-dim: #3a2c05;
+  --green: #3fb950;
+  --green-dim: #12331d;
+  --orange: #d29922;
+  --orange-dim: #3d2e00;
+  --red: #f85149;
+  --purple: #c4a1ff;
+  --border: #223040;
+  --border-light: #1a232e;
+  --shadow: 0 8px 24px rgba(0,0,0,0.45);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --transition: 0.2s ease;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* ========== HEADER ========== */
+.course-header {
+  background: linear-gradient(135deg, #0b0f14 0%, #0d2b2c 38%, #14263a 70%, #0b0f14 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 3rem 2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.course-header::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 28% 50%, rgba(45,212,191,0.10) 0%, transparent 60%),
+              radial-gradient(ellipse at 72% 50%, rgba(240,180,41,0.07) 0%, transparent 60%);
+  animation: headerGlow 9s ease-in-out infinite alternate;
+}
+
+@keyframes headerGlow {
+  0% { transform: translateX(-5%); }
+  100% { transform: translateX(5%); }
+}
+
+.header-content { max-width: 940px; margin: 0 auto; position: relative; z-index: 1; }
+
+.course-badge {
+  display: inline-block;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(45,212,191,0.25);
+}
+
+.course-header h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #e4ecf2, #2dd4bf, #f0b429);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.course-header .subtitle {
+  font-size: 1.12rem;
+  color: var(--text-secondary);
+  max-width: 760px;
+  line-height: 1.65;
+}
+
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.meta-item .icon { font-size: 1.1rem; }
+
+/* personalized banner */
+.for-you { max-width: 940px; margin: 1.5rem auto -0.5rem; padding: 0 2rem; }
+.for-you-inner {
+  background: rgba(45,212,191,0.08);
+  border: 1px solid rgba(45,212,191,0.3);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.2rem;
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+}
+.for-you-inner strong { color: var(--accent); }
+
+/* sourcing disclaimer */
+.sourcing { max-width: 940px; margin: 1rem auto 0; padding: 0 2rem; }
+.sourcing-inner {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.2rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
+.sourcing-inner strong { color: var(--gold); }
+
+/* ========== PROGRESS ========== */
+.progress-container {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0.6rem 2rem;
+}
+.progress-inner { max-width: 940px; margin: 0 auto; display: flex; align-items: center; gap: 1rem; }
+.progress-bar-track { flex: 1; height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); border-radius: 3px; width: 0%; transition: width 0.4s ease; }
+.progress-text { font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; min-width: 90px; text-align: right; }
+
+/* ========== SEARCH ========== */
+.search-container { max-width: 940px; margin: 1.5rem auto; padding: 0 2rem; }
+.search-box {
+  width: 100%; padding: 0.8rem 1.2rem 0.8rem 2.8rem;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text-primary);
+  font-size: 0.95rem; outline: none; transition: border-color var(--transition);
+}
+.search-box:focus { border-color: var(--accent); }
+.search-wrapper { position: relative; }
+.search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.search-results-info { padding: 0.5rem 0; font-size: 0.85rem; color: var(--text-secondary); display: none; }
+
+/* ========== TOC ========== */
+.toc-container { max-width: 940px; margin: 1rem auto 2rem; padding: 0 2rem; }
+.toc { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.toc-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; cursor: pointer; user-select: none; transition: background var(--transition); }
+.toc-header:hover { background: var(--bg-tertiary); }
+.toc-header h2 { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+.toc-toggle { font-size: 1.2rem; color: var(--text-secondary); transition: transform var(--transition); }
+.toc-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+.toc-body.open { max-height: 2000px; }
+.toc-toggle.open { transform: rotate(180deg); }
+.toc-list { list-style: none; padding: 0 1.5rem 1rem; }
+.toc-list li { border-bottom: 1px solid var(--border-light); }
+.toc-list li:last-child { border-bottom: none; }
+.toc-list a { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 0.5rem; color: var(--text-secondary); text-decoration: none; font-size: 0.92rem; transition: all var(--transition); }
+.toc-list a:hover { color: var(--accent); padding-left: 1rem; }
+.toc-num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--bg-tertiary); border-radius: 6px; font-size: 0.8rem; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.toc-check { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background: var(--green-dim); border-radius: 6px; font-size: 0.85rem; color: var(--green); flex-shrink: 0; }
+
+/* ========== MODULES ========== */
+.modules-container { max-width: 940px; margin: 0 auto; padding: 0 2rem 4rem; }
+.module { margin-bottom: 1rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: border-color var(--transition); }
+.module.highlight { border-color: var(--accent); }
+.module-header { display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem; cursor: pointer; user-select: none; transition: background var(--transition); }
+.module-header:hover { background: var(--bg-tertiary); }
+.module-number { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: var(--accent-dim); border-radius: 8px; font-size: 0.85rem; font-weight: 800; color: var(--accent); flex-shrink: 0; }
+.module-number.completed { background: var(--green-dim); color: var(--green); }
+.module-title { flex: 1; font-size: 1.05rem; font-weight: 600; }
+.module-chevron { font-size: 1.2rem; color: var(--text-muted); transition: transform 0.3s ease; flex-shrink: 0; }
+.module-chevron.open { transform: rotate(180deg); }
+.module-body { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; }
+.module-content { padding: 0 1.5rem 2rem; border-top: 1px solid var(--border-light); }
+
+.module-content h3 { font-size: 1.2rem; font-weight: 700; margin: 2rem 0 1rem; color: var(--text-primary); padding-bottom: 0.4rem; border-bottom: 1px solid var(--border-light); }
+.module-content h4 { font-size: 1rem; font-weight: 600; margin: 1.5rem 0 0.6rem; color: var(--accent); }
+.module-content h5 { font-size: 0.92rem; font-weight: 700; margin: 1.1rem 0 0.4rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.4px; }
+.module-content p { margin: 0.8rem 0; color: var(--text-primary); line-height: 1.8; }
+.module-content ul, .module-content ol { margin: 0.8rem 0; padding-left: 1.5rem; }
+.module-content li { margin: 0.4rem 0; color: var(--text-primary); line-height: 1.7; }
+.module-content strong { color: var(--accent); font-weight: 600; }
+.module-content em.hl { color: var(--gold); font-style: normal; font-weight: 600; }
+
+.complete-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;
+  padding: 0.6rem 1.2rem; background: var(--accent-dim); color: var(--accent);
+  border: 1px solid rgba(45,212,191,0.3); border-radius: var(--radius);
+  cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all var(--transition);
+}
+.complete-btn:hover { background: rgba(45,212,191,0.2); }
+.complete-btn.completed { background: var(--green-dim); color: var(--green); border-color: rgba(63,185,80,0.3); }
+
+/* ========== CODE ========== */
+pre { background: var(--bg-code); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.5rem; overflow-x: auto; margin: 1rem 0; position: relative; }
+pre code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace; font-size: 0.86rem; line-height: 1.6; color: var(--text-primary); }
+code { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; background: var(--bg-tertiary); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88em; color: var(--purple); }
+pre code { background: none; padding: 0; }
+
+.ascii-diagram { margin: 1.2rem 0; background: var(--bg-code); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+.ascii-diagram pre { border: none; background: none; margin: 0; padding: 1.2rem 1.4rem; }
+.ascii-diagram pre code { color: var(--accent); font-size: 0.78rem; line-height: 1.45; white-space: pre; }
+
+/* ========== CALLOUTS ========== */
+.callout { padding: 1rem 1.2rem; border-radius: var(--radius); margin: 1.2rem 0; border-left: 3px solid; }
+.callout-key { background: rgba(45,212,191,0.08); border-color: var(--accent); }
+.callout-warning { background: rgba(210,153,34,0.08); border-color: var(--orange); }
+.callout-tip { background: rgba(63,185,80,0.08); border-color: var(--green); }
+.callout-quote { background: rgba(196,161,255,0.06); border-color: var(--purple); font-style: italic; }
+.callout-you { background: rgba(248,81,73,0.07); border-color: var(--red); }
+.callout-gold { background: rgba(240,180,41,0.08); border-color: var(--gold); }
+.callout-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+.callout-key .callout-label { color: var(--accent); }
+.callout-warning .callout-label { color: var(--orange); }
+.callout-tip .callout-label { color: var(--green); }
+.callout-quote .callout-label { color: var(--purple); }
+.callout-you .callout-label { color: var(--red); }
+.callout-gold .callout-label { color: var(--gold); }
+.callout p:first-of-type { margin-top: 0; }
+.callout p:last-child { margin-bottom: 0; }
+
+/* ========== TABLES ========== */
+.table-wrapper { overflow-x: auto; margin: 1rem 0; border-radius: var(--radius); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { background: var(--bg-tertiary); padding: 0.7rem 1rem; text-align: left; font-weight: 600; color: var(--accent); border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border-light); color: var(--text-primary); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(45,212,191,0.03); }
+td strong { color: var(--text-primary); font-weight: 700; }
+
+/* ========== SESSION CARDS ========== */
+.session-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-left: 3px solid var(--accent); border-radius: var(--radius);
+  padding: 1rem 1.2rem; margin: 1rem 0;
+}
+.session-card .s-when { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gold); font-weight: 700; }
+.session-card .s-who { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin: 0.25rem 0; }
+.session-card .s-what { font-size: 0.9rem; color: var(--text-secondary); }
+
+/* ========== METRIC / STAT GRID ========== */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.7rem; margin: 1.2rem 0; }
+.stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; }
+.stat-box .num { font-size: 1.35rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+.stat-box .num small { font-size: 0.8rem; color: var(--accent); font-weight: 700; }
+.stat-box .lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 0.2rem; line-height: 1.4; }
+
+/* ========== PRACTICE / ANSWER BOXES ========== */
+.prd-box {
+  background: var(--bg-code); border: 1px solid var(--border);
+  border-left: 3px solid var(--gold); border-radius: var(--radius);
+  padding: 1.1rem 1.3rem; margin: 1.2rem 0;
+}
+.prd-box h4 { margin-top: 0.9rem; color: var(--gold); }
+.prd-box h4:first-child { margin-top: 0; }
+
+.qa-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1rem 0;
+}
+.qa-card .qa-q { color: var(--text-primary); font-weight: 700; font-size: 0.98rem; margin-bottom: 0.5rem; }
+.qa-card .qa-q::before { content: 'Q'; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 4px; background: var(--accent-dim); color: var(--accent); font-size: 0.7rem; font-weight: 800; margin-right: 0.5rem; vertical-align: 1px; }
+.qa-card .qa-a { color: var(--text-secondary); font-size: 0.92rem; }
+.qa-card .qa-a strong { color: var(--accent); }
+
+.tagrow { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.8rem 0; }
+.pill { font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 9999px; background: rgba(45,212,191,0.12); color: var(--accent); border: 1px solid rgba(45,212,191,0.25); }
+.pill.g { background: rgba(240,180,41,0.12); color: var(--gold); border-color: rgba(240,180,41,0.28); }
+.pill.r { background: rgba(248,81,73,0.1); color: var(--red); border-color: rgba(248,81,73,0.25); }
+
+/* ========== FOOTER ========== */
+.course-footer { max-width: 940px; margin: 0 auto; padding: 2rem; text-align: center; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+.course-footer a { color: var(--accent); text-decoration: none; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 640px) {
+  .course-header { padding: 2rem 1.2rem 1.5rem; }
+  .module-header { padding: 1rem; }
+  .module-content { padding: 0 1rem 1.5rem; }
+  .progress-container { padding: 0.5rem 1rem; }
+  .search-container, .toc-container, .modules-container, .for-you, .sourcing { padding-left: 1rem; padding-right: 1rem; }
+  .course-meta { gap: 0.8rem; }
+  pre { padding: 1rem; }
+  .ascii-diagram pre code { font-size: 0.66rem; }
+  th, td { padding: 0.5rem 0.6rem; font-size: 0.84rem; }
+}
+
+mark { background: rgba(240,180,41,0.3); color: var(--text-primary); padding: 0 2px; border-radius: 2px; }
+.hidden { display: none !important; }
+
+@media print {
+  .progress-container, .search-container, .complete-btn, .toc-toggle { display: none; }
+  .module-body { max-height: none !important; overflow: visible !important; }
+  body { background: white; color: black; }
+}
+</style>
+<link rel="stylesheet" href="course-framework.css">
+</head>
+<body>
+
+<!-- ========== HEADER ========== -->
+<header class="course-header">
+<div class="header-content">
+  <span class="course-badge">Personal Prep &middot; Headway &middot; Aug 4&ndash;5, 2026</span>
+  <h1>Head of Provider Experience &mdash; Headway Interview Prep</h1>
+  <p class="subtitle">Everything needed to walk into three interviews with a point of view: what Headway actually is and how it makes money, what the ~40-engineer Provider org owns today, a complete worked PRD for self-serve provider onboarding, STAR story scaffolding for the results interview, five systems designs (onboarding, portal, telehealth, AI notes, 80K&rarr;500K scale), a 90-day plan, questions to ask each interviewer, and a day-of runbook.</p>
+  <div class="course-meta">
+    <span class="meta-item"><span class="icon">&#128218;</span> 8 Modules</span>
+    <span class="meta-item"><span class="icon">&#128221;</span> 1 Full PRD + Blank Template</span>
+    <span class="meta-item"><span class="icon">&#127959;</span> 5 Systems Designs</span>
+    <span class="meta-item"><span class="icon">&#10067;</span> Quizzes &amp; Flashcards</span>
+    <span class="meta-item"><span class="icon">&#128268;</span> Fully Offline</span>
+  </div>
+</div>
+</header>
+
+<div class="for-you">
+  <div class="for-you-inner">
+    <strong>&#127919; For Zeesha.</strong> Three sessions, two days: <strong>Tue Aug 4, 2:00&ndash;2:45 PM</strong> PRD Jam with Severin Kibby; <strong>Wed Aug 5, 1:00&ndash;1:45 PM</strong> Results &amp; Growth Mindset with Dennis Zhao; <strong>Wed Aug 5, 2:00&ndash;3:00 PM</strong> Systems Design with Urmila Nadkarni. Modules 3, 4 and 5 map one-to-one onto those sessions. If time is short: read Modules 1&ndash;2 tonight for context, drill Module 3 before Tuesday, and Modules 4&ndash;5 Tuesday night. Module 8 is the day-of runbook.
+  </div>
+</div>
+
+<div class="sourcing">
+  <div class="sourcing-inner">
+    <strong>&#9873; On the numbers.</strong> Headway is <em>private</em>, so nothing here is audited. Public figures come from Headway press releases, its own job postings, and reported funding news &mdash; they are dated in-line so you can see how stale each one is. Org details (~40 engineers growing to 60&ndash;70, the 5&ndash;6-person Provider Growth team, Salesforce as the lead system of record, ~10K providers onboarded per quarter manually, the internal eval platform) come from <em>your recruiter and hiring-manager conversations</em>, not public sources &mdash; treat them as directional and worth confirming out loud in the room. Anything labeled <strong>reference pattern</strong> in Module 5 is a standard industry architecture, not Headway&rsquo;s confidential internals. Never state a number in the interview more precisely than you can defend.
+  </div>
+</div>
+
+<!-- ========== PROGRESS ========== -->
+<div class="progress-container">
+<div class="progress-inner">
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+  <span class="progress-text" id="progressText">0 / 8 completed</span>
+</div>
+</div>
+
+<!-- ========== SEARCH ========== -->
+<div class="search-container">
+<div class="search-wrapper">
+  <span class="search-icon">&#128269;</span>
+  <input type="text" class="search-box" id="searchBox" placeholder="Search this course (e.g. 'credentialing', 'PRD', 'STAR', 'WebRTC')..." autocomplete="off">
+</div>
+<div class="search-results-info" id="searchInfo"></div>
+</div>
+
+<!-- ========== TOC ========== -->
+<div class="toc-container">
+<div class="toc">
+  <div class="toc-header" onclick="toggleToc()">
+    <h2>Table of Contents</h2>
+    <span class="toc-toggle" id="tocToggle">&#9660;</span>
+  </div>
+  <div class="toc-body" id="tocBody">
+    <ol class="toc-list" id="tocList">
+      <li><a href="#mod1"><span class="toc-num" data-mod="1">1</span> Understanding Headway &mdash; The Business &amp; The Problem</a></li>
+      <li><a href="#mod2"><span class="toc-num" data-mod="2">2</span> The Provider Experience Org &mdash; What You&rsquo;d Own</a></li>
+      <li><a href="#mod3"><span class="toc-num" data-mod="3">3</span> PRD Jam Session &mdash; Severin Kibby (Tue 2:00 PM)</a></li>
+      <li><a href="#mod4"><span class="toc-num" data-mod="4">4</span> Results &amp; Growth Mindset &mdash; Dennis Zhao (Wed 1:00 PM)</a></li>
+      <li><a href="#mod5"><span class="toc-num" data-mod="5">5</span> Systems Design &mdash; Urmila Nadkarni (Wed 2:00 PM)</a></li>
+      <li><a href="#mod6"><span class="toc-num" data-mod="6">6</span> Strategy &amp; Vision &mdash; The 90-Day Plan</a></li>
+      <li><a href="#mod7"><span class="toc-num" data-mod="7">7</span> Questions to Ask (Per Interviewer)</a></li>
+      <li><a href="#mod8"><span class="toc-num" data-mod="8">8</span> Day-of Runbook &amp; Cheat Sheet</a></li>
+    </ol>
+  </div>
+</div>
+</div>
+
+<!-- ========== MODULES ========== -->
+<div class="modules-container" id="modulesContainer">
+
+<!-- ==================== MODULE 1 ==================== -->
+<div class="module" id="mod1" data-module="1">
+<div class="module-header" onclick="toggleModule(1)">
+  <span class="module-number" id="modNum1">1</span>
+  <span class="module-title">Understanding Headway &mdash; The Business &amp; The Problem</span>
+  <span class="module-chevron" id="modChev1">&#9660;</span>
+</div>
+<div class="module-body" id="modBody1">
+<div class="module-content">
+
+<h3>The One-Sentence Version</h3>
+
+<p>Headway is a <strong>managed marketplace</strong> that makes it economically and administratively viable for independent therapists to accept health insurance &mdash; and in doing so, converts out-of-network mental health capacity into in-network capacity that patients can actually afford. Patients search, filter by their insurance, see their real copay, and book. Providers get credentialed once, get paid reliably, and never touch a claim form. Headway gets paid by the <em class="hl">payers</em>, not by either side of the marketplace.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">The framing that wins the room</div>
+<p>Do not describe Headway as &ldquo;a therapy app.&rdquo; Describe it as <strong>infrastructure for a broken reimbursement market</strong>. The product is not the directory &mdash; the product is credentialing, claims, benefits verification, and guaranteed payment, wrapped in software that a solo practitioner can operate without a billing person. That framing is exactly what makes <em>Provider Experience</em> the strategic org rather than a support function.</p>
+</div>
+
+<h3>The Access Problem They Exist To Solve</h3>
+
+<p>The mental health access crisis in the U.S. is not primarily a shortage of therapists. It is a <strong>shortage of therapists who take insurance</strong> &mdash; and that shortage is manufactured by economics and paperwork:</p>
+
+<div class="stat-grid">
+  <div class="stat-box"><div class="num">18.2<small>%</small></div><div class="lbl">Out-of-network rate, psychologist office visits</div></div>
+  <div class="stat-box"><div class="num">1.7<small>%</small></div><div class="lbl">Out-of-network rate, medical specialists</div></div>
+  <div class="stat-box"><div class="num">&minus;21.8<small>%</small></div><div class="lbl">Behavioral health reimbursement vs. med/surg</div></div>
+  <div class="stat-box"><div class="num">&gt;1<small>/3</small></div><div class="lbl">Practicing psychologists who take no insurance</div></div>
+</div>
+
+<ul>
+  <li><strong>The money is worse.</strong> Reported averages put an insurance-reimbursed session near <strong>$111</strong> against roughly <strong>$159</strong> for private pay. A therapist who takes cash earns more per hour, immediately, with zero claims risk.</li>
+  <li><strong>The paperwork is brutal.</strong> Surveys of clinicians leaving insurance panels split roughly <strong>34% over low pay</strong> and <strong>26% over administrative burden</strong>. A solo practitioner doing their own credentialing, eligibility checks, claims, and appeals is running a small billing company on nights and weekends.</li>
+  <li><strong>&ldquo;Ghost networks&rdquo; are the visible symptom.</strong> Payer directories list providers who have retired, moved, closed their panel, or never took that plan. The patient calls fifteen numbers and gets zero appointments &mdash; while the payer&rsquo;s network adequacy report says the network is fine.</li>
+</ul>
+
+<p>So the payer has a real, expensive, regulated problem: <strong>network adequacy they cannot actually deliver</strong>. That is the wedge. Headway sells payers usable, bookable, in-network mental health supply, and pays for it by taking a share of the reimbursement it unlocks.</p>
+
+<h3>How The Money Actually Moves</h3>
+
+<div class="ascii-diagram"><pre><code>  PATIENT                    HEADWAY                      PAYER
+     |                          |                            |
+     |-- searches, filters ---&gt;|                            |
+     |&lt;-- real copay shown -----|-- eligibility / benefits --&gt;|
+     |                          |    verification (270/271)   |
+     |-- books (median ~48h) --&gt;|                            |
+     |                          |                            |
+  PROVIDER                      |                            |
+     |&lt;-- session happens ------|                            |
+     |                          |-- claim submitted (837) ---&gt;|
+     |                          |&lt;-- remittance (835) --------|
+     |&lt;-- paid on a fixed ------|                            |
+     |    biweekly schedule,    |   Headway keeps a share of
+     |    Headway absorbs the   |   the reimbursement. Neither
+     |    A/R timing risk       |   side pays a subscription.
+</code></pre></div>
+
+<p>Three consequences of that model that you should be able to say out loud:</p>
+<ol>
+  <li><strong>Headway carries working capital and claims risk.</strong> Providers are paid on schedule whether or not the claim has adjudicated. So <em class="hl">claim acceptance rate and denial rate are not back-office metrics &mdash; they are margin</em>. A note that fails an audit is a clawback.</li>
+  <li><strong>Supply is the constraint, not demand.</strong> Demand for affordable therapy is effectively unlimited. Every incremental credentialed provider is incremental revenue. This is <em>why</em> Provider Growth exists as its own org and why self-serve onboarding is a company-level bet, not a team-level nicety.</li>
+  <li><strong>Free software is a customer-acquisition strategy.</strong> The EHR is free because it is not the product &mdash; it is the retention and utilization mechanism for supply. That reframing matters when you get asked &ldquo;how do you prioritize portal work against onboarding work?&rdquo;</li>
+</ol>
+
+<h3>Scale &mdash; And Why The Trajectory Is The Real Story</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>When</th><th>Providers</th><th>Source / context</th></tr></thead>
+<tbody>
+<tr><td>2022</td><td>~22,000</td><td>16 states + DC; ~300K appointments/month</td></tr>
+<tr><td>2024</td><td>~34,000</td><td>Series D announcement; all 50 states; 40+ plans; 600K+ appointments/month</td></tr>
+<tr><td>Mid-2025</td><td>~45,000</td><td>Headway job postings</td></tr>
+<tr><td>Sept 2025</td><td>60,000+</td><td>Expanded free insurance-native EHR launch</td></tr>
+<tr><td>Mar 2026</td><td>70,000+</td><td>Tezi team acquisition announcement</td></tr>
+<tr><td>Aug 2026</td><td>~80,000</td><td>Per your hiring conversations (not public)</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-gold">
+<div class="callout-label">Do this arithmetic before Tuesday</div>
+<p>70K in March to ~80K in August is roughly <strong>10K net adds in five months &mdash; about 6K net per quarter</strong>. But you have been told onboarding is running at ~<strong>10K per quarter</strong>. That gap is not a contradiction; it is the <em class="hl">churn number nobody volunteers</em>. Gross adds minus net adds is attrition. Asking &ldquo;what&rsquo;s the delta between gross and net provider adds, and what does month-6 provider retention look like?&rdquo; signals that you think in funnels, not features &mdash; and it is the single best question you can ask Dennis Zhao.</p>
+</div>
+
+<h3>Funding, Ownership &amp; Who&rsquo;s Who</h3>
+
+<ul>
+  <li><strong>Founded April 2019</strong> in New York City by <strong>Andrew Adams</strong> (CEO), <strong>Jake Sussman</strong>, <strong>Dan Ross</strong>, and <strong>Kevin Chan</strong>. Origin story: Adams could not find an insurance-accepting therapist after moving to NYC.</li>
+  <li><strong>~$325M+ raised</strong> across six rounds. The <strong>$100M Series D</strong> led by <strong>Spark Capital</strong> put the valuation at <strong>$2.3B</strong>, roughly a 130% step-up. Investor set: a16z, Thrive Capital, Accel, Spark, Forerunner Ventures.</li>
+  <li><strong>Leadership to know by name:</strong> Andrew Adams (CEO/co-founder), <strong>Arnaud Ferreri</strong> (CTO), <strong>Jake Poses</strong> (VP Product), <strong>Dr. Neha Chaudhary</strong> (Chief Medical Officer), and <strong>Raghavendra Prabhu</strong> (VP Engineering, joined March 2026 via the Tezi acquisition &mdash; previously Google, Microsoft, Twitter, Pinterest, Thumbtack, Covariant).</li>
+  <li><strong>Engineering size:</strong> a 2025 posting described the team as &ldquo;small (~120) but mighty.&rdquo; If the Provider org alone is ~40 today heading to 60&ndash;70, <em class="hl">you would be running roughly a third of all of engineering</em>. Say that out loud at some point &mdash; it shows you understand the weight of the role.</li>
+</ul>
+
+<h3>The Tezi Acquisition &mdash; Read The Signal</h3>
+
+<p>On <strong>March 31, 2026</strong> Headway acquired the team behind <strong>Tezi</strong>, an AI-native company whose thing was <em>combining human judgment with AI agents inside complex workflows</em> &mdash; automating the tedious operational parts so the human handles the parts that need a human. Prabhu became VP Engineering; engineers, designers and data scientists came with him. The stated targets: patient&ndash;provider matching, administrative logistics, insurance navigation, scheduling.</p>
+
+<div class="callout callout-key">
+<div class="callout-label">Why this matters for your role specifically</div>
+<p>Headway did not buy a chatbot team. It bought a <strong>human-in-the-loop agentic workflow</strong> team, four months before hiring a Head of Provider Experience whose biggest problem is <em>10,000 manually-onboarded providers a quarter</em>. Those two facts point at the same thesis: <strong>onboarding and credentialing are the workflow AI is meant to eat</strong>. If you walk in with a design where AI agents draft and pre-verify while humans adjudicate exceptions, you are not pitching &mdash; you are agreeing with a bet they already made and showing you can execute it.</p>
+</div>
+
+<h3>Competitive Landscape</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Player</th><th>Model</th><th>How they differ from Headway</th></tr></thead>
+<tbody>
+<tr><td><strong>Alma</strong></td><td>Membership / subscription for providers (~24K providers)</td><td>Provider pays a monthly fee for credentialing + billing support. Headway charges providers nothing and monetizes the payer side &mdash; different incentive on provider utilization.</td></tr>
+<tr><td><strong>Grow Therapy</strong></td><td>Insurance marketplace, 100+ plans incl. Medicare &amp; Medicaid</td><td>Closest direct analogue. Broader government-payer coverage is their claimed edge; expect Headway to be pushing Medicare Advantage / Medicaid too.</td></tr>
+<tr><td><strong>Rula</strong></td><td>Insurance-first network, heavier care-delivery framing</td><td>More clinically-managed positioning; competes for the same providers and the same panels.</td></tr>
+<tr><td><strong>SonderMind</strong></td><td>Insurance + EAP, matching &amp; outcomes tracking</td><td>Leans on measurement-based care and structured rates; smaller network, deeper outcome instrumentation.</td></tr>
+<tr><td><strong>Spring Health / Lyra / Modern Health</strong></td><td>Employer-paid behavioral health benefit</td><td>Different buyer entirely (HR, not the health plan). Competes for the same <em>provider supply</em>, though &mdash; a therapist has finite hours.</td></tr>
+<tr><td><strong>SimplePractice / TherapyNotes</strong></td><td>Paid practice-management SaaS &amp; EHR</td><td>Headway&rsquo;s free EHR is a direct attack on this category&rsquo;s pricing. Every provider who consolidates onto Headway&rsquo;s EHR is a provider who is much harder to churn.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">The uncomfortable strategic truth to have an answer for</div>
+<p>Providers <strong>multi-tenant</strong>. The same therapist can be on Headway <em>and</em> Alma <em>and</em> Grow Therapy, cherry-picking whichever sends the best-fitting referrals and pays fastest. That makes the marketplace far less defensible than it looks. The two things that actually create lock-in are (a) <strong>being the system of record for their practice</strong> &mdash; calendar, notes, clients, claims history &mdash; which is exactly what the free EHR does, and (b) <strong>utilization</strong>: whoever fills their calendar owns them. If asked &ldquo;what&rsquo;s your moat?&rdquo;, that is the answer, and it is an <em>engineering</em> answer: the moat is the depth of the portal, not the size of the directory.</p>
+</div>
+
+<div class="quiz" data-question="Who pays Headway?" data-options="Providers, via a monthly subscription|Patients, via a per-session platform fee|Payers &mdash; Headway takes a share of the insurance reimbursement|Employers, as a benefits contract" data-answer="2" data-explanation="Headway is free to both providers and patients. It is paid out of the insurance reimbursement it unlocks, which is why claim acceptance and denial rates are margin, not back-office trivia. Alma is the subscription model; Lyra and Spring Health are the employer-paid model."></div>
+
+<div class="quiz" data-question="Why is provider supply the growth constraint rather than patient demand?" data-options="Patients rarely want therapy|Demand for affordable in-network therapy vastly exceeds the supply of insurance-accepting therapists, so each credentialed provider is incremental revenue|Payers cap the number of patients|Headway limits patient signups deliberately" data-answer="1" data-explanation="More than a third of psychologists take no insurance at all, and the out-of-network rate for psychologist visits is ~10x that of medical specialists. Demand is effectively unlimited; supply is the bottleneck. That is the entire strategic justification for a Provider Growth org."></div>
+
+<div class="quiz" data-question="What is the most useful reading of the March 2026 Tezi acquisition?" data-options="Headway is pivoting to selling AI tools|Headway bought a human-in-the-loop agentic workflow team, signalling that admin workflows like credentialing and onboarding are the target for automation|It was purely a talent grab with no product thesis|Headway is replacing therapists with AI" data-answer="1" data-explanation="Tezi's stated specialty was combining human judgment with AI agents inside complex workflows. Acquiring that team months before hiring a Head of Provider Experience whose core problem is manual onboarding at 10K/quarter points at one thesis: automate the workflow, keep the human on exceptions."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Headway founding" data-back="April 2019, NYC. Andrew Adams (CEO), Jake Sussman, Dan Ross, Kevin Chan. Adams could not find an in-network therapist after moving to NYC."></div>
+  <div class="flashcard" data-front="Valuation &amp; funding" data-back="$2.3B after a $100M Series D led by Spark Capital. ~$325M+ total across six rounds. Investors: a16z, Thrive, Accel, Spark, Forerunner."></div>
+  <div class="flashcard" data-front="Out-of-network disparity" data-back="18.2% of psychologist office visits go out-of-network vs 1.7% for medical specialists &mdash; roughly a 10x gap. Behavioral health reimburses ~21.8% below med/surg."></div>
+  <div class="flashcard" data-front="Free EHR launch" data-back="September 9, 2025. Insurance-native, free, AI-assisted notes with audit-ready insurance-optimized templates, telehealth, scheduling, billing, client comms, automatic benefits verification."></div>
+  <div class="flashcard" data-front="Tezi acquisition" data-back="March 31, 2026. Human-in-the-loop AI agent team. Cofounder Raghavendra Prabhu became VP Engineering (ex-Google, Microsoft, Twitter, Pinterest, Thumbtack, Covariant)."></div>
+  <div class="flashcard" data-front="The multi-tenanting problem" data-back="Providers list on Headway AND Alma AND Grow Therapy simultaneously. Lock-in comes from being the practice system of record (free EHR) and from filling their calendar &mdash; not from directory size."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(1)" id="completeBtn1">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODULE 2 ==================== -->
+<div class="module" id="mod2" data-module="2">
+<div class="module-header" onclick="toggleModule(2)">
+  <span class="module-number" id="modNum2">2</span>
+  <span class="module-title">The Provider Experience Org &mdash; What You&rsquo;d Own</span>
+  <span class="module-chevron" id="modChev2">&#9660;</span>
+</div>
+<div class="module-body" id="modBody2">
+<div class="module-content">
+
+<h3>The Shape Of The Job</h3>
+
+<p>Two sub-orgs under one leader, at wildly different maturity levels. That asymmetry <em>is</em> the job, and naming it early is one of the strongest things you can do in any of the three interviews.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th></th><th>Provider Growth</th><th>Provider Experience</th></tr></thead>
+<tbody>
+<tr><td><strong>Headcount</strong></td><td>~5&ndash;6 engineers</td><td>~35 engineers</td></tr>
+<tr><td><strong>Age</strong></td><td>~6 months old</td><td>Established</td></tr>
+<tr><td><strong>Owns</strong></td><td>Referral engine, marketing web experiences, lead capture &amp; routing, onboarding funnel</td><td>Provider portal, calendar &amp; scheduling, telehealth, transcription, note-taking, post-session summarization, eval platform</td></tr>
+<tr><td><strong>System of record</strong></td><td><span class="pill r">Salesforce</span> for leads &mdash; sales-owned, not product-owned</td><td>Headway&rsquo;s own platform &amp; EHR</td></tr>
+<tr><td><strong>Core problem</strong></td><td>No self-serve path. ~10K providers/quarter onboarded <em>manually</em>.</td><td>Depth, reliability and AI quality in a product that is now the provider&rsquo;s daily driver</td></tr>
+<tr><td><strong>Your first job</strong></td><td>Build the team and the funnel from near-zero</td><td>Don&rsquo;t break it; raise the ceiling on AI quality</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-key">
+<div class="callout-label">The sentence to have ready</div>
+<p>&ldquo;These are two different jobs wearing one title. Provider Growth is a <strong>0&rarr;1 problem with a startup team</strong> &mdash; the work is finding the funnel, instrumenting it, and earning the right to automate it. Provider Experience is a <strong>1&rarr;n problem with a mature team</strong> &mdash; the work is quality, reliability, and making the AI features actually trustworthy. I&rsquo;d run them on different cadences, different risk tolerances, and different definitions of done, and I&rsquo;d be explicit with both teams about which mode they&rsquo;re in.&rdquo;</p>
+</div>
+
+<h3>Provider Growth &mdash; The Manual Onboarding Problem</h3>
+
+<p>Today the path looks roughly like this, and almost none of it is software the provider drives:</p>
+
+<div class="ascii-diagram"><pre><code>  Marketing / referral  ──▶  LEAD  ──▶  Salesforce (system of record)
+                                          │
+                                          ▼
+                              Sales rep reaches out (manual)
+                                          │
+                                          ▼
+                              Rep collects: license, NPI, CAQH,
+                              malpractice, W-9, practice details
+                                          │
+                                          ▼
+                              Credentialing ops: primary source
+                              verification, payer enrollment
+                                          │
+                                          ▼
+                              Panel assignment  ──▶  ACTIVE PROVIDER
+                              (target: live in &lt;30 days)
+
+  Every arrow above is a human. At ~10K/quarter that is
+  ~110 providers per business day flowing through a
+  people-shaped pipeline.
+</code></pre></div>
+
+<h4>Run the capacity math &mdash; out loud, in the interview</h4>
+
+<p>~10,000 providers per quarter is about <strong>110 per business day</strong>. If a rep can meaningfully touch, say, 6&ndash;8 new providers a day end-to-end, that pipeline needs on the order of <strong>15&ndash;20 full-time humans just to hold current volume</strong>, before any growth. To double provider adds, you hire double the reps &mdash; unless the funnel becomes software.</p>
+
+<div class="callout callout-gold">
+<div class="callout-label">Say the number, then say the caveat</div>
+<p>Don&rsquo;t assert the 6&ndash;8/day figure as fact &mdash; you don&rsquo;t have it. Say: <em>&ldquo;I don&rsquo;t know your reps&rsquo; actual throughput, but the shape of the problem is linear headcount scaling. If a rep handles roughly N a day, you need 110/N reps to stand still. The first thing I&rsquo;d instrument is time-per-provider by funnel stage, because that number tells you whether to automate the top of the funnel or the credentialing middle &mdash; and those are completely different engineering investments.&rdquo;</em> That is a leader reasoning, not a candidate guessing.</p>
+</div>
+
+<h4>Why &ldquo;Salesforce is the SOT&rdquo; is the interesting part</h4>
+
+<p>This one detail tells you more about the org than anything else on the list:</p>
+<ul>
+  <li><strong>The lead data model is owned by RevOps, not Engineering.</strong> Schema changes go through a different org with a different roadmap. Any self-serve funnel you build either writes into Salesforce or fights it.</li>
+  <li><strong>You cannot build a great self-serve experience on top of a CRM.</strong> Salesforce is excellent at what a rep needs and wrong for what an applicant needs &mdash; no resumable application state, no document upload UX, no idempotent verification workflow, no real-time status for the provider.</li>
+  <li><strong>But ripping it out on day one is a political and operational mistake.</strong> Sales runs on it. Forecasting runs on it. The correct move is a <strong>strangler-fig migration</strong>: stand up an owned Provider Application service as the SOT for <em>application state</em>, keep Salesforce as the SOT for <em>the commercial relationship</em>, and sync one direction with a clear contract. Module 5 designs this properly.</li>
+</ul>
+
+<h3>Provider Experience &mdash; The ~35-Engineer Product Suite</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Surface</th><th>What it does</th><th>The hard part</th></tr></thead>
+<tbody>
+<tr><td><strong>Provider portal</strong></td><td>The daily driver: clients, calendar, documentation, billing status, payouts</td><td>It is now the provider&rsquo;s <em>system of record</em>. Downtime is a cancelled session; a data bug is a compliance event.</td></tr>
+<tr><td><strong>Calendar &amp; scheduling</strong></td><td>Availability, booking, reschedules, no-show handling, external calendar sync</td><td>Double-booking, timezone/DST correctness, two-way sync with Google/Outlook, and the fact that a scheduling bug directly destroys provider trust.</td></tr>
+<tr><td><strong>Telehealth</strong></td><td>Embedded video sessions</td><td>Real-time media quality on consumer networks, HIPAA-eligible infrastructure and BAAs, graceful degradation, and never being the reason a session fails.</td></tr>
+<tr><td><strong>Transcription</strong></td><td>Session audio &rarr; text</td><td>Consent capture, PHI handling, speaker diarization, clinical vocabulary, accents, and cost per hour of audio.</td></tr>
+<tr><td><strong>Note-taking &amp; post-session summarization</strong></td><td>Session &rarr; insurance-ready progress note (SOAP/DAP style)</td><td>The note must survive a payer audit. Hallucinated content in a clinical record is the highest-severity failure mode in the entire product.</td></tr>
+<tr><td><strong>Eval platform</strong></td><td>Measuring AI output quality; teams are centralizing on it</td><td>Defining &ldquo;good&rdquo; for a clinical note, building gold-standard datasets with clinician labels, and gating deploys on eval regressions.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">On the eval platform name</div>
+<p>You noted it as <strong>&ldquo;Lenssmith.&rdquo;</strong> There is no widely-known public product by that name; the closest public tool is <strong>LangSmith</strong> (LangChain&rsquo;s tracing + evaluation platform: datasets, LLM-as-judge evaluators, human annotation queues, online evals on production traces). It may be an internal codename, or it may be LangSmith heard once in a fast conversation. <em class="hl">Do not guess in the room.</em> Ask it as a real question &mdash; &ldquo;tell me about the eval platform teams are standardizing on; is that built in-house or on top of something like LangSmith?&rdquo; &mdash; and then talk about eval <em>practice</em>, which is what they actually care about: golden datasets, clinician-labeled ground truth, regression gates in CI, and online eval on production traffic. Module 5 has the substance.</p>
+</div>
+
+<h3>Org Design: 40 &rarr; 60&ndash;70 In A Year</h3>
+
+<p>Growing an org by ~60% in twelve months is the part of this job that most quietly determines whether you succeed. Some structure to bring:</p>
+
+<h5>The team-shape principle</h5>
+<p>Cut teams along <strong>durable domain boundaries</strong>, not along projects. A team named &ldquo;Self-Serve Onboarding&rdquo; has a lifespan; a team named &ldquo;Provider Activation&rdquo; owns a funnel forever. Stream-aligned teams that own an outcome and its on-call, with a small platform capability underneath if and only if two or more streams need the same thing.</p>
+
+<h5>A plausible target topology</h5>
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Team</th><th>Owns</th><th>Today</th><th>Target</th></tr></thead>
+<tbody>
+<tr><td>Provider Acquisition</td><td>Referral engine, marketing web, lead capture &amp; routing</td><td>~3</td><td>6&ndash;8</td></tr>
+<tr><td>Provider Activation / Onboarding</td><td>Self-serve application, document intake, status &amp; nudges</td><td>~3</td><td>8&ndash;10</td></tr>
+<tr><td>Credentialing Systems</td><td>Verification, payer enrollment, ops tooling, exception queues</td><td>&mdash;</td><td>6&ndash;8 <span class="pill g">new</span></td></tr>
+<tr><td>Portal Core</td><td>Client management, navigation, permissions, performance</td><td>~10</td><td>10&ndash;12</td></tr>
+<tr><td>Scheduling &amp; Calendar</td><td>Availability, booking, sync, reminders, no-shows</td><td>~8</td><td>8&ndash;10</td></tr>
+<tr><td>Telehealth</td><td>Video session experience &amp; reliability</td><td>~5</td><td>5&ndash;7</td></tr>
+<tr><td>Clinical AI (notes, summarization)</td><td>Capture &rarr; transcript &rarr; note pipeline, evals</td><td>~8</td><td>12&ndash;15</td></tr>
+</tbody>
+</table>
+</div>
+<p class="tagrow"><span class="pill">Illustrative, not prescriptive</span><span class="pill g">Present it as a hypothesis you&rsquo;d test in your first 30 days</span></p>
+
+<h5>The hiring math nobody asks about but everyone judges</h5>
+<ul>
+  <li><strong>~25 net hires in a year is roughly 2 per month, sustained.</strong> At a realistic offer-accept and top-of-funnel ratio that is on the order of a hundred-plus screens. That is a <em>recruiting operation</em>, and your calendar is the constraint.</li>
+  <li><strong>You need managers before you need engineers.</strong> Seven teams needs 5&ndash;7 EMs. If you have fewer today, your first-quarter hiring priority is leadership and senior ICs, not headcount volume &mdash; because every unmanaged team you create becomes your direct report.</li>
+  <li><strong>Protect the ratio.</strong> Onboarding 25 people into an org of 40 means at peak, a third of your engineers are ramping. Guard senior:junior mix, keep an explicit onboarding buddy system, and expect a temporary velocity dip &mdash; say that out loud rather than promising linear output. Leaders who promise linear output from linear headcount get found out in the first quarter.</li>
+</ul>
+
+<div class="callout callout-tip">
+<div class="callout-label">A strong, honest line about the 6-month-old team</div>
+<p>&ldquo;A six-month-old team of five that has been shipping into a manual process usually has more <em>tribal knowledge</em> than documentation, and their instinct will be to keep unblocking sales one ticket at a time &mdash; because that&rsquo;s what got them praised. The first thing I&rsquo;d do isn&rsquo;t reorg them, it&rsquo;s sit with the reps and the credentialing ops team for a week and watch the actual work. Then I&rsquo;d give that team one measurable outcome to own instead of a queue.&rdquo;</p>
+</div>
+
+<div class="quiz" data-question="Why is 'Salesforce is the system of record for leads' the most strategically loaded fact about Provider Growth?" data-options="Salesforce is slow|The lead data model is owned by RevOps rather than Engineering, so any self-serve funnel must either write into it or fight it &mdash; and a CRM cannot host a good applicant experience|Salesforce cannot store documents|It means the team has no engineers" data-answer="1" data-explanation="A CRM is built for what a rep needs, not what an applicant needs &mdash; no resumable application state, no document intake UX, no real-time provider-facing status. And because RevOps owns the schema, changes cross an org boundary. The answer is a strangler-fig split: own application state, leave the commercial relationship in Salesforce."></div>
+
+<div class="quiz" data-question="Roughly how many providers per business day does ~10,000/quarter represent?" data-options="About 10|About 40|About 110|About 400" data-answer="2" data-explanation="~10,000 per quarter over roughly 65 business days is about 110 per day. Being able to convert a quarterly number into a daily operational load in your head is exactly the reflex that reads as 'this person has run a funnel before.'"></div>
+
+<div class="quiz" data-question="When splitting a growing org into teams, which boundary is more durable?" data-options="One team per project currently on the roadmap|Teams aligned to a domain or outcome that persists after the project ships|One team per technology (frontend team, backend team, mobile team)|Teams organised by seniority" data-answer="1" data-explanation="Project-named teams have a lifespan and must be re-formed constantly; outcome-aligned teams ('Provider Activation') own a funnel and its on-call indefinitely. Technology-layer teams create a handoff for every user-visible change."></div>
+
+<button class="complete-btn" onclick="completeModule(2)" id="completeBtn2">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODULE 3 ==================== -->
+<div class="module" id="mod3" data-module="3">
+<div class="module-header" onclick="toggleModule(3)">
+  <span class="module-number" id="modNum3">3</span>
+  <span class="module-title">PRD Jam Session &mdash; Severin Kibby (Tue 2:00 PM)</span>
+  <span class="module-chevron" id="modChev3">&#9660;</span>
+</div>
+<div class="module-body" id="modBody3">
+<div class="module-content">
+
+<div class="session-card">
+  <div class="s-when">Tuesday, August 4, 2026 &middot; 2:00&ndash;2:45 PM &middot; 45 minutes</div>
+  <div class="s-who">Severin Kibby &mdash; Product leader, Headway (SF-based)</div>
+  <div class="s-what">A working session, not a presentation. You are being evaluated on whether a product leader would <em>want you in the room</em> when the roadmap gets decided.</div>
+</div>
+
+<h3>What A &ldquo;PRD Jam&rdquo; Actually Is</h3>
+
+<p>Expect one of three formats. Prepare for all three &mdash; they share the same core skill.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Format</th><th>What happens</th><th>What they&rsquo;re testing</th></tr></thead>
+<tbody>
+<tr><td><strong>Blank page</strong></td><td>&ldquo;Let&rsquo;s write a PRD for self-serve provider onboarding together.&rdquo;</td><td>Can you frame a problem before jumping to a solution? Do you pick metrics that mean something?</td></tr>
+<tr><td><strong>Critique</strong></td><td>They hand you a real (or deliberately flawed) PRD and ask what you&rsquo;d change.</td><td>Do you find the missing success metric and the unstated assumption &mdash; or just the typos?</td></tr>
+<tr><td><strong>Live collaboration</strong></td><td>They start writing and pull you in; it becomes a back-and-forth.</td><td>Are you additive or obstructive? Do you build on their idea or restart from yours?</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-key">
+<div class="callout-label">The single biggest thing they&rsquo;re measuring</div>
+<p>Whether an <em>engineering</em> leader can hold a <strong>product</strong> conversation without either (a) collapsing into implementation detail, or (b) waving away feasibility to sound visionary. The winning posture: <strong>you carry the feasibility and sequencing, they carry the customer and the market, and you visibly enjoy the trade.</strong> When you hear a scope idea, your reflex should be &ldquo;here&rsquo;s what that costs and here&rsquo;s a cheaper 80% version&rdquo; &mdash; not &ldquo;that&rsquo;s hard.&rdquo;</p>
+</div>
+
+<h3>The First Five Minutes &mdash; Do Not Skip This</h3>
+
+<p>The most common failure in a PRD jam is starting to write immediately. Spend the first 4&ndash;5 minutes establishing the frame. Say something close to:</p>
+
+<div class="callout callout-quote">
+<div class="callout-label">Opening script</div>
+<p>&ldquo;Before I start writing &mdash; can I ask four questions so I&rsquo;m solving the right problem? First, <strong>who is the customer here</strong>: is this the therapist who has never taken insurance, or the one already on Alma who&rsquo;s adding a second platform? Second, <strong>what breaks if we do nothing</strong> &mdash; are we capacity-constrained on ops headcount, or are we losing leads at the top? Third, <strong>what&rsquo;s the constraint I should design inside</strong> &mdash; is credentialing turnaround a hard 30-day commitment we&rsquo;ve made to providers? And fourth, <strong>what does success look like to you</strong> in a number, six months out? I&rsquo;ll write toward whatever you tell me.&rdquo;</p>
+</div>
+
+<p>Then <em class="hl">write on the shared surface as you go</em>. If it is a video call with a doc, ask to share and type. A candidate who narrates a PRD is doing a presentation; a candidate who builds one visibly is doing the job.</p>
+
+<h3>The PRD Skeleton To Have Memorized</h3>
+
+<p>Eight headings. You should be able to write these from muscle memory in under a minute:</p>
+
+<div class="prd-box">
+<p><strong>1. Problem</strong> &mdash; whose pain, how big, evidence.<br>
+<strong>2. Why now</strong> &mdash; what changed that makes this urgent.<br>
+<strong>3. Goals &amp; non-goals</strong> &mdash; explicitly what we are <em>not</em> doing.<br>
+<strong>4. Success metrics</strong> &mdash; one primary, 2&ndash;3 supporting, 2&ndash;3 guardrails.<br>
+<strong>5. Users &amp; jobs</strong> &mdash; personas and the job each is hiring us for.<br>
+<strong>6. Solution &amp; user stories</strong> &mdash; the experience, then the requirements.<br>
+<strong>7. Technical approach &amp; phasing</strong> &mdash; V0 / V1 / V2 with what each proves.<br>
+<strong>8. Risks, dependencies, open questions</strong> &mdash; named owners where possible.</p>
+</div>
+
+<div class="callout callout-tip">
+<div class="callout-label">The two headings that separate senior from junior</div>
+<p><strong>Non-goals</strong> and <strong>guardrail metrics</strong>. Anyone can list features. Explicitly writing &ldquo;we are not automating credentialing decisions in V1&rdquo; and &ldquo;we will not ship if provider quality-score distribution shifts more than X&rdquo; is what tells a product leader you have shipped things that could have gone wrong.</p>
+</div>
+
+<h3 id="worked-prd">Worked PRD &mdash; Self-Serve Provider Onboarding</h3>
+
+<p>This is your prepared artifact. Read it twice before Tuesday; do not recite it. Its job is to make you fluent, so that when Severin pushes on any section you already have three sentences ready.</p>
+
+<div class="prd-box">
+
+<h4>1. Problem</h4>
+<p>Every provider who joins Headway today is onboarded by a human. Marketing and referrals generate a lead, it lands in Salesforce, a sales rep works it manually, and credentialing operations pushes it through license verification and payer enrollment by hand. At roughly <strong>10,000 providers per quarter &mdash; about 110 per business day &mdash; onboarding capacity is a function of headcount, not software.</strong></p>
+<p>Three costs follow: (a) provider growth is capped by how fast we hire and train ops staff; (b) high-intent providers wait in a queue and some churn to Alma or Grow Therapy while they wait; (c) our most experienced reps spend their day on data entry for providers who would have completed a form unassisted.</p>
+
+<h5>Evidence to ask for (and to say you&rsquo;d ask for)</h5>
+<ul>
+  <li>Lead &rarr; application-start &rarr; application-complete &rarr; credentialed &rarr; first-session conversion, by stage, with time-in-stage.</li>
+  <li>Median and p90 days from lead created to first billable session &mdash; the number that actually matters.</li>
+  <li>Rep-hours per activated provider, split by funnel stage.</li>
+  <li>Reason codes for drop-off: missing documents? verification failure? provider went dark? panel closed?</li>
+</ul>
+
+<h4>2. Why now</h4>
+<ul>
+  <li>Volume has crossed the point where linear ops scaling is the binding constraint on company growth.</li>
+  <li>The org just acquired a team (Tezi) whose specialty is human-in-the-loop agentic workflow &mdash; the exact capability this problem needs.</li>
+  <li>The free EHR gives newly-activated providers somewhere to land, so activation now converts into retention rather than a directory listing.</li>
+  <li>Competitors are advertising fast onboarding directly to the same providers. Time-to-first-session is a competitive surface, not just an internal efficiency metric.</li>
+</ul>
+
+<h4>3. Goals &amp; non-goals</h4>
+<p><strong>Goals</strong></p>
+<ul>
+  <li>A provider can go from &ldquo;interested&rdquo; to &ldquo;submitted, verified application&rdquo; without talking to a human.</li>
+  <li>Rep time shifts from data collection to exception handling and high-value conversion.</li>
+  <li>Providers get continuous, self-serve visibility into their own status.</li>
+</ul>
+<p><strong>Non-goals (V1)</strong></p>
+<ul>
+  <li><em class="hl">We do not automate the credentialing decision.</em> Software gathers and verifies; a qualified human still approves. This is a regulatory and trust boundary, not a technical limitation.</li>
+  <li>We do not replace Salesforce as the commercial system of record.</li>
+  <li>We do not redesign payer enrollment contracts or negotiate new panel rules.</li>
+  <li>We do not build self-serve for edge segments in V1 (group practices, prescribers with DEA requirements, multi-state licensure) &mdash; they route to assisted flow.</li>
+</ul>
+
+<h4>4. Success metrics</h4>
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Type</th><th>Metric</th><th>Why this one</th></tr></thead>
+<tbody>
+<tr><td><strong>Primary</strong></td><td><strong>% of activated providers who complete onboarding with zero rep touches</strong></td><td>Directly measures whether the funnel became software. Resistant to gaming &mdash; you cannot fake it with a prettier form.</td></tr>
+<tr><td>Supporting</td><td>Median &amp; p90 days from lead &rarr; first billable session</td><td>The provider-felt outcome. p90 matters more than median: the tail is where churn lives.</td></tr>
+<tr><td>Supporting</td><td>Rep-hours per activated provider</td><td>Converts the win into a capacity number the business can plan against.</td></tr>
+<tr><td>Supporting</td><td>Application start &rarr; submit completion rate</td><td>Isolates funnel UX quality from downstream credentialing throughput.</td></tr>
+<tr><td><span class="pill r">Guardrail</span></td><td>Credentialing rejection rate &amp; rework rate</td><td>If self-serve just floods ops with bad applications, we made things worse. This is the metric that kills the project if ignored.</td></tr>
+<tr><td><span class="pill r">Guardrail</span></td><td>Provider quality mix (licensure type, specialty, geography, panel fit)</td><td>Volume that shifts the network toward providers payers do not need is negative value.</td></tr>
+<tr><td><span class="pill r">Guardrail</span></td><td>Provider CSAT / NPS during onboarding, and 90-day retention</td><td>Self-serve must not mean abandoned. Retention is the honest test.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-gold">
+<div class="callout-label">The metric line to deliver deliberately</div>
+<p>&ldquo;I&rsquo;d resist making <em>number of providers onboarded</em> the primary metric. It goes up if we lower the bar, and it goes up if ops just works harder &mdash; neither of which is what this project is for. <strong>Percentage completing with zero rep touches</strong> only moves if the software actually did the job, and paired with a credentialing-rejection guardrail it can&rsquo;t be gamed by shoving junk through.&rdquo;</p>
+</div>
+
+<h4>5. Users &amp; jobs to be done</h4>
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Persona</th><th>Job they&rsquo;re hiring us for</th><th>What they need from onboarding</th></tr></thead>
+<tbody>
+<tr><td><strong>The cash-pay convert</strong><br>Established private-pay practice, never billed insurance</td><td>&ldquo;Fill my remaining slots without becoming a billing clerk&rdquo;</td><td>Reassurance and plain language. Does not know what CAQH is. Needs to be told exactly what to gather, once.</td></tr>
+<tr><td><strong>The multi-platform therapist</strong><br>Already on Alma or Grow Therapy</td><td>&ldquo;Add a second referral source with minimal setup cost&rdquo;</td><td>Speed and zero redundant data entry. Has all documents ready. Will abandon a 40-minute form.</td></tr>
+<tr><td><strong>The new graduate</strong><br>Recently licensed, building a caseload</td><td>&ldquo;Get me clients and get me paid&rdquo;</td><td>Guidance through credentialing they have never done, plus honest expectation-setting on timelines.</td></tr>
+<tr><td><strong>Credentialing ops (internal)</strong></td><td>&ldquo;Give me clean, complete, pre-verified applications&rdquo;</td><td>Exception queue with context, not a firehose. Confidence scores and provenance on every auto-verified field.</td></tr>
+<tr><td><strong>Sales rep (internal)</strong></td><td>&ldquo;Let me spend my day on the providers who need me&rdquo;</td><td>Routing that surfaces stuck or high-value applicants; visibility into self-serve progress from Salesforce.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>6. Solution &amp; user stories</h4>
+<p>The experience in one line: <strong>a resumable, progressively-disclosed application that verifies what it can automatically, tells the provider exactly what is missing, and never makes them wonder what happens next.</strong></p>
+
+<div class="ascii-diagram"><pre><code>  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+  │  1. QUALIFY  │──▶│  2. PROFILE  │──▶│  3. VERIFY   │──▶│  4. ENROLL   │
+  │  60 seconds  │   │   ~5 min     │   │  automatic   │   │  ops + auto  │
+  ├──────────────┤   ├──────────────┤   ├──────────────┤   ├──────────────┤
+  │ State        │   │ Identity     │   │ NPI lookup   │   │ Payer panel  │
+  │ Licensure    │   │ License #    │   │ License PSV  │   │ selection    │
+  │ Specialty    │   │ CAQH / NPI   │   │ Exclusion    │   │ Enrollment   │
+  │ ─────────    │   │ Malpractice  │   │  lists       │   │ submission   │
+  │ Instant      │   │ W-9 / bank   │   │ Doc parse    │   │ Status       │
+  │ eligibility  │   │ Practice     │   │  + validate  │   │  tracking    │
+  │ + expected   │   │  details     │   │ ───────────  │   │ ───────────  │
+  │ timeline     │   │ ──────────   │   │ Confidence   │   │ HUMAN        │
+  └──────────────┘   │ Save &amp;       │   │  scored →    │   │ APPROVES     │
+                     │  resume      │   │ auto-pass or │   └──────┬───────┘
+                     └──────────────┘   │ exception Q  │          │
+                                        └──────────────┘          ▼
+                                                          ┌──────────────┐
+                                                          │ 5. ACTIVATE  │
+                                                          │ Profile live │
+                                                          │ Calendar set │
+                                                          │ First booking│
+                                                          └──────────────┘
+</code></pre></div>
+
+<h5>Stage 1 &mdash; Qualify (the highest-leverage screen in the product)</h5>
+<ul>
+  <li>&ldquo;As a therapist, I answer 4&ndash;5 questions and immediately learn whether Headway can panel me in my state, and roughly how long it will take.&rdquo;</li>
+  <li>This is where you <em class="hl">disqualify early and kindly</em>. Telling someone in 60 seconds that their state panel is closed is better product <em>and</em> cheaper than a rep discovering it in week three.</li>
+  <li>It is also the honest expectation-setting moment: give a real range, not a marketing number.</li>
+</ul>
+
+<h5>Stage 2 &mdash; Profile</h5>
+<ul>
+  <li>&ldquo;As a therapist, I can start on my phone, stop, and resume on my laptop without losing anything.&rdquo; Save-on-every-field, magic-link resume, no account-creation wall before value is shown.</li>
+  <li>&ldquo;As a therapist, if I have a CAQH profile, Headway pulls what it can instead of asking me to retype it.&rdquo;</li>
+  <li>&ldquo;As a therapist, I upload a photo of my license and the system reads it rather than making me type the number.&rdquo;</li>
+  <li>Progressive disclosure: ask for banking details after approval, not before. Every field asked before the provider is committed is a drop-off risk.</li>
+</ul>
+
+<h5>Stage 3 &mdash; Verify (where the AI lives)</h5>
+<ul>
+  <li>&ldquo;As credentialing ops, I receive applications where NPI, license status, and exclusion-list checks are already run, each field carrying a confidence score and a link to its source.&rdquo;</li>
+  <li>&ldquo;As credentialing ops, anything below confidence threshold lands in an exception queue with the specific discrepancy highlighted &mdash; not the whole application re-presented for re-review.&rdquo;</li>
+  <li><strong>Design rule: the AI drafts and verifies, the human decides.</strong> Confidence-thresholded auto-pass on objective machine-checkable facts; everything subjective or ambiguous goes to a person.</li>
+</ul>
+
+<h5>Stage 4&ndash;5 &mdash; Enroll &amp; Activate</h5>
+<ul>
+  <li>&ldquo;As a therapist, I see a live status page &mdash; what stage I&rsquo;m in, what&rsquo;s blocking, what I need to do next &mdash; without emailing anyone.&rdquo; This single feature kills a large share of inbound support volume.</li>
+  <li>&ldquo;As a therapist, the moment I&rsquo;m approved I&rsquo;m walked into setting availability, because an activated provider with an empty calendar is a churned provider.&rdquo;</li>
+  <li><strong>Activation is defined as first booked session, not approval.</strong> Say this explicitly &mdash; it reframes the whole funnel and it is the kind of definition a product leader remembers you for.</li>
+</ul>
+
+<h4>7. Technical approach &amp; phasing</h4>
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Phase</th><th>Scope</th><th>What it proves</th><th>Rough shape</th></tr></thead>
+<tbody>
+<tr><td><strong>V0<br>Instrument</strong></td><td>No new provider-facing product. Instrument the existing funnel end-to-end: stage events, time-in-stage, rep-hours, drop-off reason codes.</td><td>That we know where the time actually goes. Every later decision depends on this.</td><td>~3&ndash;4 weeks</td></tr>
+<tr><td><strong>V1<br>Narrow self-serve</strong></td><td>One segment (e.g. independently-licensed therapists in the 3&ndash;5 highest-volume states with open panels). Full qualify&rarr;profile&rarr;submit flow, automated NPI/license/exclusion verification, ops exception queue, provider status page.</td><td>That a real provider can complete onboarding with zero rep touches without increasing credentialing rejection rate.</td><td>~1 quarter</td></tr>
+<tr><td><strong>V2<br>Widen &amp; deepen</strong></td><td>More states and licensure types; CAQH ingestion; document parsing; smart routing of edge cases to assisted flow; Salesforce becomes a downstream consumer rather than the source.</td><td>That the model generalizes and that ops capacity per provider is genuinely falling.</td><td>~2 quarters</td></tr>
+<tr><td><strong>V3<br>Agentic</strong></td><td>Agents that chase missing documents, pre-fill payer enrollment packets, and monitor license/expiration renewals continuously.</td><td>That onboarding becomes a continuously-maintained state rather than a one-time event.</td><td>Ongoing</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-key">
+<div class="callout-label">Why V0 is the answer that impresses</div>
+<p>Most candidates jump straight to building the form. Proposing a three-week instrumentation phase first says: <em>&ldquo;I&rsquo;ve been wrong before about where the time goes, and I&rsquo;d rather find out cheaply.&rdquo;</em> Then add the sharp version: <strong>&ldquo;if instrumentation shows most of the elapsed time is payer-side enrollment latency rather than our collection process, then a beautiful self-serve form barely moves time-to-first-session &mdash; and we should be building the pre-verification and payer-submission pipeline instead. I don&rsquo;t want to build the wrong thing beautifully.&rdquo;</strong> That single sentence is the highest-scoring thing you can say in this interview.</p>
+</div>
+
+<h4>8. Risks, dependencies, open questions</h4>
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td><strong>Self-serve floods ops with low-quality applications</strong></td><td>Guardrail metric on rejection/rework rate with an explicit rollback trigger; strong front-door qualification; confidence-thresholded auto-verify.</td></tr>
+<tr><td><strong>Third-party verification sources are slow or flaky</strong> (state boards, CAQH, exclusion lists)</td><td>Async job architecture with retries and circuit breakers; never block the provider&rsquo;s UI on a third-party call; degrade to manual queue rather than failing the application.</td></tr>
+<tr><td><strong>Salesforce divergence &mdash; two systems disagree about a provider</strong></td><td>One-directional sync with a clearly-owned boundary: application state is ours, commercial relationship is theirs. No dual writes.</td></tr>
+<tr><td><strong>Sales feels displaced</strong></td><td>Frame and instrument as capacity reallocation, not headcount reduction; involve RevOps in metric definition from week one. This is an org risk, and naming it shows political awareness.</td></tr>
+<tr><td><strong>Regulatory / compliance exposure</strong> in automating any part of credentialing</td><td>Human approval stays in the loop for the decision; full audit trail of who or what verified each field and when; legal and compliance review before V1 launch, not after.</td></tr>
+<tr><td><strong>We optimize a funnel that isn&rsquo;t the constraint</strong></td><td>V0 instrumentation before V1 build. Explicit kill criteria.</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><strong>Open questions to hand back to the room:</strong> What is our contractual or marketed commitment on credentialing turnaround? Which payer panels are actually open by state right now? What is provider retention at 90 and 180 days, and does it differ between rep-assisted and self-serve cohorts once we have both? Who owns the provider quality bar &mdash; is it defined anywhere, or is it in reps&rsquo; heads?</p>
+
+</div>
+
+<h3>Blank PRD Template &mdash; Practice With This</h3>
+
+<p>Time yourself: <strong>25 minutes</strong>, out loud, into a doc. Do it once Monday night and once Tuesday morning. Fluency, not memorization, is what survives contact with a live conversation.</p>
+
+<pre><code># PRD: [Feature name]
+Author: | Date: | Status: Draft
+
+## 1. Problem
+Who hurts, how much, and how do we know?
+[ ] Quantified with a real number
+[ ] Evidence named (or explicitly flagged as an assumption to validate)
+
+## 2. Why now
+What changed? Why is this the right quarter and not next year?
+
+## 3. Goals / Non-goals
+Goals:
+  - ...
+Non-goals (be specific and slightly uncomfortable):
+  - ...
+
+## 4. Success metrics
+Primary:     _______________  Target: ____  by: ____
+Supporting:  _______________ , _______________
+Guardrails:  _______________ , _______________
+Kill criteria: we stop or roll back if ____________
+
+## 5. Users &amp; jobs to be done
+| Persona | Job | What they need | What they fear |
+
+## 6. Solution &amp; user stories
+Experience in one sentence: ____________________
+As a [persona], I can [action], so that [outcome].
+  - ...
+Requirements: must / should / won't
+
+## 7. Technical approach &amp; phasing
+V0 (learn):  ______  proves: ______  ~__ weeks
+V1 (narrow): ______  proves: ______  ~__ weeks
+V2 (widen):  ______  proves: ______  ~__ weeks
+Key architectural decisions &amp; alternatives rejected:
+
+## 8. Risks, dependencies, open questions
+| Risk | Likelihood | Mitigation | Owner |
+Open questions for the room:
+</code></pre>
+
+<h3>If They Hand You A PRD To Critique</h3>
+
+<p>Work this checklist in order, out loud. The order itself demonstrates judgment &mdash; you go for the frame before the detail.</p>
+
+<ol>
+  <li><strong>Is the problem quantified?</strong> A PRD that opens with a solution has already lost. Ask: what number is bad today?</li>
+  <li><strong>Is the primary metric gameable?</strong> Try to hit the target in a way that harms the business. If you can, the metric is wrong.</li>
+  <li><strong>Are there guardrails and kill criteria?</strong> If nothing could make us stop, we are not running an experiment, we are executing a wish.</li>
+  <li><strong>Are non-goals present and real?</strong> &ldquo;Non-goal: world peace&rdquo; doesn&rsquo;t count. Good non-goals are things a reasonable person would have expected to be in scope.</li>
+  <li><strong>Is the phasing sequenced by risk?</strong> The riskiest assumption should be tested first and cheapest. If V1 is a six-month build before any learning, that&rsquo;s the finding.</li>
+  <li><strong>Who is missing?</strong> Almost every onboarding PRD forgets the internal user &mdash; ops, support, sales. Naming them is an easy, high-value catch.</li>
+  <li><strong>What&rsquo;s the failure mode?</strong> What does this look like when it breaks at 2am, and who gets paged?</li>
+  <li><strong>What&rsquo;s the migration/rollout path?</strong> Feature flag? Cohort? Shadow mode? Reversible?</li>
+</ol>
+
+<div class="callout callout-tip">
+<div class="callout-label">Critique etiquette that keeps you likeable</div>
+<p>Lead with what is <em>good and specific</em> (&ldquo;the segmentation into licensure types is the right cut &mdash; it&rsquo;s the thing that determines verification path&rdquo;), then frame gaps as questions rather than verdicts (&ldquo;what would make us roll this back?&rdquo; beats &ldquo;there are no kill criteria&rdquo;). You are auditioning as a peer to this person for years, not winning an argument in 45 minutes.</p>
+</div>
+
+<h3>Traps Specific To Engineering Leaders In Product Jams</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Trap</th><th>What it sounds like</th><th>Do this instead</th></tr></thead>
+<tbody>
+<tr><td>Architecting too early</td><td>&ldquo;We&rsquo;d put Kafka between the verification service and&hellip;&rdquo;</td><td>&ldquo;Technically this is an async workflow with unreliable third parties &mdash; happy to go deep on the design tomorrow with Urmila. For the PRD, what matters is that verification is asynchronous, so the UX has to be status-driven rather than blocking.&rdquo;</td></tr>
+<tr><td>Feasibility as a veto</td><td>&ldquo;That&rsquo;s not realistic this quarter.&rdquo;</td><td>&ldquo;The full version is a quarter. Here&rsquo;s the two-week version that tests the same assumption &mdash; would that answer your question?&rdquo;</td></tr>
+<tr><td>Solving instead of framing</td><td>Jumping to the form design in minute two</td><td>Spend minutes 1&ndash;5 on problem and metric. You can always speed up later; you cannot un-skip the frame.</td></tr>
+<tr><td>Not writing anything down</td><td>Purely verbal answers for 45 minutes</td><td>Ask to share a doc and type headings as you go. Visible structure reads as clarity.</td></tr>
+<tr><td>Forgetting the internal user</td><td>PRD covers only the provider</td><td>Credentialing ops and sales reps are users with their own success metrics. Name them.</td></tr>
+<tr><td>No opinion</td><td>&ldquo;It depends on what you want to prioritize.&rdquo;</td><td>Have a recommendation, state it, then state what would change your mind. &ldquo;I&rsquo;d start with V0 instrumentation. If you told me leadership has already committed to a launch date, I&rsquo;d run instrumentation in parallel with a narrow V1 instead.&rdquo;</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Practice Prompts</h3>
+<p>Give yourself 10 minutes each, out loud:</p>
+<ol>
+  <li>Write the PRD skeleton for <strong>&ldquo;provider status page&rdquo;</strong> &mdash; the smallest thing that reduces support volume. What&rsquo;s the primary metric?</li>
+  <li>Severin says: <em>&ldquo;Leadership wants 20,000 providers next quarter instead of 10,000. What do you build?&rdquo;</em> (Trap: the answer is not &ldquo;a faster form&rdquo; until you know where the bottleneck is. But you should still commit to a plan.)</li>
+  <li>Severin says: <em>&ldquo;Why not just hire 20 more ops people? It&rsquo;s cheaper than a quarter of engineering.&rdquo;</em> Argue both sides honestly, then take a position.</li>
+  <li>Critique this metric: <em>&ldquo;Success = 50% reduction in average onboarding time.&rdquo;</em> (At least four problems: average vs p90, whose time, gameable by cherry-picking easy providers, no guardrail on quality.)</li>
+</ol>
+
+<details class="reveal">
+<summary>Model answer to prompt 3 &mdash; &ldquo;why not just hire more ops people?&rdquo;</summary>
+<p>&ldquo;Honestly, for the next two quarters, hiring is probably the faster lever, and I wouldn&rsquo;t pretend otherwise &mdash; a rep is productive in weeks and a platform isn&rsquo;t. So I&rsquo;d likely do both.</p>
+<p>The reason I wouldn&rsquo;t <em>only</em> hire is that headcount buys throughput but not the three things we actually need. It doesn&rsquo;t reduce variance &mdash; humans onboard inconsistently and quality drifts as you scale the team. It doesn&rsquo;t produce data &mdash; a manual process generates almost no structured signal about why providers drop off, so we stay blind. And it doesn&rsquo;t compound &mdash; the twentieth rep costs the same as the first, whereas the verification pipeline gets cheaper per provider forever.</p>
+<p>The way I&rsquo;d frame the decision: if we believe provider adds need to grow 3&ndash;5x over three years, linear ops scaling puts us at a headcount number the business won&rsquo;t accept, and we&rsquo;d be starting the platform work then with less data than we have now. So: hire for this quarter&rsquo;s number, build for next year&rsquo;s, and make the ops team the design partner rather than the thing being replaced.&rdquo;</p>
+</details>
+
+<div class="quiz" data-question="What should the primary success metric be for self-serve provider onboarding?" data-options="Total number of providers onboarded per quarter|Percentage of activated providers who complete onboarding with zero rep touches|Average time to complete the application form|Number of applications started" data-answer="1" data-explanation="Total providers onboarded goes up if ops simply works harder or if the quality bar drops &mdash; it does not measure whether the funnel became software. Zero-rep-touch completion only moves when the product actually works, and paired with a credentialing-rejection guardrail it cannot be gamed by pushing bad applications through."></div>
+
+<div class="quiz" data-question="Why propose a V0 instrumentation phase before building the self-serve flow?" data-options="To delay the project|Because if most elapsed time is payer-side enrollment latency rather than data collection, a beautiful form barely moves time-to-first-session|Because instrumentation is easier than product work|Because PRDs require four phases" data-answer="1" data-explanation="Three weeks of instrumentation is cheap insurance against a quarter of building the wrong thing beautifully. It also converts the whole discussion from opinion to data, and it demonstrates the kind of intellectual honesty that senior product partners look for."></div>
+
+<div class="quiz" data-question="Which non-goal is the most important one to state explicitly in V1?" data-options="We will not support dark mode|We will not automate the credentialing decision itself &mdash; software gathers and verifies, a qualified human approves|We will not build a mobile app|We will not localise the product" data-answer="1" data-explanation="It is a regulatory and trust boundary, not a scoping convenience. Saying it out loud shows you understand that in healthcare the interesting constraint is usually compliance, and it sets up the human-in-the-loop architecture that the Tezi acquisition already points toward."></div>
+
+<div class="quiz" data-question="An engineering leader in a PRD jam is asked for something that is clearly a quarter of work. Best response?" data-options="Say it is not feasible this quarter|Agree and worry about it later|Name the full cost, then immediately offer a cheaper version that tests the same assumption|Redirect to the systems design interview" data-answer="2" data-explanation="Feasibility used as a veto makes you the person product leaders route around. Feasibility used to generate cheaper options that test the same assumption makes you the person they plan with. Always pair the constraint with an alternative."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="The 8 PRD headings" data-back="1 Problem, 2 Why now, 3 Goals &amp; non-goals, 4 Success metrics, 5 Users &amp; jobs, 6 Solution &amp; user stories, 7 Technical approach &amp; phasing, 8 Risks &amp; open questions."></div>
+  <div class="flashcard" data-front="Primary metric for self-serve onboarding" data-back="% of activated providers completing with ZERO rep touches. Guardrails: credentialing rejection/rework rate, provider quality mix, 90-day retention."></div>
+  <div class="flashcard" data-front="The V1 non-goal that matters most" data-back="We do not automate the credentialing DECISION. AI gathers and verifies with confidence scores; a qualified human approves. Regulatory and trust boundary."></div>
+  <div class="flashcard" data-front="Definition of activation" data-back="First booked session &mdash; not approval. An approved provider with an empty calendar is a churned provider."></div>
+  <div class="flashcard" data-front="The best single line in the jam" data-back="&lsquo;If instrumentation shows the elapsed time is payer-side enrollment latency, a beautiful self-serve form barely moves time-to-first-session. I don&rsquo;t want to build the wrong thing beautifully.&rsquo;"></div>
+  <div class="flashcard" data-front="Handling &lsquo;that&rsquo;s a quarter of work&rsquo;" data-back="Never veto. Name the cost, then offer the two-week version that tests the same assumption. Feasibility is a tool for generating options, not for saying no."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(3)" id="completeBtn3">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODULE 4 ==================== -->
+<div class="module" id="mod4" data-module="4">
+<div class="module-header" onclick="toggleModule(4)">
+  <span class="module-number" id="modNum4">4</span>
+  <span class="module-title">Results &amp; Growth Mindset &mdash; Dennis Zhao (Wed 1:00 PM)</span>
+  <span class="module-chevron" id="modChev4">&#9660;</span>
+</div>
+<div class="module-body" id="modBody4">
+<div class="module-content">
+
+<div class="session-card">
+  <div class="s-when">Wednesday, August 5, 2026 &middot; 1:00&ndash;1:45 PM &middot; 45 minutes</div>
+  <div class="s-who">Dennis Zhao &mdash; Director of Product, Headway (previously product lead for Cash at Robinhood)</div>
+  <div class="s-what">Behavioral interview on <em>results</em> and <em>growth mindset</em>. Expect metrics-forward questions and follow-ups that dig for what you personally did.</div>
+</div>
+
+<h3>Read The Interviewer</h3>
+
+<p>Someone who led a consumer fintech growth product brings a specific set of instincts to a behavioral interview. Calibrate to them:</p>
+
+<ul>
+  <li><strong>Numbers as native language.</strong> &ldquo;We improved things a lot&rdquo; will be met with silence, then &ldquo;by how much?&rdquo;. Come with baseline &rarr; delta &rarr; timeframe for every story.</li>
+  <li><strong>Funnels, cohorts, and experiments.</strong> Growth-product people think in conversion steps, retention curves, and what was actually A/B tested versus asserted. If you shipped something without measurement, say so plainly and say what you&rsquo;d do differently.</li>
+  <li><strong>Speed and scrappiness.</strong> Expect appreciation for &ldquo;we got a crude version in front of users in two weeks&rdquo; over &ldquo;we designed it thoroughly for a quarter.&rdquo;</li>
+  <li><strong>Regulated-environment fluency.</strong> Fintech and healthtech share a shape: you cannot ship whatever you want, compliance is a real constraint, and the best people treat it as a design input rather than a blocker. Lean into any experience you have here.</li>
+  <li><strong>Attribution honesty.</strong> Strong interviewers probe hard on &ldquo;we&rdquo; versus &ldquo;I.&rdquo; Be precise about your own contribution and generous about everyone else&rsquo;s.</li>
+</ul>
+
+<div class="callout callout-key">
+<div class="callout-label">The reframe that makes your stories land at Headway</div>
+<p>Whatever domain your stories come from, translate the outcome into <strong>marketplace supply</strong> terms. Headway&rsquo;s growth is gated by provider supply. So a story about developer adoption, seller onboarding, partner integration, user activation, or content-creator growth is <em>structurally the same problem</em> &mdash; a supply-side funnel with verification friction. Say the analogy out loud: &ldquo;the shape of that problem is what you have with providers &mdash; high-intent supply stuck behind a manual verification step.&rdquo;</p>
+</div>
+
+<h3>Build Your Story Bank First</h3>
+
+<p>You need <strong>six to eight</strong> stories, each usable for multiple questions. Fill this table before Tuesday night. Write the numbers down &mdash; under pressure, unrehearsed numbers turn into &ldquo;a significant improvement.&rdquo;</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>#</th><th>Story slot</th><th>Must contain</th><th>Also answers</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>Scaled a team</strong> (small &rarr; large)</td><td>Starting size, ending size, timeframe, how you kept quality, what broke</td><td>Org design, hiring, managing managers</td></tr>
+<tr><td>2</td><td><strong>Built something from zero</strong> in ambiguity</td><td>What was undefined, how you created clarity, first milestone you set</td><td>New team, 0&rarr;1, ambiguity</td></tr>
+<tr><td>3</td><td><strong>Moved a business metric</strong></td><td>Baseline, target, actual, how you knew it was you</td><td>Results, prioritisation, data</td></tr>
+<tr><td>4</td><td><strong>Shipped under real constraints</strong></td><td>What you cut, why, what it cost, what you protected</td><td>Limited resources, trade-offs</td></tr>
+<tr><td>5</td><td><strong>Something failed</strong></td><td>Your decision that caused it, how you found out, what changed permanently</td><td>Growth mindset, failure, learning</td></tr>
+<tr><td>6</td><td><strong>Disagreed with a leader or peer</strong></td><td>The position, how you argued, the outcome even if you lost</td><td>Influence, conflict, backbone</td></tr>
+<tr><td>7</td><td><strong>Grew a person</strong></td><td>Where they started, what you did specifically, where they got to</td><td>People development, coaching, performance</td></tr>
+<tr><td>8</td><td><strong>Killed or reversed something</strong></td><td>Sunk cost, the signal you acted on, how you handled the team</td><td>Judgment, intellectual honesty</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">A real warning about story 5</div>
+<p>&ldquo;My weakness is I care too much&rdquo; and disguised-success failures (&ldquo;we launched three weeks late but it was great&rdquo;) are the fastest way to fail a growth-mindset interview. The failure story must contain <strong>a decision you made that was wrong</strong>, <strong>a cost someone actually paid</strong>, and <strong>a specific durable change in how you operate</strong>. The change is the part being graded. If you cannot name the change, pick a different story.</p>
+</div>
+
+<h3>STAR &mdash; With The Two Adjustments Senior Candidates Need</h3>
+
+<p>Standard STAR (Situation, Task, Action, Result) is table stakes. Two modifications separate a manager&rsquo;s answer from a leader&rsquo;s:</p>
+
+<div class="prd-box">
+<p><strong>S</strong> &mdash; Situation: <em>15 seconds.</em> Context and stakes only. Not org history.<br>
+<strong>T</strong> &mdash; Task: <em>15 seconds.</em> What <em>you specifically</em> were accountable for.<br>
+<strong>A</strong> &mdash; Action: <em>60&ndash;90 seconds.</em> 3&ndash;4 concrete moves, in order, with the reasoning behind each. <span class="pill g">This is 70% of the score</span><br>
+<strong>R</strong> &mdash; Result: <em>20 seconds.</em> Number, timeframe, and how you attributed it.<br>
+<strong>+L</strong> &mdash; Learning: <em>15 seconds.</em> What you do differently now, always.<br>
+<strong>+S</strong> &mdash; Scale-forward: <em>10 seconds.</em> &ldquo;The version of that problem here would be&hellip;&rdquo;</p>
+</div>
+
+<p>The <strong>+L</strong> is what the title of this interview is literally about &mdash; &ldquo;growth mindset&rdquo; is being measured by whether every story ends with evidence that you changed. The <strong>+S</strong> is what makes an interviewer picture you in the role rather than in your last job.</p>
+
+<div class="callout callout-tip">
+<div class="callout-label">Length discipline</div>
+<p>Target <strong>two to two and a half minutes</strong> per story. Under 60 seconds reads as thin; over three minutes and the interviewer stops being able to take notes. Practise with a timer &mdash; this is the single most improvable thing in the next 48 hours. End on the Result or Learning and then <em>stop talking</em>. Silence after a strong result is confident; filling it is not.</p>
+</div>
+
+<h3>The Questions, With Answer Frameworks</h3>
+
+<div class="qa-card">
+<div class="qa-q">Tell me about a time you scaled a team significantly. How did you keep quality from degrading?</div>
+<div class="qa-a"><strong>Frame:</strong> numbers first, then the three mechanisms. Growth interviewers want <em>systems</em>, not effort.
+<ul>
+<li><strong>Hiring bar as a system:</strong> a written rubric, calibrated interviewers, and a specific example of a no-hire you defended when the team was desperate for bodies. That last detail is what proves the bar was real.</li>
+<li><strong>Onboarding as a product:</strong> ramp checklist, buddy, a first-week meaningful commit. Cite your actual time-to-first-PR if you have it.</li>
+<li><strong>Managers before ICs:</strong> what your span of control did to your calendar and how you fixed it.</li>
+<li><strong>Honest cost:</strong> name the velocity dip during heavy onboarding and how long it lasted. Claiming there wasn&rsquo;t one is not credible.</li>
+</ul>
+<strong>Scale-forward:</strong> &ldquo;Going 40 to 65 here is the same shape &mdash; roughly two hires a month sustained, and it means I&rsquo;d be hiring leadership in the first quarter, not headcount volume.&rdquo;</div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">A brand-new team with no clear charter and no data. Where do you start?</div>
+<div class="qa-a"><strong>Frame:</strong> a sequence, with a deadline attached to each step.
+<ol>
+<li><strong>Go watch the work.</strong> Sit with the humans doing the manual process for a week. Not a survey &mdash; observation.</li>
+<li><strong>Instrument before opining.</strong> You cannot prioritise a funnel you cannot see.</li>
+<li><strong>Pick one number the team owns.</strong> An outcome, not a queue. Ambiguity dies when a team knows what its number is.</li>
+<li><strong>Ship something small and visible in weeks, not quarters.</strong> A new team needs a win to establish credibility with its partners.</li>
+<li><strong>Write the charter down and circulate it for disagreement.</strong> The disagreement is the point &mdash; it surfaces the stakeholders you didn&rsquo;t know you had.</li>
+</ol>
+<strong>Scale-forward:</strong> &ldquo;That&rsquo;s exactly what I&rsquo;d do with the six-month-old Provider Growth team &mdash; and I&rsquo;d expect the first surprise to be that the bottleneck isn&rsquo;t where anyone thinks it is.&rdquo;</div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">Tell me about a result you&rsquo;re proud of. How did you know it was because of you?</div>
+<div class="qa-a"><strong>Frame:</strong> this is an attribution question wearing a results costume. Nail the counterfactual.
+<ul>
+<li>State baseline, intervention, result, and timeframe in one breath.</li>
+<li>Then <em>immediately</em> address attribution: holdout group, staged rollout, a comparable segment that didn&rsquo;t get the change, or a pre/post with seasonality accounted for.</li>
+<li>If you genuinely can&rsquo;t attribute it cleanly, <strong>say so</strong> and say what you&rsquo;d instrument next time. With this interviewer, honest attribution uncertainty scores far better than a confident overclaim.</li>
+</ul></div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">Tell me about a time you failed.</div>
+<div class="qa-a"><strong>Frame:</strong> Decision &rarr; Cost &rarr; Detection &rarr; Durable change. Spend the most time on the last two.
+<ul>
+<li><strong>Own the decision</strong> in the first sentence. &ldquo;I decided X. It was wrong.&rdquo; No context-laundering first.</li>
+<li><strong>Name the cost</strong> in real units: weeks lost, a person who left, a customer commitment missed, money.</li>
+<li><strong>How you found out</strong> &mdash; and be honest if someone else had to tell you. That is a more useful story, and it sets up a better learning.</li>
+<li><strong>The durable change</strong>: a specific mechanism you now always use. &ldquo;I now write down the assumption that would make me wrong, and I put a date on when we&rsquo;ll check it.&rdquo;</li>
+</ul></div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">You have half the resources you need. What do you do?</div>
+<div class="qa-a"><strong>Frame:</strong> refuse the false choice of &ldquo;work harder.&rdquo; Show a prioritisation mechanism.
+<ul>
+<li>Rank by <em>expected value per engineer-week</em>, not by stakeholder volume.</li>
+<li><strong>Say what you will stop doing</strong>, explicitly, to whom, and when. The willingness to make the cut visible is the whole test.</li>
+<li>Look for the leveraged path &mdash; buy instead of build, a manual concierge V0, a partnership, an existing internal system.</li>
+<li>Renegotiate scope, never quality bars in a healthcare product. Be crisp about which is which.</li>
+</ul>
+<strong>Scale-forward:</strong> &ldquo;Concretely here: if I had to choose between the self-serve funnel and portal depth in the same quarter, I&rsquo;d instrument both and fund the one where the bottleneck actually is &mdash; and I&rsquo;d tell the other team clearly that they&rsquo;re not funded this quarter, rather than under-resourcing both.&rdquo;</div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">How do you decide what your team works on?</div>
+<div class="qa-a"><strong>Frame:</strong> name your actual mechanism, not a framework you read about.
+<ul>
+<li>One company-level number the org is accountable to, decomposed into team-level input metrics.</li>
+<li>A written, visible ranking that anyone can challenge &mdash; disagreement happens against the doc, not in your DMs.</li>
+<li>A reserved percentage for reliability and platform health, defended when the roadmap gets hungry. Give the actual number you used.</li>
+<li>A regular re-forecast cadence, because plans made in January are wrong by March and pretending otherwise costs trust.</li>
+</ul></div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">Tell me about a time you changed your mind about something important.</div>
+<div class="qa-a"><strong>Frame:</strong> this is the purest growth-mindset probe. The best version has three parts: what you believed and <em>why it was reasonable</em>, the specific evidence that moved you (a metric, a customer conversation, a failed launch), and what you did publicly afterwards &mdash; because changing your mind quietly doesn&rsquo;t teach the org anything. Bonus points if you told the team you had been wrong.</div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">How do you handle an underperformer?</div>
+<div class="qa-a"><strong>Frame:</strong> clarity &rarr; support &rarr; decision, on a timeline, without cruelty or avoidance.
+<ul>
+<li>Diagnose first: is it skill, will, role fit, or context? The remedies are completely different and most managers skip this.</li>
+<li>Make expectations unambiguous and written. Most &ldquo;underperformance&rdquo; is unstated expectations.</li>
+<li>Give real support with a real timebox.</li>
+<li><strong>Then decide.</strong> The most common failure of engineering leaders is waiting too long &mdash; which is unfair to the person and to the team. If you have a story where you waited too long and learned, that is a strong answer for this <em>and</em> for the failure question.</li>
+</ul></div>
+</div>
+
+<div class="qa-card">
+<div class="qa-q">Why Headway? Why this role?</div>
+<div class="qa-a"><strong>Frame:</strong> three beats, 60 seconds, no flattery.
+<ol>
+<li><strong>The problem is real and specific to you</strong> &mdash; the access gap is not abstract; a 10x out-of-network disparity is a system failing on purpose, and the fix is infrastructure, which is what you build.</li>
+<li><strong>The role is unusually well-shaped</strong> &mdash; a mature 35-person product org <em>and</em> a six-month-old 0&rarr;1 team under one leader is a rare combination, and running both modes at once is the work you want.</li>
+<li><strong>The timing</strong> &mdash; manual onboarding at 10K/quarter is exactly the kind of constraint that becomes a step-change when it&rsquo;s solved, and the company has already signalled the bet with the Tezi acquisition.</li>
+</ol></div>
+</div>
+
+<h3>Practice Protocol For Tuesday Night</h3>
+<ol>
+  <li>Write all eight story slots with real numbers. <strong>30 minutes.</strong></li>
+  <li>Record yourself telling stories 1, 3 and 5 on a phone. Play them back. Cut every story to 2:15. <strong>30 minutes.</strong></li>
+  <li>For each story, write one sentence of <strong>+S scale-forward</strong> connecting it to providers, supply, or funnels. <strong>15 minutes.</strong></li>
+  <li>Have someone ask you &ldquo;and what did <em>you</em> do?&rdquo; three times in a row on the same story. It is the most common senior-interview follow-up and it should feel comfortable, not defensive.</li>
+</ol>
+
+<div class="quiz" data-question="In a senior STAR answer, which section should take the most time?" data-options="Situation &mdash; full context is essential|Task &mdash; establishing scope|Action &mdash; the concrete moves you made and why, roughly 60 to 90 seconds|Result &mdash; the numbers are what matter" data-answer="2" data-explanation="Action is roughly 70% of the score. Situation and Task should be about 15 seconds each; Result 20 seconds. Long setups are the most common way senior candidates run out of clock before reaching the part being evaluated."></div>
+
+<div class="quiz" data-question="What must a failure story contain to satisfy a growth-mindset interview?" data-options="A failure caused by someone else that you recovered|A decision you made that was wrong, a real cost someone paid, and a specific durable change in how you now operate|A minor mistake with no consequences|A project that succeeded despite being late" data-answer="1" data-explanation="The durable change is the part actually being graded. A failure with no owned decision, no real cost, or no permanent change reads as evasion &mdash; and disguised-success stories are the fastest way to fail this interview."></div>
+
+<div class="quiz" data-question="Dennis Zhao led a consumer fintech growth product. What should you emphasise?" data-options="Deep technical architecture detail|Baseline-to-delta numbers with timeframes, funnel and cohort thinking, honest attribution, and speed to a crude first version|Length and thoroughness of your answers|How many people reported to you" data-answer="1" data-explanation="Growth-product leaders think in conversion steps, retention curves and experiments. 'We improved things' invites 'by how much?'. And honest attribution uncertainty scores better with this audience than a confident overclaim."></div>
+
+<div class="quiz" data-question="What is the '+S scale-forward' addition to STAR?" data-options="A summary of the story|A closing sentence connecting the story to the version of that problem at Headway|A second story on the same theme|Stating your salary expectation" data-answer="1" data-explanation="One sentence &mdash; 'the version of that problem here would be...' &mdash; makes the interviewer picture you in this role rather than in your last one. It costs ten seconds and changes how the whole story is remembered."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="STAR+L+S" data-back="Situation 15s, Task 15s, Action 60-90s (70% of the score), Result 20s, Learning 15s, Scale-forward 10s. Total target: 2:00-2:15."></div>
+  <div class="flashcard" data-front="The 8 story slots" data-back="1 Scaled a team. 2 Zero-to-one in ambiguity. 3 Moved a business metric. 4 Shipped under constraints. 5 Failed. 6 Disagreed with a leader. 7 Grew a person. 8 Killed something."></div>
+  <div class="flashcard" data-front="Failure story test" data-back="Owned wrong decision + real cost someone paid + how you found out + specific durable change. If you cannot name the durable change, pick another story."></div>
+  <div class="flashcard" data-front="Attribution answer" data-back="Baseline, intervention, result, timeframe &mdash; then immediately: holdout, staged rollout, comparable untreated segment, or honest 'we could not cleanly attribute, here is what I would instrument now.'"></div>
+  <div class="flashcard" data-front="Half the resources" data-back="Rank by expected value per engineer-week. Say explicitly what you will STOP. Look for the leveraged path. Renegotiate scope, never quality bars in healthcare."></div>
+  <div class="flashcard" data-front="Why Headway, 60 seconds" data-back="1) 10x out-of-network disparity is a fixable infrastructure failure. 2) A mature 35-person org plus a 0-to-1 team under one leader is a rare, well-shaped role. 3) Manual onboarding at 10K/quarter is a step-change waiting to happen, and Tezi shows they have already made the bet."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(4)" id="completeBtn4">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODULE 5 ==================== -->
+<div class="module" id="mod5" data-module="5">
+<div class="module-header" onclick="toggleModule(5)">
+  <span class="module-number" id="modNum5">5</span>
+  <span class="module-title">Systems Design &mdash; Urmila Nadkarni (Wed 2:00 PM)</span>
+  <span class="module-chevron" id="modChev5">&#9660;</span>
+</div>
+<div class="module-body" id="modBody5">
+<div class="module-content">
+
+<div class="session-card">
+  <div class="s-when">Wednesday, August 5, 2026 &middot; 2:00&ndash;3:00 PM &middot; 60 minutes</div>
+  <div class="s-who">Urmila Nadkarni &mdash; Engineering Manager, Headway</div>
+  <div class="s-what">A full hour, run by an engineer. This is where technical credibility is either established or lost &mdash; and a Head of Engineering who cannot hold a design conversation will not be trusted by 40 engineers.</div>
+</div>
+
+<h3>What A Leadership Systems Design Interview Is Actually Grading</h3>
+
+<p>It is <em>not</em> the same interview a senior IC gets. Nobody expects you to derive a consensus protocol. What an EM interviewing a prospective Head of Engineering is checking:</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>They&rsquo;re checking</th><th>What it looks like when you do it well</th></tr></thead>
+<tbody>
+<tr><td><strong>Can you scope?</strong></td><td>You spend the first 8 minutes on requirements and constraints and you write them down.</td></tr>
+<tr><td><strong>Do you reason in trade-offs?</strong></td><td>Every choice comes with the alternative you rejected and why. &ldquo;Postgres, not a queue-first design, because&hellip;&rdquo;</td></tr>
+<tr><td><strong>Do you know where the hard part is?</strong></td><td>You spend your time on the genuinely hard subsystem, not on drawing a load balancer.</td></tr>
+<tr><td><strong>Do you think about failure?</strong></td><td>You bring up what happens when the third party is down before being asked.</td></tr>
+<tr><td><strong>Do you think about operations?</strong></td><td>Who gets paged, what the dashboard shows, how you roll back, what the migration looks like.</td></tr>
+<tr><td><strong>Would engineers respect you?</strong></td><td>You&rsquo;re specific, you say &ldquo;I don&rsquo;t know&rdquo; cleanly, and you engage with their pushback instead of defending.</td></tr>
+<tr><td><strong>Do you connect design to org?</strong></td><td>&ldquo;This boundary is also a team boundary &mdash; I&rsquo;d have one team own the verification pipeline end-to-end including its on-call.&rdquo; <span class="pill g">This is your edge over an IC candidate</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>The Six-Step Frame &mdash; Use It Every Time</h3>
+
+<div class="prd-box">
+<p><strong>1. Clarify &amp; scope</strong> (5&ndash;8 min) &mdash; users, scale, latency, consistency, compliance, what&rsquo;s out of scope. Write it on the board.<br>
+<strong>2. Define the interface</strong> (3 min) &mdash; the handful of API calls or events that matter. This forces concreteness.<br>
+<strong>3. Data model</strong> (5&ndash;8 min) &mdash; the entities and their lifecycle. In healthcare, also: where does PHI live?<br>
+<strong>4. Happy-path architecture</strong> (10 min) &mdash; the boxes. Keep it boring and correct.<br>
+<strong>5. Go deep on the hard part</strong> (15&ndash;20 min) &mdash; ask which part they want to explore; have an opinion if they don&rsquo;t.<br>
+<strong>6. Failure, scale, ops, migration</strong> (10 min) &mdash; and then: <em>what would I build first, and how would I staff it?</em></p>
+</div>
+
+<div class="callout callout-key">
+<div class="callout-label">Two sentences to open with, every time</div>
+<p>&ldquo;Let me start by writing down what I think we&rsquo;re optimising for, and you tell me if I&rsquo;ve got the wrong constraint.&rdquo; &hellip;and later&hellip; &ldquo;There are two or three genuinely hard parts here &mdash; which one would be most useful to go deep on? If it&rsquo;s up to me, I&rsquo;d pick the verification pipeline, because that&rsquo;s where correctness, third-party unreliability and compliance all intersect.&rdquo;</p>
+</div>
+
+<h3>Ground Yourself In Their Actual Stack</h3>
+
+<p>From Headway&rsquo;s own public job postings (2025&ndash;2026). Referencing this naturally is a credibility multiplier &mdash; it says you did homework and it lets you design <em>in their idiom</em> rather than in the abstract:</p>
+
+<div class="table-wrapper">
+<table>
+<tbody>
+<tr><td><strong>Languages</strong></td><td>Python 3, TypeScript</td></tr>
+<tr><td><strong>Backend</strong></td><td>FastAPI, SQLAlchemy</td></tr>
+<tr><td><strong>Frontend</strong></td><td>React, Remix, Next.js</td></tr>
+<tr><td><strong>Datastores</strong></td><td>Postgres, Redis</td></tr>
+<tr><td><strong>Infrastructure</strong></td><td>AWS &mdash; ECS / Fargate, S3</td></tr>
+<tr><td><strong>Data / streaming</strong></td><td>Spark, Kafka</td></tr>
+<tr><td><strong>Observability</strong></td><td>Datadog, PagerDuty, Sentry</td></tr>
+</tbody>
+</table>
+</div>
+
+<p class="tagrow"><span class="pill g">Use it like this</span> &ldquo;I&rsquo;d put this in a FastAPI service backed by Postgres rather than reaching for anything exotic &mdash; you already run that stack and the operational cost of a new datastore usually exceeds the benefit at this scale.&rdquo;</p>
+
+<h3 id="design-1">Design 1 &mdash; Self-Serve Provider Onboarding &amp; Credentialing</h3>
+
+<p class="tagrow"><span class="pill">Most likely question</span><span class="pill">Directly the job</span><span class="pill">Prepare this one cold</span></p>
+
+<h4>Step 1 &mdash; Requirements you should state before designing</h4>
+<ul>
+  <li><strong>Functional:</strong> a provider applies without human help; documents are collected; credentials are verified against primary sources; payer enrollment is submitted; a human approves; the provider goes live and can be booked.</li>
+  <li><strong>Scale:</strong> ~110 applications/business day today, design for 10x. This is <em class="hl">low throughput and high complexity</em> &mdash; say that explicitly, because it means the design is about correctness and workflow, not QPS.</li>
+  <li><strong>Latency:</strong> the UI must be instant; verification is <em>minutes to days</em> and inherently asynchronous. Never block a form submit on a state licensing board.</li>
+  <li><strong>Consistency:</strong> strong within our own application state; eventual with Salesforce and with payers.</li>
+  <li><strong>Compliance:</strong> full audit trail &mdash; who or what verified which field, from which source, at what time. Document retention. PII and (later) PHI boundaries. Human approval is mandatory.</li>
+  <li><strong>Out of scope:</strong> patient-side matching, claims, the EHR itself.</li>
+</ul>
+
+<h4>Step 2 &mdash; The core insight: this is a long-running workflow, not a CRUD app</h4>
+
+<p>An application lives for days to weeks, spans many external systems that are slow and unreliable, must survive process restarts and deploys, and must be resumable and auditable. Model it as an explicit <strong>state machine with durable execution</strong>, not as a set of nullable columns on a <code>providers</code> table.</p>
+
+<div class="ascii-diagram"><pre><code>  DRAFT ──▶ SUBMITTED ──▶ VERIFYING ──┬──▶ AUTO_PASSED ──▶ PENDING_APPROVAL
+    ▲            │                     │                          │
+    │            │                     └──▶ EXCEPTION ──▶ (ops)────┘
+    └── resume ──┘                                │                │
+                                                  ▼                ▼
+                                            INFO_REQUESTED     APPROVED
+                                                  │                │
+                                                  └────────────────┤
+                                                                   ▼
+                                                            ENROLLING (payer)
+                                                                   │
+                                                                   ▼
+                                                              ACTIVE ──▶ first
+                                                                 │       session
+                                                                 ▼
+                                                     (continuous re-verification:
+                                                      license expiry, exclusions)
+
+  REJECTED / WITHDRAWN are terminal from most states.
+</code></pre></div>
+
+<div class="callout callout-tip">
+<div class="callout-label">The detail that lands</div>
+<p>&ldquo;I&rsquo;d make ACTIVE a state we <em>keep re-verifying</em>, not an end state. Licenses expire, exclusion lists update, and a provider who quietly falls out of good standing is a compliance incident and a claims-denial source. So the same verification pipeline runs on a schedule against the active network, not just at onboarding.&rdquo; Almost no candidate says this, and it&rsquo;s the difference between designing a form and designing a credentialing system.</p>
+</div>
+
+<h4>Step 3 &mdash; Architecture</h4>
+
+<div class="ascii-diagram"><pre><code>  ┌─────────────────────────────────────────────────────────────────┐
+  │  Provider-facing app  (Remix / Next.js)                         │
+  │  qualify · profile · document upload · live status page         │
+  └──────────────────────────────┬──────────────────────────────────┘
+                                 │  REST
+  ┌──────────────────────────────▼──────────────────────────────────┐
+  │  Application Service  (FastAPI)                                  │
+  │  • owns application state  • emits domain events                 │
+  │  • idempotent command API  • no third-party calls inline         │
+  └───┬──────────────────┬──────────────────────┬───────────────────┘
+      │                  │                      │
+      │ Postgres         │ S3 (encrypted,       │ Kafka
+      │ (SOT for         │  presigned uploads,  │ (domain events)
+      │  application     │  versioned docs)     │
+      │  state + audit)  │                      │
+      │                  │                      ▼
+      │                  │         ┌────────────────────────────────┐
+      │                  │         │  Verification Orchestrator     │
+      │                  │         │  durable workflow per applicant│
+      │                  │         └───┬───────┬────────┬───────────┘
+      │                  │             │       │        │
+      │                  │      ┌──────▼─┐ ┌───▼────┐ ┌─▼─────────┐
+      │                  │      │ NPI    │ │ State  │ │ Exclusion │
+      │                  │      │ NPPES  │ │ license│ │ OIG/LEIE, │
+      │                  │      │        │ │ boards │ │ SAM, state│
+      │                  │      └────────┘ └────────┘ └───────────┘
+      │                  │      ┌──────────┐ ┌──────────────┐
+      │                  └─────▶│ Document │ │ CAQH profile │
+      │                         │ extract  │ │ ingestion    │
+      │                         │ (AI/OCR) │ └──────────────┘
+      │                         └──────────┘
+      ▼                                    │
+  ┌────────────────────┐                   ▼
+  │ Ops Console        │◀──── exception queue (scored, deduped)
+  │ review · approve   │
+  │ request info       │─────▶ APPROVED ──▶ Payer Enrollment Service
+  └────────────────────┘                       │  (packet generation,
+                                               │   submission, status
+  ┌────────────────────┐                       │   polling per payer)
+  │ Salesforce sync    │◀── one-way, event-    ▼
+  │ (commercial SOT)   │    driven          ACTIVE provider
+  └────────────────────┘
+</code></pre></div>
+
+<h4>Step 4 &mdash; The five design decisions worth defending</h4>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Decision</th><th>Why</th><th>Alternative rejected</th></tr></thead>
+<tbody>
+<tr><td><strong>Durable workflow engine</strong> for verification (Temporal-style, or a hand-rolled Postgres-backed job state machine)</td><td>Multi-day workflows must survive deploys, retry per-step with independent backoff, and be inspectable when one provider is stuck.</td><td>Celery/SQS fire-and-forget: you lose the ability to answer &ldquo;why is <em>this</em> provider stuck&rdquo; without log archaeology &mdash; and that question gets asked daily.</td></tr>
+<tr><td><strong>Never call a third party inline</strong> with a user request</td><td>State boards go down, rate-limit, and change formats without notice. A synchronous call turns their outage into your outage.</td><td>Synchronous verify-on-submit: simpler, but the p99 becomes unbounded and providers see errors that aren&rsquo;t theirs.</td></tr>
+<tr><td><strong>Confidence-scored auto-pass with a human decision gate</strong></td><td>Objective machine-checkable facts (NPI matches, license active, no exclusion hit) auto-pass above threshold; everything else goes to a person. Compliance and trust both require the human.</td><td>Full automation: fails compliance and one bad approval is an existential risk. Full manual: that&rsquo;s the status quo we&rsquo;re replacing.</td></tr>
+<tr><td><strong>Outbox pattern + one-way sync to Salesforce</strong></td><td>Application state is ours; commercial relationship is theirs. Transactional outbox guarantees we never emit an event for a transaction that rolled back.</td><td>Dual writes: guaranteed divergence, and the reconciliation job becomes someone&rsquo;s permanent job.</td></tr>
+<tr><td><strong>Documents in S3, metadata in Postgres, never blobs in the DB</strong></td><td>Presigned direct upload, server-side encryption with KMS, versioning, lifecycle policy for retention rules.</td><td>Storing files in Postgres: bloats backups, kills replication, and makes retention policy painful.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>Step 5 &mdash; Failure modes (bring these up unprompted)</h4>
+<ul>
+  <li><strong>A verification source is down for six hours.</strong> Circuit-break, keep the workflow parked in a retrying state, surface &ldquo;we&rsquo;re waiting on the state board&rdquo; to the provider (honest status beats a spinner), and alert ops if the queue depth crosses a threshold. Never fail the application.</li>
+  <li><strong>A source returns a false negative.</strong> Two providers with the same name; a license recently renewed but not yet reflected. Every automated rejection must be appealable into the exception queue with the raw source response attached. <em class="hl">Design the appeal path, not just the happy path.</em></li>
+  <li><strong>Duplicate submissions.</strong> Idempotency keys on every command; unique constraint on (NPI, state) at the application level so a provider who applies twice is merged, not duplicated.</li>
+  <li><strong>Partial failure mid-workflow.</strong> Each step is individually idempotent and independently retryable. Never write a workflow step that isn&rsquo;t safe to run twice.</li>
+  <li><strong>Ops queue floods.</strong> Queue depth and age-of-oldest-item are first-class SLOs with paging thresholds &mdash; the human queue is part of the system, so it gets monitored like part of the system.</li>
+  <li><strong>Payer enrollment silently stalls.</strong> Poll status per payer, alert on time-in-state exceeding the payer&rsquo;s own norm, and expose it on the provider&rsquo;s status page.</li>
+</ul>
+
+<h4>Step 6 &mdash; The Salesforce migration, done properly</h4>
+<ol>
+  <li><strong>Shadow.</strong> New service consumes lead events and builds its own application state; Salesforce still drives. Compare continuously, alert on divergence. No user impact.</li>
+  <li><strong>Read-switch.</strong> The provider-facing status page reads from the new service. Still no write path change.</li>
+  <li><strong>Write-switch by cohort.</strong> New self-serve applicants write to the new service first, syncing outward to Salesforce. Rep-assisted flow unchanged.</li>
+  <li><strong>Backfill and cut over</strong> per segment, with an explicit rollback: flip the cohort flag back.</li>
+  <li><strong>Salesforce becomes a read-model</strong> for the commercial relationship. Nobody has to lose their tooling &mdash; which is what makes this politically survivable.</li>
+</ol>
+
+<div class="callout callout-gold">
+<div class="callout-label">Connect design to org &mdash; your differentiator</div>
+<p>&ldquo;These boxes are also team boundaries. I&rsquo;d have <strong>Provider Activation</strong> own the application service and provider-facing flow, and a <strong>Credentialing Systems</strong> team own the verification orchestrator, the third-party integrations, and the ops console &mdash; including its on-call, because the people who own the integrations should feel it when a state board changes its API. The Salesforce sync is a contract between us and RevOps, so I&rsquo;d write it down as an interface with a named owner on both sides rather than letting it be tribal knowledge.&rdquo;</p>
+</div>
+
+<h3 id="design-2">Design 2 &mdash; The Provider Portal</h3>
+
+<p>Lower probability as a standalone question, but very likely as a follow-up. The framing that matters: <strong>the portal is a clinician&rsquo;s system of record, so its non-functional requirements are closer to a bank than a consumer app.</strong></p>
+
+<div class="ascii-diagram"><pre><code>  ┌──────────────────────────────────────────────────────────┐
+  │  Provider Portal SPA  (React / Remix)                     │
+  └───────────────────────────┬──────────────────────────────┘
+                              │
+  ┌───────────────────────────▼──────────────────────────────┐
+  │  BFF / API gateway  ·  authN + authZ  ·  audit log tap    │
+  └──┬────────┬────────┬────────┬────────┬────────┬──────────┘
+     │        │        │        │        │        │
+  ┌──▼──┐ ┌───▼───┐ ┌──▼───┐ ┌──▼───┐ ┌──▼────┐ ┌─▼──────┐
+  │Prov-│ │Sched- │ │Clin- │ │Tele- │ │Billing│ │Notif-  │
+  │ider │ │uling  │ │ical  │ │health│ │Claims │ │ication │
+  │core │ │       │ │docs  │ │      │ │payouts│ │        │
+  └──┬──┘ └───┬───┘ └──┬───┘ └──┬───┘ └──┬────┘ └─┬──────┘
+     │        │        │        │        │        │
+     └────────┴────────┴───┬────┴────────┴────────┘
+                           │
+              ┌────────────▼────────────┐   ┌──────────────────┐
+              │ Postgres (per-service   │   │ Kafka: domain    │
+              │ schemas) · Redis cache  │──▶│ events → Spark   │
+              │ · S3 for documents      │   │ → analytics/eval │
+              └─────────────────────────┘   └──────────────────┘
+</code></pre></div>
+
+<p>Points to make:</p>
+<ul>
+  <li><strong>A BFF, not direct service calls from the browser.</strong> One place to enforce authorization, one place to tap the audit log, one place to shape payloads so the portal isn&rsquo;t chatty.</li>
+  <li><strong>Authorization is the hard part, not authentication.</strong> A provider may see only their own clients; a group-practice admin sees a subset; support staff see role-limited views; a Headway employee accessing PHI must be logged and justified. Model it as explicit resource-scoped permissions checked in one layer &mdash; scattering <code>if user.is_admin</code> across services is how HIPAA incidents happen.</li>
+  <li><strong>Audit logging is a product requirement.</strong> Every PHI read and write, append-only, queryable, retained. Design it in from the start; retrofitting it is a year of work.</li>
+  <li><strong>Availability targets differ by surface.</strong> A live telehealth session failing is a clinical event. A payouts dashboard being slow is an annoyance. Say that you&rsquo;d set different SLOs and different paging policies per surface, rather than one blanket number.</li>
+  <li><strong>Scheduling deserves its own callout:</strong> timezone and DST correctness (store UTC plus the originating IANA timezone, never a fixed offset), double-booking prevention via a uniqueness constraint at the database level rather than an application check, idempotent external calendar sync with conflict resolution, and reminder delivery as an at-least-once pipeline with dedupe.</li>
+</ul>
+
+<h3 id="design-3">Design 3 &mdash; Telehealth / Video</h3>
+
+<p>The most important thing to demonstrate here is <strong>knowing when not to build.</strong></p>
+
+<div class="callout callout-key">
+<div class="callout-label">Lead with the build-vs-buy position</div>
+<p>&ldquo;I would not build media infrastructure. WebRTC at quality is a specialist, multi-year investment &mdash; SFU operation, global TURN relays, codec and bandwidth adaptation, mobile network churn. I&rsquo;d buy a HIPAA-eligible platform that will sign a BAA &mdash; the realistic candidates are LiveKit, Daily, Twilio Video or a Zoom/Amazon Chime SDK &mdash; and I&rsquo;d spend my engineers on the <em>session experience</em>: the waiting room, consent capture, in-session clinical tooling, the transcription tap, reconnect behaviour, and the fallback path. That&rsquo;s where the differentiation is, and it&rsquo;s the part a vendor can&rsquo;t do for us.&rdquo;</p>
+</div>
+
+<div class="ascii-diagram"><pre><code>  PROVIDER                                             PATIENT
+  browser/app                                        browser/app
+      │                                                    │
+      │  1. join session (JWT room token, short TTL)        │
+      ├────────────────┐                    ┌───────────────┤
+      │                ▼                    ▼               │
+      │        ┌───────────────────────────────────┐        │
+      │        │ Session Service (FastAPI)         │        │
+      │        │ • room lifecycle & tokens         │        │
+      │        │ • identity ↔ appointment binding  │        │
+      │        │ • consent state (recording ON/OFF)│        │
+      │        └───────────┬───────────────────────┘        │
+      │                    │ provision room                 │
+      │                    ▼                                │
+      │      ┌──────────────────────────────┐               │
+      └─────▶│  Vendor SFU  (HIPAA + BAA)   │◀──────────────┘
+   media     │  media relay · TURN · adapt  │     media
+             └───────────┬──────────────────┘
+                         │ audio tap (only with consent)
+                         ▼
+             ┌──────────────────────────────┐
+             │ Transcription / notes        │  ─── see Design 4
+             │ pipeline                     │
+             └──────────────────────────────┘
+
+  Fallback ladder: video ▶ audio-only ▶ dial-in phone bridge.
+  A session must never fail closed. Degrade, don't drop.
+</code></pre></div>
+
+<ul>
+  <li><strong>Consent is a first-class state machine</strong>, not a checkbox. Recording and transcription require documented consent, it can be withdrawn mid-session, and withdrawal must actually stop capture and delete what was captured. Two-party consent states raise the bar further. Bring this up before they ask.</li>
+  <li><strong>Quality telemetry is the product.</strong> Per-session bitrate, packet loss, jitter, reconnect count, join-failure rate &mdash; sliced by provider so you can proactively reach out to the therapist whose home wifi is failing every session. That reframes an infrastructure metric as a retention lever, which is a very good thing to say to a marketplace company.</li>
+  <li><strong>Vendor risk is real.</strong> Keep the vendor behind your own session abstraction so a second provider can be introduced; negotiate the BAA, data residency and retention terms explicitly.</li>
+</ul>
+
+<h3 id="design-4">Design 4 &mdash; The AI Note Pipeline (Session &rarr; Insurance-Ready Note)</h3>
+
+<p class="tagrow"><span class="pill">Highest-signal design</span><span class="pill g">Directly ties to the Tezi bet</span><span class="pill r">Highest-consequence failure mode in the product</span></p>
+
+<div class="ascii-diagram"><pre><code>  ┌───────────┐   consent    ┌──────────────────────────────────────┐
+  │  Session  │─────gate────▶│  Capture: audio chunks → S3 (KMS)    │
+  │  (video   │              │  short-lived, encrypted, tagged      │
+  │   or in-  │              └──────────────┬───────────────────────┘
+  │   person) │                             │
+  └───────────┘                             ▼
+                              ┌──────────────────────────────────────┐
+                              │  ASR + diarization                   │
+                              │  • speaker separation                │
+                              │  • clinical vocabulary               │
+                              │  • confidence per segment            │
+                              └──────────────┬───────────────────────┘
+                                             ▼
+                              ┌──────────────────────────────────────┐
+                              │  Structuring / summarization (LLM)   │
+                              │  • template-constrained output       │
+                              │    (SOAP / DAP / BIRP)               │
+                              │  • CPT-code & medical-necessity      │
+                              │    fields the payer requires         │
+                              │  • every claim traceable to a        │
+                              │    transcript span                   │
+                              └──────────────┬───────────────────────┘
+                                             ▼
+                              ┌──────────────────────────────────────┐
+                              │  Guardrails & validators             │
+                              │  • required-section completeness     │
+                              │  • no un-grounded assertions         │
+                              │  • risk-flag detection (SI/HI) →     │
+                              │    escalate, never auto-summarize    │
+                              └──────────────┬───────────────────────┘
+                                             ▼
+                              ┌──────────────────────────────────────┐
+                              │  PROVIDER REVIEW & ATTESTATION       │
+                              │  the clinician edits and signs.      │
+                              │  Nothing enters the record unsigned. │
+                              └──────────────┬───────────────────────┘
+                                             ▼
+                        ┌────────────────────┴───────────────────────┐
+                        ▼                                            ▼
+            ┌────────────────────┐                    ┌──────────────────────┐
+            │ Clinical record    │                    │ Claim (837) with the │
+            │ (immutable,        │                    │ note as documentation│
+            │  versioned, audit) │                    └──────────────────────┘
+            └────────────────────┘
+                        │
+                        ▼  edit-distance between draft and signed note
+            ┌──────────────────────────────────────────────────────┐
+            │  EVAL LOOP: golden datasets, clinician-labeled       │
+            │  ground truth, LLM-as-judge + human review,          │
+            │  regression gates in CI, online eval on prod traces  │
+            └──────────────────────────────────────────────────────┘
+</code></pre></div>
+
+<h4>The eight things to say about this pipeline</h4>
+<ol>
+  <li><strong>The clinician is the accountable author.</strong> The AI produces a <em>draft</em>. Nothing enters the medical record without provider review and signature. This is a legal and clinical requirement, and it&rsquo;s also the right product: it keeps trust intact.</li>
+  <li><strong>Grounding beats fluency.</strong> Every assertion in the note should be traceable to a transcript span. A note that reads beautifully and invents a symptom is catastrophic &mdash; it&rsquo;s a false clinical record <em>and</em> insurance fraud exposure. Constrain generation to templates and validate against the source.</li>
+  <li><strong>The killer metric is edit distance.</strong> How much does the provider change before signing? It is a direct, honest, continuously-available measure of draft quality, per-provider and per-cohort, and it needs no labeling. Pair it with time-to-sign.</li>
+  <li><strong>Insurance-readiness is a distinct, testable property.</strong> Payer audits look for medical necessity, the elements matching the billed CPT code, and internal consistency. &ldquo;Would this note survive an audit?&rdquo; is a different question from &ldquo;is this note accurate?&rdquo; and needs its own validator and its own eval set. Given that a failed audit is a clawback, <em class="hl">this metric is literally revenue</em>.</li>
+  <li><strong>Risk content is never handled by the summarizer alone.</strong> Suicidal or homicidal ideation, abuse disclosure, mandated-reporting triggers &mdash; detect, flag prominently to the clinician, and never bury inside a paragraph. Design the escalation path explicitly.</li>
+  <li><strong>PHI discipline throughout.</strong> Encryption at rest and in transit; short retention on raw audio (a defined window, then delete) with the note as the durable artifact; BAAs with every model and ASR vendor; zero-retention and no-training terms contractually; a decision on regional processing. Say &ldquo;I&rsquo;d want the contract to say zero data retention and no training on our data, in writing&rdquo; &mdash; it shows you&rsquo;ve actually procured AI in a regulated setting.</li>
+  <li><strong>Cost and latency are design constraints, not afterthoughts.</strong> Cost per note against the value of the time saved; a tiered model strategy (a cheaper model for structuring, a stronger one for the hard sections or for low-confidence segments); async generation so the provider isn&rsquo;t staring at a spinner after a session.</li>
+  <li><strong>Evals gate deploys.</strong> A golden set of clinician-labeled sessions; regression tests that block a release when quality drops; online evaluation sampled from production; a human review queue for low-confidence outputs. <strong>This is exactly what the eval platform is for</strong> &mdash; and it&rsquo;s where you should connect back to the &ldquo;Lenssmith/LangSmith&rdquo; question from Module 2.</li>
+</ol>
+
+<div class="callout callout-warning">
+<div class="callout-label">If asked &ldquo;how would you know if the AI notes are good?&rdquo;</div>
+<p>Give a four-layer answer and say them in this order: <strong>(1) Offline</strong> &mdash; golden dataset of clinician-written notes, scored on completeness, factual grounding, and audit-readiness. <strong>(2) Online implicit</strong> &mdash; edit distance and time-to-sign, continuously, per cohort. <strong>(3) Online explicit</strong> &mdash; sampled human clinical review, plus a lightweight in-product signal from providers. <strong>(4) Downstream</strong> &mdash; claim acceptance and denial rate on AI-drafted notes versus manually-written ones, and audit outcomes. Then add: &ldquo;Layer 4 is the one that ties model quality to revenue, and it&rsquo;s the one most teams never build.&rdquo;</p>
+</div>
+
+<h3 id="design-5">Design 5 &mdash; Scaling 80K &rarr; 500K Providers</h3>
+
+<p>The trap in this question is answering it as a pure infrastructure question. <strong>6x on 80,000 providers is not a database problem.</strong> Say that first, then show you can also do the infrastructure part.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>What breaks first</th><th>Why</th><th>What you do</th></tr></thead>
+<tbody>
+<tr><td><strong>The human credentialing queue</strong> <span class="pill r">the real bottleneck</span></td><td>Verification and approval are human-rate-limited. 6x volume means 6x reviewers unless the auto-pass rate rises.</td><td>Raise confidence-based auto-pass coverage; make exceptions cheaper to resolve (better context, deduped, pre-diagnosed); measure ops-minutes-per-approval as a tracked engineering metric.</td></tr>
+<tr><td><strong>Third-party rate limits</strong></td><td>State boards and registries were not built for your volume and will throttle you.</td><td>Aggressive caching with sane TTLs, batch endpoints where offered, per-source token-bucket rate limiting, negotiated bulk access, and scheduled re-verification spread evenly rather than in a monthly spike.</td></tr>
+<tr><td><strong>Payer enrollment</strong></td><td>Often genuinely manual on the payer side. You cannot engineer their process away.</td><td>Model each payer&rsquo;s pipeline separately with its own SLA and alerting; prioritise automation for the highest-volume payers; be honest that some remain manual.</td></tr>
+<tr><td><strong>Search &amp; matching</strong></td><td>Patient-side directory queries over 500K providers with insurance, geography, specialty, modality and availability filters.</td><td>Dedicated search index (OpenSearch or similar) fed from the event stream; precomputed availability; relevance as an owned, evaluated system rather than an ORM query.</td></tr>
+<tr><td><strong>Write-heavy tables</strong></td><td>Appointments, notes and audit logs grow far faster than the provider count &mdash; 6x providers is much more than 6x sessions.</td><td>Partition by time, archive cold data to S3, read replicas for reporting, and get analytics off the primary and onto the Kafka&rarr;Spark path.</td></tr>
+<tr><td><strong>Notification volume</strong></td><td>Reminders and nudges scale with sessions, and hitting provider-deliverability limits is a real failure mode.</td><td>Rate-limited, deduplicated, at-least-once delivery pipeline with per-recipient frequency caps.</td></tr>
+<tr><td><strong>The org</strong></td><td>Coordination cost grows faster than headcount.</td><td>Clear service ownership, an interface contract per boundary, and teams that own their on-call.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-gold">
+<div class="callout-label">The line that shows seniority</div>
+<p>&ldquo;At 500K providers the interesting scaling problem isn&rsquo;t Postgres &mdash; it&rsquo;s that <strong>every process with a human in it becomes the constraint</strong>. So the engineering work is measuring human-minutes per provider at each stage and driving that toward zero for the common case, while making the exception path genuinely fast. And I&rsquo;d want to know whether 500K providers is even the goal &mdash; if the network is already deep enough in a metro, the next marginal provider is worth less than the next marginal <em>utilised</em> provider. I&rsquo;d push on whether the target should be supply <em>or</em> supply utilisation before optimising for the wrong one.&rdquo;</p>
+</div>
+
+<h3>Cross-Cutting Themes To Weave In Naturally</h3>
+<ul>
+  <li><strong>PHI boundaries.</strong> Know which systems touch PHI, minimise that set, encrypt everywhere, BAA every vendor that touches it, and log every access.</li>
+  <li><strong>Audit trails as a design primitive.</strong> Append-only, queryable, retained per policy. Cheap now, impossible later.</li>
+  <li><strong>Idempotency everywhere.</strong> Healthcare integrations retry; duplicate claims and duplicate appointments are real incidents.</li>
+  <li><strong>Boring technology.</strong> They run Postgres, Redis, Kafka, FastAPI on ECS. Adding a datastore has an operational cost that usually exceeds its benefit. Defend simplicity as a leadership stance, not a limitation.</li>
+  <li><strong>Say &ldquo;I don&rsquo;t know&rdquo; well.</strong> &ldquo;I don&rsquo;t know how your payer enrollment integrations work today &mdash; my assumption is a mix of APIs and portal automation and some genuinely manual submission. If it&rsquo;s mostly manual, my design changes here and here.&rdquo; That is a senior answer. Bluffing in front of an EM is unrecoverable.</li>
+</ul>
+
+<div class="quiz" data-question="Why model provider onboarding as a durable state machine rather than columns on a providers table?" data-options="It is more fashionable|Because the workflow spans days, crosses many unreliable external systems, must survive deploys, and must be resumable and auditable per applicant|Because state machines are faster|Because Postgres cannot store nullable columns" data-answer="1" data-explanation="A multi-day workflow with slow, flaky third parties needs per-step retry with independent backoff, must survive process restarts, and must answer 'why is THIS provider stuck?' without log archaeology. Nullable columns give you none of that, and the stuck-provider question gets asked every day."></div>
+
+<div class="quiz" data-question="What is the strongest position on building telehealth video?" data-options="Build the SFU in-house for full control|Buy a HIPAA-eligible platform that signs a BAA and spend engineers on the session experience, transcription tap and fallback ladder|Use a consumer video product|Avoid video entirely" data-answer="1" data-explanation="WebRTC at quality &mdash; SFU operation, global TURN, codec and bandwidth adaptation, mobile network churn &mdash; is a specialist multi-year investment with no differentiation for Headway. The differentiation is the waiting room, consent capture, in-session clinical tooling and graceful degradation. Knowing when not to build is a leadership signal."></div>
+
+<div class="quiz" data-question="What is the single most useful continuously-available quality metric for AI-drafted clinical notes?" data-options="Model perplexity|Edit distance between the AI draft and the note the provider actually signs|Number of notes generated|Average note length" data-answer="1" data-explanation="Edit distance is a direct, honest measure of draft quality, available on every note with no labeling effort, sliceable by provider and cohort. Pair it with time-to-sign, and with the downstream metric that actually ties to revenue: claim acceptance and audit outcomes on AI-drafted notes versus manual ones."></div>
+
+<div class="quiz" data-question="Scaling from 80K to 500K providers &mdash; what breaks first?" data-options="Postgres write throughput|The human credentialing and approval queue, because verification is human-rate-limited|The React frontend|DNS" data-answer="1" data-explanation="6x on 80,000 records is not a database problem. Every process with a human in it becomes the constraint. The engineering work is measuring human-minutes per provider per stage and driving the common case toward zero while making the exception path fast."></div>
+
+<div class="quiz" data-question="Why is the transactional outbox pattern the right way to sync with Salesforce?" data-options="It is faster than an API call|It guarantees you never emit an event for a database transaction that rolled back, avoiding the permanent divergence that dual writes create|Salesforce requires it|It removes the need for Kafka" data-answer="1" data-explanation="Dual writes to two systems without a shared transaction guarantee divergence, and someone ends up owning a reconciliation job forever. Writing the event into the same transaction as the state change, then publishing from the outbox, makes the sync exactly as consistent as the source of truth."></div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Headway's stack" data-back="Python 3 + FastAPI + SQLAlchemy; TypeScript with React, Remix, Next.js; Postgres + Redis; AWS ECS/Fargate + S3; Spark + Kafka; Datadog, PagerDuty, Sentry."></div>
+  <div class="flashcard" data-front="Six-step design frame" data-back="1 Clarify &amp; scope (write it down). 2 Interface. 3 Data model + where PHI lives. 4 Happy path. 5 Go deep on the hard part. 6 Failure, scale, ops, migration &mdash; then what you'd build first and how you'd staff it."></div>
+  <div class="flashcard" data-front="Onboarding: the non-obvious insight" data-back="ACTIVE is not an end state. Licenses expire and exclusion lists update, so the same verification pipeline runs on a schedule against the whole active network. Continuous re-verification, not one-time onboarding."></div>
+  <div class="flashcard" data-front="Third-party integration rule" data-back="Never call a state board, CAQH or an exclusion list inline with a user request. Async durable workflow, per-step retry, circuit breaker, honest status to the provider. Their outage must not become your outage."></div>
+  <div class="flashcard" data-front="AI notes: the four eval layers" data-back="1 Offline golden dataset (clinician-labeled). 2 Online implicit: edit distance + time-to-sign. 3 Online explicit: sampled clinical review. 4 Downstream: claim acceptance, denial and audit outcomes on AI notes vs manual. Layer 4 ties model quality to revenue."></div>
+  <div class="flashcard" data-front="The leadership differentiator in a design interview" data-back="Map architectural boundaries onto team boundaries and on-call ownership. 'This service boundary is also a team boundary, and this sync is a written contract between us and RevOps.'"></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(5)" id="completeBtn5">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODULE 6 ==================== -->
+<div class="module" id="mod6" data-module="6">
+<div class="module-header" onclick="toggleModule(6)">
+  <span class="module-number" id="modNum6">6</span>
+  <span class="module-title">Strategy &amp; Vision &mdash; The 90-Day Plan</span>
+  <span class="module-chevron" id="modChev6">&#9660;</span>
+</div>
+<div class="module-body" id="modBody6">
+<div class="module-content">
+
+<p>This module isn&rsquo;t tied to one session &mdash; it is the material that shows up as the last question in <em>any</em> of the three, usually phrased as &ldquo;what would you do in your first 90 days?&rdquo; or &ldquo;how would you prioritise?&rdquo;. Have it ready in a 90-second version and a five-minute version.</p>
+
+<h3>The 30/60/90</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th></th><th>Focus</th><th>What you actually do</th><th>What exists at the end</th></tr></thead>
+<tbody>
+<tr>
+<td><strong>Days 1&ndash;30<br><span class="pill">Learn</span></strong></td>
+<td>Understand the machine before touching it</td>
+<td>
+<ul>
+<li>1:1 with every EM and every senior IC; skip-levels across all seven-ish teams.</li>
+<li><strong>Sit with credentialing ops and sales reps for a full day each.</strong> Watch the manual process. This is the highest-information thing available to you.</li>
+<li>Talk to 10&ndash;15 providers &mdash; recently onboarded, long-tenured, and churned. The churned ones tell you the most.</li>
+<li>Read the last two quarters of incidents and the on-call load per team.</li>
+<li>Map the funnel end to end and find out what is <em>not</em> instrumented.</li>
+<li>Meet RevOps, Clinical, Compliance, and the payer-facing team &mdash; your dependencies live there.</li>
+</ul>
+</td>
+<td>A written current-state doc with a funnel map, an instrumentation gap list, and your top three hypotheses about the bottleneck &mdash; circulated for disagreement.</td>
+</tr>
+<tr>
+<td><strong>Days 31&ndash;60<br><span class="pill g">Focus</span></strong></td>
+<td>Commit to a small number of things, publicly</td>
+<td>
+<ul>
+<li>Ship the V0 instrumentation of the onboarding funnel. Now the argument is about data.</li>
+<li>Publish the team topology and each team&rsquo;s owned outcome metric.</li>
+<li>Kill or defer at least one thing in flight, visibly, and say why. New leaders who only add are not trusted.</li>
+<li>Start the leadership hiring &mdash; EMs and senior ICs for the new Credentialing Systems and expanded Activation teams.</li>
+<li>Agree the AI-quality bar with Clinical and Compliance, in writing.</li>
+</ul>
+</td>
+<td>A one-page strategy: three bets, what each is worth, what you&rsquo;re not doing. Owned metrics per team. An active hiring pipeline.</td>
+</tr>
+<tr>
+<td><strong>Days 61&ndash;90<br><span class="pill">Deliver</span></strong></td>
+<td>Prove the model with something real</td>
+<td>
+<ul>
+<li>Narrow self-serve V1 in flight for one provider segment, with the guardrail metrics live.</li>
+<li>Provider status page shipped &mdash; small, fast, kills support volume, builds team confidence.</li>
+<li>Eval regression gates in CI for the notes pipeline.</li>
+<li>First cohort of hires onboarded; ramp plan working.</li>
+<li>A quarterly operating cadence people can predict: planning, review, incident review.</li>
+</ul>
+</td>
+<td>One shipped provider-visible win, one credible in-flight bet, a hiring machine running, and a team that knows what it owns.</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-tip">
+<div class="callout-label">The 90-second spoken version</div>
+<p>&ldquo;First month I&rsquo;d spend on the ground &mdash; with the credentialing ops team, with reps, with providers who churned &mdash; and on instrumenting the funnel, because right now I&rsquo;d be guessing about where the time goes. Second month I&rsquo;d commit publicly to three bets and, just as importantly, say what we&rsquo;re not doing, and I&rsquo;d start hiring leaders rather than headcount. Third month I want one provider-visible win shipped &mdash; probably the status page, because it&rsquo;s small and it kills support volume &mdash; and narrow self-serve in flight with guardrails live. The thing I&rsquo;d be careful about is reorganising in month one. A six-month-old team and a mature 35-person org both deserve to be understood before they&rsquo;re restructured.&rdquo;</p>
+</div>
+
+<h3>The Prioritisation Question: Three Bets, One Budget</h3>
+
+<p>You will be asked some version of &ldquo;self-serve onboarding vs. portal depth vs. AI features &mdash; how do you choose?&rdquo;. Do not pick one and defend it blindly. Show the reasoning, then commit.</p>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Bet</th><th>Case for</th><th>Case against</th><th>What decides it</th></tr></thead>
+<tbody>
+<tr><td><strong>Self-serve onboarding</strong></td><td>Supply is the growth constraint; today it scales with headcount. Highest ceiling.</td><td>Longest time-to-value; the bottleneck may be payer-side, in which case the ROI collapses.</td><td>V0 instrumentation: what share of lead&rarr;first-session elapsed time is <em>ours</em> versus the payer&rsquo;s?</td></tr>
+<tr><td><strong>Portal depth &amp; reliability</strong></td><td>Retention and utilisation. The moat is being the system of record, not the directory. Cheapest to move.</td><td>Doesn&rsquo;t add supply; benefits are diffuse and harder to attribute to a number.</td><td>Provider churn curve and support-ticket taxonomy. If churn is concentrated at 30&ndash;90 days, this <em>is</em> the growth lever.</td></tr>
+<tr><td><strong>AI notes &amp; summarization</strong></td><td>Biggest per-provider time saving, strongest differentiation, already a public company bet.</td><td>Highest risk surface: a wrong note is a clinical and compliance event. Quality ceiling is hard to raise.</td><td>Current edit distance and claim-acceptance delta on AI notes. If it&rsquo;s already good, invest in coverage; if not, invest in evals before features.</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout callout-key">
+<div class="callout-label">The answer that actually wins</div>
+<p>&ldquo;I&rsquo;d resist framing it as three competing bets, because they&rsquo;re one funnel: <strong>acquire &rarr; activate &rarr; retain &rarr; utilise</strong>. If we onboard 10,000 providers a quarter and lose a large share by month six, self-serve onboarding is pouring water into a leaky bucket &mdash; and the retention work is the growth work. So the first question I&rsquo;d answer with data is <em>where the biggest leak in that funnel is</em>. My prior, from the numbers I can see &mdash; roughly 6K net adds a quarter against ~10K onboarded &mdash; is that retention is being underweighted relative to acquisition. But I&rsquo;d want the cohort curves before I bet a quarter of engineering on it.&rdquo;</p>
+</div>
+
+<h3>Build vs. Buy &mdash; Have A Position On Each</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Decision</th><th>Position</th><th>Reasoning</th></tr></thead>
+<tbody>
+<tr><td><strong>Video / telehealth infrastructure</strong></td><td class="pill-cell"><span class="pill g">Buy</span></td><td>No differentiation in media transport; huge specialist cost. Buy HIPAA-eligible with a BAA, build the session experience.</td></tr>
+<tr><td><strong>ASR / transcription</strong></td><td><span class="pill g">Buy</span>, with an abstraction</td><td>Commodity and improving fast; wrong thing to own. But keep it behind your own interface so you can swap on quality and price, and demand zero-retention terms.</td></tr>
+<tr><td><strong>Note generation &amp; clinical structuring</strong></td><td><span class="pill">Build on top of a bought model</span></td><td>The model is bought; the templates, grounding constraints, validators, risk detection and eval loop are the product and must be owned.</td></tr>
+<tr><td><strong>Eval platform</strong></td><td><span class="pill g">Buy the plumbing, own the datasets</span></td><td>Tracing and experiment tooling is undifferentiated. The clinician-labeled golden datasets and the definition of &ldquo;good note&rdquo; are the real asset and can never be bought.</td></tr>
+<tr><td><strong>Credentialing verification</strong></td><td><span class="pill">Hybrid</span></td><td>Buy data access where a vendor genuinely aggregates sources; own the orchestration, decisioning and exception workflow &mdash; that&rsquo;s where the speed advantage lives.</td></tr>
+<tr><td><strong>EHR</strong></td><td><span class="pill">Build &mdash; already decided</span></td><td>It is the retention moat and the claims pipeline. Buying it would hand your differentiation to a vendor.</td></tr>
+<tr><td><strong>CRM / Salesforce</strong></td><td><span class="pill g">Keep, but bound it</span></td><td>Excellent for sales; wrong for applicant experience. Split by domain rather than fighting a religious war with RevOps.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>The Metrics Tree</h3>
+
+<p>If asked &ldquo;what metrics would you own?&rdquo;, don&rsquo;t list metrics &mdash; draw a tree. It shows you understand which numbers are outputs and which are levers.</p>
+
+<div class="ascii-diagram"><pre><code>              COMPLETED, PAID SESSIONS ON THE PLATFORM
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+  ACTIVE PROVIDERS   ×   UTILISATION      ×   SESSION → PAID
+                          (sessions per         CONVERSION
+        │                  active provider)          │
+        │                        │                   │
+   ┌────┴────┐         ┌─────────┴──────┐    ┌───────┴────────┐
+   ▼         ▼         ▼                ▼    ▼                ▼
+  NEW      RETAINED  Calendar fill   Referral  Claim        Note
+  ADDS               rate            quality   acceptance   audit
+   │         │       No-show rate    Match     rate         pass
+   │         │       Reschedule      quality   Denial       rate
+   │         │        friction                  reasons
+   ▼         ▼
+ Lead→       90/180-day
+ activation  provider
+ conversion  retention
+   │         │
+   ▼         ▼
+ Zero-touch  Time-to-first
+ completion  session (p50/p90)
+ rate        Support tickets
+             per provider
+             Portal reliability
+</code></pre></div>
+
+<p>Two things to say about this tree:</p>
+<ul>
+  <li>&ldquo;My org owns the left two branches almost entirely, and we <em>influence</em> the third &mdash; claim acceptance depends on note quality, which is our AI pipeline. That means my org&rsquo;s work shows up directly in revenue quality, not just in provider satisfaction.&rdquo;</li>
+  <li>&ldquo;The metric I&rsquo;d put on the wall is <strong>time-to-first-session at p90</strong>, because it&rsquo;s the one number that is simultaneously the provider&rsquo;s felt experience, a competitive surface, and a proxy for how much manual work is in the pipe.&rdquo;</li>
+</ul>
+
+<h3>The Vision Answer</h3>
+
+<div class="callout callout-quote">
+<div class="callout-label">Two-year vision, ~45 seconds</div>
+<p>&ldquo;In two years I&rsquo;d want the answer to &lsquo;how does a therapist join Headway?&rsquo; to be: they answer a few questions on their phone, we verify almost everything automatically in the background, a human reviews only the genuinely ambiguous cases, and they&rsquo;re seeing patients in days rather than weeks &mdash; at a volume that doesn&rsquo;t require a proportional ops team. And once they&rsquo;re in, the portal is the thing they open every morning: their calendar is full, their notes are drafted and audit-clean before they finish their coffee, and they&rsquo;ve stopped thinking about insurance entirely. That&rsquo;s the real product &mdash; <strong>a therapist who forgot that billing insurance used to be hard.</strong> Everything my org would build ladders up to that.&rdquo;</p>
+</div>
+
+<div class="quiz" data-question="What is the strongest response to 'self-serve onboarding vs portal depth vs AI features &mdash; pick one'?" data-options="Pick self-serve, it has the highest ceiling|Reframe them as one funnel &mdash; acquire, activate, retain, utilise &mdash; and say the first question is where the biggest leak is, then commit to a prior|Say all three are equally important|Defer to leadership" data-answer="1" data-explanation="If ~10K providers are onboarded per quarter but net adds are closer to 6K, retention is the leak and acquisition work is pouring into a leaky bucket. Reframing shows systems thinking; still committing to a prior ('my prior is retention is underweighted, but I want the cohort curves') shows you can decide without data when you have to."></div>
+
+<div class="quiz" data-question="Which is the right build-vs-buy split for AI notes?" data-options="Build the model in-house for full control|Buy everything from a behavioural-health AI scribe vendor|Buy the model and ASR, build the templates, grounding constraints, validators, risk detection and eval loop|Avoid AI notes entirely" data-answer="2" data-explanation="Foundation models and ASR are commodities improving faster than any in-house team could match &mdash; but keep them behind your own abstraction with zero-retention terms. The insurance-ready templates, factual grounding, risk-flag escalation and clinician-labeled eval datasets are the actual product and the actual moat."></div>
+
+<div class="quiz" data-question="Why is 'time-to-first-session at p90' a better wall metric than the median?" data-options="It is easier to compute|The tail is where churn lives &mdash; the providers who wait longest are the ones who leave, and the median hides them|p90 is always lower|Payers require it" data-answer="1" data-explanation="A median that looks healthy can coexist with a long tail of providers waiting weeks, and those are precisely the ones who go to a competitor. Choosing a tail metric over an average signals that you have watched a funnel in production."></div>
+
+<button class="complete-btn" onclick="completeModule(6)" id="completeBtn6">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODULE 7 ==================== -->
+<div class="module" id="mod7" data-module="7">
+<div class="module-header" onclick="toggleModule(7)">
+  <span class="module-number" id="modNum7">7</span>
+  <span class="module-title">Questions to Ask (Per Interviewer)</span>
+  <span class="module-chevron" id="modChev7">&#9660;</span>
+</div>
+<div class="module-body" id="modBody7">
+<div class="module-content">
+
+<p>Bring <strong>four to five per session</strong>, ask two or three, and let the conversation earn the rest. The best questions are the ones that could only come from someone who has already thought about the job.</p>
+
+<div class="callout callout-warning">
+<div class="callout-label">Rules</div>
+<p>Never ask something answerable from the careers page. Never ask a question that is really a statement about how clever you are. Ask each interviewer about <em>their</em> domain &mdash; product questions to Severin, growth and metrics to Dennis, engineering reality to Urmila. And <strong>write down what they say</strong> &mdash; visible note-taking reads as seriousness, and you&rsquo;ll want the answers for the offer conversation.</p>
+</div>
+
+<h3>For Severin Kibby &mdash; Product (Tuesday)</h3>
+<ol>
+  <li><strong>&ldquo;When you look at the provider funnel today, where do you personally believe the biggest drop-off is &mdash; and how confident are you in that belief?&rdquo;</strong> The second half is the good half. It tells you whether they have data or instinct, and it&rsquo;s the exact input your V0 phase needs.</li>
+  <li>&ldquo;How does product and engineering decide together what goes on the roadmap here &mdash; who writes the PRD, and who gets to say no?&rdquo;</li>
+  <li>&ldquo;Providers multi-tenant across Headway, Alma and Grow Therapy. What do you think actually makes a provider choose Headway as their primary &mdash; is it referral volume, payment reliability, or the software?&rdquo;</li>
+  <li>&ldquo;How much of the roadmap is set by payer commitments versus provider demand? Where do those two conflict?&rdquo;</li>
+  <li>&ldquo;What&rsquo;s a product decision Headway got wrong in the last year, and what did the org take from it?&rdquo;</li>
+</ol>
+
+<h3>For Dennis Zhao &mdash; Results &amp; Growth (Wednesday 1:00)</h3>
+<ol>
+  <li><strong>&ldquo;What&rsquo;s the delta between gross and net provider adds, and what does 90- and 180-day provider retention look like?&rdquo;</strong> <span class="pill g">Your single best question</span> It shows you did the arithmetic on the public numbers and it goes straight at whether acquisition or retention is the real problem.</li>
+  <li>&ldquo;What&rsquo;s the north-star metric for the Provider org, and has it changed in the last year?&rdquo;</li>
+  <li>&ldquo;How does Headway run experiments in a regulated product &mdash; what can and can&rsquo;t you A/B test when there&rsquo;s PHI and clinical risk involved?&rdquo; Ties directly to his fintech background.</li>
+  <li>&ldquo;Coming from Robinhood, what surprised you most about how growth works in healthcare versus consumer fintech?&rdquo; Genuine, specific to him, and the answer will be useful to you.</li>
+  <li>&ldquo;What would make you say, twelve months from now, that this hire was a success? What&rsquo;s the number?&rdquo;</li>
+</ol>
+
+<h3>For Urmila Nadkarni &mdash; Engineering (Wednesday 2:00)</h3>
+<ol>
+  <li><strong>&ldquo;What&rsquo;s the piece of the system everyone knows is a problem but nobody has had time to fix?&rdquo;</strong> Engineers love being asked this and the answer is genuinely valuable to you.</li>
+  <li>&ldquo;Tell me about the eval platform the teams are standardising on &mdash; is it built in-house or on top of something like LangSmith, and who owns the golden datasets?&rdquo; <em class="hl">This is where you resolve the &ldquo;Lenssmith&rdquo; question without guessing.</em></li>
+  <li>&ldquo;What does on-call look like across the Provider teams? What&rsquo;s the page volume, and what&rsquo;s the most common cause?&rdquo;</li>
+  <li>&ldquo;How has the engineering culture changed since the Tezi team joined &mdash; how are people reacting to the AI push?&rdquo;</li>
+  <li>&ldquo;What do you need from this role that the org hasn&rsquo;t had? What&rsquo;s been missing?&rdquo;</li>
+  <li>&ldquo;How much of the provider-facing surface is still tightly coupled to Salesforce, and how painful is that day to day?&rdquo;</li>
+</ol>
+
+<h3>Universal Closers</h3>
+<ul>
+  <li>&ldquo;What&rsquo;s the hardest thing about working here that you&rsquo;d want a candidate to know before saying yes?&rdquo;</li>
+  <li>&ldquo;Is there anything about my background that gives you pause? I&rsquo;d rather address it now than have it go unsaid.&rdquo; <span class="pill">High risk, high reward &mdash; only if the rapport is good</span></li>
+  <li>&ldquo;What are the next steps, and is there anything I can send you in the meantime?&rdquo;</li>
+</ul>
+
+<div class="callout callout-tip">
+<div class="callout-label">Follow up on the answers</div>
+<p>The single most underused technique: when they answer, respond with a real reaction, not &ldquo;great, thanks.&rdquo; &ldquo;That&rsquo;s interesting &mdash; it suggests the bottleneck is downstream of where I&rsquo;d assumed. Does that change how you&rsquo;d sequence the self-serve work?&rdquo; That turns Q&amp;A into a working conversation, which is the mode you want to be remembered in.</p>
+</div>
+
+<div class="quiz" data-question="What is the single strongest question to ask Dennis Zhao?" data-options="What is the company culture like?|What is the delta between gross and net provider adds, and what does 90 and 180 day provider retention look like?|How many engineers will I manage?|What is your favourite part of working here?" data-answer="1" data-explanation="It proves you did arithmetic on the public trajectory (70K in March to ~80K in August is roughly 6K net per quarter against ~10K onboarded), and it goes directly at whether the real problem is acquisition or retention &mdash; which determines what the role should actually build first."></div>
+
+<button class="complete-btn" onclick="completeModule(7)" id="completeBtn7">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+<!-- ==================== MODULE 8 ==================== -->
+<div class="module" id="mod8" data-module="8">
+<div class="module-header" onclick="toggleModule(8)">
+  <span class="module-number" id="modNum8">8</span>
+  <span class="module-title">Day-of Runbook &amp; Cheat Sheet</span>
+  <span class="module-chevron" id="modChev8">&#9660;</span>
+</div>
+<div class="module-body" id="modBody8">
+<div class="module-content">
+
+<h3>The Schedule</h3>
+
+<div class="session-card">
+  <div class="s-when">Tuesday, August 4 &middot; 2:00&ndash;2:45 PM (45 min)</div>
+  <div class="s-who">PRD Jam &mdash; Severin Kibby, Product leader (SF)</div>
+  <div class="s-what"><strong>Bring:</strong> the 8-heading PRD skeleton in muscle memory, the self-serve onboarding PRD from Module 3, and the &ldquo;first five minutes&rdquo; clarifying script. <strong>Ask to share a doc and type as you go.</strong></div>
+</div>
+
+<div class="session-card">
+  <div class="s-when">Wednesday, August 5 &middot; 1:00&ndash;1:45 PM (45 min)</div>
+  <div class="s-who">Results &amp; Growth Mindset &mdash; Dennis Zhao, Director of Product (ex-Robinhood Cash)</div>
+  <div class="s-what"><strong>Bring:</strong> eight STAR stories with real numbers, each at 2:15, each with a scale-forward sentence. Baseline &rarr; delta &rarr; timeframe, every time.</div>
+</div>
+
+<div class="session-card">
+  <div class="s-when">Wednesday, August 5 &middot; 2:00&ndash;3:00 PM (60 min)</div>
+  <div class="s-who">Systems Design &mdash; Urmila Nadkarni, Engineering Manager</div>
+  <div class="s-what"><strong>Bring:</strong> the six-step frame, the onboarding state machine, the AI note pipeline, and the build-vs-buy positions. Ask which part to go deep on &mdash; and have an opinion if they leave it to you.</div>
+</div>
+
+<div class="callout callout-warning">
+<div class="callout-label">Note the Wednesday back-to-back</div>
+<p>Dennis ends at 1:45 and Urmila starts at 2:00. <strong>Fifteen minutes.</strong> Stand up, drink water, and reset your head from storytelling mode to design mode &mdash; they are genuinely different registers and carrying behavioural-interview energy into a systems design makes you sound vague. Have the Module 5 six-step frame open on a second screen. Don&rsquo;t schedule anything else on Wednesday afternoon.</p>
+</div>
+
+<h3>The Numbers Cheat Sheet</h3>
+
+<div class="table-wrapper">
+<table>
+<thead><tr><th>Fact</th><th>Number</th><th>Confidence</th></tr></thead>
+<tbody>
+<tr><td>Founded</td><td>April 2019, NYC &mdash; Andrew Adams (CEO) + 3 co-founders</td><td>Public</td></tr>
+<tr><td>Valuation / raised</td><td>$2.3B after $100M Series D (Spark Capital); ~$325M+ total</td><td>Public</td></tr>
+<tr><td>Providers</td><td>60K+ (Sep 2025) &rarr; 70K+ (Mar 2026) &rarr; ~80K (now)</td><td>First two public</td></tr>
+<tr><td>Patients</td><td>1M+, all 50 states + DC</td><td>Public</td></tr>
+<tr><td>Appointments</td><td>600K+/month (as of the Series D)</td><td>Public, dated</td></tr>
+<tr><td>Engineering</td><td>~120 total; Provider org ~40 &rarr; 60&ndash;70</td><td>Public / recruiter</td></tr>
+<tr><td>Onboarding volume</td><td>~10K/quarter, manual &asymp; 110/business day</td><td>Recruiter</td></tr>
+<tr><td>Implied net adds</td><td>~6K/quarter &rarr; a churn gap worth asking about</td><td>Your inference</td></tr>
+<tr><td>Out-of-network gap</td><td>18.2% (psychologists) vs 1.7% (medical specialists)</td><td>Public research</td></tr>
+<tr><td>Reimbursement gap</td><td>Behavioural health ~21.8% below med/surg</td><td>Public research</td></tr>
+<tr><td>EHR launch</td><td>Sept 9, 2025 &mdash; free, insurance-native, AI-assisted notes</td><td>Public</td></tr>
+<tr><td>Tezi acquisition</td><td>Mar 31, 2026 &mdash; human-in-the-loop AI team; Raghavendra Prabhu &rarr; VP Eng</td><td>Public</td></tr>
+<tr><td>Stack</td><td>Python/FastAPI/SQLAlchemy, TS/React/Remix/Next, Postgres, Redis, AWS ECS+S3, Spark, Kafka, Datadog</td><td>Public job posts</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Your Six Anchor Ideas</h3>
+
+<p>If everything else falls out of your head, these six carry all three interviews. Each one is a complete thought you can say in fifteen seconds.</p>
+
+<ol>
+  <li><strong>Supply is the constraint.</strong> Demand for affordable in-network therapy is effectively unlimited; the bottleneck is therapists who will take insurance. Every credentialed provider is incremental revenue. That&rsquo;s why this org exists.</li>
+  <li><strong>Two jobs, one title.</strong> Provider Growth is 0&rarr;1 with a six-month-old team; Provider Experience is 1&rarr;n with 35 engineers. Different cadences, different risk tolerances, different definitions of done &mdash; and I&rsquo;d be explicit with both about which mode they&rsquo;re in.</li>
+  <li><strong>Instrument before you build.</strong> If the elapsed time in onboarding is payer-side, a beautiful self-serve form barely moves time-to-first-session. Three weeks of instrumentation is cheap insurance against a wasted quarter.</li>
+  <li><strong>AI drafts, humans decide.</strong> In credentialing and in clinical notes alike: confidence-scored automation with a mandatory human gate. It&rsquo;s the compliance answer, the trust answer, and the same bet Headway made when it bought the Tezi team.</li>
+  <li><strong>Activation is the first booked session, not approval.</strong> An approved provider with an empty calendar has already churned. Retention and acquisition are the same funnel.</li>
+  <li><strong>The moat is depth, not directory.</strong> Providers multi-tenant across Headway, Alma and Grow Therapy. Lock-in comes from being their practice system of record and from filling their calendar &mdash; both of which are engineering problems.</li>
+</ol>
+
+<h3>Openers &amp; Closers</h3>
+
+<div class="callout callout-quote">
+<div class="callout-label">&ldquo;Tell me about yourself&rdquo; &mdash; 60 seconds, three beats</div>
+<p><strong>Now:</strong> what you do today, at what scale, and the outcome you&rsquo;re accountable for. <strong>Arc:</strong> the through-line of your career in one sentence &mdash; the kind of problem you&rsquo;re repeatedly drawn to. <strong>Why here:</strong> the specific thing about this role that made you take the call. Then stop. Do not narrate your r&eacute;sum&eacute; chronologically; nobody has ever been hired for that.</p>
+</div>
+
+<div class="callout callout-quote">
+<div class="callout-label">Closing each session &mdash; 20 seconds</div>
+<p>&ldquo;This was genuinely fun &mdash; the thing that stuck with me is [<em>specific thing they said</em>]. I&rsquo;m increasingly convinced the interesting problem here is [<em>your read</em>], and it&rsquo;s the kind of problem I want to be working on. Thank you for the time.&rdquo; Specific beats enthusiastic. Referencing something <em>they</em> said proves you were listening rather than performing.</p>
+</div>
+
+<h3>Logistics Checklist</h3>
+<ul>
+  <li>Test the video link, camera, mic and screen-share <strong>the day before</strong>, not five minutes prior.</li>
+  <li>Second screen or printout: the six-step design frame, the eight PRD headings, and your story list with the numbers. Glancing at notes is fine; reading is not.</li>
+  <li>A blank doc open and ready to share for the PRD jam. Practise the share flow once.</li>
+  <li>Pen and paper for notes &mdash; visible note-taking during <em>their</em> answers reads as respect.</li>
+  <li>Water. Sixty minutes of systems design is a lot of talking.</li>
+  <li>Wednesday: nothing scheduled after 12:30 PM. Protect the block.</li>
+  <li>Names, spelled right, for thank-you notes: <strong>Severin Kibby</strong>, <strong>Dennis Zhao</strong>, <strong>Urmila Nadkarni</strong>.</li>
+</ul>
+
+<h3>Afterwards</h3>
+<ul>
+  <li><strong>Within an hour of each session</strong>, write down what you were asked, what you said, what you wish you&rsquo;d said, and anything they revealed about the org. Memory decays fast and this is your input for later rounds and the offer conversation.</li>
+  <li><strong>Thank-you notes within 24 hours</strong>, each one different: reference something specific from that conversation and, ideally, add one sentence of value &mdash; a thought you had afterwards, or the cleaner version of an answer you fumbled. That last move is disproportionately effective.</li>
+  <li>If a question landed badly, address it in the note in one sentence and move on. Don&rsquo;t re-litigate.</li>
+</ul>
+
+<div class="callout callout-tip">
+<div class="callout-label">The last thing</div>
+<p>You are interviewing them too. Three sessions with a product leader, a growth-product director and an engineering manager is a lot of surface area to learn whether the org is honest about its problems, whether product and engineering actually decide together, and whether the AI push is a thesis or a slogan. Ask like someone deciding, because you are. Candidates who behave like they have a choice interview better &mdash; and you do.</p>
+</div>
+
+<div class="flashcards">
+  <div class="flashcard" data-front="Anchor 1" data-back="Supply is the constraint. Demand for affordable in-network therapy is unlimited; therapists willing to take insurance are the bottleneck. Every credentialed provider is incremental revenue."></div>
+  <div class="flashcard" data-front="Anchor 2" data-back="Two jobs, one title. Provider Growth is 0-to-1 with a six-month-old team. Provider Experience is 1-to-n with 35 engineers. Different cadences, risk tolerances and definitions of done."></div>
+  <div class="flashcard" data-front="Anchor 3" data-back="Instrument before you build. If the elapsed time is payer-side, a beautiful self-serve form barely moves time-to-first-session."></div>
+  <div class="flashcard" data-front="Anchor 4" data-back="AI drafts, humans decide. Confidence-scored automation with a mandatory human gate &mdash; in credentialing and in clinical notes. Same bet Headway made buying Tezi."></div>
+  <div class="flashcard" data-front="Anchor 5" data-back="Activation is the first booked session, not approval. An approved provider with an empty calendar has already churned."></div>
+  <div class="flashcard" data-front="Anchor 6" data-back="The moat is depth, not directory. Providers multi-tenant. Lock-in comes from being the practice system of record and from filling the calendar."></div>
+</div>
+
+<button class="complete-btn" onclick="completeModule(8)" id="completeBtn8">Mark as Complete</button>
+</div>
+</div>
+</div>
+
+</div>
+
+<footer class="course-footer">
+  Built for Zeesha Furniturewala &middot; Headway interviews, August 4&ndash;5, 2026 &middot; <a href="index.html">All courses</a>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+  const STORAGE_KEY = 'headwayInterviewPrepProgress';
+  const TOTAL_MODULES = 8;
+  let completedModules = new Set();
+  let openModules = new Set();
+
+  function loadProgress() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        completedModules = new Set(data.completed || []);
+        openModules = new Set(data.open || []);
+      }
+    } catch(e) { /* ignore */ }
+  }
+
+  function saveProgress() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        completed: [...completedModules],
+        open: [...openModules]
+      }));
+    } catch(e) { /* ignore */ }
+  }
+
+  function updateProgress() {
+    const pct = (completedModules.size / TOTAL_MODULES) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressText').textContent =
+      completedModules.size + ' / ' + TOTAL_MODULES + ' completed';
+  }
+
+  // Open a module and, once the expand transition finishes, release max-height to
+  // 'none' so interactive content that grows later (quiz feedback, flashcards) is
+  // never clipped.
+  window.toggleModule = function(num) {
+    const body = document.getElementById('modBody' + num);
+    const chevron = document.getElementById('modChev' + num);
+    if (openModules.has(num)) {
+      body.style.maxHeight = body.scrollHeight + 'px';
+      requestAnimationFrame(() => { body.style.maxHeight = '0'; });
+      chevron.classList.remove('open');
+      openModules.delete(num);
+    } else {
+      body.style.maxHeight = body.scrollHeight + 'px';
+      chevron.classList.add('open');
+      openModules.add(num);
+      const release = function(e) {
+        if (e.propertyName !== 'max-height') return;
+        body.removeEventListener('transitionend', release);
+        if (openModules.has(num)) body.style.maxHeight = 'none';
+      };
+      body.addEventListener('transitionend', release);
+    }
+    saveProgress();
+  };
+
+  window.completeModule = function(num) {
+    const btn = document.getElementById('completeBtn' + num);
+    const modNum = document.getElementById('modNum' + num);
+    if (completedModules.has(num)) {
+      completedModules.delete(num);
+      btn.textContent = 'Mark as Complete';
+      btn.classList.remove('completed');
+      modNum.classList.remove('completed');
+      modNum.textContent = num;
+    } else {
+      completedModules.add(num);
+      btn.textContent = 'Completed!';
+      btn.classList.add('completed');
+      modNum.classList.add('completed');
+      modNum.innerHTML = '&#10003;';
+    }
+    updateProgress();
+    updateToc();
+    saveProgress();
+  };
+
+  window.toggleToc = function() {
+    const body = document.getElementById('tocBody');
+    const toggle = document.getElementById('tocToggle');
+    if (body.classList.contains('open')) {
+      body.classList.remove('open');
+      toggle.classList.remove('open');
+    } else {
+      body.classList.add('open');
+      toggle.classList.add('open');
+    }
+  };
+
+  function updateToc() {
+    for (let i = 1; i <= TOTAL_MODULES; i++) {
+      const tocNums = document.querySelectorAll('.toc-num[data-mod="' + i + '"]');
+      tocNums.forEach(el => {
+        if (completedModules.has(i)) {
+          el.className = 'toc-check';
+          el.innerHTML = '&#10003;';
+        } else {
+          el.className = 'toc-num';
+          el.setAttribute('data-mod', i);
+          el.textContent = i;
+        }
+      });
+    }
+  }
+
+  const searchBox = document.getElementById('searchBox');
+  const searchInfo = document.getElementById('searchInfo');
+  let searchTimeout = null;
+
+  searchBox.addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performSearch, 300);
+  });
+
+  function performSearch() {
+    const query = searchBox.value.trim().toLowerCase();
+    const modules = document.querySelectorAll('.module');
+    document.querySelectorAll('mark').forEach(m => {
+      const parent = m.parentNode;
+      parent.replaceChild(document.createTextNode(m.textContent), m);
+      parent.normalize();
+    });
+    if (!query || query.length < 2) {
+      modules.forEach(m => m.classList.remove('hidden'));
+      searchInfo.style.display = 'none';
+      return;
+    }
+    let matchCount = 0;
+    let moduleMatchCount = 0;
+    modules.forEach(mod => {
+      const content = mod.querySelector('.module-content');
+      const text = content ? content.textContent.toLowerCase() : '';
+      const titleEl = mod.querySelector('.module-title');
+      const titleText = titleEl ? titleEl.textContent.toLowerCase() : '';
+      if (text.includes(query) || titleText.includes(query)) {
+        mod.classList.remove('hidden');
+        moduleMatchCount++;
+        const regex = new RegExp(escapeRegex(query), 'gi');
+        const matches = text.match(regex);
+        matchCount += matches ? matches.length : 0;
+        if (content) { highlightText(content, query); }
+      } else {
+        mod.classList.add('hidden');
+      }
+    });
+    searchInfo.style.display = 'block';
+    searchInfo.textContent = matchCount + ' matches in ' + moduleMatchCount + ' module' + (moduleMatchCount !== 1 ? 's' : '');
+  }
+
+  function highlightText(element, query) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) {
+      let parent = walker.currentNode.parentNode;
+      let inCode = false;
+      while (parent && parent !== element) {
+        if (parent.tagName === 'CODE' || parent.tagName === 'PRE') { inCode = true; break; }
+        parent = parent.parentNode;
+      }
+      if (!inCode) { textNodes.push(walker.currentNode); }
+    }
+    const regex = new RegExp('(' + escapeRegex(query) + ')', 'gi');
+    textNodes.forEach(node => {
+      if (regex.test(node.textContent)) {
+        const span = document.createElement('span');
+        span.innerHTML = node.textContent.replace(regex, '<mark>$1</mark>');
+        node.parentNode.replaceChild(span, node);
+      }
+    });
+  }
+
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // ===== Init =====
+  loadProgress();
+  updateProgress();
+
+  completedModules.forEach(num => {
+    const btn = document.getElementById('completeBtn' + num);
+    const modNum = document.getElementById('modNum' + num);
+    if (btn) { btn.textContent = 'Completed!'; btn.classList.add('completed'); }
+    if (modNum) { modNum.classList.add('completed'); modNum.innerHTML = '&#10003;'; }
+  });
+
+  openModules.forEach(num => {
+    const body = document.getElementById('modBody' + num);
+    const chevron = document.getElementById('modChev' + num);
+    if (body) { body.style.maxHeight = 'none'; chevron.classList.add('open'); }
+  });
+
+  updateToc();
+
+  document.getElementById('tocBody').classList.add('open');
+  document.getElementById('tocToggle').classList.add('open');
+
+  document.querySelectorAll('.toc-list a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        const moduleNum = parseInt(target.dataset.module);
+        if (!openModules.has(moduleNum)) { toggleModule(moduleNum); }
+        setTimeout(() => {
+          const yOffset = -60;
+          const y = target.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({top: y, behavior: 'smooth'});
+        }, 100);
+      }
+    });
+  });
+
+})();
+</script>
+
+<script src="course-framework.js"></script>
+</body>
+</html>
