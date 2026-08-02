@@ -239,11 +239,34 @@ Why This Is Module 1
 
 Everything that follows is either an explanation of this result or a design response to it. The learning science in Modules 2–4 says why removing effort removes learning. Modules 5–7 show a market that measures the practice number and not the exam number. Modules 8–10 establish that the pattern generalizes far beyond high-school algebra. Modules 11–15 build the architecture in which a result like this cannot hide.
 
+Q: In the Bastani et al. PNAS trial, which arm performed best on the assisted practice problems?  * Control — students working from notes and textbook
+  * GPT Base — the plain ChatGPT-style interface
+  * GPT Tutor — the hint-gated, teacher-seeded variant (correct)
+  * Practice performance was equal across all three arms
+Explanation: GPT Tutor won on practice by a wide margin: +127% versus +48% for GPT Base. This is the detail that breaks the usual intuition — the arm that refused to give answers outperformed the one that gave them, on the assisted task as well as the unassisted exam.
 
+Q: What made the unassisted exam the study's decisive measurement?  * It was longer than the practice sets
+  * It was graded by independent graders
+  * The AI tool was removed before it, so it measured skill the student retained rather than assisted performance (correct)
+  * It was administered several months later
+Explanation: Closed-book, closed-laptop, with each exam problem mirroring a practice problem. Removing the tool before measuring is what separates learning from assisted performance — and it is the step most edtech evaluation skips.
 
+Q: How often did GPT Base return a correct answer when asked 'What is the answer?' across the 57 practice problems?  * About 51% of the time (correct)
+  * About 78% of the time
+  * About 92% of the time
+  * About 30% of the time
+Explanation: Roughly 51% correct — logical errors 42% of the time and arithmetic errors 8%. Students copied the output regardless, which is why both error types depressed practice performance by similar amounts: they were transcribing, not evaluating.
 
+Q: What did the end-of-session surveys reveal about student self-perception?  * Students in both AI arms correctly estimated their exam performance
+  * GPT Base students knew they had been harmed but used the tool anyway
+  * GPT Base students did not perceive they had performed worse, and GPT Tutor students believed they had performed better than they had (correct)
+  * Only high-achieving students misjudged their performance
+Explanation: Perceived and actual learning came apart in both AI arms. This is why 'let the learner choose their level of AI help' is not neutral — assistance corrupts the very signal a learner would need to make that choice well.
 
-
+  * The Bastani result in one line — Same GPT-4, opposite outcomes: unguarded access = +48% practice / −17% unaided exam; hint-gated tutor = +127% practice / harm eliminated. The variable is interaction architecture, not model quality.
+  * What was GPT Tutor's guardrail? — Two things in the system prompt: (1) hints not answers, with instructions to ignore attempts to override; (2) teacher-authored grounding per problem — correct solutions, common mistakes, and how to respond to each. Labor-intensive by design.
+  * Why did classroom-level randomization matter? — Students are randomly assigned to classrooms at this school, so assigning whole classrooms to arms preserves randomization while making the intervention practical. SEs are clustered at the classroom level — the unit of randomization.
+  * The dispersion finding — Both AI arms narrowed performance dispersion (HHI) during assisted practice — the 'AI lifts the weakest most' effect. No significant effect on the unassisted exam. The skill-gap narrowing did not survive removing the tool.
 
 
 Four Decades, One Convergent Answer
@@ -350,12 +373,35 @@ Computer-based scaffolding	|	ḡ = 0.46 [0.41–0.50]	|	No scaffolding	|	Meta-an
 
 Three readings should govern everything downstream. First, the strongest levers are cheap to encode: recall-first checks, feed-forward feedback, decaying mastery and contingent remediation need correct sequencing, not a frontier model. Second, the feedback moderator range (0.24 to 0.99) spans the difference between a feature and a liability — and the same "AI feedback" label covers both. Third, where an estimate is moderator-dependent, the correct response is instrumentation to verify it works in your deployment, not hesitation about using the technique.
 
+Q: Karpicke and Roediger found that dropping items from practice after a first correct answer caused one-week retention to fall to roughly what level?  * ~65%, versus ~80% when items stayed in rotation
+  * ~35%, versus ~80% when items stayed in rotation (correct)
+  * ~50%, versus ~60% when items stayed in rotation
+  * Retention was unaffected by dropping items
+Explanation: ~35% versus ~80%. This is the empirical case against absorbing mastery counters: a score that freezes at first success is certifying the least durable version of the knowledge.
 
+Q: What does the 0.24-to-0.99 range in the feedback literature represent?  * The spread between novice and expert learners
+  * The confidence interval around the pooled feedback effect
+  * The gap between praise/punishment feedback (0.24) and high-information feedback that explains what was wrong, why, and what next (0.99) (correct)
+  * The difference between human and AI-generated feedback
+Explanation: It is a moderator range, not a confidence interval. Same label — 'feedback' — spanning a weak intervention and one of the strongest in the literature. This is why an architecture must specify feedback content, not feedback presence.
 
+Q: Why is fixed-schedule fading of scaffolding a design error?  * It is more expensive to implement than mastery-contingent fading
+  * It produced worse cognitive outcomes than not fading at all (correct)
+  * It only works for novices
+  * It violates accessibility guidelines
+Explanation: The 144-study meta-analysis found fixed-schedule fading produced worse outcomes than never fading. Removal timed to the calendar rather than to demonstrated mastery strands learners who still need the support and holds back those who no longer do.
 
+Q: What does the 6.1-million-assessment ALEKS corpus tell us about forgetting?  * Forgetting is linear over the first three months
+  * Success rates drop steepest in the first days and flatten between one and two weeks (correct)
+  * Forgetting is negligible for procedural skills
+  * Retention improves for two weeks before declining
+Explanation: Steepest decay in the first days, flattening at one to two weeks. That flattening point is where a delayed re-check is both cheapest and most informative — the empirical basis for the badge state machine in Module 14.
 
-
-
+  * Retrieval practice: effect and limit — g ≈ 0.5–0.6 over restudy on delayed retention, larger for recall than recognition formats. Limit: transfer is only d = 0.40, and ≈0 without moderating conditions. Quizzing alone does not produce transfer.
+  * High-information feedback — Feedback that says what was wrong, why, and what to do next: d = 0.99, versus 0.24 for praise and punishment. ~1/3 of all feedback interventions are net negative, concentrated in self-directed feedback (scores, praise).
+  * The assistance dilemma — Koedinger & Aleven: help improves practice performance while often reducing learning. No closed-form optimum — it is a tunable policy that must be A/B-tested against delayed transfer, never against session metrics.
+  * Time for telling — Schwartz & Bransford. Instruction delivered after a learner has attempted and failed lands on prepared ground. Attempt-first sequencing beats instruction-first at g = 0.36, concentrated in older learners — the enterprise demographic.
+  * Self-explanation residue — When an inserted worked example fades, the self-explanation prompt stays behind. Faded examples + self-explanation beats either alone; a merely read example is near-inert. Self-explanation on its own: g ≈ 0.46–0.55.
 
 
 The Replicated Core Fails in Predictable Ways
@@ -438,11 +484,28 @@ Which makes the learner model's accuracy the binding constraint. Gating on a noi
 
 The second-order implication is metacognitive, and it is uncomfortable: several backfire modes feel good to the learner. Dropping mastered items feels like progress. Fluent re-exposure feels like studying. Unsolicited help feels like service. The architecture cannot outsource these decisions to learner preference. It must enforce them — and explain why, which is what Module 11's auditable-adaptation principle is for.
 
+Q: Under what condition does Bjork's framework say a difficulty stops being 'desirable'?  * When the learner reports finding it frustrating
+  * When the learner lacks the background knowledge to overcome it (correct)
+  * When it extends session time beyond 15 minutes
+  * When it is applied to procedural rather than conceptual content
+Explanation: Desirability is conditional on prerequisite knowledge. Without it, the same difficulty is just failure. This is why the prerequisite concept graph is load-bearing: a check that fails for missing prerequisites demands remediation, not more difficulty.
 
+Q: Interleaving shows g = 0.42 overall. What does that average conceal?  * That the effect only appears in laboratory settings
+  * That it works only for learners under 18
+  * A reversal: for word-like material, blocking wins at g = −0.39 (correct)
+  * That the effect disappears when spacing is controlled
+Explanation: The mechanism is discrimination between confusable categories. That pays off for maths and visual classification and reverses for word-like material. Indiscriminate mixing adds difficulty without benefit.
 
+Q: Why must remediation be gated on global mastery rather than a single failed check?  * Because single checks are too short to be reliable
+  * Because of expertise reversal — a beginner example imposes redundancy load on a high-mastery learner, for whom one error is more likely a slip (correct)
+  * Because generation is expensive
+  * Because learners dislike interruptions
+Explanation: Expertise reversal: guidance that rescues a novice actively interferes with someone who already has the schema. The trigger must weight global concept mastery and error pattern — systematic misconception versus slip.
 
-
-
+  * Learning–performance dissociation — In-session performance indexes retrieval strength (temporary access), not storage strength (durable learning). They can move in opposite directions — which is why an engine optimizing immediate accuracy selects against durable learning.
+  * Expertise reversal effect — Guidance that helps novices loses effectiveness and can actively interfere as expertise grows — redundancy load on an existing schema. Replicates in professional domains (law students solving cases unaided outperformed those given worked examples).
+  * Four of six failure modes are… — …timing or gating errors, not content errors: wrong learner, wrong moment, wrong stopping rule. This is why a pedagogy architecture is a policy layer over content, and why learner-model accuracy is the binding constraint.
+  * Why can't the learner choose? — Several backfire modes feel good: dropping mastered items feels like progress, fluent re-exposure feels like studying, unsolicited help feels like service. The system must enforce and explain, not defer to preference.
 
 
 Why This Module Exists
@@ -543,11 +606,34 @@ The OECD reports that roughly 90% of edtech companies have no research evidence 
 
 The asymmetry is the strategic point: you are not lowering expectations. You are becoming the only player making a verifiable promise. Module 15 turns this into published targets.
 
+Q: What did Bloom actually claim about the 2-sigma result?  * That it was a replicated benchmark for tutoring systems
+  * That it was a problem to solve — how to achieve tutoring-level outcomes at group scale (correct)
+  * That it applied only to mathematics
+  * That it required at least a semester of tutoring
+Explanation: Bloom framed 2σ as a challenge, not a validated target. The underlying studies were ~30 per condition, ~3 weeks, experimenter-run, and measured tutoring combined with mastery learning. It has never been replicated.
 
+Q: In VanLehn's meta-analysis, what distinguishes d = 0.76 from d = 0.31?  * Human tutors versus machine tutors
+  * Mathematics versus other subjects
+  * Step-based interaction granularity versus answer-based (correct)
+  * Adults versus children
+Explanation: Step-based ITS reached 0.76, nearly matching human tutoring at 0.79, while answer-based systems reached only 0.31. Granularity of interaction — not the tutor's human or machine identity — is the active ingredient. It is the same distinction as GPT Tutor versus GPT Base.
 
+Q: What did bias-corrected meta-analysis find about LLM-based tutors specifically?  * They roughly doubled the effect of rule-based tutors
+  * They pooled at g ≈ 0.38 and performed no better than older rule-based tutors (correct)
+  * They showed effects above 1σ when properly implemented
+  * There is not yet enough data to pool
+Explanation: g ≈ 0.38, with LLM tutors no better than rule-based predecessors. The plateau held through the arrival of frontier models — which is the strongest available argument that architecture, not model capability, is the binding constraint.
 
+Q: Why should the Kestin Harvard result (g = 0.73–1.3) be treated cautiously despite being the most favourable AI-tutor finding?  * It used a small sample of fewer than 30 students
+  * It was single-site, not pre-registered, used researcher-designed immediate tests with motivated elite students, and its own authors caution it may not generalize (correct)
+  * It was funded by an AI vendor
+  * It measured satisfaction rather than performance
+Explanation: All four caveats are in the paper itself. The design lesson from it is real and reappears in Module 10 — grounding in instructor-written solutions with stepwise sequencing — but the magnitude should not anchor a plan.
 
-
+  * The tutoring plateau — VanLehn: human tutoring d = 0.79, step-based ITS d = 0.76, answer-based d = 0.31. ITS median 0.66 vs classroom, no advantage over human tutors. Modern high-dosage human tutoring ~0.37 across ~100 RCTs.
+  * The honest planning band — 0.3–0.8σ on delayed, independently measured outcomes; 0.3–0.5 as the central target. Treat anything above ~1σ as marketing until it arrives with pre-registration, delayed retention measures, and independent replication.
+  * Efficacy vs effectiveness — Cognitive Tutor: 0.3–1.2 SD in developer-run studies, no significant first-year effect across 147 schools independently. Discount vendor-run figures by default — it is not fraud, it is the gap between controlled and real conditions.
+  * Why honesty is a position — OECD: ~90% of edtech companies have no research evidence behind their learning claims. Publishing realistic targets and verifying them on delayed unaided assessment makes you the only verifiable promise in the category.
 
 
 Two Worlds With Opposite Failure Modes
@@ -666,11 +752,34 @@ Three Conclusions
 
 The copyable assets are concrete and unglamorous: visible knowledge state, prerequisite-driven remediation, step-level feedback, unaided-transfer metrics, published methodology.
 
+Q: What happened when Khan Academy removed its math-verification agent in an internal experiment?  * Response latency improved with no quality loss
+  * Math errors doubled, and the change was rolled back immediately (correct)
+  * Student satisfaction rose but comprehension fell
+  * Costs fell 40% with a small accuracy penalty
+Explanation: Math errors doubled. This is the clearest production evidence that deterministic verification of anything factual is not optional — and it is the direct precedent for the 'verify before insert' guard in Module 13.
 
+Q: What metric does Khanmigo gate its releases on?  * Session length and message count
+  * Learner satisfaction ratings
+  * Next-item correctness — whether the student solves the next problem on the same skill unaided (correct)
+  * Time to first correct answer
+Explanation: Next-item correctness, tested over 15M+ threads in six months. It is a deliberate rejection of assisted performance as the success metric, and the closest production analogue to the Bastani unassisted exam.
 
+Q: The ALEKS meta-analysis (33 studies, 9,238 students) found g = 0.05 in one condition and g = 0.43 in another. What distinguished them?  * Elementary versus secondary students
+  * Whether ALEKS replaced instruction or supplemented it (correct)
+  * Whether teachers received training
+  * Length of the deployment
+Explanation: As a replacement for instruction, ALEKS is statistically indistinguishable from a teacher (g = 0.05). As a supplement, g = 0.43. Same software — the deployment model produced the difference.
 
+Q: What did the strongest independent-led Duolingo study find about time-on-app?  * It predicted outcomes more strongly than any other variable
+  * It did not predict outcomes, while session accuracy did (correct)
+  * It predicted outcomes only for beginners
+  * It correlated with outcomes but not causally
+Explanation: Time-on-app did not predict outcomes; session accuracy did. Learners repeat easy sessions to farm XP and protect streaks — engagement machinery displacing the processing that produces learning.
 
-
+  * Khanmigo's two published prompt wins — Injecting recent problem-solving history: +3.4% next-item correctness across 608k threads. Surfacing unmastered prerequisites before a hard problem: +2.7% across 1.36M threads. Prerequisite-graph context measurably improves outcomes at scale.
+  * The Knewton lesson — $180M+ raised on 'robot tutor in the sky' claims; assets sold to Wiley for a reported ~$10M. Post-mortems: black-box 'adaptive mystique' destroyed trust and defunded the next wave of adaptive providers. Opacity is commercially fatal.
+  * MATHia's two-year result — 147 schools, ~18,700 students, USDoE-funded RCT: no effect in year one, ~0.20 SD in year two — only after teachers learned to run the blended model. The effect lived in software plus teacher practice, not software alone.
+  * DreamBox's contradictory ratings — ESSA 'Strong' (two RCTs, 13,320 students, avg +0.10 SD, concentrated K–2) versus What Works Clearinghouse 'no discernible effects' on its one qualifying study. Evidence tiers are not interchangeable — always ask which body rated what.
 
 
 Everyone Shipped the Same Five Features
@@ -762,10 +871,34 @@ LTEM Is a Product Specification in Disguise
 A dashboard that reports delayed retrieval, decision quality and demonstrated task performance — rather than completions — sells the exact upgrade the market says it needs and cannot currently buy. Measurement is the wedge. Module 15 builds the stack.
 
 
+Q: Which row of the enterprise AI feature convergence table has no shipper at scale?  * Natural-language analytics
+  * AI role-play for applied practice
+  * Credentials minted from demonstrated applied work (correct)
+  * Skills inference and auto-tagging
+Explanation: Every platform shipped coaching, authoring, role-play, skills inference and analytics. None mints credentials from demonstrated applied work at scale. Degreed's addition of 'skill-validation partners' is itself a gap admission.
 
+Q: What did the Burning Glass / Harvard Business School analysis of 11,300+ job postings find?  * Skills-based hiring roughly doubled the number of non-degree hires
+  * Dropped degree requirements nearly quadrupled from 2014–2023, yet fewer than 1 in 700 hires in 2023 actually benefited (correct)
+  * Microcredentials increased hiring probability by 12%
+  * Employers now prefer badges to degrees in most technical roles
+Explanation: Rhetoric moved; hiring barely did. 45% of firms adopted skills-based hiring 'in name only.' The bottleneck is trust in what a credential proves, not the taxonomy or the standard.
 
+Q: Why is the credential gap strategically defensible against incumbents?  * The standards are proprietary and hard to license
+  * Incumbents' completion-based data models cannot support evidence chains without rebuilding their evidence layer (correct)
+  * It requires a frontier model incumbents cannot afford
+  * Regulators prohibit incumbents from issuing credentials
+Explanation: Open Badges 3.0 and W3C VC 2.0 are final and open — the standards are not the moat. The moat is the data model: proof requires item-level evidence chains, which a platform built on enrollments and completions cannot emit.
 
+Q: Roughly what is the meta-analytic correlation between learner-reaction surveys and measured learning?  * r ≈ 0.09 (correct)
+  * r ≈ 0.35
+  * r ≈ 0.52
+  * r ≈ 0.71
+Explanation: r ≈ 0.09 — described in the source as 'virtually nothing.' Smile sheets are the industry's most widely collected instrument and one of its least informative, which is why LTEM classifies them as inadequate to validate learning.
 
+  * The Workday–Sana signal — ~$1.1B acquisition, signed Sept 2025, completed Nov 2025. The market's own admission that AI-native architecture cannot be retrofitted — an incumbent bought what it could not build. Feature parity means 'AI-native' is table stakes, not differentiation.
+  * Coursera's AI-grading data point — When AI graded free-text work, average scores fell from 88% (human graders) to 72%, and learners submitted more attempts to pass. Rigor is a feature learners respond to, not a friction to minimize.
+  * Why LinkedIn's Verified AI Skills Certificates don't close the loop — Issued (Jan 2026) by partner tools from real product usage rather than tests or self-report. Better than self-report — but usage logs certify exposure, not competence under unaided conditions.
+  * LTEM in one line — Thalheimer's eight-tier evidence rubric. Attendance, completion and poor smile sheets are inadequate to validate learning; adequacy starts at delayed retrieval, decision-making and task performance. Effectively a product spec for the dashboard.
 
 
 Inherited Liabilities
@@ -855,10 +988,27 @@ What is unoccupied
 
 That is the entire strategic argument of this course in one comparison. In a market where nine out of ten claims are unevidenced, the bar is unoccupied — and clearing it costs discipline rather than capital.
 
+Q: What is the correct replacement for learning-styles-based personalization?  * Personalize on self-reported preference but validate it with a quiz
+  * Adapt on demonstrated mastery and learner goals, never on claimed modality (correct)
+  * Use multimodal content for every learner regardless of preference
+  * Personalize on prior credential only
+Explanation: Pashler et al. found 'no adequate evidence base' for modality matching, with replicated failures since. Generative models make style-matching trivially easy to ship — the capability exists, the warrant does not.
 
+Q: What is the defensible version of the 'shrinking attention span' claim?  * Attention spans have fallen to about 8 seconds, shorter than a goldfish
+  * There is no evidence attention has changed at all
+  * Gloria Mark's finding that average on-screen task focus fell from ~150s (2004) to ~47s (2020s) — an interruption phenomenon, not a biological limit (correct)
+  * Attention spans shrink only in learners under 25
+Explanation: The goldfish figure traces to an unverifiable marketing citation that neither the credited research organizations nor the AP could locate. Mark's finding is real but describes environments, not brains — short lessons should be justified by spacing science and time scarcity instead.
 
+Q: What did Thalheimer find about the '10% of training transfers to the job' statistic?  * It is supported by meta-analysis but often misquoted
+  * It traces to a 1982 opinion survey of imaginary training directors — the transfer problem is real, the number is not (correct)
+  * It applies only to compliance training
+  * It was originally 40% and was misreported
+Explanation: Fabricated provenance for a genuine problem. Citing it hands a sophisticated buyer a reason to discount everything else you say — which is precisely the cost of inheriting zombie ideas uncritically.
 
-
+  * 70-20-10: what's wrong with it — Derives from 1980s retrospective self-reports by successful executives. ATD's own assessment: 'neither a scientific fact nor a recipe.' Fine as a conversation starter about blending experience and formal learning; never as a design ratio or budget split.
+  * The OECD 90% statistic — Digital Education Outlook 2026: roughly 90% of edtech companies have no research evidence behind their learning claims. Read as a threat it's depressing; read as a market map it's the whole opportunity.
+  * Why zombie ideas are a business risk, not just an intellectual one — They are exactly what a sophisticated buyer screens for. One fabricated statistic in the deck licenses discounting every other claim in it — including the true ones.
 
 
 The Pattern Generalizes Well Beyond Algebra
@@ -967,11 +1117,35 @@ The Analytics Warning
 In every failing condition above, practice scores, artifact quality, session engagement and satisfaction all rose. A team optimizing those metrics would ship every one of these harms — and their dashboard would be green the entire time.
 
 
+Q: In Anthropic's pre-registered RCT of 52 developers, what separated the 24–39% scorers from the 65–86% scorers?  * Prior experience with the Python library
+  * Whether they had access to AI at all
+  * Interaction pattern — delegation-style use versus cognitively engaged use (conceptual questions, explanations, generate-then-comprehend) (correct)
+  * Time spent on the task
+Explanation: Same tool, same task, same population — the split was entirely in how people used it. This is the strongest available evidence that the design job is constraining default interactions toward engagement patterns, since the unsupervised default is delegation.
 
+Q: Why is 'let the learner choose how much AI help to use' described as a regressive policy rather than a neutral one?  * Because learners consistently choose too little help
+  * Because the harm concentrates on the least-prepared learners, who are least able to detect it (correct)
+  * Because it increases support costs
+  * Because it violates accessibility requirements
+Explanation: Prather et al.: prepared students accelerate while struggling students have known metacognitive difficulties compounded and 'finish with an illusion of competence.' Deferring to preference systematically disadvantages the learners the product should help most.
 
+Q: How should the MIT 'Your Brain on ChatGPT' study be cited responsibly?  * As definitive neural evidence that AI use causes cognitive decline
+  * As suggestive rather than settled — a preprint with only 18 participants in the critical session-4 crossover, a formal methodological critique, and authors who rejected 'brain rot' framings (correct)
+  * As fully refuted and not worth citing
+  * As equivalent in strength to the Bastani PNAS trial
+Explanation: Its value is that its direction converges with much stronger designs (Bastani, Fan, Shen & Tamkin), not that it settles anything on its own. Over-claiming it is exactly the credibility error Module 7 warns about.
 
+Q: What happened to practice scores, artifact quality, session engagement and satisfaction in the failing conditions across the harm register?  * They fell, giving teams an early warning signal
+  * They stayed flat
+  * They all rose — a team optimizing them would ship every one of these harms (correct)
+  * They were not measured in most studies
+Explanation: This is the module's operational punchline: every proxy a product team can move in a sprint improved in the conditions that damaged learning. The dashboard stays green while the outcome inverts.
 
-
+  * Metacognitive laziness — Fan et al., BJET 2024 (N=117): the ChatGPT arm produced the best essays — better than the human-expert arm — with no significant knowledge gain or transfer. Learners revised by conversing with AI instead of re-reading sources, offloading self-regulation.
+  * Delegation vs engagement, in numbers — Anthropic, N=52 pre-registered: delegation-style AI use scored 24–39% on comprehension; conceptually engaged use scored 65–86%. Overall AI-assisted arm −17pp (50% vs 67%, d = 0.738), with no significant time saved.
+  * The 10-minute persistence result — Liu et al. 2026 (N=1,222, preprint): after roughly ten minutes of AI assistance, learners give up more readily and perform worse once assistance is removed. Instant answers condition away tolerance for struggle — fast.
+  * Fluency illusion — Felt ease of processing is misread as mastery. At Harvard, active-learning students learned more but felt they learned less than lecture peers — perceived and actual learning were anticorrelated. Generative AI is the strongest fluency pump ever built into a learning product.
+  * The 47% telemetry figure — Roughly 47% of real student–AI conversations are low-engagement answer-seeking, with the highest-order tasks delegated most. The harmful interaction pattern is the unsupervised default, not an edge case.
 
 
 Three Risks That Survive a Good Interaction Design
@@ -1099,11 +1273,34 @@ For verified competence
 
 Note that this policy is only implementable if the system has a trustworthy mastery estimate to condition on. Which is Module 13's problem, and why Module 13 spends so long on why the estimate needs a confidence band.
 
+Q: Why is generated remediation the highest-risk place to use live generation?  * It is the most expensive call to make
+  * It fires after a failed check, so it depends on error diagnosis in context — the capability where LLM feedback is weakest relative to human experts (correct)
+  * It is the most visible feature to learners
+  * It requires the longest context window
+Explanation: Remediation is triggered by a failure the model must first diagnose, and in-context error diagnosis is precisely where LLM feedback underperforms teachers. Correctness-checking of student code runs only 57–79% accurate.
 
+Q: What did grounding plus human pre-send review achieve in the Google/Eedi deployment?  * A 50% reduction in error rate
+  * Factual errors held to 0.1% of 3,617 drafted tutor messages (correct)
+  * Elimination of the need for a verification agent
+  * A 15% improvement in student satisfaction
+Explanation: 0.1% of 3,617 messages. This is the ceiling the two-lane generation principle aims at — and it required both grounding and 100% human pre-send review, not one or the other.
 
+Q: What do three pre-registered experiments (N = 3,285) show about sycophantic chatbots?  * Users detect and dislike sycophancy
+  * Users prefer sycophantic chatbots, and brief sycophantic interaction increases overconfidence (correct)
+  * Sycophancy has no measurable effect on user behavior
+  * Sycophancy improves short-term learning outcomes
+Explanation: Users prefer it and it makes them more overconfident. Combined with RLHF's structural bias toward agreement — a user-suggested wrong answer cut accuracy by up to 27% — this means preference signals actively select for the pedagogically worst behavior.
 
+Q: A randomized experiment (N=122, ages 14–16) compared Socratic AI to direct-answer AI. What did it find?  * Socratic AI produced large learning gains
+  * Socratic AI produced richer dialogue with no measurable learning advantage (correct)
+  * Direct-answer AI outperformed Socratic AI on all measures
+  * Results were inconclusive due to attrition
+Explanation: Richer dialogue, no measurable learning advantage. 'Make the tutor more Socratic' is the category's most common proposed fix and is necessary but insufficient — dialogue quality is an engagement metric unless it terminates in retrieval and unaided demonstration.
 
-
+  * Unreviewed generation error rates — <1% to 45% across studies of AI-generated questions; 40% major errors in one Claude-generated thoracic-surgery exam vs zero expert-written; 16% wrong answer keys on GPT-4 maths tasks; 30% of ChatGPT algebra hints rejected, all for wrong answers or steps.
+  * Why learners can't be the error-detection layer — A pre-registered RCT (N=252) found even 100%-erroneous feedback produced gains inseparable from accurate feedback — but only for adults who actively scrutinized it, and at the cost of confusion and lost trust. Learners systematically over-trust AI content; novices most of all.
+  * The warmth–reliability tradeoff — Tuning models to be warm and empathetic makes them less reliable and more sycophantic. The persona users love is the one most likely to confirm a misconception at the moment correction matters. Thumbs-up data trains for flattery over truth.
+  * Stage-dependence in one sentence — AI assistance is a lever for the prepared and a trap for the struggling — so a uniform AI experience widens the gaps it promises to close. Assistance policy must be conditional on demonstrated mastery, which requires a trustworthy mastery estimate to condition on.
 
 
 Risk Analysis Requires the Other Column
@@ -1204,10 +1401,27 @@ The positive cases have an inconvenient property in common: they are labor-inten
 
 That is not a coincidence — it is the cost structure of keeping cognitive work with the learner while keeping content correct. A product that wants Kestin-scale results without Kestin-scale authoring is asking for the GPT Base arm. Module 12 is about making that authoring burden explicit and locating it precisely (in skill rubrics and concept graphs), rather than pretending it can be generated away.
 
+Q: What did the Kestin Harvard study identify as insufficient on its own?  * GPT-4's reasoning capability
+  * A system prompt — it 'could not reliably provide enough structure' without grounding in instructor-written solutions and stepwise problem sequencing (correct)
+  * The active-learning comparison condition
+  * The length of the tutoring sessions
+Explanation: Grounding in instructor-written solutions plus stepwise sequencing was what produced the result. Note the convergence with Bastani's GPT Tutor, which used teacher-authored solutions and per-problem misconception grounding — two different studies, same two ingredients.
 
+Q: What is distributionally uncomfortable about the Edo State, Nigeria result (+0.31 SD)?  * The effect was not statistically significant
+  * Gains were largest for higher-baseline students, so a positive average can still be regressive (correct)
+  * It was measured only on satisfaction
+  * The program lasted only six weeks
+Explanation: A positive average effect can widen gaps. This is the same pattern as Prather's novice programmers and is why assistance policy has to be conditional on demonstrated mastery rather than uniform.
 
+Q: What pattern does Stanford's Tutor CoPilot RCT demonstrate?  * AI tutors outperform human tutors when given enough context
+  * AI coaching the human tutor raised topic mastery +4pp overall and +9pp for the lowest-rated tutors — benefit concentrated where capability was weakest (correct)
+  * Human tutors reject AI suggestions in most sessions
+  * Tutor training is more cost-effective than any AI intervention
+Explanation: The augmentation pattern: the AI upgraded the helper rather than substituting for the learner, and the benefit concentrated where human capability was weakest — the inverse of the widening-gap problem.
 
-
+  * The rule that organizes the whole literature — Gains appear where AI structures learner effort or upgrades human capability. Harms appear where AI substitutes for learner cognition. The risk is a design choice, not a property of the model.
+  * What the positive cases have in common (the inconvenient part) — They are labor-intensive up front: instructor-written solutions, teacher-authored misconception inventories, human supervision, per-problem grounding. That cost structure is what keeps cognitive work with the learner and content correct.
+  * Tutor CoPilot — Stanford RCT, ~900 tutors / 1,800 students. AI coaching the human tutor: +4pp topic mastery overall, +9pp for the lowest-rated tutors. Augmenting the helper rather than replacing the learner reverses the usual distributional problem.
 
 
 The Convergence Is Itself the Finding
@@ -1336,10 +1550,34 @@ The Resolution
 Badges must be informational, hard-won and proof-gated — competence information, not behavior-control instruments. No public leaderboards. Streaks are permissible purely as a return-behavior device (they work through loss aversion; Duolingo's large-scale but vendor-run experiments raised 7-day streak rates over 40% with easier-to-keep streaks). A streak protects the habit; the badge state machine protects the meaning.
 
 
+Q: What does the Verified Convenience principle require of every convenience feature?  * That it be optional and toggleable by the learner
+  * That it ship with a scheduled, unaided proof moment measuring the same capability, specified at design time (correct)
+  * That it be A/B tested against engagement before release
+  * That it be disabled for novice learners
+Explanation: The proof mechanism must be specified at design time, not retrofitted. And it must be unaided and delayed, because current performance is an unreliable — sometimes inverse — proxy for durable learning.
 
+Q: What is the dividing line between Lane 1 and Lane 2 generation?  * Cost per call
+  * Whether the content is text or interactive
+  * Whether the object mints evidence: evidence-bearing content needs active human approval; live remediation may be generated but never gates progression (correct)
+  * Whether the learner is a novice or an expert
+Explanation: Lane 1 is anything that mints evidence — checks, assessments, credentialing items — and requires active human approval. Lane 2 is live remediation and practice: verified, grounded, labeled, and never used as gating evidence.
 
+Q: Why are the seven principles described as 'one argument applied at seven layers'?  * Because they were derived from a single study
+  * Because every proxy the system optimizes must be counterweighted by unaided, delayed, contestable evidence (correct)
+  * Because they must be implemented in a fixed order
+  * Because they all concern credentialing
+Explanation: Convenience, adaptation, mastery, generation and credentials are all proxies, and each gets the same counterweight. They are also interdependent — auditable adaptation is only safe with uncertainty-bearing mastery, and evidence chains only mean something if the evidence came from the approved lane.
 
+Q: What does the controlled 16-week study of badges and leaderboards show about already-interested adult learners?  * Badges raised motivation while leaderboards lowered it
+  * Badges and leaderboards reduced motivation, satisfaction and exam scores (correct)
+  * Both raised engagement with no effect on outcomes
+  * Effects were positive but only for the top quartile
+Explanation: Reduced motivation, satisfaction and exam scores — via overjustification, where expected extrinsic rewards on already-engaging tasks undermine intrinsic motivation. This is exactly the enterprise demographic, which is why badges must be informational and proof-gated rather than activity counters.
 
+  * Principle 3 in one sentence — Evidence-emitting structure: every unit must name the capability it builds AND the evidence it emits. A unit that cannot name its evidence does not ship. Forbids content-only lessons and seat-time completion as a success signal.
+  * Principle 4's hardest requirement — Mastery never goes only up. It is a posterior with a confidence band, subject to decay, refreshed by re-checks — and it must admit failure states (31–38% wheel-spinning rates require escape hatches, not infinite drilling).
+  * The three anti-principles — (1) Engagement-as-learning proxies — a dashboard that can't show delayed unaided performance is measuring the harm. (2) Black-box mystique — killed Knewton, now legally untenable in the EU. (3) Gamification that controls rather than informs — overjustification.
+  * Streaks vs badges — Streaks are permitted purely as a return-behavior device working through loss aversion. Badges must be informational, hard-won and proof-gated. A streak protects the habit; the badge state machine protects the meaning.
 
 
 The Promise, and the Structural Claim
@@ -1471,11 +1709,34 @@ Explainers and lectures emit no mastery evidence at all — a deliberate break f
 
 This asymmetry does two more jobs. It is the instructor's authoring grammar — a designer who cannot say which function an item serves has produced content, not pedagogy. And it makes the Lane 1 / Lane 2 boundary concrete: only the support row may be live-generated, and it emits no gating evidence.
 
+Q: What is the single contract that governs all six levels?  * Every level must be completable in under 15 minutes
+  * Every level declares what it teaches and what evidence it emits (correct)
+  * Every level must be authored by a subject-matter expert
+  * Every level must support both guided and self-paced modes
+Explanation: Declare and emit. That one rule lets instructors author into the structure learners walk, lets engines adapt without guessing, and lets badges cite their own provenance — which is what makes adaptation, assessment and credentialing share a data model.
 
+Q: Why do explainer and lecture items emit no mastery evidence?  * Because they are usually live-generated
+  * Because exposure is not evidence, and treating it as such manufactures fluency illusions (correct)
+  * Because they are optional in most pathways
+  * Because their completion is hard to measure reliably
+Explanation: A deliberate break from platforms where watching a video moves a progress bar. Only checks and attempts emit concept-level evidence, and only the applied check emits credential-bearing evidence — no number of watched explainers mints a badge.
 
+Q: What is the status of a '70%' mastery bar according to the architecture?  * A psychometrically validated threshold
+  * A rounded policy value that is only defensible if a lightweight standard-setting exercise stands behind it — the stronger option is gating on the posterior (P ≥ 0.95–0.98) (correct)
+  * An arbitrary number that should be removed from all displays
+  * The minimum required by accreditation bodies
+Explanation: A fiat cut score is indefensible, though pooled modified-Angoff studies land roughly between 61% and 78%, so 70 is a reasonable rounded policy value with standard-setting behind it. Gating on the posterior itself is stronger.
 
+Q: What bounds everything downstream in an adaptive system, according to the literature cited here?  * The sophistication of the knowledge-tracing model
+  * The quality of the concept graph and item-to-concept mapping (correct)
+  * The size of the item bank
+  * The frequency of re-assessment
+Explanation: Graph quality, not model sophistication. Lumping two distinct skills into one node produces permanently plateaued estimates — a data-modelling error no algorithm can recover from. This is also where the authoring burden honestly concentrates.
 
-
+  * The ALEKS existence proof for concept graphs — 350–500 algebra problem types induce millions of feasible knowledge states, yet adaptive assessment locates a learner's state in 25–30 questions — the graph inferring mastery of items never directly asked. Graphs carry real inferential weight at scale.
+  * Why constructed response over multiple choice? — ALEKS's deliberate choice: open-ended answers make lucky guesses 'virtually non-existent,' simplifying the guess/slip problem at the source rather than modelling around it. Where MCQ is used, distractors come from the concept's misconception inventory so wrong answers are diagnostic.
+  * What a Skill declares — (1) An operational definition — what a holder can do, in which contexts. (2) An analytic rubric with behaviorally anchored dimensions. (3) An evidence contract — artifact + structured defense, then delayed re-verification. It is the join point between pedagogy and measurement.
+  * Can AI build the concept graph? — It can draft it; it cannot own it. Documented pipelines produce small instructor-auditable drafts (54 nodes / 47 edges from 26 lecture PDFs) that must be validated against response data. Graph quality bounds everything downstream.
 
 
 One Question, One Answer
@@ -1662,12 +1923,41 @@ Transparency is calibrated. Moderate transparency protects trust after expectati
 
 Where the learner holds a control, its consequence is shown as a what-if display — the pattern that produced the strongest trust gains in controlled experiments. Confidence bands and occasional visible corrections are trust infrastructure, not UX garnish: explanations must be able to calibrate trust downward.
 
+Q: What is the productive-struggle budget in this architecture?  * Five minutes per item
+  * One genuine attempt plus one prompted retry, treated as an A/B-testable policy (correct)
+  * Three failed attempts before any help
+  * Whatever the learner chooses in settings
+Explanation: One genuine attempt plus one prompted retry — small, visible, and evaluated against delayed transfer rather than engagement. The assistance dilemma has no closed-form optimum, so the budget is a tunable policy, not a product constant.
 
+Q: Why does deep knowledge tracing fail a requirement that constrained BKT satisfies?  * It is too slow to run in real time
+  * Its estimates can fall after correct answers — on-screen incoherence — and its predictive edge over enhanced BKT is small and unstable (correct)
+  * It cannot model more than 100 concepts
+  * It requires labelled misconception data
+Explanation: A mastery number that drops after a correct answer is a visible contradiction between the model and observed reality, and one such contradiction damages trust in the whole system. The predictive gain does not justify it.
 
+Q: What is the sole condition under which inserted support is withdrawn?  * After a fixed number of days
+  * When the learner requests removal
+  * When the learner demonstrates the concept elsewhere, on a non-isomorphic item (correct)
+  * When the concept posterior first crosses the bar
+Explanation: Transfer, not an immediate re-test — which would only index temporary retrieval strength. Fixed-schedule fading produced worse outcomes than never fading, so the criterion is a product invariant rather than a settings toggle. The self-explanation prompt stays behind after removal.
 
+Q: Why does the system reserve a stream of randomly selected probe items?  * To reduce the cost of adaptive item selection
+  * So the evidence base is not fully determined by the adaptive policy, which otherwise shapes the data the model fits on (correct)
+  * To give learners variety
+  * To satisfy accessibility requirements
+Explanation: The ALEKS 'extra problem' technique. Without it, the selection policy determines the evidence, creating documented feedback loops — rapid guessing corrupting the very estimates that governed mastery. It is also how gaming and rapid-guessing loops surface.
 
+Q: What does 'persuadable, not editable' mean for the learner model?  * Learners can adjust their mastery scores with manager approval
+  * Learners can contest a decision; the engine shows its evidence; the learner persuades it only by demonstrating competence on a short probe (correct)
+  * The model is fixed and learners can only file complaints
+  * Learners can edit their goals but not their pathway
+Explanation: Contest, evidence, probe. Learners rate persuasion as more trustable than editing, and it preserves the integrity of the evidence chain — a model you can simply edit certifies nothing.
 
-
+  * The four guards on live-generated remediation — (1) Verify before insert — deterministic solver/verification agent. (2) Ground in authored solutions and the misconception map. (3) Degrade gracefully — generation fails ~1 call in 7, so a static authored hint sits behind it. (4) Label and audit — 'Generated' label, error reporting, expert sampling.
+  * Why LLMs don't track — Purpose-built models beat GPT-4-class LLMs at knowledge tracing while costing 600–12,000× less to deploy; fine-tuned LLMs top out at parity with BKT. The LLM elicits, explains and authors; the probabilistic engine alone owns the estimate.
+  * Why the confidence band is honest, not decorative — Adaptive testing reaches reliability ≈ 0.9 in 4–12 items, and tracing models are near-chance for a learner's first ten interactions. Early estimates are legitimately low-confidence — wide bands and provisional language are the accurate display, not hedging.
+  * Wheel-spinning — 31–38% of student–skill pairs fail to reach mastery within ten opportunities under standard criteria. Requires escape hatches — prerequisite backtracking, alternate representations, human escalation — not infinite drilling.
+  * Calibrated vs maximal transparency — Moderate transparency protects trust after expectation violations; excessive transparency erodes it, and long explanations in automated-scoring studies were rated overwhelming and moved neither trust nor motivation. Layer it: one-sentence rationale inline, expandable evidence, full log behind. Never publish exploitable thresholds.
 
 
 The Design Problem in One Sentence
@@ -1840,12 +2130,41 @@ Skills-based hiring moved job postings but "not even 1 in 700 hires," and 57% of
 
 Credential-inflation guardrails apply from day one: few badges, high minting cost, published rubrics, expiring states. (The often-cited IBM figures — 694% completion increase, 2× retention when training is paired with recognition — are vendor-reported with no control groups. Useful as a directional signal, not as an effect size.)
 
+Q: Why is the moment an applied check passes the wrong moment to mint a permanent badge?  * Because graders need time to review
+  * Because performance at acquisition indexes temporary retrieval strength, and delayed retention can collapse from ~80% to ~35% (correct)
+  * Because learners often contest results immediately
+  * Because rubrics change frequently
+Explanation: Pass-time is the least trustworthy signal in the system. Combined with the ALEKS decay curve flattening at 1–2 weeks, that window is where a delayed AI-free re-check is both cheapest and most decisive — which is why Provisional converts to Durable there.
 
+Q: Why are applied-check dimensions scored 0–4 rather than 0–100?  * It is faster for human auditors
+  * Human–LLM alignment is highest on coarse scales and collapses on direct 0–100 scoring (correct)
+  * Learners find coarse scales less discouraging
+  * Regulators require ordinal scales
+Explanation: Alignment collapses on fine-grained direct scoring. The 0–4 scores are mapped arithmetically to any 0–100 display, so you keep the familiar presentation without asking the judge to make a distinction it cannot make reliably.
 
+Q: What does the 'Lapsed' state contribute to the system?  * A way to penalize learners who miss deadlines
+  * Honesty — a badge that cannot be lost is attendance certification with extra steps, so the possibility of lapsing is what makes 'Durable' informative (correct)
+  * A cost-saving mechanism for re-assessment
+  * Compliance with EU AI Act logging requirements
+Explanation: Lapsed withdraws a provisional claim after a re-check fails twice and reopens the skill. Without a way to lose a badge, holding one certifies nothing beyond attendance.
 
+Q: How should a borderline prior-learning check-in be handled?  * Grant the skip and monitor later performance
+  * Deny the skip and open the full skill
+  * Route the learner directly to the skill's applied check — take the proof, skip the lessons (correct)
+  * Ask the learner to self-assess
+Explanation: Adaptive triage, not a terminal judgment. The asymmetry is deliberate: a false negative (an expert re-takes a check) is recoverable, a false positive is not. Confident passes are skipped revocably; failures open the full skill with no penalty.
 
+Q: Why are AI-text detectors excluded absolutely from credential gating?  * They are too expensive to run at scale
+  * They flagged 61% of non-native writers' genuine essays as AI-generated in controlled testing (correct)
+  * They are prohibited under the EU AI Act
+  * They only work on essays, not code
+Explanation: A 61% false-positive rate on a specific population is disqualifying for any decision that gates a credential. The integrity layer is the structured AI-free defense, not detection software.
 
-
+  * Why structured defense, not conversation? — Structured oral assessment reaches reliability α ≈ 0.75–0.80 versus roughly 0.50 unstructured, and analytic scoring beats holistic. Standardized questions per rubric dimension: justify a design choice, name the weakest assumption, respond to a counter-case.
+  * The five-part LLM-judge guardrail stack — (1) Locked, versioned rubrics frozen at assessment time. (2) Evidence-before-score — cite evidence per dimension before assigning a level. (3) Coarse 0–4 scales. (4) Cross-family second judges on borderline cases. (5) ~10% stratified human audit, with no badge minting on LLM judgment alone.
+  * What 'Decayed' certifies — Formerly durable skill whose *evidence* has expired — not the learner's history. It distinguishes 'never demonstrated' from 'demonstrated, now stale,' and the way back is a short re-verification, not a repeated course. Not punitive by design.
+  * Why sell the internal ledger before external portability — Open Badges 3.0 and VC 2.0 are final — cryptography is not the bottleneck. Trust and governance are: <1 in 700 hires affected by skills-based hiring, 57% of employers look up a microcredential to interpret it. Internal readiness heat maps deliver value today; OB 3.0 export is insurance.
+  * The prior-learning asymmetry — A false negative (an expert re-takes a check) is recoverable; a false positive is not. RPL doctrine demands valid, sufficient, authentic, current evidence — and validated 'short' instruments run ~24 items, so four questions cannot certify six hours of skill.
 
 
 The Adaptive Engine Is Also the Principal Liability
@@ -2003,12 +2322,42 @@ Where the Course Ends
 The OECD finds roughly 90% of edtech companies have no research evidence behind their learning claims. In a sector whose trust was destroyed by 2-sigma marketing, a vendor that pre-registers targets in the honest band, reports delayed and unaided outcomes, and labels the evidence tier of every claim is not lowering expectations — it is the only player making a verifiable promise. Realistic ambition, verified in public, compounds. Unverified ambition is what the market has already learned to discount.
 
 
+Q: What is the operational rule about auditing the probe portfolio?  * Probes should fire on at least 10% of learners each month
+  * If no probe has fired in a quarter, the probes — not the engine — are the first thing to inspect (correct)
+  * Probes should be disabled once the engine stabilizes
+  * Each lever needs its own bespoke probe implementation
+Explanation: Silence from the detection layer is more likely a broken detector than a flawless engine. Note also that the counter-lever is structurally identical across every row — verify unaided, gate globally, revoke cleanly — so one instrumentation layer services the whole register.
 
+Q: Why can adaptive learning platforms not use the EU AI Act's Article 6(3) filter exception?  * Because they operate across multiple member states
+  * Because they profile learners, which disqualifies them from the exception (correct)
+  * Because they use generative models
+  * Because they issue credentials
+Explanation: Annex III point 3 covers systems that evaluate learning outcomes and use them to steer the learning process. Profiling learners forecloses the filter exception, so adaptive platforms are high-risk by classification, not by choice.
 
+Q: What did research find about teacher-reviewers using AI authoring tools?  * They caught more errors than unaided reviewers
+  * They introduced more item-writing flaws through automation bias (correct)
+  * They reviewed faster with equal accuracy
+  * They rejected most AI-drafted items
+Explanation: Passive approval degrades into rubber-stamping. This is why the Lane 1 approval interface must run automated flaw detection that actively surfaces suspect answer keys and distractors — a queue that only asks 'approve?' manufactures the errors it exists to catch.
 
+Q: In the calculus field study cited for the north-star argument, what happened?  * The spaced-practice condition won on both weekly quizzes and the final test
+  * The spaced-practice condition scored lower on weekly quizzes and higher on the final criterial test (correct)
+  * Both conditions performed identically
+  * The massed condition won on the final test
+Explanation: Lower on the leading indicator, higher on the outcome that mattered. An analytics program pointed at immediate quiz accuracy would have selected the worse design — which is the concrete case for refusing to optimize in-session performance.
 
+Q: Why is normalized learning gain reported pretest-stratified?  * To make results comparable across subjects
+  * Because normalized gain is statistically biased in favour of high-pretest populations (correct)
+  * Because regulators require stratified reporting
+  * To reduce sample size requirements
+Explanation: Unstratified normalized gain flatters populations that already scored well going in. The target is ≥ 0.4 against the ~0.23 Hake documented for passive instruction across 6,542 students — but only stratified reporting makes that comparison honest.
 
-
+  * The north-star metric — Unaided delayed performance: what the learner can still do, without AI support, days to weeks later, on items and tasks not directly trained. Everything observable in-session is performance, and performance during training is an unreliable — sometimes inverse — index of learning.
+  * The Khanmigo experimentation template — (1) Primary metric is a learning-science construct (ICAP cognitive engagement) validated against third-party assessments. (2) SMEs hand-label to 85% inter-rater agreement, then an LLM judge scales to ~20% of conversations nightly. (3) Randomize at the conversation-thread level. (4) Guardrail metrics include giving the answer away.
+  * The Duolingo counterexample — 750+ A/B tests per quarter on ~2.3B events/day — optimized for engagement and retention. Its efficacy claims come from a separate in-house lab using third-party standardized tests (ACTFL, Avant STAMP), because in-app metrics are gameable and correlate weakly with outcomes.
+  * BKT validation minimums — ~1.4 practice opportunities of irreducible error even at true parameters; degenerate parameters in up to 42% of small-sample fits; published minimums ~25 learners × 6 opportunities per skill; bound guess/slip so mastery cannot fall after correct answers; separate the first two opportunities from steady-state in evaluation.
+  * Published targets — d ≈ 0.3–0.5 on delayed researcher-independent assessment; normalized learning gain ≥ 0.4 pretest-stratified (vs Hake's ~0.23 for passive instruction, 6,542 students); far transfer reported dimension-by-dimension. Graded against WWC-style evidence tiers.
+  * Compliance and measurement are one line item — The adaptation log is the Art. 12 record. The approval queue is the Art. 14 oversight mechanism. The probe stream is post-market monitoring. Subgroup calibration audits are the Art. 10 bias examination. Build as one system and conformity assessment is documentation; bolt on later and it is a rebuild.
 
 
 An interactive course on the evidence behind AI-native learning · Built on Learning That Proves Itself: AI-Native Learning Experiences, the Pedagogy Evidence, and a Concept Architecture for Verified Skill (July 2026), and on Bastani, Bastani, Sungu, Ge, Kabakçı & Mariman, "Generative AI without guardrails can harm learning: Evidence from high school mathematics," PNAS 122(26), 2025.

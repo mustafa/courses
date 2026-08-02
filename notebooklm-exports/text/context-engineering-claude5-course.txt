@@ -144,9 +144,21 @@ Scope Note
 These rules are calibrated to the Claude 5 generation (Opus 5, Fable 5, Sonnet 5) and to agentic harnesses in particular. If you are running an older or much smaller model, or a tightly-scoped single-turn classification prompt, several of the "then" practices remain correct for you. Module 15 marks each one explicitly.
 
 
+Q: What distinguishes context engineering from prompt engineering, according to the article?  * Context engineering only applies to open-source models
+  * Context is used generally across many requests, so it cannot be as specific as a prompt (correct)
+  * Prompt engineering is done by the model, context engineering by the user
+  * They are two names for the same practice
+Explanation: The article's framing: a prompt targets one known request, while context is assembled across many unseen future requests. That generality is what makes it hard — you cannot tailor it, so the temptation is to over-cover, which is precisely the failure mode the new rules address.
 
+Q: Why does the article say context engineering gets harder over time rather than easier?  * Context windows keep shrinking
+  * Because Claude's own capabilities evolve, so guidance written for an older model can become wrong for a newer one (correct)
+  * Because tool APIs change every quarter
+  * Because users write longer prompts each year
+Explanation: Guidance is written against a specific model generation's weaknesses. When the model improves, that guidance does not go neutral — it actively constrains a model that no longer needs it. This is why deletion, not accumulation, is the core maintenance task.
 
-
+  * Context engineering, in one line — Designing everything assembled into the model's context — system prompt, tools, skills, CLAUDE.md, memory, references — for a distribution of future requests you cannot see.
+  * Who wrote 'The new rules of context engineering'? — Thariq (@trq212), who works on Claude Code at Anthropic. Published July 2026; ~1.4M views. The evidence is internal Claude Code eval data.
+  * The implicit expiry date — Every instruction was written against a model generation. When the model improves, unrevised guidance stops being neutral and starts constraining. Deletion is the unscheduled maintenance task.
 
 
 The Headline Result
@@ -234,11 +246,28 @@ The Tooling Consequence
 
 Anthropic did not leave this as advice. The article notes that these best practices were built into claude doctor — run /doctor in Claude Code to rightsize your skills and CLAUDE.md files. Shipping the guidance as a command is a signal about how the team expects it to be used: not read once, but run periodically against a codebase whose context has drifted.
 
+Q: How much of Claude Code's system prompt was removed for models like Opus 5 and Fable 5?  * About 20%
+  * Roughly half
+  * Over 80% (correct)
+  * The entire system prompt was eliminated
+Explanation: Over 80%, with no measurable loss on Anthropic's coding evaluations. Note the two qualifiers that matter: it was scoped to the newest model generation, and it was validated against an eval suite.
 
+Q: Why do system prompts accumulate bloat even on disciplined teams?  * Engineers are paid per token written
+  * Adding a rule has a visible, attributable benefit while its cost is diffuse and rarely traced back (correct)
+  * Model providers require minimum prompt lengths
+  * Longer prompts cache better
+Explanation: The asymmetry is structural. A failure from a missing rule is visible and gets a rule added; a failure from an obsolete rule shows up as diffuse mediocrity that nobody attributes. Without a scheduled deletion pass, instructions only accumulate.
 
+Q: What makes the '80% with no measurable loss' claim credible rather than just bold?  * It was posted on X
+  * It was bounded by a coding evaluation suite that would have caught regressions (correct)
+  * It came from a large company
+  * It applied to every model ever released
+Explanation: The eval is load-bearing. 'No measurable loss on our coding evaluations' is a falsifiable, instrumented claim — and it implies the corresponding rule for you: delete aggressively, but only behind a measurement you trust.
 
-
-
+  * The headline number — Over 80% of Claude Code's system prompt removed for Opus 5 / Fable 5, with no measurable loss on Anthropic's coding evals.
+  * Why bloat accumulates — Adding a rule = visible benefit, diffuse cost. Nobody files a bug saying 'this instruction is now unnecessary.' Deletion must be scheduled, not spontaneous.
+  * What a system prompt is still for — Product context: what product Claude is operating in and what it's doing. Identity and environment survive; compensatory micro-rules get cut.
+  * The line-by-line test — 'Is this telling the model what situation it's in, or how to think?' Situation = keep. How to think = candidate for deletion.
 
 
 The Diagnosis
@@ -331,11 +360,29 @@ Do Not Over-Correct
 "Unhobbling" is not "delete all guidance." Genuine policy — safety constraints, destructive-action confirmations, legal or compliance requirements, hard product invariants — still belongs in the system prompt and should be stated absolutely. The target is compensatory scaffolding: rules that exist to substitute for judgement the model now has. Module 14 gives you the triage.
 
 
+Q: How did the Claude Code team discover they were over-constraining the model?  * By running a static linter on the system prompt
+  * By reading transcripts of their own internal usage and spotting conflicting messages (correct)
+  * By surveying users
+  * By comparing prompt length to competitors
+Explanation: They read real transcripts. Conflicts between the system prompt, skills, and user requests are only visible at assembly time — each document looks fine in isolation, which is exactly why abstract audits miss them.
 
+Q: What are the two distinct costs of over-constraint identified in this module?  * Latency and price
+  * Arbitration overhead (reasoning spent resolving conflicts) and wrong outcomes in the tail cases the rule mis-covers (correct)
+  * Token cost and rate limits
+  * Training drift and hallucination
+Explanation: Cost 1: the model spends reasoning resolving overlapping and conflicting instructions instead of on the task. Cost 2: a rule written for the worst case is by construction wrong for some legitimate cases — like a blanket no-comments rule when the user wants documentation.
 
+Q: Why did having 'many more tools' (memory, artifacts, skills) reduce the pressure on CLAUDE.md?  * Tools replaced the need for any written context
+  * CLAUDE.md was the only container before, so everything went into it; now context can be distributed to purpose-built places and loaded when needed (correct)
+  * Tools are cheaper than tokens
+  * CLAUDE.md was deprecated
+Explanation: When CLAUDE.md was the sole store of memory, information, and guidance, it necessarily became a dumping ground. Memory, artifacts, and skills give each kind of context its own home and its own loading moment — the foundation for progressive disclosure (Module 6).
 
-
-
+  * The canonical conflict example — 'leave documentation as appropriate' (a skill) vs 'DO NOT add comments' (the system prompt) vs a user asking for docs. Three defensible instructions, one unresolvable moment.
+  * Arbitration overhead — Reasoning spent deciding which of your conflicting instructions wins is reasoning not spent on the user's problem. Claude usually still lands right — but it pays for it.
+  * Guardrails as a purchase — You buy worst-case protection and pay in tail-case correctness. For Claude 5, the price went up and the product got cheaper — so unwind old purchases.
+  * The diagnostic method — Read your own transcripts. Conflicts only exist at assembly time; auditing each file in isolation cannot find them.
+  * What unhobbling is NOT — Not deleting all guidance. Genuine policy — safety, destructive-action confirmation, hard invariants — stays and stays absolute. The target is compensatory scaffolding.
 
 
 The Shift
@@ -459,11 +506,29 @@ Pointer, Not Claim
 The most durable instructions point at a source of truth rather than restating it. "Match the surrounding code" cannot go out of date. "This repo uses 2-space indent" can — and will, silently, the day someone changes it.
 
 
+Q: What replaced the four-sentence no-comments rule in Claude Code's system prompt?  * A longer, more detailed rule with exceptions
+  * 'Write code that reads like the surrounding code: match its comment density, naming, and idiom.' (correct)
+  * Nothing — comments guidance was removed entirely
+  * A per-language lookup table
+Explanation: One sentence describing a standard replaced four sentences of prohibition. It specifies the goal rather than the action, resolves per-repo automatically, and absorbs rather than conflicts with user preference.
 
+Q: According to the article, why did the team keep the over-broad no-comments rule for older models even knowing it was sometimes wrong?  * They didn't know it was wrong
+  * Without the guardrail, the comments older models wrote would be incorrect in many cases — they accepted the tradeoff (correct)
+  * Users demanded it
+  * It saved tokens
+Explanation: They explicitly accepted a bad tradeoff: over-broad guidance was better than the failure mode of an unconstrained older model. The point is that this was always a hedge, and its expected value flipped once models had better judgement.
 
+Q: When should you still write an absolute rule instead of a standard?  * Whenever you feel strongly about it
+  * When the cost of a rare violation is unbounded or irreversible — destructive ops, credentials, spending money, safety policy (correct)
+  * Never — absolutes are always obsolete
+  * Only for models older than Claude 5
+Explanation: The test is whether you could live with the outcome if the model used its best judgement and got it wrong once in a thousand runs. For deleting data, spending money, or sending communications, the answer is no — keep those absolute.
 
-
-
+  * The transformation — 'Do X, never Y' → 'Achieve S, where S is readable from context.' Rules specify actions; standards specify goals and let the model resolve them per situation.
+  * The exact old text — 'In code: default to writing no comments. Never write multi-paragraph docstrings or multi-line comment blocks — one short line max. Don't create planning, decision, or analysis documents unless the user asks for them...'
+  * The exact new text — 'Write code that reads like the surrounding code: match its comment density, naming, and idiom.'
+  * Pointer, not claim — 'Match the surrounding code' points at a live source of truth and can never go stale. 'This repo uses 2-space indent' is a claim that silently expires.
+  * The absolutes that stay — Destructive operations, credentials, spending money, acting on someone's behalf, regulated domains, safety policy. Test: could you live with one failure in a thousand?
 
 
 The Shift
@@ -600,11 +665,29 @@ When Examples Still Earn Their Place
 Keep an example when the correct usage is genuinely not inferable from the interface: a non-obvious domain convention, a format with hidden requirements (a specific date encoding, an escaping rule), or a counterintuitive interaction between two parameters. The test: could a competent engineer who read only the schema get this right? If yes, delete the example. If no, first ask whether you can fix the interface — and only if you cannot, add the example.
 
 
+Q: Why does the article say examples now hurt rather than help with the newest models?  * Examples use too many tokens
+  * Giving examples constrains the model to a certain exploration space (correct)
+  * The model ignores examples entirely
+  * Examples are often written incorrectly
+Explanation: Examples anchor. For a weaker model, anchoring usefully excludes failure modes. For a Claude 5-class model that would have explored the space productively, the same anchoring excludes good solutions — the constraint becomes pure loss.
 
+Q: In the Todo tool, what does the status enumeration (pending, in_progress, completed) accomplish without any example?  * It reduces token cost only
+  * It hints at how to use the tool — the three ordered states imply a lifecycle and progression (correct)
+  * It prevents the model from calling the tool
+  * It enables autocomplete in the IDE
+Explanation: The enum teaches the complete legal space and an implied ordering: pending is the entry state, completed is terminal, items move forward. None of that is written down — the type carries it.
 
+Q: What is the design principle replacing few-shot tool examples?  * Write longer tool descriptions
+  * Encode intent in the interface — enums, required fields, expressive parameter names, narrow types — rather than in prose or samples (correct)
+  * Use more tools
+  * Let the model write its own tools
+Explanation: A constraint the model reasons within beats a sample it reasons from. Enums, required/optional distinctions, good names, and narrow types communicate reliably and live exactly at the point of use.
 
-
-
+  * Why examples hurt now — They constrain the model to a certain exploration space. Anchoring helps a weak model (excludes failures) and hurts a strong one (excludes good solutions).
+  * The Todo tool lesson — The status enum (pending/in_progress/completed) hints at the lifecycle; 'only one in_progress' defines the workflow. Two design choices replace a paragraph of prose and several examples.
+  * Encode intent in the type system — Enum > free string. Required > 'always include'. max_results > n. Narrow type > 'make sure it's between 1 and 100'.
+  * When an example still earns its place — When correct usage is genuinely not inferable from the schema — hidden format requirements, non-obvious domain conventions. But first try to fix the interface.
+  * Not just tools — Scripts (subcommands, --dry-run, --help), file layout (structure mirrors domain), naming, and error messages are all interfaces that teach.
 
 
 The Shift
@@ -732,11 +815,35 @@ Rarely	|	High	|	Skill + a one-line pointer in the always-loaded layer
 Rarely	|	Low	|	A file in the repo. Let the model find it if it needs it.
 
 
+Q: What problem does progressive disclosure solve that upfront loading cannot?  * Rate limiting
+  * Information that is rarely needed but crucial when needed has no good home — include it and you pay always, exclude it and you fail badly (correct)
+  * Model hallucination
+  * Slow inference
+Explanation: Claude Code's code review and verification guidance was exactly this: not always needed, but crucial when it was. Moving it into selectively-called skills means the always-loaded cost is a description while the full detail stays reachable.
 
+Q: What does 'deferred loading' of tools mean in Claude Code?  * Tools load slowly on first use
+  * The agent must search for a tool's full definition with ToolSearch before using it, so tools don't consume context until needed (correct)
+  * Tools are disabled by default
+  * Tools run in the background
+Explanation: Only names are always present; full JSONSchema definitions load on demand via ToolSearch. This decouples the number of available tools from the context budget — a harness can expose many capabilities (like the Task tools) while paying only for those in play.
 
+Q: What is the myth the article corrects about CLAUDE.md and Skill.md files?  * That they should be short
+  * That you should make them a central repository for every practice you might run into, because Claude wouldn't find it otherwise (correct)
+  * That they should be written in YAML
+  * That only one is allowed per repo
+Explanation: The monolith myth had a real basis — older models given a pointer often wouldn't follow it. Claude 5-class agents will. So the recommendation is a tree of files loaded at the right time, not one central repository.
 
+Q: What is the main risk introduced by progressive disclosure?  * Higher token cost
+  * Retrieval risk — if the model never loads the file, the guidance effectively doesn't exist (correct)
+  * Slower responses
+  * Merge conflicts
+Explanation: You trade context cost for retrieval risk. That's why the pointer matters so much: write descriptions in trigger terms ('use when deploying'), include the vocabulary people actually use, and keep the always-loaded layer complete as an index.
 
-
+  * Progressive disclosure — Only a lightweight pointer is always present; full content loads on demand. Always-loaded cost drops to a line or two, full detail stays reachable.
+  * The three mechanisms — (1) Skills — verification and code review moved out of the system prompt. (2) Deferred tools via ToolSearch. (3) Trees of files instead of monolithic CLAUDE.md.
+  * Why deferred tools matter — Tool count stops being bounded by context budget. Expose a hundred capabilities, pay for the handful in play.
+  * Trigger terms, not topic terms — 'Use when deploying to production or debugging a failed deploy' beats 'Deployment documentation.' The model matches on situation, not subject.
+  * The decision rule — How bad is it if this is missed? Critical + always → upfront. Critical + rare → skill with a strong pointer. Nice-to-have → file in the repo.
 
 
 The Shift
@@ -851,10 +958,28 @@ The Grep Test
 Search your system prompt for the name of every tool you expose. Each hit is a candidate for relocation into that tool's description. The exception worth keeping: genuine cross-tool guidance — when to use A versus B — which belongs in whichever description makes the comparison actionable, not in both.
 
 
+Q: Why did earlier practice call for repeating instructions?  * Models had smaller context windows
+  * Earlier models could need repeated instructions and were more likely to follow instructions at the end of the context window than at the start (correct)
+  * Repetition improved caching
+  * Users requested it
+Explanation: Position sensitivity was a real, measurable property of earlier models. Practitioners duplicated critical instructions and placed a copy where attention was strongest. Claude 5-class models no longer need this compensation.
 
+Q: Which is NOT one of the three harms of repetition described in this module?  * Drift — two copies get maintained separately and eventually conflict
+  * False emphasis — repetition signals importance you may not intend
+  * Displacement — duplicated tokens crowd out working state
+  * Latency — repeated text slows down inference proportionally (correct)
+Explanation: The three harms are drift, false emphasis, and displacement. Latency isn't the argument — the case against repetition is about correctness and attention, not speed.
 
+Q: Why is the tool description a better home for tool guidance than the system prompt?  * It's shorter
+  * Co-location with the thing it governs, compatibility with deferred loading, portability across harnesses, and it stays in the same diff as the tool (correct)
+  * Tool descriptions are cached separately
+  * The system prompt is read-only
+Explanation: Four reasons: the instruction arrives attached to the tool at the moment of decision; it loads only when the tool loads; it travels with the tool to other harnesses; and whoever edits the tool sees it in the same diff.
 
-
+  * Single source of truth — Tool usage → tool description. Repo gotcha → CLAUDE.md. Domain practice → skill. Product framing/policy → system prompt. If it appears twice, one copy is wrong.
+  * The three harms of repetition — Drift (copies diverge into conflicts), false emphasis (repetition = importance signal you didn't intend), displacement (crowds out working state).
+  * The Grep test — Search your system prompt for every tool name you expose. Each hit is a candidate for relocation into that tool's description.
+  * State properties, not orders — 'You must Read the file before editing, or the call will fail' lets the model reason about the constraint. 'ALWAYS Read first!' only lets it obey.
 
 
 The Shift
@@ -938,11 +1063,29 @@ Line in your CLAUDE.md	|	Verdict
 "Fixed the flaky login test on 2026-03-04."	|	Delete — git history already has this
 
 
+Q: What replaced the '#' hotkey workflow for saving things to memory?  * A dedicated memory API you call manually
+  * Claude automatically saves memories relevant to the work and to you (correct)
+  * Memory was removed as a feature
+  * Memories now live in git commit messages
+Explanation: The article: 'Instead, Claude now automatically saves memories that are relevant to the work and to you.' The user no longer has to decide what to persist at the moment of the conversation.
 
+Q: What structural problem did the '#'-to-CLAUDE.md workflow create?  * It was too slow
+  * It conflated repo instructions with personal/session memories in one file that every future session pays for (correct)
+  * It broke git
+  * It only worked on macOS
+Explanation: Project instructions (about the repo, for everyone, permanent) and memories (about you and the work in flight, often short-lived) have different lifetimes and audiences. Merging them is the main driver of CLAUDE.md rot.
 
+Q: What is the test for whether something belongs in CLAUDE.md rather than memory?  * Whether it's longer than one line
+  * Whether it would still be useful to a new teammate who just cloned the repo (correct)
+  * Whether you wrote it or Claude did
+  * Whether it mentions a file path
+Explanation: CLAUDE.md is for the repo; memory is for you and the work. If a new teammate cloning the repo would find the fact useless, it's a memory. If it would be useless to you next month too, it may not belong anywhere.
 
-
-
+  * The shift — Then: '#' hotkey writes to CLAUDE.md. Now: Claude automatically saves memories relevant to the work and to you.
+  * CLAUDE.md vs memory — CLAUDE.md = about the repo, for every collaborator, lives in git, written deliberately. Memory = about you and the work, usually private, often short-lived, written as a side effect.
+  * One fact per file — Granularity enables selective recall. A single giant memory file is just CLAUDE.md wearing a hat. The one-line description is the recall key.
+  * Memories are snapshots — They reflect what was true when written. If one names a file, function, or flag, verify it still exists before acting on it.
+  * The anti-rot rule — Don't save what the repo already records. Save what was non-obvious: preferences, invisible constraints, reasoning that would otherwise be lost.
 
 
 The Shift
@@ -1073,11 +1216,35 @@ The Reference Test
 Before writing a paragraph describing what you want, ask: does an artifact already exist that embodies it? A file, a test, a mockup, a similar implementation, a type definition. Pointing is almost always higher fidelity than describing — and it cannot go stale the way a description can.
 
 
+Q: Why does an HTML mockup generally beat both a screenshot and a prose description as a design reference?  * It's smaller in file size
+  * Code is a language the model knows very well, and the mockup carries structure, style, and behavior rather than just appearance (correct)
+  * Screenshots can't be uploaded
+  * Prose is always ambiguous by definition
+Explanation: The article's exact reasoning: prefer files that are in code, as it provides clear, high-fidelity instructions in a language Claude knows very well. A screenshot shows appearance; the mockup encodes hierarchy, spacing, states, and responsive behavior.
 
+Q: What makes a test suite unique among reference types?  * It's the shortest to write
+  * It is self-verifying — it either passes or it doesn't, giving an unambiguous completion signal (correct)
+  * It works only for Python
+  * It requires no maintenance
+Explanation: Every other reference type can be satisfied 'in the model's judgement' and still be wrong. A test suite closes the loop: writing tests first turns 'build this' into a task with an objective completion criterion.
 
+Q: According to the article, what do rubrics let Claude do?  * Grade user prompts
+  * Verify your taste in a particular field by using dynamic workflows to spin up verifier agents with those rubrics (correct)
+  * Replace unit tests entirely
+  * Generate documentation automatically
+Explanation: Rubrics encode what good looks like — e.g. what a good API design is — and verifier agents apply them independently. This converts taste that normally lives in senior engineers' heads into infrastructure that applies to every piece of work.
 
+Q: What is the 'reference test' before writing a description of what you want?  * Check whether the description is under 100 words
+  * Ask whether an artifact already exists that embodies it — a file, test, mockup, type definition, or similar implementation (correct)
+  * Verify the model supports your file format
+  * Confirm the context window is large enough
+Explanation: Pointing beats describing. An existing artifact is higher fidelity, requires no interpretation, and can't drift out of sync with reality the way a written description silently does.
 
-
+  * The fidelity ladder — vague ask < prose spec < screenshot < HTML/CSS mockup < passing test suite < working code to port. Code wins because it's a language the model knows very well.
+  * The four rich reference types — HTML artifacts, code (port this function), a detailed test suite, and rubrics applied by verifier agents.
+  * Why test suites are special — They're the only self-verifying reference. Everything else can be satisfied in judgement and still be wrong.
+  * Rubrics = taste as infrastructure — Encode what good looks like (e.g. good API design), then spin up verifier agents via dynamic workflows to apply it independently to every piece of work.
+  * The unit of reference grew — @ mention files as references — specs, mockups, 'or even entire codebases.' Large context plus file tools moved the unit from paragraph to repository.
 
 
 Assembling Your Context
@@ -1211,12 +1378,36 @@ The Most Common Layer Errors
   * The obvious, anywhere — anything the model can read off the file system is pure cost.
 
 
+Q: If you use Claude Code (rather than building your own harness), which layer do you not touch?  * CLAUDE.md
+  * Skills
+  * The system prompt — Anthropic owns it; your work is in CLAUDE.md, skills, and references (correct)
+  * References
+Explanation: The article: 'For Claude Code, you will likely never modify this, but if you are building your own agent harness, this is where you should spend a lot of time.' Trying to override system-prompt behavior from CLAUDE.md is how you manufacture conflicts.
 
+Q: How should tokens be allocated inside CLAUDE.md?  * Evenly across all topics
+  * Briefly describe what the repo is for, then spend most of the tokens on gotchas inside the codebase (correct)
+  * Mostly on setup instructions
+  * Mostly on architecture diagrams
+Explanation: Brief on purpose, most of the budget on gotchas — things that are true, consequential, and not discoverable by looking. Explicitly avoid stating 'the obvious' things Claude could learn from the file system or repo.
 
+Q: What content test does the article give for skills?  * They should be under 500 words
+  * They should encode opinions, knowledge, or best practices particular to you, your team, or your product (correct)
+  * They should include at least three examples
+  * They should be written in YAML
+Explanation: General knowledge in a skill is pure cost — Claude already knows how to write a React component. What's worth loading is your component conventions, your opinions, and the mistakes specific to your codebase.
 
+Q: Where does 'all types live in types.ts and nowhere else' belong?  * System prompt
+  * CLAUDE.md — it's a repo-specific organizational gotcha that isn't obvious from browsing (correct)
+  * A skill
+  * A rubric
+Explanation: This is the article's own example of a CLAUDE.md gotcha: a codebase organization decision that is consequential and not discoverable at a glance. It's specific to one repo, so it doesn't belong in the system prompt or a general skill.
 
-
-
+  * The four layers — System prompt (product context) → CLAUDE.md (repo gotchas) → Skills (task-type procedures, on demand) → References (this task, disposable). Plus tool descriptions and memory.
+  * System prompt: two audiences — Claude Code users: never modify it. Harness builders: spend a lot of time here — it's loaded every request and frames everything else.
+  * CLAUDE.md token allocation — Brief on what the repo is for; most tokens on gotchas. Avoid 'the obvious' — anything Claude can read off the file system.
+  * Skills in one line — Lightweight guides encoding what's particular to you, your team, or product. Not overconstrained except in highly important areas. Split long ones into many files.
+  * The canonical progressive-disclosure pattern — Several unique verification instructions? Create a verification skill and reference it from CLAUDE.md. Pointer in the always-loaded layer, content in the on-demand one.
+  * Most common layer error — Tool mechanics in the system prompt. Second: a full runbook in CLAUDE.md that every request pays for. Third: personal preferences committed to git.
 
 
 The One Question
@@ -1354,11 +1545,29 @@ The Quarterly Read-Through
 Read your CLAUDE.md end to end once a quarter and ask of each line: is this still true? The failure mode is not a file that is too long — it is a file that is confidently wrong, because it was written when the code was different. A stale gotcha is worse than no gotcha: it actively misleads.
 
 
+Q: What is the admission test for a line in CLAUDE.md?  * Is it under 20 words?
+  * Would Claude get this wrong if it just looked at the repo — and is it consequential enough for permanent residence? (correct)
+  * Did a senior engineer write it?
+  * Does it mention a file path?
+Explanation: Two gates. First: is it discoverable by looking? If yes, it's 'the obvious' and should be deleted. Second: if it's genuinely non-obvious but only sometimes relevant, it belongs in a skill with a pointer, not permanently loaded.
 
+Q: What three properties make something a real gotcha?  * Short, technical, and recent
+  * True, consequential, and invisible — you wouldn't learn it by reading the code in reasonable time (correct)
+  * Written by the tech lead, tested, and documented
+  * Unusual, funny, and memorable
+Explanation: A gotcha must be accurate, must cost real time or break something when violated, and must not be discoverable at a glance. 'Every new API route must be added to middleware.ts's matcher or it silently bypasses auth' hits all three.
 
+Q: Why is a stale CLAUDE.md worse than a short one?  * It costs more tokens
+  * A stale line is confidently wrong and actively misleads, whereas a missing line just leaves the model to figure it out (correct)
+  * It breaks the parser
+  * Git blames get confusing
+Explanation: The failure mode isn't length — it's a file that describes a codebase that no longer exists. The model trusts it over what it reads. Hence the quarterly read-through: check each line is still true.
 
-
-
+  * The admission test — Would Claude get this wrong by just looking at the repo? No → delete. Yes but only sometimes relevant → skill + pointer. Yes and always relevant → keep.
+  * The three properties of a gotcha — True, consequential (costs time or breaks things), invisible (not discoverable by reading the code in reasonable time).
+  * State the consequence — 'Miss it and the route is publicly reachable' beats 'add routes to the matcher.' The why generalizes to cases you didn't enumerate.
+  * Point, don't reproduce — 'See middleware.ts' stays correct forever. A pasted snippet goes stale the moment someone edits the file.
+  * The real failure mode — Not a file that's too long — a file that's confidently wrong. Read it end to end quarterly and ask of each line: is this still true?
 
 
 What a Skill Is For
@@ -1494,13 +1703,36 @@ Executable Over Prose
 
 One more device worth calling out, visible in the scripts/preflight.sh above. If a step can be a script, make it a script. Scripts never enter the context window at all — the model runs them and reads only the output. A 60-line checklist written as prose costs 800 tokens every time the skill loads; the same checklist as a script costs the tokens of one command and its result, and it cannot be performed half-heartedly.
 
+Q: Which part of a skill is always in context?  * The whole SKILL.md file
+  * Only the name and description — the body loads on demand when the model judges it relevant (correct)
+  * Nothing; skills load only when named explicitly
+  * The scripts directory
+Explanation: The name and description sit in context permanently (a few dozen tokens); the full content loads when triggered. That's why the description is the highest-leverage sentence in the whole skill — it's the entire retrieval mechanism.
 
+Q: How should a skill description be written?  * As a summary of the file's contents
+  * As a predicate over situations — the 'when', using vocabulary people actually say (correct)
+  * As a formal specification
+  * As a list of keywords
+Explanation: The model is asking 'does this apply to what I'm doing right now?' So 'Use when shipping, promoting a build, or debugging a failed deploy' beats 'Deployment documentation.' Include the phrasings your team actually uses, like 'ship it.'
 
+Q: What's wrong with a 6,000-token skill that fully loads on trigger?  * It exceeds the context limit
+  * It has moved the bloat rather than removed it — split it so the main file routes and detail files load only along the path taken (correct)
+  * Skills can't exceed 1,000 tokens
+  * Nothing, that's the intended design
+Explanation: Progressive disclosure recurses. The main SKILL.md should be a router: common path inline, branches pointing at reference files. A deploy that goes fine never loads the rollback doc.
 
+Q: What distinguishes good skill content from bad?  * Length
+  * Good content would be wrong for another company; bad content is true everywhere, which means the model already has it (correct)
+  * Good content has examples
+  * Good content is written in markdown
+Explanation: Skills should encode opinions, knowledge, and practices particular to you, your team, or product. 'Your team's opinion on API error shapes' is worth loading; 'how REST works' is pure cost.
 
-
-
-
+  * Skill anatomy — Name + description (always loaded, ~35 tokens, optimized for MATCHING) + body (on demand, optimized for DOING).
+  * The description is a predicate — Not a table of contents — a test over situations. Write the 'when', use spoken vocabulary, include adjacent phrasings.
+  * Split long skills — Main file = router with the common path inline and pointers for branches. Detail files load only along the path actually taken.
+  * Constrain the blast radius, not the path — Loose about how; strict about what must not happen. 'However makes sense, but never against prod without a backup.'
+  * Executable over prose — Scripts never enter the context window — the model runs them and reads the output. A 60-line prose checklist costs 800 tokens every load.
+  * The content test — Would this be wrong for another company? If yes, it belongs in a skill. If it's true everywhere, the model already knows it.
 
 
 Why This Module Exists
@@ -1611,11 +1843,29 @@ The Compounding Argument
 Tool design compounds in a way prompt text does not. A prompt fix helps until the next model. A well-designed tool keeps working across model generations, gets better as models get better at using interfaces, and carries its semantics with it into every harness you paste it into. When choosing where to spend an hour, spend it on the interface.
 
 
+Q: What's the heuristic for tool granularity?  * One tool per API endpoint
+  * One tool per thing a user would actually ask for — if a parameter is only meaningful when another has a specific value, you likely have two tools (correct)
+  * As few tools as possible
+  * One tool per database table
+Explanation: Too coarse (manage_deployment with a mode flag) forces the model to reason about which parameters apply. Too fine (open_file/seek/read_bytes) forces it to orchestrate mechanics. Conditionally-meaningful parameters are the tell that a tool should be split.
 
+Q: Why is designing the tool's return value as important as designing the call?  * It affects API latency
+  * Tool output is context too — usually far more of it than the definition — so verbose returns, vague errors, and unbounded results all cost the session (correct)
+  * Return values are billed separately
+  * Models can't parse JSON reliably
+Explanation: A search returning 40 fields when 4 would do burns context on every call. A vague error costs extra turns. A tool that can return 50,000 tokens eventually will, at the worst moment.
 
+Q: How should a dangerous tool encode its risk?  * With capital letters in the system prompt
+  * State irreversibility as a fact in the description, name the safer alternative, and default dry_run to true so the safe path is the default (correct)
+  * Require a password parameter
+  * Disable it entirely
+Explanation: All three devices live in the tool itself, so they travel with it and load only when it loads. Making dry_run default to true means the safe path is the path of least resistance rather than something the model has to remember.
 
-
-
+  * Name for intent — search_customers (what the caller wants) beats run_query (what it mechanically does). Names describing internals get selected by trial and error.
+  * Two tools in a trench coat — If a parameter is only meaningful when another parameter has a particular value, split the tool.
+  * Errors are interface lessons — 'Invalid status: done. Valid: open, in_review, closed' teaches at the moment of failure. '400 Bad Request' costs two more turns.
+  * Deferred-loading candidate — A tool used in fewer than ~10% of sessions. Move it behind ToolSearch and stop paying for its schema everywhere else.
+  * Why tool design compounds — Prompt text helps until the next model. A good interface keeps working across generations, improves as models improve, and travels between harnesses.
 
 
 Try Simplifying
@@ -1729,11 +1979,35 @@ Add-and-Remove
 The single habit that prevents re-accumulation: every time you add an instruction, name one you can delete. Usually the thing you are about to add is a more precise version of something already there. If you genuinely cannot find one, that is a signal the addition is covering new ground — which is fine, but worth having noticed.
 
 
+Q: What is the one prerequisite before starting an aggressive deletion pass?  * Approval from your manager
+  * A measurement baseline — Anthropic's 80% cut was safe because it was validated against coding evals (correct)
+  * A backup of the repo
+  * A new model version
+Explanation: 'No measurable loss on our coding evaluations' is what made the claim safe, not bold. Ten real tasks you can run and judge consistently is enough. Deleting without a baseline skips the part that made the advice safe.
 
+Q: In what order should you delete, and why?  * Longest instructions first, for maximum token savings
+  * Obvious → duplicates → stale → examples → emphasis → micro-rules → guardrails, because the early categories are near-zero-risk and often account for most of the volume (correct)
+  * Newest first
+  * Alphabetically
+Explanation: Categories 1–5 are essentially free and frequently make up the bulk of a bloated prompt. Doing them first means you reach the genuine judgement calls with a much smaller pile — and you may find the file is already right-sized.
 
+Q: What should you do if one specific task regresses after deleting a batch?  * Restore the entire batch
+  * Restore only the specific instruction responsible — as a standard, in the right layer (correct)
+  * Ignore it
+  * Switch models
+Explanation: Delete in batches, restore individually. Reverting the whole batch throws away all the wins to fix one mistake. And when restoring, rewrite it as a standard in the correct layer rather than pasting the old rule back.
 
+Q: What is the 'add-and-remove' habit?  * Adding a rule then testing it
+  * Every time you add an instruction, name one you can delete — usually the addition is a more precise version of something already there (correct)
+  * Removing a rule every Friday
+  * Rotating instructions weekly
+Explanation: It's the counter-pressure to the accumulation ratchet. If you genuinely can't find something to remove, the addition is covering new ground — fine, but worth having noticed rather than assumed.
 
-
+  * The five triage buckets — KEEP (real policy / unobservable environment facts), REWRITE (rule → standard), RELOCATE (right instruction, wrong layer), DEFER (rare but important → skill), DELETE (obvious/duplicate/stale/obsolete).
+  * The free wins, in order — 1. The obvious. 2. Duplicates. 3. Stale facts. 4. Examples. 5. Emphasis markup. All near-zero risk, often most of the volume.
+  * Delete in batches, restore individually — Line-by-line deletion never finishes. Cut a category, measure, restore only the specific instruction that caused a regression.
+  * Success got BETTER after deleting — Common, not surprising. You removed a constraint that was producing wrong behavior in the tail cases it mis-covered.
+  * The strongest trigger to re-run the protocol — A model upgrade. That's exactly the moment old scaffolding becomes obsolete. Also: quarterly CLAUDE.md read-through, and /doctor.
 
 
 The Six Shifts on One Page
@@ -1902,11 +2176,35 @@ The Bottom Line
 Anthropic deleted over 80% of Claude Code's system prompt and their coding evals did not move. The specific practices in this course will keep evolving with each model generation. The durable skill is the habit underneath them: treat every instruction as a hypothesis about what the model cannot do, and re-test that hypothesis every time the model changes.
 
 
+Q: Which myth is the origin of the monolithic CLAUDE.md?  * That markdown is the best format
+  * That if it isn't in the context, Claude won't find it (correct)
+  * That longer prompts cache better
+  * That models can't read files
+Explanation: The belief had a real basis with older models, which often wouldn't follow a pointer. Claude 5-class agents read files and follow pointers, so the article recommends a tree of files loaded at the right time instead of one central repository.
 
+Q: In which situation are explicit absolute rules still the right choice?  * Any time you feel strongly
+  * When the action is irreversible or unbounded in cost — deleting data, spending money, sending communications, regulated domains (correct)
+  * When the model is new
+  * Only for code style
+Explanation: The judgement default has a carve-out. Test: if the model used its best judgement and got it wrong once in a thousand runs, could you live with the outcome? For irreversible actions the answer is no.
 
+Q: Why does Stage 1 of the migration playbook come before Stage 3?  * It's alphabetical
+  * Stages 1–2 are near-zero-risk and often account for most of the bloat, so you reach the genuine judgement calls with a much smaller pile (correct)
+  * Stage 3 requires a new model
+  * Stage 1 is optional
+Explanation: Deleting the obvious, duplicates, stale facts, and emphasis markup is essentially free and frequently the bulk of the problem. Rewriting rules as standards (Stage 3) is the first stage with real regression risk — do the free work first.
 
+Q: What is the meta-lesson underneath all six shifts?  * Shorter prompts are always better
+  * Every instruction substitutes for a judgement the model cannot yet make — so as judgement improves, the correct amount of instruction goes down (correct)
+  * Models will eventually need no context
+  * Tool design is all that matters
+Explanation: Rules, examples, and repetitions are all proxies for missing judgement. A proxy that outlives the gap it was filling becomes a constraint on something better than itself. Hence: treat every instruction as a hypothesis, and re-test it whenever the model changes.
 
-
+  * The six shifts — Rules→judgement · Examples→interfaces · Upfront→progressive disclosure · Repetition→tool descriptions · CLAUDE.md memory→auto-memory · Simple specs→rich references.
+  * The biggest myth — 'If it isn't in context, Claude won't find it.' True for older models, false now — and it's what produced the monolithic CLAUDE.md.
+  * Migration stages — 0 baseline → 1 free wins → 2 relocate → 3 rewrite rules as standards → 4 redesign interfaces → 5 upgrade references → 6 institutionalize.
+  * When old rules still apply — Irreversible actions, genuinely non-inferable usage, always-needed info, small/older models, decisions that need a version-controlled record.
+  * The meta-lesson — Every instruction substitutes for judgement the model can't yet make. As judgement improves, correct instruction volume goes down. Treat instructions as hypotheses; re-test on every model change.
 
 
 An interactive course on context engineering for the Claude 5 generation · Built on "The new rules of context engineering for Claude 5 models" by Thariq (@trq212), Claude Code at Anthropic, July 2026.

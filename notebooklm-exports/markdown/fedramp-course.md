@@ -102,7 +102,52 @@ The most important thing in this module for you: the gap between *can sell to fe
 
 ### ✅ Knowledge Check
 
+**Q: What does FedRAMP actually produce for a cloud service provider?**
+
+-   A government-wide permission to operate that replaces agency approval
+-   A standardized, reusable security assessment package that agencies use to grant their own ATOs **(correct)**
+-   A procurement contract allowing agencies to purchase the service
+-   A cybersecurity insurance policy backed by the federal government
+
+*Explanation: FedRAMP standardizes the assessment so it can be reused — 'assess once, use many.' The individual agency still issues the Authority to Operate on top of that package.*
+
+**Q: Coursera is on the GSA Multiple Award Schedule but has no FedRAMP certification. What does that combination mean?**
+
+-   It is a contradiction — GSA MAS requires FedRAMP
+-   Coursera is easy for agencies to purchase, but not authorized to hold federal agency data in its cloud service **(correct)**
+-   Coursera has an expired FedRAMP authorization
+-   GSA MAS automatically grants a provisional FedRAMP status
+
+*Explanation: GSA MAS is a procurement vehicle (how agencies buy); FedRAMP is a security authorization (whether agency data may enter the service). They are independent, and holding one without the other is common.*
+
+**Q: Which legal instrument codified FedRAMP in statute and strengthened the reciprocity expectation between agencies?**
+
+-   FISMA 2002
+-   The OMB Cloud First memo of December 2010
+-   The FedRAMP Authorization Act, passed in the FY2023 NDAA in December 2022 **(correct)**
+-   The CLOUD Act of 2018
+
+*Explanation: The FedRAMP Authorization Act (part of the FY23 NDAA, December 2022) moved FedRAMP from policy to statute and pushed agencies toward reusing existing packages rather than commissioning their own assessments.*
+
+**Q: What happened to the Joint Authorization Board (JAB) pathway?**
+
+-   It was expanded to admit unlimited CSPs per year
+-   It remains the fastest route for cloud-native SaaS
+-   It has been retired; authorizations now run through the FedRAMP PMO with agency sponsors and automated validation **(correct)**
+-   It was merged into the GSA Multiple Award Schedule
+
+*Explanation: The JAB and its FedRAMP Connect queue are gone. Modern guidance routes authorization through the PMO in coordination with agency sponsors, with heavy emphasis on automated validation.*
+
 ### 🃏 Flashcards
+
+-   **FedRAMP, in one sentence** — A standardized, reusable security assessment for cloud services sold to the federal government, built on the principle 'assess once, use many.' It does not itself grant permission to operate.
+-   **ATO (Authority to Operate)** — The formal risk-acceptance decision issued by a federal agency's Authorizing Official under FISMA. FedRAMP supplies the evidence package; the agency still signs the ATO.
+-   **3PAO** — Third Party Assessment Organization — an A2LA-accredited independent auditor that performs the FedRAMP assessment. It cannot both advise on and assess the same scope.
+-   **CSP vs CSO** — Cloud Service Provider is the company; Cloud Service Offering is the specific scoped product being authorized. You certify a CSO, not a company — which is why boundary scoping is the highest-leverage decision you make.
+-   **FedRAMP Marketplace** — The public registry of cloud offerings with a FedRAMP designation. Presence drives agency discovery; absence often means you are never in the consideration set.
+-   **GSA MAS vs FedRAMP** — GSA MAS is a procurement vehicle (how agencies buy). FedRAMP is a security authorization (whether agency data may enter your service). Coursera has the first, not the second.
+-   **Assess once, use many** — FedRAMP's founding principle: one standardized assessment reusable by every agency, replacing N redundant per-agency assessments. It is also the source of the competitive moat — marginal cost per federal customer collapses after the first.
+-   **JAB status (2026)** — Retired. The Joint Authorization Board and the FedRAMP Connect queue no longer exist; authorization runs through the FedRAMP PMO with agency sponsorship and automated validation.
 
 ## Module 2: CR26 — The 2026 Overhaul That Reset Everything
 
@@ -195,7 +240,52 @@ Two concrete action items independent of whether you pursue certification. First
 
 ### ✅ Knowledge Check
 
+**Q: Under CR26, which Certification Class replaces the old FedRAMP Moderate impact level?**
+
+-   Class A
+-   Class B
+-   Class C **(correct)**
+-   Class D
+
+*Explanation: Class B replaces Low, Class C replaces Moderate, Class D replaces High. Class A is a new, lighter pilot baseline below the old Low. Class C is the realistic target for a learning platform holding federal employee data.*
+
+**Q: What is the most significant structural change CR26 makes to compliance documentation?**
+
+-   It doubles the length of the required System Security Plan
+-   It retires prose SSPs and POA&Ms in favor of machine-readable formats such as JSON, Markdown and OSCAL, with requirements published as versioned MUST/MUST NOT statements **(correct)**
+-   It eliminates all documentation requirements
+-   It requires all documents to be notarized by a 3PAO
+
+*Explanation: CR26 replaces narrative documents with machine-readable, versioned requirements maintained in public repositories — turning compliance artifacts into build artifacts, which is what makes automation-first assessment possible.*
+
+**Q: What changed about Balance Improvement Releases under CR26?**
+
+-   They were eliminated to reduce provider burden
+-   They became mandatory rather than optional, meaning the compliance target moves on a schedule **(correct)**
+-   They were merged into the annual 3PAO assessment
+-   They now apply only to Class D systems
+
+*Explanation: Balance Improvement Releases are now mandatory. Combined with FedRAMP's responses to CISA Binding Operational Directives, this means providers must staff for continuous change, not just for passing an initial audit.*
+
+**Q: A service that holds a FedRAMP Moderate authorization today — what happens to it under CR26?**
+
+-   It must be fully reassessed from scratch under the new rules
+-   It carries forward as FedRAMP Certified at Class C with the same controls and the same boundary **(correct)**
+-   It is downgraded to Class B until reassessed
+-   It is invalidated on January 1, 2027
+
+*Explanation: CR26 primarily changes terminology, structure, and documentation format rather than the underlying security requirements. An existing Moderate authorization carries forward as Class C with the same controls and boundary.*
+
 ### 🃏 Flashcards
+
+-   **CR26** — Consolidated Rules for 2026 — a single rulebook replacing a decade of memos, RFCs, and notices. Effective July 4, 2026; enforcement January 1, 2027; intended to hold through December 31, 2028.
+-   **Class A / B / C / D** — CR26 certification classes. A = new lightweight pilot baseline; B = former Low; C = former Moderate; D = former High. Class C is where nearly all federal SaaS lands.
+-   **Authorized → Certified** — CR26 renames FedRAMP Authorization to FedRAMP Certification, disambiguating it from the agency-issued ATO. Using the old term in federal-facing material signals staleness.
+-   **Death of the SSP** — The 300+ page prose System Security Plan is retired, replaced by machine-readable representations. POA&Ms likewise. Submissions use JSON and Markdown.
+-   **RFC-0024** — Requires machine-readable packages, including OSCAL, for FedRAMP providers by September 2026.
+-   **OSCAL** — Open Security Controls Assessment Language — NIST's machine-readable format for control catalogs, system security plans, and assessment results. The lingua franca of automated compliance.
+-   **Four widened ConMon obligations under CR26** — New incident reporting triggers, availability reporting, published secure configuration guides, and mandatory Balance Improvement Releases.
+-   **Why CR26 favors platform teams** — The old model rewarded document-writing; the new model rewards systems that emit evidence. Compliance artifacts become build artifacts — generated from IaC, validated in CI, versioned in git.
 
 ## Module 3: FedRAMP 20x — The Fast Track, and Why It Was Built for You
 
@@ -277,7 +367,52 @@ The number that should anchor your exec conversation
 
 ### ✅ Knowledge Check
 
+**Q: What is a Key Security Indicator (KSI)?**
+
+-   A narrative description of how a NIST control is implemented
+-   A measurable security outcome validated through automation, mapped to a set of underlying NIST 800-53 controls **(correct)**
+-   A vulnerability severity rating used in POA&Ms
+-   A 3PAO scoring metric for assessor quality
+
+*Explanation: KSIs express security as measurable outcomes verified automatically against running infrastructure, rather than as prose descriptions of control implementation. The underlying NIST rigor is preserved; the expression changes.*
+
+**Q: What minimum share of KSIs must be covered by automated validation under the pilot completeness bar?**
+
+-   30%
+-   50%
+-   70% **(correct)**
+-   100%
+
+*Explanation: At least 70% automated validation coverage, every KSI addressed, and evidence in both human-readable and machine-readable formats.*
+
+**Q: Why is a narrow authorization boundary especially valuable under 20x?**
+
+-   FedRAMP charges per gigabyte of data in the boundary
+-   Because every KSI must be addressed, a smaller scope means dramatically less to prove and automate **(correct)**
+-   Narrow boundaries are exempt from continuous monitoring
+-   Only narrow boundaries qualify for Class C
+
+*Explanation: There is no partial submission — every KSI must be addressed. A scoped 'Coursera for Government' service therefore costs far less to certify than 'all of Coursera.'*
+
+**Q: What does the '~3 months' 20x figure actually measure?**
+
+-   Total time from deciding to pursue FedRAMP to holding certification
+-   The assessment and authorization duration, assuming you already satisfy the KSIs **(correct)**
+-   The time to find an agency sponsor
+-   The continuous monitoring reporting cycle
+
+*Explanation: It is assessment duration, not readiness duration. If MFA isn't universal or logs aren't immutable, the remediation work happens before that clock starts — and that remediation is the real project.*
+
 ### 🃏 Flashcards
+
+-   **FedRAMP 20x** — The automation-first authorization path using Key Security Indicators instead of prose control narratives. Targets ~3 months and $100K–$300K versus 18+ months and $800K–$2M for Rev5 Moderate.
+-   **KSI counts** — 56 for Low (Class B), 61 for Moderate (Class C) as published — but the set is versioned and actively maintained; AWS's deep-dive walks 63. Always validate against the live repository.
+-   **20x completeness bar** — ≥70% of KSIs validated by automation, every KSI addressed (no partial submissions), and evidence in both human-readable and machine-readable form.
+-   **20x phases** — Phase 1: open pilot, ~10 vendors, Apr–Sep 2025, Low baseline. Phase 2: closed pilot, 13 participants, extended to Moderate. Phase 3: Q3–Q4 2026, open to all qualifying providers.
+-   **20x pipeline open dates** — Class A: August 3, 2026. Ready Conversion and Lost Sponsor: August 10, 2026. Class B and Class C: August 31, 2026.
+-   **Control inheritance** — Building on an already-certified IaaS provider lets you inherit infrastructure-layer indicators rather than proving them yourself — the single biggest lever on both 20x cost and timeline.
+-   **The three 20x caveats** — (1) 3 months is assessment time, not readiness time. (2) You still need an agency sponsor — 20x compresses assessment, not business development. (3) The program is young; expect evolving guidance.
+-   **KSI cluster themes** — Cloud native architecture, IAM, encryption, configuration management, monitoring/logging/auditing, service config and vulnerability management, incident response and recovery, third-party resources.
 
 ## Module 4: The Rev5 Exit — Deadlines, Doors Closing, and the Arbitrage Window
 
@@ -342,7 +477,51 @@ If the decision in Module 14 is "go," the timing constraint is not June 2027 —
 
 ### ✅ Knowledge Check
 
+**Q: After June 11, 2027, what happens to the Rev5 pathway?**
+
+-   Rev5 authorizations are immediately revoked
+-   FedRAMP stops accepting new Rev5 applications; 20x becomes the only on-ramp for new entrants **(correct)**
+-   Rev5 becomes the only accepted pathway
+-   Rev5 costs increase but the pathway remains open
+
+*Explanation: New Rev5 applications stop being accepted June 11, 2027. Existing Rev5 certifications remain valid until they sunset by December 31, 2028.*
+
+**Q: Why is the current period described as an arbitrage window rather than just a deadline?**
+
+-   Because FedRAMP is offering fee discounts through 2027
+-   Because the expensive, slow path is closing while the cheap, fast path opens — and incumbents are spending their budget on defensive conversion rather than new capability **(correct)**
+-   Because agency sponsors are being assigned automatically
+-   Because continuous monitoring is waived until 2028
+
+*Explanation: Unusually, the compliance regime is getting cheaper for new entrants while incumbents spend on converting existing authorizations before the 2028 sunset. Offensive spend versus defensive spend.*
+
+**Q: What is the Lost Sponsor pipeline for?**
+
+-   Providers who failed a 3PAO assessment
+-   Providers whose sponsoring agency relationship ended — historically a fatal event that stranded otherwise-compliant vendors **(correct)**
+-   Agencies that lost their Authorizing Official
+-   Providers converting from StateRAMP
+
+*Explanation: It opened August 10, 2026 alongside Ready Conversion. Its existence signals FedRAMP is deliberately reducing the brutality of sponsor dependency.*
+
+**Q: For a brand-new entrant, what is the right way to think about the OSCAL/JSON format requirement?**
+
+-   A migration tax that raises the cost of entry
+-   Pure upside — you never build the legacy Word artifact; design the evidence pipeline to emit machine-readable output from day one and render human views from it **(correct)**
+-   An optional format only required for Class D
+-   A requirement that applies only after certification is granted
+
+*Explanation: Incumbents pay the migration tax. A new entrant builds machine-readable-first, treating human-readable documents as generated build artifacts rather than hand-maintained sources.*
+
 ### 🃏 Flashcards
+
+-   **June 11, 2027** — FedRAMP stops accepting new Rev5 applications. After this date, 20x is the only on-ramp for new entrants.
+-   **December 31, 2028** — Existing Rev5 authorizations sunset; all providers must have converted. Also the scheduled end of the CR26 ruleset itself.
+-   **Ready Conversion pipeline** — Opened Aug 10, 2026 — the route for providers with an existing Rev5 designation to move into the new CR26 certification classes.
+-   **Lost Sponsor pipeline** — Opened Aug 10, 2026 — a route for providers whose sponsoring agency relationship ended, addressing a failure mode that historically stranded compliant vendors.
+-   **The arbitrage window** — Roughly 4–6 quarters where 20x is open and cheap, incumbents are spending on defensive conversion, and the federal learning category on the Marketplace is still thin.
+-   **Evidence pipeline rule** — The machine-readable format is the source of truth; the human-readable document is a generated build artifact, never hand-maintained. Reverse this and you rebuild the legacy problem.
+-   **The real timing constraint** — Not the June 2027 deadline — the agency sponsor. Assessment is ~1 quarter; sponsor development is 2–4. Sponsor conversations must be live well before the assessment clock matters.
 
 ## Module 5: Does Coursera Actually Need FedRAMP? The Data-Trigger Test
 
@@ -430,7 +609,61 @@ That is a legitimate, defensible strategy. It is also a ceiling: it caps deal si
 
 ### ✅ Knowledge Check
 
+**Q: What actually triggers a FedRAMP requirement?**
+
+-   Having any federal agency as a customer
+-   Selling through a GSA schedule
+-   Processing, storing, or transmitting federal information on behalf of an agency **(correct)**
+-   Exceeding $1M in annual federal revenue
+
+*Explanation: The trigger is data, not customer. An agency can buy your service under a low-risk determination without triggering FedRAMP — and can trigger it later with an integration that involves no purchasing change at all.*
+
+**Q: On the five-rung ladder, at which point does the module say to assume FedRAMP will be triggered?**
+
+-   Rung 1 — open content access
+-   Rung 2 — bulk licensing with an agency-provided roster
+-   Rung 3 — SSO federation with a .gov identity provider **(correct)**
+-   Only at Rung 5 — CUI storage
+
+*Explanation: Rung 3 puts you inside the agency's identity trust boundary. It frequently triggers FedRAMP and the module's advice is to assume it will. Rungs 4 and 5 require it outright.*
+
+**Q: Who decides whether a given engagement requires FedRAMP?**
+
+-   The cloud service provider, based on its own risk assessment
+-   The agency's Authorizing Official — different AOs reach different conclusions on identical facts **(correct)**
+-   The 3PAO during assessment
+-   The FedRAMP PMO, uniformly across government
+
+*Explanation: You can build a strong argument for a low-risk determination but cannot make the determination. Plan for the strictest reading you're likely to encounter in a deal you actually want.*
+
+**Q: What does the module identify as the single highest-information question in the whole evaluation?**
+
+-   What will the 3PAO charge?
+-   Is there a named agency willing to put an Authorizing Official's name on a sponsorship? **(correct)**
+-   Which GRC platform should we buy?
+-   Should we target Class B or Class C?
+
+*Explanation: Sponsorship is the binding constraint and it is answerable in weeks, not quarters. 'Interested in Coursera' is not the same fact as 'willing to sponsor.'*
+
+**Q: Why does the module call the ladder rung 'a product decision, not a compliance fact'?**
+
+-   Because FedRAMP rules are optional for ed-tech
+-   Because Coursera controls how deeply Coursera for Government integrates, and a deliberately shallow integration can hold the line at Rung 2 **(correct)**
+-   Because the agency chooses the rung during procurement
+-   Because rungs are assigned by the FedRAMP Marketplace
+
+*Explanation: Integration depth is a design choice. Holding at Rung 2 is legitimate and cheap, but it caps deal size and concedes the deep-integration segment to competitors who did certify.*
+
 ### 🃏 Flashcards
+
+-   **The FedRAMP trigger** — Processing, storing, or transmitting federal information on behalf of an agency. Triggered by data, not by customer.
+-   **Rung 1** — Open content access, no agency data — name, email, completion record only, purchased via GSA MAS. FedRAMP generally not required. Coursera's posture today.
+-   **Rung 3 — the inflection point** — SSO federation with a .gov identity provider puts you inside the agency's identity trust boundary. Frequently triggers FedRAMP; assume it will.
+-   **Rung 4** — LMS/HR integration with write-back to a federal system of record. Completion data becomes part of an official personnel record. FedRAMP required, Class C scope.
+-   **Who decides?** — The agency's Authorizing Official. You can argue for a low-risk determination; you cannot make it. Different AOs reach different conclusions on identical facts.
+-   **The reframe** — Not 'do we need FedRAMP' but 'which federal business do we want, and are we willing to pay the entry fee for it?' Integration depth is a product decision Coursera controls.
+-   **The GTM diligence question** — Not 'do customers ask about FedRAMP' but 'name the deals we lost specifically to it, with dollar values and the disqualification language.' Anecdote is not evidence.
+-   **The classic failure mode** — Spending $1M on certification when the real constraint was two federal sellers and no capture management. FedRAMP removes a technical blocker; it does not build a sales motion or create demand.
 
 ## Module 6: The Business Case — Market Size, Competitors, and Honest ROI
 
@@ -492,7 +725,51 @@ That framing wins because it is bounded, time-sensitive, competitively grounded,
 
 ### ✅ Knowledge Check
 
+**Q: Which ed-tech competitor holds a FedRAMP Moderate authorization (now Class C) for its LMS on AWS GovCloud?**
+
+-   Instructure Canvas
+-   Blackboard / Anthology **(correct)**
+-   Coursera
+-   Class Technologies
+
+*Explanation: Blackboard/Anthology holds FedRAMP Moderate for its LMS on AWS GovCloud, carrying forward as Class C under CR26. It is the genuine head-on threat for deep-integration federal opportunities.*
+
+**Q: What is the widely-repeated claim about Instructure Canvas that this module corrects?**
+
+-   That Canvas is not used by federal agencies
+-   That Canvas holds its own FedRAMP certification — there is no evidence it does; the federal Canvas story runs through Class as an integration wrapper **(correct)**
+-   That Canvas is FedRAMP High
+-   That Canvas is not on GSA MAS
+
+*Explanation: No indication Canvas itself is FedRAMP certified. Correcting this internally changes the competitive math in Coursera's favor.*
+
+**Q: What is the key lesson from how Class Technologies approached certification?**
+
+-   They certified the entire company at Class D
+-   They certified a specific scoped offering in a specific environment — government training on Zoom for Government — rather than the whole company **(correct)**
+-   They avoided FedRAMP by using StateRAMP instead
+-   They waited for FedRAMP 20x Phase 3
+
+*Explanation: Minimum viable boundary, maximum inherited controls, fastest path to a Marketplace listing. That is the scoping playbook a 'Coursera for Government' offering should copy.*
+
+**Q: Which ROI component does the module say is most often omitted and most often kills the business case?**
+
+-   The 3PAO assessment fee
+-   Federal sales capacity and capture management — recurring, essential, and not on the compliance budget **(correct)**
+-   The GRC platform subscription
+-   The cost of the FedRAMP Marketplace listing
+
+*Explanation: Certification removes a technical blocker but does not build a federal sales motion. Companies certify, then discover they have two federal sellers and no capture manager — and revenue never moves.*
+
 ### 🃏 Flashcards
+
+-   **Federal workforce anchor** — ~2.1 million federal civilian employees, before uniformed military or the far larger contractor base. Use bottom-up sizing: seats × price × achievable penetration, with sensitivity shown.
+-   **GSA learning solicitation** — GSA has sought learning content providers for federal workforce modernization, mapped to 54 competency areas emphasizing data, technology, and financial management — directly aligned with Coursera's catalog.
+-   **Blackboard / Anthology** — Holds FedRAMP Moderate (now Class C) for its LMS on AWS GovCloud. The genuine head-on competitive threat in deep-integration federal deals.
+-   **Instructure Canvas — the correction** — No evidence Canvas holds its own FedRAMP certification; the federal Canvas story runs through Class Technologies as a wrapper. 'Canvas has FedRAMP' is a repeated claim that appears to be wrong.
+-   **The Class Technologies playbook** — Certify a scoped offering in a specific environment (government training on Zoom for Government), not the whole company. Minimum viable boundary, maximum inherited controls.
+-   **The three ROI components** — (1) Revenue unlocked from unbiddable deals, (2) deal-size expansion on existing federal relationships — usually the bigger number and usually omitted, (3) defensive value, explicitly labeled speculative.
+-   **The board-ready framing** — Cost of entry fell ~80% this year; 4–6 quarter window before table stakes; closest LMS competitor has it, the one we evaluated does not; ask for $75K/90 days to prove a sponsor exists before committing the rest.
 
 ## Module 7: Engineering Implications — What Actually Has to Change
 
@@ -593,7 +870,62 @@ That is the argument that gets this funded even under a "no" decision on federal
 
 ### ✅ Knowledge Check
 
+**Q: Which architectural approach does the module recommend for a Coursera federal offering?**
+
+-   Whole-platform authorization covering all of Coursera
+-   A separate, scoped deployment in AWS GovCloud with its own data stores **(correct)**
+-   Logical separation inside the existing commercial cloud
+-   A third-party reseller wrapper
+
+*Explanation: A scoped GovCloud instance gives the smallest boundary, a clean data-residency and personnel story, and lets the commercial product keep shipping entirely outside scope. Whole-platform authorization turns every commercial release into a federal change-control event.*
+
+**Q: What makes FIPS 140-3 a 'sleeper risk'?**
+
+-   It only applies to Class D systems
+-   It is usually just a configuration flag with no real impact
+-   It requires specific NIST-validated cryptographic modules, which can mean particular library builds, instance types, or managed-service variants that lack features you depend on **(correct)**
+-   It was retired under CR26
+
+*Explanation: It is not 'we use strong encryption' — the specific module must appear on the NIST validated list. Audit the cryptographic dependency chain early; this is where unpleasant surprises surface three months in.*
+
+**Q: Which two control domains does the module say gate the most KSIs and should be sequenced first?**
+
+-   Incident response and supply chain
+-   Identity and logging **(correct)**
+-   Configuration management and personnel screening
+-   Encryption and change control
+
+*Explanation: Identity (universal MFA, no long-lived credentials, JIT privileged access) and logging (immutable audit pipeline, retention, alerting) gate the most indicators — and are worth doing regardless of the federal decision.*
+
+**Q: Roughly what share of FedRAMP readiness work does the module argue is platform hardening Coursera should do anyway?**
+
+-   About 20%
+-   About 40%
+-   About 70% **(correct)**
+-   Essentially none — it is all FedRAMP-specific
+
+*Explanation: Around 70% is generic hardening that also serves SOC 2 and enterprise security reviews. The genuinely FedRAMP-specific residue — FIPS 140-3 modules, US-person constraints, GovCloud deployment, the formal evidence pipeline — is much smaller than the total.*
+
+**Q: Why does the US-person requirement matter architecturally?**
+
+-   It requires all customer data to be encrypted with US-issued keys
+-   It may restrict who can operate the federal boundary, which collides with a distributed engineering org and argues for a small dedicated federal platform team **(correct)**
+-   It applies only to Class A systems
+-   It prohibits use of any commercial cloud provider
+
+*Explanation: Depending on agency and data sensitivity, US-person requirements can restrict operational access. That is a strong argument for a small dedicated federal platform team rather than 'everyone can operate it' — and it needs checking before promising anything.*
+
 ### 🃏 Flashcards
+
+-   **Decision zero** — The authorization boundary. Everything inside is assessed, monitored, and change-controlled forever. Under 20x, boundary size maps almost linearly to cost.
+-   **The one architectural principle** — Make the boundary as small as the federal use case allows; inherit as much as possible from an already-certified infrastructure provider. Inheritance is the largest single discount available.
+-   **Why not whole-platform authorization** — Every commercial release becomes a federal change-control event. Cost and timeline multiply with no upside a scoped boundary doesn't also deliver.
+-   **FIPS 140-3** — Validated cryptographic modules must appear on the NIST list — not merely 'strong encryption.' Can force specific library builds, instance types, or restricted cipher suites. Audit the crypto dependency chain early.
+-   **Audit log tamper resistance** — Write-once or append-only storage with integrity verification. An engineer who can delete audit logs is a finding.
+-   **Vulnerability remediation SLAs** — Traditionally ~30 days high, 90 moderate, 180 low. Under CR26, FedRAMP's response to CISA BOD 26-04 pushes toward risk-based prioritization — treat those as a floor and track current guidance.
+-   **Significant change control** — Changes touching the boundary above a defined threshold require agency review before deployment. This is the mechanism by which compliance becomes a permanent tax on release velocity.
+-   **The 70% argument** — Roughly 70% of FedRAMP readiness is platform hardening worth doing anyway (MFA, no standing admin, immutable logs, drift detection, tested restores, SBOM). Fund that on its own merits; treat certification as an option you buy the right to exercise.
+-   **Readiness sequencing** — Q1 identity + boundary + crypto audit; Q2 logging + config mgmt + vuln mgmt; Q3 evidence automation + IR/recovery + supply chain; Q4 gap assessment + submission.
 
 ## Module 8: Cost & Timeline Estimation
 
@@ -669,7 +1001,50 @@ Toggle boundary from "Scoped GovCloud service" to "Whole platform" and watch the
 
 ### ✅ Knowledge Check
 
+**Q: What is the published total year-one program cost range for Rev5 at the Moderate baseline?**
+
+-   $100K – $300K
+-   $350K – $500K
+-   $800K – $2M **(correct)**
+-   $2.5M+
+
+*Explanation: Rev5 Moderate runs $800K–$2M for the program plus roughly $260K per year in continuous monitoring. 20x targets $100K–$300K all-in for the same class.*
+
+**Q: Which two levers dominate FedRAMP cost more than path or tooling choice?**
+
+-   3PAO selection and GRC vendor
+-   Boundary size and engineering readiness **(correct)**
+-   Class level and agency sponsor
+-   Headcount and consulting spend
+
+*Explanation: Boundary size and current engineering maturity dominate everything else. Both are architectural decisions made long before you talk to an assessor.*
+
+**Q: What do all the published timeline figures leave out?**
+
+-   The 3PAO's report-writing time
+-   The readiness remediation work — typically 2–4 quarters of platform engineering for a first-time federal provider **(correct)**
+-   Continuous monitoring in year one
+-   The agency's ATO review
+
+*Explanation: Every published figure describes assessment and authorization starting from a system that already meets the controls. Readiness comes first and is usually the largest true line item.*
+
+**Q: Why must your advisory/readiness consultant be a different firm than your 3PAO?**
+
+-   For cost reasons only
+-   Because a 3PAO cannot both advise on and assess the same scope — independence is required **(correct)**
+-   Because 3PAOs do not offer advisory services
+-   Because FedRAMP assigns 3PAOs randomly
+
+*Explanation: Assessor independence is a hard requirement: a 3PAO cannot both advise on and assess the same scope. Plan for two vendor relationships, not one.*
+
 ### 🃏 Flashcards
+
+-   **Rev5 Moderate economics** — $350K–$650K for the 3PAO alone; $800K–$2M total program; ~$260K/year continuous monitoring; 12–18 months on the agency route, 12–36 months end-to-end is common.
+-   **20x economics** — $100K–$300K all-in for Low/Moderate, ~3 months assessment given readiness, with materially lower ongoing cost because the submission automation sustains itself.
+-   **The hidden largest line item** — Readiness remediation — 2–4 quarters of internal platform engineering for a first-time federal provider. Never in the vendor quote, almost always the biggest true cost.
+-   **The two dominant cost levers** — Boundary size and engineering maturity. Both dominate path choice and tooling choice, and both are architectural decisions made before you contact a 3PAO.
+-   **3PAO independence rule** — A 3PAO cannot both advise on and assess the same scope. Budget for two vendor relationships: readiness advisory and independent assessment.
+-   **Minimum dedicated staffing (20x, scoped)** — 1.5–3 FTE — at minimum one compliance-focused engineer and one program/GRC owner. Scales up sharply with boundary size.
 
 ## Module 9: Organizational Readiness — Build vs Buy the Compliance Function
 
@@ -741,7 +1116,51 @@ It also solves your US-person problem cleanly: staffing constraints apply to a s
 
 ### ✅ Knowledge Check
 
+**Q: What does a GRC platform NOT do for you?**
+
+-   Map controls to KSIs and NIST 800-53
+-   Pull evidence automatically from cloud, IdP and scanners
+-   Remediate the underlying engineering gaps it detects **(correct)**
+-   Generate submission packages in machine-readable formats
+
+*Explanation: A connector reports your configuration; it does not fix it. GRC platforms compress the evidence and reporting burden, not the engineering burden — remediation is still your engineers' quarter.*
+
+**Q: What is the highest-priority question when selecting a 3PAO in 2026?**
+
+-   What is your total headcount?
+-   How many 20x KSI-based assessments have you actually completed — not Rev5 assessments? **(correct)**
+-   Do you have offices near our headquarters?
+-   Will you also provide readiness advisory services?
+
+*Explanation: 20x assessment is a young practice and depth varies enormously. Also note the last option is disqualifying — a 3PAO cannot both advise on and assess the same scope.*
+
+**Q: Where does an agency sponsor most often come from?**
+
+-   Cold outreach to agency CIOs
+-   An existing customer relationship where an agency already wants more of your capability **(correct)**
+-   The FedRAMP PMO assigning one
+-   A GSA schedule contracting officer
+
+*Explanation: Sponsorship costs the agency real staff time and puts an official's name on a risk acceptance. It almost always emerges from an agency that already wants more of you — start from existing GSA MAS relationships.*
+
+**Q: What org design does the module recommend for Coursera?**
+
+-   A centralized compliance department reporting to Legal
+-   A small federal platform team of 2–4 engineers owning the scoped deployment end to end, plus one compliance program owner **(correct)**
+-   Fully outsourcing compliance engineering to the 3PAO
+-   Distributing FedRAMP responsibilities across all existing product teams
+
+*Explanation: A team that owns its environment, pipeline, and evidence generation moves faster and produces better evidence than a compliance org filing tickets. It also confines US-person staffing constraints to a small named team.*
+
 ### 🃏 Flashcards
+
+-   **The three roles** — Compliance program owner (hire, internal, permanent), compliance engineering (internal, from platform), assessment and advisory (buy — and two different firms).
+-   **What a GRC platform buys you** — Pre-mapped control framework, automated evidence connectors, machine-readable package generation, ConMon workflow, and multi-framework reuse across SOC 2 / ISO 27001 / FedRAMP.
+-   **The GRC demo trap** — A connector reports your configuration; it does not fix it. The platform compresses evidence and reporting burden, never the engineering burden.
+-   **Build vs buy verdict** — Hybrid for most platform-strong companies: buy the framework and package generation, build the Coursera-specific evidence collectors. Full build only if federal is a core line of business with multiple offerings to certify.
+-   **Top 3PAO question** — 'How many 20x KSI-based assessments have you completed?' — not Rev5. Young practice, wildly varying depth, and Phase 3 demand is filling calendars.
+-   **Sponsor sourcing rule** — Sponsors emerge from existing customers who want more capability, not from cold outreach. Talk to the CIO org, not only procurement — the Authorizing Official sits in security.
+-   **Recommended org shape** — A small federal platform team (2–4 engineers) with a product mandate owning the scoped deployment end to end, plus one compliance program owner. Not a compliance department filing tickets.
 
 ## Module 10: Continuous Monitoring — Life After Certification
 
@@ -806,7 +1225,51 @@ Model continuous monitoring at roughly **1.5–3 dedicated FTE** for a scoped 20
 
 ### ✅ Knowledge Check
 
+**Q: What is a Significant Change Request?**
+
+-   A quarterly roadmap review with the FedRAMP PMO
+-   Agency notification and, for material changes, review before deploying changes to the authorized boundary **(correct)**
+-   A request to increase your certification class
+-   A 3PAO re-assessment triggered by a security incident
+
+*Explanation: Changes above a defined threshold — auth architecture, encryption, new subservice providers, new data types, boundary changes — require agency notification and sometimes pre-deployment review. This is the mechanism most likely to surprise a continuously-shipping org.*
+
+**Q: Why does the scoped-boundary architecture matter so much for continuous monitoring?**
+
+-   It reduces the monthly scanning cost
+-   It confines federal change control to a small team that opted into that release model, leaving the commercial platform's velocity untouched **(correct)**
+-   It exempts the service from annual assessment
+-   It eliminates the need for a compliance program owner
+
+*Explanation: Whole-platform authorization imposes federal change control on every engineer at Coursera — a hard-to-reverse engineering-culture problem. A scoped boundary confines the constraint to the people who signed up for it.*
+
+**Q: What does the module say is the target state for compliance evidence?**
+
+-   A quarterly evidence-collection sprint before each report
+-   A separate compliance team assembling documentation from screenshots
+-   Evidence computed continuously in CI, with failing KSI validators blocking deploys — compliance as a pipeline output, not a separate activity **(correct)**
+-   An annual scramble before the 3PAO arrives
+
+*Explanation: Compliance state should always be current because it is computed, not assembled. A failing KSI check should fail a build, the same way security checks were shifted left.*
+
+**Q: Why is a program approved on initial cost but starved on recurring cost described as worse than not starting?**
+
+-   Because the 3PAO fee is non-refundable
+-   Because a lapsed certification is a public, visible failure on the Marketplace that damages federal credibility more than never certifying **(correct)**
+-   Because FedRAMP imposes financial penalties
+-   Because the agency sponsor becomes liable
+
+*Explanation: Over five years, continuous monitoring (1.5–3 permanent FTE plus annual assessment) exceeds the initial certification cost. Underfunding it produces a visible public failure.*
+
 ### 🃏 Flashcards
+
+-   **ConMon cadence** — Continuous KSI validation; monthly authenticated scans and deficiency reporting; severity-based remediation SLAs; significant change requests as triggered; annual assessment, pen test, tabletop and contingency test.
+-   **Significant Change Request** — Agency notification and sometimes pre-deployment review for material boundary changes — auth architecture, encryption, new subservice providers, new data types, topology, or the boundary itself.
+-   **The real velocity tax** — Severity-based remediation SLAs. A high finding in a dependency preempts roadmap work non-negotiably, on a clock measured in days.
+-   **The cultural collision** — Continuous shipping meets federal change control. Framed honestly: the federal environment is a different product with a different release model, operated by a small team that opted in.
+-   **ConMon target state** — Evidence generated in CI on every deploy, KSI validators that fail builds, deficiency tracking in the normal issue tracker with severity-derived due dates, dashboards instead of documents.
+-   **ConMon staffing** — ~1.5–3 dedicated FTE permanently for a scoped 20x boundary, plus annual assessment cost. Over five years this exceeds the initial certification cost.
+-   **Why underfunding ConMon is fatal** — A lapsed certification is a public, visible failure on the FedRAMP Marketplace — more damaging to federal credibility than never having certified.
 
 ## Module 11: CMMC — The Defense-Adjacent Path You Might Hit First
 
@@ -880,7 +1343,50 @@ Two cheap actions worth taking regardless of the FedRAMP decision: (1) build a d
 
 ### ✅ Knowledge Check
 
+**Q: What is the fundamental scope difference between FedRAMP and CMMC?**
+
+-   FedRAMP is voluntary; CMMC is mandatory
+-   FedRAMP assesses a scoped cloud service offering; CMMC assesses a contractor's own environment handling CUI, enforced through a flow-down contract clause **(correct)**
+-   CMMC applies only to cloud providers
+-   They assess identical scopes under different names
+
+*Explanation: FedRAMP certifies a cloud service offering with a defined boundary. CMMC certifies the contractor's environment wherever CUI lives, and it propagates through the supply chain via contract clauses.*
+
+**Q: What happened to CMMC Phase 2 on July 13, 2026?**
+
+-   It launched ahead of schedule
+-   DoD paused the transition and opened a 60-day program review; Phase 1 self-assessment requirements remain in effect **(correct)**
+-   It was cancelled permanently
+-   It was merged into FedRAMP 20x
+
+*Explanation: A CMMC Reform Task Force review paused the move to mandatory C3PAO certification, with further guidance expected around mid-September 2026. Phase 1 obligations and flow-down clauses remain live.*
+
+**Q: Which NIST publication underpins CMMC Level 2?**
+
+-   NIST SP 800-53
+-   NIST SP 800-171 **(correct)**
+-   NIST SP 800-207
+-   NIST SP 800-63
+
+*Explanation: Level 2 assesses against NIST SP 800-171 for protecting CUI. Level 3 adds elements of 800-172. FedRAMP, by contrast, is built on 800-53.*
+
+**Q: What is the most likely way CMMC first reaches Coursera?**
+
+-   A federal agency mandating it in a GSA MAS renewal
+-   A large defense contractor in Coursera for Business asking a CMMC-shaped security question that determines a renewal **(correct)**
+-   The FedRAMP PMO requiring it as part of 20x
+-   A DIBCAC audit of Coursera directly
+
+*Explanation: Contractors flow security requirements down to vendors, sometimes beyond what CMMC strictly requires. That channel is live now, does not wait for FedRAMP, and is typically owned by nobody in particular.*
+
 ### 🃏 Flashcards
+
+-   **CMMC** — DoD's Cybersecurity Maturity Model Certification — verifies that defense industrial base companies protect CUI and FCI. Enforced through a contract clause that flows down the supply chain.
+-   **CMMC levels** — Level 1 Foundational (FCI, annual self-assessment); Level 2 Advanced (CUI, NIST 800-171, self- or C3PAO assessment); Level 3 Expert (adds 800-172, DIBCAC assessed).
+-   **CMMC vs FedRAMP standard** — CMMC Level 2 is built on NIST SP 800-171; FedRAMP is built on NIST SP 800-53 (expressed as KSIs under 20x).
+-   **July 13, 2026** — DoD paused the transition to CMMC Phase 2 and opened a 60-day review under a CMMC Reform Task Force. Phase 1 self-assessment stays in effect; guidance expected mid-September 2026.
+-   **CUI** — Controlled Unclassified Information. If it enters Coursera's environment — uploaded technical data, export-controlled or contract-specific content — CMMC becomes directly relevant.
+-   **The cheap CMMC actions** — (1) Build a defensible CMMC-adjacent security response for defense-sector accounts from your SOC 2 posture and an 800-171 crosswalk. (2) Write an explicit product policy on customer-uploaded content so nobody accidentally makes Coursera a CUI environment.
 
 ## Module 12: FedRAMP vs SOC 2 vs ISO 27001 vs StateRAMP
 
@@ -946,7 +1452,51 @@ And add the state-market value to the federal business case explicitly. A FedRAM
 
 ### ✅ Knowledge Check
 
+**Q: What is the single biggest mental adjustment for a team moving from SOC 2 to FedRAMP?**
+
+-   FedRAMP requires a CPA firm instead of a 3PAO
+-   SOC 2 lets you choose your control scope; FedRAMP prescribes the baseline and every KSI must be addressed **(correct)**
+-   FedRAMP has no documentation requirements
+-   SOC 2 is continuous while FedRAMP is annual
+
+*Explanation: Scope flexibility is the core difference. SOC 2 lets you select Trust Services Criteria and define your control set; FedRAMP prescribes the baseline with no partial submissions.*
+
+**Q: Roughly how far does SOC 2 Type II get you toward FedRAMP readiness?**
+
+-   About 10%
+-   About 40–50% on engineering substance, and considerably less on the operating model **(correct)**
+-   About 80% — FedRAMP is mostly paperwork on top
+-   Essentially 100% for Class B
+
+*Explanation: A real head start on control implementation and evidence collection, but not close to sufficient. Federal-specific items — FIPS 140-3, US-person constraints, data residency, significant change control — have no SOC 2 analogue.*
+
+**Q: How does reciprocity work between FedRAMP and StateRAMP?**
+
+-   Neither recognizes the other
+-   StateRAMP satisfies FedRAMP but not vice versa
+-   FedRAMP certification generally satisfies StateRAMP requirements, but not the reverse **(correct)**
+-   Both must be pursued independently with no overlap
+
+*Explanation: Reciprocity runs one way in your favor — certify federally and you largely inherit the state market, which materially improves the ROI case given Coursera for Campus exposure at public universities.*
+
+**Q: What sequencing does the module recommend for Coursera?**
+
+-   StateRAMP first as a cheaper trial run, then FedRAMP
+-   ISO 27001 first, then FedRAMP, then SOC 2
+-   Maintain SOC 2 → harden against the KSI list → FedRAMP 20x Class C on a scoped offering → inherit StateRAMP reciprocity **(correct)**
+-   Pursue all four simultaneously to maximize evidence reuse
+
+*Explanation: StateRAMP first means paying twice for something federal certification largely subsumes. The hardening step is valuable regardless of whether the federal decision is ultimately go or no-go.*
+
 ### 🃏 Flashcards
+
+-   **SOC 2 vs FedRAMP — the core difference** — SOC 2 is an attestation on controls you choose; FedRAMP is certification against a prescribed baseline where every KSI must be addressed. Scope flexibility versus scope prescription.
+-   **What carries over from SOC 2** — Control implementations (access control, change management, encryption, logging, vendor management, IR) and the evidence-collection apparatus — especially an existing GRC platform's connectors.
+-   **What does NOT carry over** — Scope flexibility, federal-specific requirements (FIPS 140-3, US-person constraints, data residency, agency incident reporting, significant change control), and the continuous monthly operating rhythm.
+-   **The 40–50% rule** — SOC 2 Type II gets you 40–50% of the way on engineering substance and less on the operating model. 'We have SOC 2 so FedRAMP is mostly paperwork' means someone hasn't read the KSI list.
+-   **StateRAMP** — The FedRAMP model applied to state and local government. Relevant to Coursera for Campus at public universities and to state workforce agencies.
+-   **Reciprocity direction** — FedRAMP certification generally satisfies StateRAMP; the reverse is not true. Certify federally and inherit the state market — add that value to the federal business case explicitly.
+-   **Recommended sequence** — Maintain SOC 2 → harden against the KSI list (valuable regardless) → FedRAMP 20x Class C on a scoped offering → inherit StateRAMP. Never StateRAMP first as a trial run.
 
 ## Module 13: The Coursera FedRAMP Readiness Checklist
 
@@ -1079,7 +1629,50 @@ Say this
 
 ### ✅ Knowledge Check
 
+**Q: What does the course ultimately recommend?**
+
+-   Commit immediately to FedRAMP 20x Class C certification
+-   Decline FedRAMP permanently and stay on GSA MAS
+-   Run a bounded 90-day, ~$75K qualification sprint to resolve the sponsor question before committing to a full program **(correct)**
+-   Pursue StateRAMP first as a lower-cost trial
+
+*Explanation: Three things are simultaneously true: entry cost fell ~80%, the window is real but finite, and the binding constraint — an agency sponsor — is answerable in one quarter for about 7% of the program cost.*
+
+**Q: Which kill criterion relates to the arbitrage window closing?**
+
+-   No agency sponsor within two quarters
+-   Federal pipeline below the week-4 threshold
+-   A KSI gap assessment implying more than four quarters of remediation **(correct)**
+-   Federal sales capacity not funded
+
+*Explanation: More than four quarters of remediation means you'd arrive after the window closes, entering a category that 20x has by then made cheap for everyone — late and without differentiation.*
+
+**Q: If the decision is no, what does the module say should still happen?**
+
+-   Nothing — shelve the topic until 2028
+-   Hold Rung 2 deliberately via written product policy, do the platform hardening anyway, prepare the CMMC-adjacent response, and set review triggers rather than a review date **(correct)**
+-   Immediately pursue ISO 27001 instead
+-   Certify at Class A as a hedge
+
+*Explanation: A 'no' comes with a plan. About 70% of the readiness work is generic hardening worth funding on its own merits, and the Rung 2 position needs a written policy so it isn't eroded by feature requests.*
+
+**Q: Why does the module insist on setting the pipeline dollar threshold in week 4?**
+
+-   Because FedRAMP requires a documented business case
+-   To set the number before you are emotionally invested in the answer **(correct)**
+-   Because 3PAO quotes expire after 30 days
+-   Because agency sponsors require revenue projections
+
+*Explanation: Kill criteria only work if they are agreed before the team has sunk effort and identity into the program. Set the number early, in writing.*
+
 ### 🃏 Flashcards
+
+-   **The recommendation** — Don't commit to FedRAMP — commit to finding out. A bounded 90-day, ~$75K qualification sprint resolves the sponsor question for about 7% of the full program cost.
+-   **The five sprint workstreams** — Demand validation (wk 1–4), sponsor hunt (1–6), boundary design (2–8), KSI gap assessment (4–10), 3PAO/GRC market scan (6–10), decision package (11–13).
+-   **The four kill criteria** — No sponsor in two quarters; pipeline below the week-4 threshold; KSI gaps implying >4 quarters of remediation; ten-year full cost exceeding risk-adjusted revenue. Plus a pause if federal sales capacity is unfunded.
+-   **If the answer is go — sequencing** — Q1 federal platform team + identity/logging + freeze boundary; Q2 GovCloud build + config/vuln/crypto + evidence pipeline; Q3 remaining gaps + IR/recovery + 3PAO readiness; Q4 assessment and submission.
+-   **If the answer is no — the plan** — Hold Rung 2 by written product policy, do the ~70% generic hardening anyway, build the CMMC-adjacent response, and set review triggers (sponsor emerges / competitor certifies / pipeline crosses threshold) rather than a review date.
+-   **The CEO framing** — Cost fell ~80% this year; Blackboard has it and Canvas doesn't; Class certified a narrow scoped offering, which is our model; 70% of the work hardens the commercial platform anyway; federal largely covers StateRAMP too; $75K and 90 days to resolve the one thing I can't answer from a desk.
 
 ## Module §: Sources & Where to Verify
 

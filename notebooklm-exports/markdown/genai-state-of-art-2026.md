@@ -113,7 +113,52 @@ If you're still picking models by benchmark leaderboards, you're optimizing for 
 
 ### ✅ Knowledge Check
 
+**Q: Why does the module call model selection a 'portfolio decision' in mid-2026?**
+
+-   One model clearly dominates every task, so you just pick it
+-   Leadership rotates quarterly, so the best teams run 2-3 models and route by task type, cost, and latency **(correct)**
+-   Regulations require using at least three vendors
+-   Only open-weight models are production-ready
+
+*Explanation: The frontier gap has compressed into a five-way race where leadership rotates, so the winning move is a portfolio: run 2-3 models and route by task, cost, and latency.*
+
+**Q: In an MoE model such as DeepSeek-V3, roughly how many parameters activate per token relative to its 685B total?**
+
+-   All 685B
+-   About 350B
+-   About 100B
+-   About 37B **(correct)**
+
+*Explanation: MoE activates only the experts it needs — ~37B of 685B for DeepSeek-V3 — making it cheaper to serve than a dense 70B model while being smarter.*
+
+**Q: Why might you prefer a dense model over MoE for assessment grading or certification?**
+
+-   Dense models always have larger context windows
+-   MoE models cannot perform reasoning
+-   Expert routing is non-deterministic, so the same prompt can activate different experts and yield slightly different outputs **(correct)**
+-   Dense models are always cheaper to serve
+
+*Explanation: MoE expert routing introduces non-determinism; for strict reproducibility you may prefer dense models or need to pin routing seeds.*
+
+**Q: Around what monthly volume does self-hosting a Llama-class model on 8xH100 start to beat APIs on cost?**
+
+-   ~1B tokens/month
+-   ~100M tokens/month **(correct)**
+-   ~10M tokens/month
+-   ~100K tokens/month
+
+*Explanation: The module puts the crossover near 100M tokens/month; below that, API providers win on convenience and burst capacity.*
+
 ### 🃏 Flashcards
+
+-   **Mixture of Experts (MoE)** — Architecture where only a subset of parameters (experts) activate per token — e.g., DeepSeek-V3 fires ~37B of 685B — making it cheaper to serve than a dense 70B model while being smarter.
+-   **Portfolio model selection** — The 2026 approach of running 2-3 models and routing by task type, cost, and latency instead of picking one 'best' model.
+-   **Llama 4 Scout** — Meta open-weight MoE, 109B total / 17B active, that fits on a single H100 and trades blows with models 5x its compute budget.
+-   **MoE reproducibility caveat** — Expert routing is non-deterministic; for strict reproducibility (grading, certification) prefer dense models or pin routing seeds. MoE also has a higher memory footprint since all experts must be loaded.
+-   **Benchmark saturation** — MMLU, HumanEval, and GSM-8K are maxed out (90%+), so the field moved to harder evals like SWE-bench Verified and GPQA Diamond.
+-   **Vibes-based evaluation** — When benchmarks can't differentiate models, human blind-preference studies become the legitimate tiebreaker.
+-   **Self-hosting crossover** — ~100M tokens/month for a Llama-class model on 8xH100 is where self-hosting starts to beat APIs on cost.
+-   **Task-specific eval suite** — Build 200-500 examples from real production data and run every candidate model; the winner is rarely the public-leaderboard leader.
 
 ## Module 02: The API Wars: Pricing, Platforms & Lock-in
 
@@ -231,7 +276,53 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: Up to what discount does Anthropic's prompt caching offer on cached input tokens?**
+
+-   Up to 50%
+-   Up to 25%
+-   A flat 100% (free)
+-   Up to 90% **(correct)**
+
+*Explanation: Prompt caching gives up to a 90% discount on cached input tokens, hugely favoring workloads with stable system prompts — potentially cutting Coursera-scale costs 40-60%.*
+
+**Q: Why does the module say raw $/token comparisons tell only about 40% of the story?**
+
+-   Because token counts are impossible to measure
+-   Because all providers secretly charge the same
+-   Because hidden factors like prompt caching, unseen thinking tokens, rate-limit headroom, and reliability SLAs dominate real cost **(correct)**
+-   Because output tokens are always free
+
+*Explanation: Prompt caching discounts, billed-but-invisible thinking tokens, rate limits, and reliability SLAs all reshape real cost beyond the sticker $/token.*
+
+**Q: Which provider does the lock-in analysis rate as highest risk, and why?**
+
+-   Anthropic, due to the MCP protocol
+-   OpenAI, due to Structured Outputs
+-   Anthropic, due to prompt caching format
+-   Google, due to Vertex AI GCP coupling and Grounding/GCS integration **(correct)**
+
+*Explanation: Google is rated High lock-in risk because of Vertex AI's GCP coupling; the mitigation is to use the Gemini API directly and avoid Vertex-specific features.*
+
+**Q: What does the module recommend to avoid provider lock-in?**
+
+-   Commit fully to one provider's SDK
+-   Only ever use open-weight models
+-   Build a thin abstraction layer that normalizes the message format across providers **(correct)**
+-   Always use the Assistants API for state
+
+*Explanation: A ~50-line wrapper normalizing message formats lets you A/B test, fail over, and avoid rewrites when the price war shifts.*
+
 ### 🃏 Flashcards
+
+-   **Prompt caching** — Up to 90% discount on cached input tokens (system prompts, few-shot examples, large docs); can cut Coursera-scale API costs 40-60%.
+-   **Batches API (Anthropic)** — 50% cost reduction for async workloads — submit up to 100K requests, results in ~24 hours. Good for grading, bulk analysis, translations.
+-   **Extended Thinking budget\_tokens** — Parameter controlling how many reasoning tokens Claude spends; critical for cost management on reasoning-heavy tasks.
+-   **Gemini 3.6 Flash economics** — $1.50/$7.50 per Mtok with a 1M context window, and ~17% fewer output tokens than 3.5 Flash — the value pick for document-heavy workflows.
+-   **Google's missing flagship** — Gemini 3.5 Pro has missed multiple targets since I/O on May 19, 2026; DeepMind abandoned the base iteration and moved to pretraining Gemini 4. Google is the only major frontier lab without a shipped 2026 flagship.
+-   **OpenAI Assistants API** — Provides server-side state management but adds vendor lock-in; the module advises managing conversation state yourself.
+-   **Lock-in ratings** — Anthropic Low (MCP is open), OpenAI Medium (Assistants API), Google High (Vertex AI GCP coupling).
+-   **Abstraction layer** — A thin (~50-line) wrapper normalizing message formats across providers, enabling A/B testing and failover.
+-   **Cost of intelligence trend** — Dropped roughly 10x per year since GPT-4 — what cost $60/M tokens in early 2024 now costs $3-15/M for equivalent quality.
 
 ## Module 03: Agents & Orchestration: The Year Agents Got Real
 
@@ -364,7 +455,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: What is the module's core definition of an agent?**
+
+-   An LLM in a loop with tool access and memory, where the value is in the orchestration **(correct)**
+-   A fine-tuned model specialized for one task
+-   A multi-model router
+-   A vector database with retrieval
+
+*Explanation: The module reduces agents to 'LLMs in a loop with tool access and memory' — the magic is in the orchestration, not the individual model call.*
+
+**Q: How does the module describe MCP (Model Context Protocol)?**
+
+-   A proprietary OpenAI feature for state management
+-   A benchmark for agent performance
+-   A fine-tuning technique
+-   An open protocol (created by Anthropic) that standardizes how LLMs connect to tools and data — 'USB-C for AI' **(correct)**
+
+*Explanation: MCP is an open standard created by Anthropic that replaces the NxM integration problem with one protocol; servers expose resources and tools over JSON-RPC.*
+
+**Q: Which multi-agent pattern has multiple agents argue positions while a judge synthesizes, at roughly 3x cost?**
+
+-   Orchestrator to Workers
+-   Pipeline / Chain
+-   Single-agent loop
+-   Debate / Critique **(correct)**
+
+*Explanation: The Debate/Critique pattern suits assessment design and accuracy but costs ~3x, can be slow, and has diminishing returns.*
+
+**Q: What does the takeaway recommend before going multi-agent?**
+
+-   Deploy at least five specialized agents
+-   Avoid MCP until it stabilizes
+-   Always add a judge agent
+-   Start with a single well-prompted agent and a good set of tools **(correct)**
+
+*Explanation: A single well-prompted agent with 10 tools beats a swarm of 5 specialized agents ~80% of the time; go multi-agent only for genuine parallelism or adversarial review.*
+
 ### 🃏 Flashcards
+
+-   **Agent (2026 definition)** — An LLM in a loop with tool access and memory; value lives in the orchestration, not the individual model call.
+-   **Claude Agent SDK** — Anthropic's opinionated 'put the model in a loop' SDK featuring an automatic agent loop, hooks, native MCP integration, and subagents.
+-   **MCP (Model Context Protocol)** — Open standard created by Anthropic that standardizes how LLMs connect to tools/data — 'USB-C for AI' — solving the NxM integration problem.
+-   **MCP servers** — Expose resources (data) and tools (actions) via a standardized JSON-RPC interface; transport-agnostic over stdio, HTTP/SSE, or WebSockets.
+-   **OpenAI Agents SDK handoffs** — Defines specialized agents and routes between them; the stateless Responses API is the recommended path for tools, structured output, and web search.
+-   **Orchestrator to Workers** — One agent decomposes tasks and delegates to sub-agents; watch for orchestrator bottleneck and cost multiplication.
+-   **Debate / Critique pattern** — Multiple agents argue and a judge synthesizes; good for accuracy but ~3x cost with diminishing returns.
+-   **Multi-agent caution** — A single well-prompted agent with 10 tools outperforms a swarm of 5 specialized agents ~80% of the time.
 
 ## Module 04: Reasoning & Chain-of-Thought: When Models Think
 
@@ -418,7 +554,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: What did OpenAI's o1 (September 2024) prove about model performance?**
+
+-   Bigger pre-training always wins
+-   Hidden reasoning is always more accurate than visible reasoning
+-   Inference-time compute — letting the model spend more tokens reasoning internally — can dramatically improve hard-problem performance **(correct)**
+-   Reasoning models are cheaper than standard models
+
+*Explanation: o1 demonstrated that spending more compute at inference time (reasoning) improves performance on hard problems, sparking the reasoning-model era.*
+
+**Q: What distinguishes visible reasoning (Claude, DeepSeek-R1) from hidden reasoning (OpenAI o-series)?**
+
+-   Visible reasoning is free while hidden reasoning is billed
+-   Visible reasoning returns an inspectable thinking block; hidden reasoning is a black box that returns only a summary **(correct)**
+-   Hidden reasoning cannot use tools
+-   Visible reasoning never uses chain-of-thought
+
+*Explanation: Claude returns a thinking block you can inspect and log; o-series reasoning tokens are billed but never shown, returning only a summary.*
+
+**Q: What is GRPO's key twist relative to standard PPO-based RLHF?**
+
+-   It uses the relative ranking within a group of generated responses instead of a separate reward model **(correct)**
+-   It requires a much larger reward model
+-   It removes reinforcement learning entirely
+-   It only works on dense models
+
+*Explanation: GRPO (from DeepSeek) generates K responses, scores them with a verifier, and optimizes toward higher-ranked ones — no separate reward model needed.*
+
+**Q: For which task does the module say you should SKIP reasoning mode?**
+
+-   Complex code debugging
+-   Simple classification and extraction **(correct)**
+-   Mathematical proofs
+-   Nuanced assessment rubrics
+
+*Explanation: Reasoning mode is slower and pricier; skip it for classification, extraction, and simple Q&A where a standard Sonnet 5 call performs identically at ~5x lower cost.*
+
 ### 🃏 Flashcards
+
+-   **Inference-time compute** — Spending more tokens reasoning at inference; proven by OpenAI o1 (Sept 2024) to boost hard-problem performance.
+-   **Extended thinking mechanism** — The model generates a chain of intermediate reasoning steps autoregressively, letting it 'correct course' mid-thought — impossible in a single forward pass.
+-   **Hidden reasoning (o-series)** — Internal reasoning tokens you pay for but never see; the API returns only a summary — a black box you can't inspect.
+-   **Visible reasoning (Claude / DeepSeek-R1)** — Reasoning chain returned in a separate, inspectable block — better for production debugging and accountability.
+-   **GRPO** — Group Relative Policy Optimization (DeepSeek); no separate reward model — generate K responses and optimize toward the higher-ranked ones.
+-   **GRPO practical benefit** — Makes it feasible to add reasoning to smaller, cheaper models (e.g., run GRPO on Llama 4 Scout with math/code verifiers).
+-   **When to use reasoning** — Use for complex multi-step problems, code debugging, math proofs, and nuanced rubrics; skip for classification, extraction, and simple Q&A.
+-   **budget\_tokens** — Claude Extended Thinking knob: ~1K tokens for quick sanity checks, ~10K for complex analysis — trading compute for quality.
 
 ## Module 05: The Multimodal Frontier: Vision, Audio, Video & Beyond
 
@@ -475,7 +656,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: Why does the module say Gemini has a structural advantage in vision?**
+
+-   It has the most parameters
+-   It was designed 'natively multimodal', processing images through the same transformer weights as text **(correct)**
+-   It only accepts high-resolution images
+-   It uses a separate vision-only model
+
+*Explanation: Gemini is natively multimodal — images go through the same weights as text — whereas Claude/GPT-5.6 use a vision encoder feeding the LM, which can miss subtle spatial relationships.*
+
+**Q: Which model does the module say NOT to use for real-time voice, and why?**
+
+-   Gemini, because its Live API lacks tool use
+-   GPT-5, because its latency is too high
+-   Claude, because it processes audio via transcription rather than native audio understanding **(correct)**
+-   Llama 4, because it has no audio support at all
+
+*Explanation: Claude currently transcribes audio rather than understanding it natively, so it is not competitive for real-time voice — use OpenAI Realtime or Gemini Live instead.*
+
+**Q: What SWE-bench Verified progression does the module cite for autonomous GitHub issue resolution?**
+
+-   ~13% (GPT-4, early 2024) to ~96% (Claude Opus 5, July 2026) **(correct)**
+-   ~50% (2023) to ~60% (2026)
+-   ~30% to ~45%
+-   ~13% (early 2024) to ~70% (mid 2026)
+
+*Explanation: Scores jumped from ~13% for GPT-4 in early 2024 to ~96% for Claude Opus 5 in July 2026 — effectively saturating the benchmark.*
+
+**Q: What accuracy does handwritten math recognition reach, and what use does that justify?**
+
+-   ~99%, suitable for high-stakes exams
+-   ~95% on well-lit photos, good for formative assessment but not high-stakes exams **(correct)**
+-   ~80%, suitable only for demos
+-   ~60%, not usable at all
+
+*Explanation: Handwritten math recognition is ~95% accurate on well-lit photos — good enough for formative assessment, not yet reliable for high-stakes exams.*
+
 ### 🃏 Flashcards
+
+-   **Natively multimodal** — Gemini processes images through the same transformer weights as text; Claude/GPT-5.6 use a vision encoder that can miss subtle spatial relationships.
+-   **Handwritten math recognition** — ~95% accuracy on well-lit photos — good for formative assessment, not yet reliable for high-stakes exams.
+-   **OpenAI Realtime API** — Best-in-class real-time speech-to-speech (~300ms latency), with interruption handling and mid-conversation function calling.
+-   **Claude audio limitation** — Processes audio via transcription, not native understanding; not competitive for real-time voice (use OpenAI Realtime or Gemini Live).
+-   **Video understanding** — Gemini leads, processing up to an hour of video natively; Claude/GPT-5.6 use keyframe extraction and miss temporal dynamics.
+-   **Agentic coding** — Models that navigate a codebase, run tests, read errors, and iterate — e.g., Claude Code and Copilot Workspace turning a GitHub issue into a working PR.
+-   **SWE-bench Verified jump** — From ~13% (GPT-4, early 2024) to ~96% (Claude Opus 5, July 2026) of real GitHub issues resolved autonomously — the benchmark is now effectively saturated.
+-   **Video generation reality** — Sora produces 5-20s clips with physics and coherence issues beyond ~10s; not reliable for educational content at scale.
 
 ## Module 06: The Fine-Tuning Playbook: When, Why & How
 
@@ -535,7 +761,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: What does the module call the most common fine-tuning mistake?**
+
+-   Fine-tuning to inject knowledge (facts) — because fine-tuning changes behavior, not knowledge **(correct)**
+-   Using too many training examples
+-   Choosing LoRA over full fine-tuning
+-   Holding out a validation set
+
+*Explanation: Teams fine-tune to inject facts and it almost always fails; fine-tuning changes behavior. For knowledge (e.g., your 2,000 courses) use RAG.*
+
+**Q: With LoRA, what fraction of the model's parameters do you typically train?**
+
+-   0.1-1% (adapter parameters only) **(correct)**
+-   About 25%
+-   About 50%
+-   100% (all parameters)
+
+*Explanation: LoRA trains only a small set of adapter parameters — typically 0.1-1% of the full model — making it feasible to fine-tune even large models on a single GPU.*
+
+**Q: What does QLoRA enable in terms of hardware?**
+
+-   Training a 7B model only on CPUs
+-   Serving 100 models on one GPU with zero memory
+-   Fine-tuning a 70B model on a single 48GB GPU by combining a 4-bit quantized base with full-precision LoRA adapters **(correct)**
+-   Removing the need for any GPU
+
+*Explanation: QLoRA fine-tunes a 4-bit quantized model with full-precision LoRA adapters, letting you fine-tune a 70B model on a single 48GB GPU with minimal quality loss.*
+
+**Q: For preference alignment without a reward model, which technique does the module call the pragmatic choice?**
+
+-   RLHF (PPO)
+-   DPO — about 90% of RLHF quality at 20% of the complexity **(correct)**
+-   KTO
+-   SFT
+
+*Explanation: DPO trains directly on (prompt, chosen, rejected) pairs with no reward model, delivering roughly 90% of RLHF quality at 20% of the complexity.*
+
 ### 🃏 Flashcards
+
+-   **Fine-tuning vs knowledge** — Fine-tuning changes behavior (format, tone, style, terminology), not knowledge; to inject facts use RAG instead.
+-   **Prompt engineering first** — Always start here — good prompts plus few-shot examples solve ~80% of use cases at $0.
+-   **SFT (Supervised Fine-Tuning)** — Train on (input, desired\_output) pairs so the model learns to produce outputs that look like your examples.
+-   **LoRA** — Low-Rank Adaptation; trains only 0.1-1% of parameters (adapters). Rank 8-16 for behavior changes, 32-64 for domain knowledge.
+-   **QLoRA** — Fine-tune a 4-bit quantized model with full-precision LoRA adapters, enabling fine-tuning a 70B model on a single 48GB GPU.
+-   **Data quality rule** — 500 high-quality examples beat 5,000 mediocre ones; hold out 10-20% as a validation set to catch overfitting.
+-   **DPO vs GRPO vs KTO** — DPO: preference pairs, no reward model. GRPO: group-relative ranking for verifiable tasks (math, code). KTO: binary thumbs up/down data.
+-   **Anthropic fine-tuning** — No public fine-tuning for Claude (as of July 2026) — offered as a managed service for enterprise customers; OpenAI supports the smaller GPT-5.6 tiers, Google via Vertex AI.
 
 ## Module 07: RAG & Knowledge Systems: Beyond Naive Retrieval
 
@@ -601,7 +872,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: Which two things does the module say you should 'always' do in a RAG pipeline?**
+
+-   Always fine-tune the embedding model and always use GraphRAG
+-   Always use the largest context window and always skip chunking
+-   Always use Pinecone and always embed whole documents
+-   Always re-rank results and always combine keyword (BM25) + semantic search **(correct)**
+
+*Explanation: The module says always re-rank (Cohere Rerank 3 as default) and always combine keyword + semantic search — 'BM25 is embarrassingly effective'.*
+
+**Q: What does Anthropic's 'Contextual Retrieval' technique do?**
+
+-   Prepends a short generated context description to each chunk before embedding it **(correct)**
+-   Builds a knowledge graph from documents
+-   Embeds the entire document then splits at chunk boundaries
+-   Removes stop words before embedding
+
+*Explanation: Contextual Retrieval prepends a short context description (from a cheap model) to each chunk before embedding, improving retrieval for chunks only meaningful in context.*
+
+**Q: When does the module recommend MCP over RAG?**
+
+-   When you must process the entire knowledge base against every query
+-   When latency is the top priority
+-   When you need semantic similarity keyword search can't provide
+-   When you already have good search infrastructure, data changes frequently, and the model should make targeted queries **(correct)**
+
+*Explanation: MCP shines when good search infra already exists, data changes frequently, queries are targeted, and you are building an agentic system anyway — no embedding pipeline needed.*
+
+**Q: What is GraphRAG (Microsoft) best and worst at?**
+
+-   Best at global questions spanning many documents; worst at rapidly changing data and expensive upfront processing **(correct)**
+-   Best at single-fact lookups; worst at summaries
+-   Best at low-latency retrieval; worst at accuracy
+-   Best at cheap indexing; worst at global questions
+
+*Explanation: GraphRAG builds a knowledge graph to answer global questions well, but requires costly upfront processing and handles rapidly changing data poorly.*
+
 ### 🃏 Flashcards
+
+-   **Naive RAG** — embed then retrieve top-K then prompt; the best 2026 systems instead combine semantic + keyword search, re-ranking, query expansion, and smart chunking.
+-   **Hybrid search** — Always combine keyword (BM25) + vector/semantic search; 'BM25 is embarrassingly effective'.
+-   **Re-ranking** — Always re-rank retrieved results; Cohere Rerank 3 is the default choice.
+-   **Contextual Retrieval (Anthropic)** — Prepend a short generated context description to each chunk before embedding, improving retrieval of context-dependent chunks.
+-   **GraphRAG (Microsoft)** — Build a knowledge graph and retrieve from it; excels at global questions but is expensive upfront and weak on rapidly changing data.
+-   **MCP as a RAG alternative** — Give the agent a tool to query existing search infrastructure directly — no embedding pipeline, vector DB, or chunking strategy.
+-   **Long-context escape hatch** — If your corpus fits in ~200K tokens (~150K words), stuff it all into the prompt and rely on prompt caching (pay full price once, 90% less after).
+-   **Bad RAG warning** — The good-vs-bad RAG gap is 40+ points on retrieval accuracy; bad RAG is worse than none because users lose trust.
 
 ## Module 08: Safety, Alignment & Governance: The Guardrails
 
@@ -664,7 +980,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: What is the core idea of Anthropic's Constitutional AI (CAI)?**
+
+-   Train the model on human feedback for every possible scenario
+-   Filter any prompt containing dangerous-sounding words
+-   Give the model a set of principles (a 'constitution') and train it to self-critique and revise its outputs to comply **(correct)**
+-   Require human approval for every response
+
+*Explanation: CAI trains the model against principles via SL-CAI (critique and revise) then RL-CAI (constitution-trained model as its own reward model), so it follows rules rather than pattern-matching scary words.*
+
+**Q: Which prompt injection type is described as hardest to catch, and why?**
+
+-   Indirect injection, because malicious instructions are embedded in retrieved content and the model can't tell trusted from untrusted **(correct)**
+-   Direct injection, because users write 'ignore previous instructions'
+-   Multi-turn escalation, because it needs many messages
+-   Output injection, because it happens after generation
+
+*Explanation: Indirect injection hides instructions in documents, web pages, or databases the model retrieves; it's hard to catch because the model doesn't know which content is trusted.*
+
+**Q: Which defense does the module call 'the best architectural defense' against prompt injection?**
+
+-   Privilege separation (different trust levels for system prompt, user input, retrieved content) **(correct)**
+-   Input/output classifiers
+-   Human-in-the-loop approval
+-   Sandboxing
+
+*Explanation: Privilege separation assigns different trust levels to system prompt, user input, and retrieved content — rated the best architectural defense at medium implementation cost.*
+
+**Q: Under the EU AI Act, how is AI used for educational assessment classified, and what does the module say about AI-detection tools for integrity?**
+
+-   Low-risk; detection tools are reliable enough for high-stakes use
+-   High-risk; detection tools (~85% accuracy, 10-15% false positives) are too unreliable for high-stakes decisions **(correct)**
+-   Prohibited outright; detection tools should always be used
+-   Unregulated; detection tools are mandatory
+
+*Explanation: Educational assessment AI is high-risk (conformity assessments, human oversight); AI-detection tools have a 10-15% false-positive rate — unacceptable for high stakes, so redesign assessments instead.*
+
 ### 🃏 Flashcards
+
+-   **Constitutional AI (CAI)** — Give the model a 'constitution' of principles and train it to self-critique and revise; two phases — SL-CAI then RL-CAI.
+-   **CAI benefit** — Claude follows rules rather than pattern-matching 'dangerous' words — fewer false positives on legit content (e.g., chemistry) and more robust protection.
+-   **Prompt injection** — The most serious LLM security vulnerability with no complete solution; user or retrieved content carries instructions that override the system prompt.
+-   **Indirect injection** — Malicious instructions embedded in retrieved documents or web pages; hardest to catch because the model can't distinguish trusted from untrusted content.
+-   **Privilege separation** — Assign different trust levels to system prompt, user input, and retrieved content — the best architectural defense against injection.
+-   **EU AI Act and education** — Educational assessment/access AI is classified high-risk (conformity assessments, human oversight); AI grading must be disclosed.
+-   **Prohibited practices (EU)** — Social scoring, real-time biometric identification, and emotion recognition in educational settings.
+-   **AI detection tools** — ~85% accuracy with a 10-15% false-positive rate — too unreliable for high-stakes integrity decisions; redesign assessments instead.
 
 ## Module 09: The Business Landscape: Money, Strategy & Power
 
@@ -728,7 +1089,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: What does the module call the single biggest constraint on AI progress in 2026?**
+
+-   Algorithmic breakthroughs
+-   Data privacy regulation
+-   Compute — GPU supply (H100/H200/B200), creating a 'GPU-rich vs GPU-poor' divide **(correct)**
+-   A shortage of ML engineers
+
+*Explanation: The biggest constraint is compute, not algorithms; scarce NVIDIA GPUs split the field into GPU-rich (Google, Meta, Microsoft/OpenAI) and GPU-poor.*
+
+**Q: What does the module identify as Anthropic's competitive moat?**
+
+-   The lowest API prices
+-   The largest model
+-   Exclusive GPU access
+-   Trust built through safety research and Constitutional AI — a procurement requirement in regulated industries **(correct)**
+
+*Explanation: By investing in safety research, Anthropic built trust as a moat; in regulated industries like education, trust in your AI provider is a procurement requirement.*
+
+**Q: How does the module describe Meta's open-weight Llama strategy?**
+
+-   Pure altruism with no business goal
+-   A play to commoditize the model layer (where Meta doesn't earn) and drive value to the application layer, which keeps API prices falling **(correct)**
+-   An attempt to sell GPU capacity
+-   A way to lock developers into GCP
+
+*Explanation: Open weights commoditize the model layer to push value toward Meta's application products; every self-hosting company also pressures API prices downward.*
+
+**Q: Where does the module argue value accrues in the AI stack?**
+
+-   The model layer, which keeps differentiating
+-   The GPU-manufacturing layer
+-   The application layer — unique data, workflows, and distribution — while the model layer commoditizes **(correct)**
+-   The benchmark-publishing layer
+
+*Explanation: The model layer is commoditizing; value accrues at the application layer through unique data, workflows, and distribution.*
+
 ### 🃏 Flashcards
+
+-   **AI compute bottleneck** — The biggest 2026 constraint is compute, not algorithms; the NVIDIA H100/H200/B200 shortage creates a 'GPU-rich vs GPU-poor' divide.
+-   **Anthropic's moat** — Trust built via safety research and Constitutional AI; in regulated industries, provider trust is a procurement requirement, not a nice-to-have.
+-   **OpenAI platform play** — Shift from 'best model' to 'best platform'; ChatGPT has 400M+ weekly users, and the API partly feeds ChatGPT upsell.
+-   **Google infrastructure advantage** — Gemini embedded in Search, Gmail, Docs, Android, and Cloud; it needs only 'good enough' quality plus unmatched distribution.
+-   **Meta open-source kingmaker** — Open weights commoditize the model layer (where Meta doesn't earn) to drive value to the app layer, keeping API prices falling.
+-   **Anthropic compute** — Secured significant compute capacity through its Amazon (AWS) partnership.
+-   **Application-layer value** — The model is a commodity input; value lives in domain-specific data, workflows, and UX (Harvey, Abridge, Cursor at $100M+ ARR).
+-   **AI-native education window** — Coursera's window to build a defensible AI-native product is ~12-18 months (competitors: Khanmigo, Duolingo Max).
 
 ## Module 10: What's Next: Scaling Laws, AGI & the Future of Education AI
 
@@ -795,7 +1201,52 @@ Key Takeaway
 
 ### ✅ Knowledge Check
 
+**Q: When pre-training scale hit diminishing returns, what did labs shift to instead?**
+
+-   Abandoning large models entirely
+-   Only training on synthetic data
+-   Test-time compute scaling — spending more compute at inference (reasoning) rather than training **(correct)**
+-   Reducing context windows
+
+*Explanation: The o-series, Claude Extended Thinking, and DeepSeek-R1 show quality gains from inference-time reasoning — a fundamental paradigm shift from training-time scaling.*
+
+**Q: What is the 'data wall' the module describes?**
+
+-   The public internet's high-quality training text is approximately exhausted, and synthetic data risks quality ceilings and model collapse **(correct)**
+-   A firewall protecting training data
+-   A legal limit on data collection
+-   A hardware limit on storage
+
+*Explanation: Labs have roughly exhausted high-quality public text; synthetic data supplements it but introduces quality ceilings and potential model collapse.*
+
+**Q: Which of these does the module say current models still struggle with?**
+
+-   Recombining existing knowledge
+-   Answering simple questions
+-   Novel reasoning, long-horizon planning, self-knowledge, and robust generalization **(correct)**
+-   Basic classification
+
+*Explanation: Capabilities expand in breadth faster than depth; models remain weak at genuinely novel reasoning, long-horizon planning, calibrated self-knowledge, and distribution-shift generalization.*
+
+**Q: What share of AI engineering effort does the module recommend spending on evaluation and monitoring?**
+
+-   Under 5%
+-   About 50%
+-   None, once models are good enough
+-   20-30% **(correct)**
+
+*Explanation: Without evals you're flying blind — the module advises planning to spend 20-30% of AI engineering effort on evaluation and monitoring.*
+
 ### 🃏 Flashcards
+
+-   **Scaling laws crack (2025)** — Pre-training scale hit diminishing returns due to the data wall, benchmark saturation, and cost ($10M GPT-4 to $100M+ GPT-5).
+-   **Data wall** — The public internet's high-quality training text is roughly exhausted; synthetic data risks quality ceilings and model collapse.
+-   **Test-time compute scaling** — The paradigm shift to gaining quality by spending compute at inference (reasoning) rather than training — o-series, Extended Thinking, DeepSeek-R1.
+-   **AGI reality check** — Capabilities grow in breadth faster than depth; models still struggle with novel reasoning, long-horizon planning, self-knowledge, and robust generalization.
+-   **Bloom's 2-sigma problem** — One-on-one tutoring is the gold standard; AI tutors can deliver ~80% of the benefit at ~0.1% of the cost when grounded in verified content.
+-   **Invest in eval** — Build task-specific eval suites for every feature; plan to spend 20-30% of AI engineering effort on evaluation and monitoring.
+-   **Assessment adoption constraint** — Automated grading's limit is trust, not capability — instructors must see and verify AI grading before adopting it.
+-   **Data flywheel** — AI-generated interactions produce data that improves the AI; early deep integration builds an advantage late movers can't replicate.
 
 ## Module 11: The Open-Weight Revolution: GLM-5.2 & the 2026 Landscape
 
@@ -1036,7 +1487,52 @@ GLM-5.2 is the most important open-weight release of 2026. It proves that open m
 
 ### ✅ Knowledge Check
 
+**Q: What is GLM-5.2's headline architectural innovation and its effect?**
+
+-   Dense attention on every layer for maximum quality
+-   IndexShare sparse attention — a full indexer pass every 4 layers, reused for the next 3 — giving a ~2.9x FLOP reduction at 1M context **(correct)**
+-   Multi-latent attention only
+-   Fixed-pattern sparsity that halves parameters
+
+*Explanation: IndexShare runs a full indexer every 4 layers and reuses the selected token indices for 3 layers, cutting FLOPs ~2.9x at 1M context without the quality loss of simpler sparsity.*
+
+**Q: Per OSAID 1.0, why do GLM-5.2, Llama 4, Qwen 3, and DeepSeek V4 NOT qualify as 'open source'?**
+
+-   Their weights are not downloadable
+-   They release weights but not their training data, so they are 'open weight', not 'open source' **(correct)**
+-   Their licenses forbid commercial use
+-   They were trained on proprietary chips
+
+*Explanation: OSAID 1.0 requires weights + training code + training data; these models release weights (and often code) but not training data, making them open weight rather than open source.*
+
+**Q: Which local runtime is explicitly NOT production-ready on Apple Silicon (built for NVIDIA/AMD)?**
+
+-   Ollama
+-   llama.cpp
+-   MLX
+-   vLLM **(correct)**
+
+*Explanation: vLLM is the production GPU-serving standard (PagedAttention, 16-20x throughput) but is designed for CUDA/ROCm and is not production-ready on Apple Silicon.*
+
+**Q: Why is the self-hosting cost crossover for GLM-5.2 as high as 500M+ tokens/month?**
+
+-   Because its API is already so cheap (~$1.40/$4.40 per 1M tokens) that self-hosting rarely wins until very high volume **(correct)**
+-   Because its weights are too large to download
+-   Because it can't be self-hosted at all
+-   Because it requires 64 H100s to run
+
+*Explanation: At ~$1.40 input / $4.40 output per 1M tokens, the GLM-5.2 API is so cheap that you'd need 500M+ tokens/month before an 8xH100 cluster pays off — much higher than the ~100M crossover for Llama-class models.*
+
 ### 🃏 Flashcards
+
+-   **GLM-5.2** — Z.ai's MIT-licensed model (June 13, 2026): 753B total / ~40B active, 1M context; leads coding/agentic benchmarks (62.1 SWE-bench Pro vs GPT-5.5's 58.6).
+-   **IndexShare sparse attention** — Run a full indexer pass every 4 layers, reuse the selected token indices for the next 3 layers; ~2.9x FLOP reduction at 1M context without quality loss.
+-   **Open weight vs open source** — OSAID 1.0 (Oct 2024) requires weights + training code + training data; almost all models release only weights, so they are 'open weight', not 'open source'.
+-   **License landscape** — MIT (GLM-5.2, DeepSeek V4, Phi-4; attribution only), Apache 2.0 (Qwen, Gemma, Mistral; patent grant), Llama Community (700M MAU cap).
+-   **DeepSeek V4 Pro** — Largest open-weight model at 1.6T params / 49B active, MIT, 1M context; hybrid multi-head + multi-latent attention (MLA) to control memory at scale.
+-   **vLLM** — Production GPU-serving standard; PagedAttention gives 16-20x throughput but is NOT production-ready on Apple Silicon (CUDA/ROCm only).
+-   **MLX (Apple)** — On M5 silicon, 30-60% faster than llama.cpp's Metal backend; Neural Accelerator makes prefill 3-4x faster for long-context workloads.
+-   **Self-host crossover** — Llama-class on 8xH100 ~100M tokens/month; GLM-5.2's API is so cheap the crossover is 500M+/month; small models ~20-30M/month.
 
 State of Generative AI — July 2026
 

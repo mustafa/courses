@@ -65,7 +65,52 @@ Fund performance vocabulary gets thrown around in board meetings and diligence c
 
 ### ✅ Knowledge Check
 
+**Q: What is carried interest ('carry') in a PE fund?**
+
+-   A ~2% annual fee on committed capital that covers firm overhead
+-   The GP's share (usually 20%) of fund profits above a preferred return hurdle **(correct)**
+-   The minimum annual return LPs must receive before profits are split
+-   Cash actually returned to LPs divided by cash they paid in
+
+*Explanation: Carry is the GP's ~20% cut of profits above the hurdle (commonly 8%). It is a leveraged bet on fund profit, which is why PE firms relentlessly chase exit value. Option A describes the management fee.*
+
+**Q: In the Acme SaaS worked example ($30M EBITDA at 15x = $450M, financed 60% debt / 40% equity), how large is the equity check the fund writes at entry?**
+
+-   $270M
+-   $450M
+-   $180M **(correct)**
+-   $150M
+
+*Explanation: 40% of the $450M purchase price is $180M of equity; the other $270M is debt loaded onto the company's own balance sheet. That $180M equity base is leveraged 2.5x by the debt.*
+
+**Q: In that example the ~3.3x MOIC (about 27% IRR) was generated primarily by which two forces?**
+
+-   Selling at a higher multiple than the purchase multiple
+-   EBITDA growth and debt paydown **(correct)**
+-   Cutting the fund's management fee
+-   A dividend recapitalization
+
+*Explanation: The return came entirely from growing EBITDA ($30M to $50M) and paying down debt ($270M to $150M) at a flat 15x multiple. No multiple expansion was required, though PE firms pursue it when markets allow.*
+
+**Q: Which fund metric measures only realized (actual cash) returns to LPs, not paper marks?**
+
+-   TVPI
+-   IRR
+-   MOIC
+-   DPI **(correct)**
+
+*Explanation: DPI (Distributions to Paid-In) is cash actually returned divided by cash paid in — the only metric of realized returns. TVPI and MOIC include unrealized marks on unsold companies.*
+
 ### 🃏 Flashcards
+
+-   **General Partner (GP)** — The PE firm itself (Thoma Bravo, KKR, etc.) that raises the fund, sources and runs deals, and earns management fees plus carried interest.
+-   **Limited Partners (LPs)** — Investors — pensions, endowments, sovereign wealth funds, insurers, family offices — who commit capital to a fund but don't run it.
+-   **Management fee** — Typically ~2% of committed capital annually; pays for the firm's staff, offices, and overhead regardless of fund performance.
+-   **Leveraged Buyout (LBO)** — The acquired company borrows the money (debt on its own balance sheet) to fund its own purchase; its future cash flows service that debt.
+-   **EBITDA** — Earnings Before Interest, Taxes, Depreciation & Amortization — PE's standard profitability yardstick, approximating cash flow available to service debt.
+-   **MOIC vs IRR** — MOIC = total value / capital invested, ignoring time. IRR is annualized and time-weighted, so it rewards speed: a 3x in 3 years beats a 3x in 9 years.
+-   **Dry powder** — Committed but undeployed LP capital available for new deals. High industry-wide dry powder drives up competition and purchase multiples.
+-   **J-curve** — Early fund returns dip negative (fees drag, no exits yet), then swing sharply upward as harvesting-phase exits generate distributions.
 
 ### Why the Firm Behind the Deal Matters More Than the Deal Itself
 
@@ -118,7 +163,52 @@ Thoma Bravo's decision to concentrate almost exclusively in software is not an a
 
 ### ✅ Knowledge Check
 
+**Q: Which firm is the most software-concentrated large PE firm, known for aggressive, systematic contract-level pricing audits and a front-loaded margin push?**
+
+-   KKR
+-   Silver Lake
+-   Thoma Bravo **(correct)**
+-   Francisco Partners
+
+*Explanation: Thoma Bravo ($183B+ AUM) concentrates almost entirely in software and runs a centralized playbook with line-by-line contract audits and margin improvement front-loaded into the first 12-18 months.*
+
+**Q: Vista Equity Partners delivers its operational rigor and cross-portfolio benchmarking primarily through what?**
+
+-   Vista Consulting Group (VCG), an in-house operating arm **(correct)**
+-   An external Big Four consulting contract
+-   The Thoma Bravo shared playbook
+-   A sovereign wealth co-investor
+
+*Explanation: VCG embeds standardized operational playbooks into every portfolio company and benchmarks each one's metrics against a proprietary cross-portfolio database.*
+
+**Q: Francisco Partners' specific edge is which kind of deal?**
+
+-   Mega-cap take-privates of profitable public software
+-   Carve-outs and turnarounds of underinvested divisions or companies **(correct)**
+-   Minority growth equity in pre-revenue startups
+-   Passive sovereign co-investments
+
+*Explanation: Francisco specializes in carve-outs and turnarounds; year one is often dominated by TSAs and standing up standalone IT, HR, and finance functions.*
+
+**Q: Which firm acquired Instructure and tends to run a collaborative, partnership-oriented model that funds growth and M&A rather than imposing immediate cost cuts?**
+
+-   Vista
+-   Thoma Bravo
+-   Hellman & Friedman
+-   KKR **(correct)**
+
+*Explanation: KKR ($553B+ AUM) is the most diversified firm here and works with existing management, providing capital for expansion within a clear framework of EBITDA accountability.*
+
 ### 🃏 Flashcards
+
+-   **Thoma Bravo** — Most software-concentrated large PE firm ($183B+ AUM). Centralized playbook, contract-level pricing audits, procurement consolidation, front-loaded margin push.
+-   **Vista Consulting Group (VCG)** — Vista's in-house operating arm that embeds standardized playbooks and benchmarks every portfolio company against a proprietary cross-portfolio database.
+-   **KKR's style** — Collaborative, diversified ($553B+ AUM). Partners with management and funds growth and tuck-in M&A rather than imposing an immediate cost program.
+-   **Silver Lake** — Most explicitly tech-focused ($102B). Backs strong teams with capital for bold bets (e.g., $55B EA acquisition); less operationally intrusive.
+-   **Francisco Partners** — Mid-market specialist (~$45B) in carve-outs and turnarounds. Year one is dominated by un-tangling work and standing up independent systems.
+-   **Hellman & Friedman** — Founder-friendly, partnership-oriented large-cap firm known for backing management teams across multiple hold periods and funds.
+-   **Sponsor over target** — The sponsor firm is the most predictive variable for your day-to-day. Research its last 3-5 sector deals — hold length, management retention, exit type.
+-   **Transition Services Agreement (TSA)** — Contract letting a carved-out company temporarily rely on its former parent's IT/HR/finance during the first 6-12 months of independence.
 
 ### The Levers, In Order of How Fast They Get Pulled
 
@@ -176,7 +266,52 @@ The metrics in the table above aren't merely tracked in the abstract — they ty
 
 ### ✅ Knowledge Check
 
+**Q: Which value-creation lever is usually the fastest and highest-ROI because it needs no product changes and flows almost directly to EBITDA?**
+
+-   R&D rationalization
+-   Pricing optimization **(correct)**
+-   Tuck-in acquisitions
+-   G&A reduction
+
+*Explanation: Pricing requires no incremental cost and flows almost straight to EBITDA. Firms often find 15-30% of a customer base under-billed, then add escalators, tiering, and usage-based models.*
+
+**Q: According to the module, when does PE actually fund technical-debt remediation?**
+
+-   Whenever engineers request cleaner code or better test coverage
+-   Only in the final year before exit
+-   When it demonstrably affects revenue or EBITDA (churn or velocity) **(correct)**
+-   Never — PE categorically ignores technical debt
+
+*Explanation: Tech debt gets funded exactly when it hits the P&L — customer-visible reliability driving churn, or velocity drag losing deals. Purely aesthetic cleanup rarely gets funded; the CTO's job is to translate debt into financial language.*
+
+**Q: Tuck-in (bolt-on) acquisitions are attractive partly because of the multiple gap. What is the typical pattern?**
+
+-   Targets are bought at 15-20x, above the platform
+-   Targets bought at 5-8x EBITDA versus 12-18x for the platform **(correct)**
+-   Targets and platform trade at identical multiples
+-   Targets always cost more than 20x EBITDA
+
+*Explanation: Small tuck-ins are typically bought at 5-8x versus 12-18x for the platform, and redundant G&A and engineering can be stripped immediately, lowering the effective post-integration multiple further.*
+
+**Q: What does the 'Rule of 40' state for a healthy software company?**
+
+-   Revenue growth % plus profit margin % should exceed 40 **(correct)**
+-   Gross margin should exceed 40%
+-   Net revenue retention should exceed 40%
+-   CAC payback should be under 40 months
+
+*Explanation: Rule of 40: revenue growth rate % + profit margin % should clear 40 (ideally 50+). It balances growth against profitability in one number PE tracks closely.*
+
 ### 🃏 Flashcards
+
+-   **Pricing optimization** — The fastest EBITDA lever. Contract audits catch under-billing, then usage-based/tiered pricing, annual escalators (5-9%), and unbundling of formerly free add-ons.
+-   **R&D rationalization** — Ranking projects by ROI, cutting low-impact work, reducing redundant headcount, consolidating vendors, and instrumenting engineering productivity metrics.
+-   **G&A reduction** — Cutting the least-defensible costs first: real estate consolidation, shared-services back office, vendor renegotiation, tightened travel and expense policies.
+-   **Tuck-in acquisition** — A smaller bolt-on bought cheaply (5-8x) and folded into the platform's sales motion and cost structure, with redundant overhead stripped immediately.
+-   **Net Revenue Retention (NRR)** — Revenue from existing customers this year vs last, including upsell, downsell, and churn. 110%+ is excellent; 100-105% is average.
+-   **LTV:CAC** — Lifetime value to customer acquisition cost. PE typically wants above 3:1 and will restructure go-to-market if the ratio doesn't clear the bar.
+-   **Translating tech debt** — A CTO makes tech debt fundable by quantifying its churn risk, sales-cycle drag, or incident cost — framing it as a P&L item, not an engineering preference.
+-   **Lever sequencing** — Quick wins first (months 0-3), pricing months 3-9 (cohort by cohort), R&D/org changes by month 12, tuck-ins usually not until year two.
 
 ### The First 100 Days
 
@@ -228,7 +363,52 @@ To make this concrete: a typical week for a CPTO at a mid-market PE-backed softw
 
 ### ✅ Knowledge Check
 
+**Q: A management equity pool under PE ownership is typically what share of total company equity, and how does it usually vest?**
+
+-   30-40% of equity, vesting purely on time
+-   10-15% of equity, frequently vesting on an exit (change-of-control) event **(correct)**
+-   1-2% of equity, fully vested at grant
+-   50% of equity, vesting monthly
+
+*Explanation: The pool is usually 10-15% of total company equity, set aside for leadership and key staff, and it commonly vests on a change-of-control event rather than a simple four-year time schedule.*
+
+**Q: What does the module identify as the fastest skill a technology leader must develop under PE ownership?**
+
+-   Writing more production code personally
+-   Translating engineering investment into the financial (EBITDA/payback) language the board speaks **(correct)**
+-   Avoiding the board and operating partner
+-   Maximizing raw headcount growth
+
+*Explanation: Instead of 'we need to invest in reliability,' the pitch becomes 'this cuts churn risk in $12M of ARR and saves $400K in incident costs, payback in 14 months.' Leading with payback math signals you think like an owner.*
+
+**Q: What reporting cadence should a tech leader expect from a PE board relative to a public-company board?**
+
+-   Annual reporting only
+-   Quarterly public earnings calls with analysts
+-   Monthly financial packages plus more operationally granular quarterly board deep-dives **(correct)**
+-   No formal reporting at all
+
+*Explanation: Expect monthly packages (revenue, bookings, churn, EBITDA, cash, headcount vs budget) reviewed by the deal team, and quarterly board meetings that drill into specific cohorts and cost-line variances.*
+
+**Q: Which of these does the module say genuinely gets WORSE under PE ownership?**
+
+-   Decision speed
+-   Clarity of priorities
+-   Long-term, multi-year R&D investment **(correct)**
+-   Meritocratic compensation for high performers
+
+*Explanation: Long-horizon R&D bets are structurally disadvantaged versus shorter-payback investments; morale during adjustment, benefits, and exit-timing certainty also tend to suffer. Speed, clarity, and meritocracy improve.*
+
 ### 🃏 Flashcards
+
+-   **The first 100 days** — A technology assessment, rapid talent/redundancy mapping, a vendor audit, and deliberate visible quick wins to show the new board urgency.
+-   **Management equity pool** — Typically 10-15% of company equity for leadership and key employees, frequently vesting on an exit/change-of-control event rather than purely on time.
+-   **Exit-based vesting** — Equity that may only become liquid or fully vested upon a change-of-control event, even after you have satisfied a four-year time schedule.
+-   **Rollover equity** — Existing executives converting part of their prior equity into the new deal structure, aligning their incentives with the new sponsor's hold period.
+-   **Co-investment rights** — The opportunity for senior executives to personally invest additional cash alongside the fund for a larger equity stake and higher potential upside.
+-   **Financial translation skill** — Reframing 'invest in platform reliability' as 'reduces churn risk in $12M ARR, cuts $400K incident cost, 14-month payback' — the highest-leverage PE skill.
+-   **Decision velocity** — A genuine PE upside: budget moves, reorgs, even acquisitions approved in days — but on a tight leash, every decision tied explicitly to EBITDA impact.
+-   **The operating partner relationship** — Treat the board member assigned to watch engineering as a thinking partner, not an auditor. Proactive disclosure yields more latitude for bigger bets.
 
 ### Two Very Different Operating Rhythms
 
@@ -286,7 +466,52 @@ If you're weighing an offer to move from a public company into a PE-backed role,
 
 ### ✅ Knowledge Check
 
+**Q: How does compensation typically differ between a PE-backed and a public-company technology executive?**
+
+-   PE offers higher base salary and liquid RSUs
+-   PE offers a lower base with large illiquid equity upside tied to an exit event **(correct)**
+-   PE offers no equity, only cash
+-   The two are structured identically
+
+*Explanation: PE executives usually take a lower base (often 10-20% below public equivalents) in exchange for a management equity grant that is illiquid until exit and can be worth dramatically more, or less. Public pay is higher base plus liquid RSUs.*
+
+**Q: Monthly financial reporting to a PE sponsor is often not merely optional visibility but a contractual obligation tied to what?**
+
+-   Debt covenants on the company's balance sheet (lenders require the detail) **(correct)**
+-   SEC quarterly filing rules
+-   Analyst consensus estimates
+-   GDPR data-privacy requirements
+
+*Explanation: The monthly package is frequently required by the debt covenants on the balance sheet — lenders demand this level of detail too, on top of the sponsor's own reporting needs.*
+
+**Q: On M&A, how are PE-backed technology leaders more likely to be involved than their public-company peers?**
+
+-   They never touch M&A
+-   They personally lead tuck-in/bolt-on integration directly **(correct)**
+-   They rely on a large dedicated corporate development team
+-   They only handle IPO preparation
+
+*Explanation: PE-backed companies with active roll-up strategies do more deals per year and often lack a large corp dev function, so tech leaders frequently lead diligence, integration architecture, and post-close execution themselves.*
+
+**Q: The module contrasts the two comp models with an analogy. Public-company pay is described as closer to what?**
+
+-   A lottery ticket
+-   A smoothed annuity **(correct)**
+-   A binary all-or-nothing bet
+-   A short-dated option
+
+*Explanation: Public compensation is a smoothed annuity (steady, liquid RSUs vesting regardless of any exit), whereas PE compensation is closer to a call option on the company's eventual sale price.*
+
 ### 🃏 Flashcards
+
+-   **PE reporting rhythm** — Monthly detailed P&L to the sponsor plus quarterly board deep-dives; often contractually required by the debt covenants on the balance sheet.
+-   **Public reporting rhythm** — Quarterly earnings to public markets, SEC filings, and analyst calls, with the intervening weeks largely insulated from external scrutiny.
+-   **Capital allocation contrast** — PE: a short chain to one engaged owner, approval in days. Public: annual budgets, quarterly reforecasts, and cross-functional sign-off chains.
+-   **Compensation risk profile** — PE pay is a call option on the exit price (lower base, illiquid equity). Public pay is a smoothed annuity (higher base, liquid RSUs).
+-   **Career risk under PE** — Binary — a strong exit is a life-changing payout, a weak one can mean little to nothing. Public roles offer steadier, more predictable progression.
+-   **Innovation appetite** — Public balance sheets can absorb speculative multi-year bets; PE needs a believable payback inside the hold window, disfavoring long-horizon R&D.
+-   **Org-design contrast** — Public: formal leveling ladders and fixed promo committees. PE (mid-market): flatter, faster, more manager judgment — a retention edge but more inconsistency.
+-   **Psychology of ownership** — PE concentrates risk and reward on a small, engaged, financially literate group — energizing for some leaders, exhausting for others over a multi-year hold.
 
 ### Company History
 
@@ -341,7 +566,52 @@ If you're interviewing for a leadership role at Instructure or a similarly posit
 
 ### ✅ Knowledge Check
 
+**Q: Thoma Bravo took Instructure private in 2020 for ~$2B. How much did KKR pay to acquire it in 2024?**
+
+-   $2B, roughly flat
+-   $4.8B — about 2.4x Thoma Bravo's entry price **(correct)**
+-   $11.5B
+-   $6.9B
+
+*Explanation: KKR paid $4.8B in 2024, about 2.4x what Thoma Bravo paid four years earlier — a clean illustration of value creation compounding across a full PE hold cycle.*
+
+**Q: The Thoma Bravo to KKR sale of Instructure is an example of which exit type?**
+
+-   An IPO returning the company to public markets
+-   A strategic acquisition by an operating company
+-   A sponsor-to-sponsor secondary sale **(correct)**
+-   A bankruptcy liquidation
+
+*Explanation: Selling from one PE firm to another is a sponsor-to-sponsor (secondary) sale. The buyer inherits an already PE-optimized operating model rather than imposing one from scratch.*
+
+**Q: Which company did Thoma Bravo bolt on to extend Instructure from pure LMS into credentialing and digital transcripts?**
+
+-   Mastery
+-   Parchment **(correct)**
+-   Impact
+-   Canvas Studio
+
+*Explanation: Parchment, a credential-management and digital-transcript company, was a classic platform-expansion tuck-in extending Instructure into the academic-records value chain.*
+
+**Q: In a sponsor-to-sponsor transition like Thoma Bravo to KKR, what typically carries over and what typically shifts for tech leaders inside the company?**
+
+-   Everything is rebuilt from scratch
+-   Financial discipline and reporting carry over, while strategic emphasis shifts **(correct)**
+-   Nothing changes at all
+-   Only the company name changes
+
+*Explanation: Because the company already runs with PE-style discipline, the reporting rhythm feels familiar, but the new sponsor's priorities (platform unification, international, AI) represent a genuine strategic reset.*
+
 ### 🃏 Flashcards
+
+-   **Canvas LMS** — Instructure's flagship product and the dominant learning management system in U.S. higher education, commanding 30%+ market share in that segment.
+-   **Instructure ownership arc** — Founded 2008 (BYU) → IPO 2015 → Thoma Bravo take-private 2020 ($2B) → KKR acquisition 2024 ($4.8B, a 2.4x step-up).
+-   **Sponsor-to-sponsor exit** — One PE firm sells a portfolio company to another. Less operational upheaval than a public-to-private deal, but often a real strategic reset.
+-   **KKR's Instructure thesis** — Platform unification (Canvas, Mastery, Parchment, Impact), international expansion, AI-native features, and further tuck-ins — a growth thesis, not pure cost-cutting.
+-   **Parchment** — Credential and digital-transcript company Thoma Bravo bolted on to extend Instructure from pure LMS into academic records — a network-effect business.
+-   **PE-versus-PE competition** — Instructure's oldest rival Blackboard is now part of Anthology, itself owned by Veritas Capital — making the rivalry a PE-versus-PE dynamic.
+-   **Drivers of the 2.4x step-up** — Both genuine operational value creation by the selling sponsor and market-level multiple expansion in the EdTech category — not attributable to one firm alone.
+-   **Second-hold latitude** — A growth-oriented second sponsor (Instructure under KKR) typically means more room for platform investment, international expansion, and new AI product categories.
 
 ### Capital Structure: The Layers Above and Below Your Equity
 
@@ -400,7 +670,52 @@ How your equity gains are taxed depends heavily on structure and timing. Gains o
 
 ### ✅ Knowledge Check
 
+**Q: What is the correct priority order of the capital stack, from most senior to last-paid?**
+
+-   Equity, then all debt
+-   Senior secured debt, then second lien, then mezzanine, then equity **(correct)**
+-   Mezzanine, senior secured, equity, second lien
+-   All layers are paid pro-rata at the same time
+
+*Explanation: Senior secured (cheapest, first claim) ranks above second lien, then mezzanine, with equity — the fund's investment plus management equity — receiving nothing until every debt layer above it is satisfied.*
+
+**Q: What is a dividend recapitalization ('dividend recap')?**
+
+-   Selling the company to a strategic buyer
+-   Taking on additional debt specifically to pay a cash dividend to the fund and LPs, with no exit event **(correct)**
+-   Issuing new equity grants to employees
+-   Repaying all outstanding debt ahead of schedule
+
+*Explanation: A dividend recap raises new debt to pay the sponsor a dividend before any exit, improving the fund's DPI but increasing leverage with no corresponding EBITDA gain — a financial move, not value creation.*
+
+**Q: Typical software-company leverage under PE ownership runs at roughly what multiple of EBITDA?**
+
+-   1-2x EBITDA
+-   4-7x EBITDA **(correct)**
+-   10-15x EBITDA
+-   20x+ EBITDA
+
+*Explanation: Software LBOs typically carry 4-7x EBITDA in debt, meaning 15-30% of free cash flow often goes to debt service before any growth investment — which is why EBITDA growth is pursued so relentlessly.*
+
+**Q: What does an 83(b) election allow the holder of restricted equity to do?**
+
+-   Avoid all taxes on the equity permanently
+-   Pay tax on the value at grant (often minimal), if filed within 30 days, rather than at each vesting date **(correct)**
+-   Convert company debt into equity
+-   Bypass the preferred-return waterfall at exit
+
+*Explanation: Filed within 30 days of a restricted grant, an 83(b) election pays tax on the (usually low) grant value up front, potentially converting future appreciation into long-term capital gains rather than ordinary income.*
+
 ### 🃏 Flashcards
+
+-   **Capital stack** — Priority order in distress: senior secured (cheapest) → second lien → mezzanine → equity (paid last). Equity is whatever is left after all debt is repaid.
+-   **PIK (Payment-in-Kind) debt** — Interest accrues and compounds onto the principal instead of being paid in cash. It conserves cash early but the balance grows silently and must be repaid or refinanced.
+-   **Leverage in practice** — Software LBOs run 4-7x EBITDA; 15-30% of free cash flow often goes to debt service before any capital is available for growth or dividends.
+-   **Adjusted EBITDA add-backs** — Normalizations (one-time restructuring, stock-based comp, deal fees). Watch aggressive add-backs like run-rate annualizations and unrealized cost synergies.
+-   **Dividend recap** — New debt raised to pay the fund a dividend pre-exit. Boosts DPI and de-risks the sponsor but adds leverage with no operational improvement.
+-   **Good leaver / bad leaver** — Departure provisions: good leavers (no-cause termination, retirement) keep vested equity; bad leavers (for cause, unapproved resignation) may forfeit unvested equity.
+-   **Waterfall distribution** — Exit proceeds flow: repay all debt by seniority → LP return of capital plus preferred return (8%) → GP catch-up → remaining profit split by carry percentage.
+-   **83(b) election** — Filed within 30 days of a restricted grant to pay tax on the (usually minimal) grant value, converting later appreciation into capital-gains treatment.
 
 ### Success: SailPoint (Thoma Bravo)
 
@@ -453,7 +768,52 @@ If you find yourself inside a portfolio company where leverage or cost-cutting p
 
 ### ✅ Knowledge Check
 
+**Q: Under Thoma Bravo, SailPoint's gross margins moved from roughly 60% to 75%. What primarily drove that improvement?**
+
+-   Pure headcount cuts alone
+-   A genuine SaaS migration plus cloud infrastructure efficiency **(correct)**
+-   A dividend recapitalization
+-   A one-time price increase
+
+*Explanation: Accelerating the shift from on-premise licensing to higher-margin SaaS, combined with cloud efficiency, drove the margin gain. SailPoint re-IPO'd in 2025 at $11.5B — focused transition, not just cost-cutting, created durable value.*
+
+**Q: What is the core lesson of the Toys R Us LBO for technology leaders?**
+
+-   Roll-up strategies always fail
+-   Excessive leverage structurally starves a company of the capital it needs to compete and survive **(correct)**
+-   IPOs are the only acceptable exit
+-   Aggressive cost-cutting always works
+
+*Explanation: The $6.6B LBO loaded ~$5.3B of debt; servicing it left almost nothing to invest in e-commerce just as Amazon and Walmart scaled up. Over-leverage starves survival-critical investment — the same trap a software company can hit in a tech cycle shift.*
+
+**Q: The Marketo (Vista) case illustrates PE creating which specific kind of readiness?**
+
+-   IPO readiness for public markets
+-   Readiness for bankruptcy restructuring
+-   Strategic-acquisition readiness (it sold to Adobe for $4.75B) **(correct)**
+-   Dividend-recap readiness
+
+*Explanation: Vista's VCG operational discipline made Marketo an efficiently-run, attractive target, and it was sold to Adobe for $4.75B — showing PE discipline can create acquisition readiness, not only IPO readiness.*
+
+**Q: Reviewing all six cases, what separates the successes from the failures?**
+
+-   Successes simply used more leverage
+-   Successes pursued a genuine strategic transformation with leverage kept serviceable, while failures let debt or cost-cutting block the investment the business needed **(correct)**
+-   Failures avoided acquisitions entirely
+-   Successes never invested in product during the hold
+
+*Explanation: Every success (SailPoint, Marketo, Dell, Informatica) funded a real transformation with serviceable debt; every failure (Solera, Toys R Us, Compuware-style) pushed leverage or cuts past what the business could absorb. Leverage funds a strategy — it isn't one.*
+
 ### 🃏 Flashcards
+
+-   **SailPoint (Thoma Bravo)** — Identity security firm; a real SaaS migration drove margins 60%→75%, re-IPO'd 2025 at $11.5B. Lesson: a focused transition, not just cuts, creates durable value.
+-   **Marketo (Vista)** — VCG operational discipline made it an attractive, efficient target; sold to Adobe for $4.75B. Lesson: PE discipline can create acquisition readiness.
+-   **Dell (Silver Lake)** — $24.9B take-private (2013) funded the bold $67B EMC acquisition and enterprise pivot. Lesson: private ownership enables patient strategic transformation.
+-   **Informatica (Permira)** — $5.3B take-private (2015) to fund a multi-year cloud transition; re-IPO'd 2021 above $8B. Lesson: patience with slow cloud migrations pays off.
+-   **Solera (Vista)** — An over-leveraged serial-acquisition roll-up with integration problems; outcome fell below expectations. Lesson: roll-up integration complexity is a real risk.
+-   **Toys R Us** — $6.6B LBO with ~$5.3B debt starved e-commerce investment; bankrupt 2017. Lesson: over-leverage starves the capital needed for competitive survival.
+-   **Aggressive cost-cutting pattern** — Cutting so hard that product quality and support degrade and customers churn faster than savings offset (Compuware-style) destroys more value than it creates.
+-   **The through-line** — Every failure traces to leverage or cost-cutting pushed past what the business could absorb without damaging the engine that generates its cash flow.
 
 ### Questions for the PE Sponsor
 
@@ -519,7 +879,52 @@ Once you have accepted a PE-backed leadership role, the first thirty days are di
 
 ### ✅ Knowledge Check
 
+**Q: How should you expect the base-salary offer for a PE-backed leadership role to compare with an equivalent public-company role?**
+
+-   Roughly 30-50% above public
+-   About 10-20% below public, offset by the equity opportunity **(correct)**
+-   Exactly the same
+-   No base salary is offered at all
+
+*Explanation: Expect base to run 10-20% below the public equivalent, with the gap intended to be offset by equity upside. Cash bonus targets commonly run 50-100% of base tied to EBITDA, revenue, or retention milestones.*
+
+**Q: Which of the following is a genuine RED flag when evaluating a PE-backed role?**
+
+-   Management largely staying and rolling over meaningful equity
+-   Reasonable leverage relative to the company's cash flow stability
+-   A plan combining unrealistic growth targets with simultaneous aggressive cost cuts **(correct)**
+-   A clear growth thesis that goes beyond pure cost-cutting
+
+*Explanation: Unrealistic growth plus aggressive cuts is mathematically hard to deliver simultaneously and often signals a plan built to look good in a fundraising deck. The other three are green flags.*
+
+**Q: When is the highest-leverage moment to negotiate equity acceleration triggers?**
+
+-   After the exit has already closed
+-   Mid-tenure, once you are inside the company
+-   Before you accept the offer **(correct)**
+-   Acceleration triggers cannot be negotiated
+
+*Explanation: Your leverage is greatest before accepting, when the sponsor is actively recruiting you. Once inside, leverage drops sharply and mid-tenure amendments are much harder to win.*
+
+**Q: Which is described as a strong GREEN flag signaling the management team's own confidence in the plan?**
+
+-   The existing team largely staying and rolling over meaningful equity **(correct)**
+-   Multiple senior leaders departing in a short window
+-   Debt levels well above the 7x EBITDA norm
+-   A sponsor doing its very first tech deal
+
+*Explanation: Management rolling over meaningful equity puts their own money at risk on the plan — a strong confidence signal. The other options are red flags.*
+
 ### 🃏 Flashcards
+
+-   **Questions for the sponsor** — Ask about the growth-vs-efficiency mandate, hold period from today, tuck-in plans, what 'success' at exit means, sector track record, and a CTO/CPTO reference.
+-   **Questions for the company** — Probe real (not board-deck) tech debt, senior attrition, NPS trends, recent reorgs, dated Glassdoor sentiment, and why the last person in the role left.
+-   **PE compensation shape** — Base ~10-20% below public; bonus 50-100% of base tied to EBITDA/revenue/retention; equity as options (value above strike) or restricted units (value from dollar one).
+-   **Acceleration triggers** — Negotiate full or partial equity vesting on a change-of-control or termination without cause — before you accept, so you aren't pushed out just before an exit.
+-   **Leverage sanity check** — 4-7x debt/EBITDA is typical for software; anything above 7x deserves real scrutiny as a potential red flag.
+-   **Red flags** — Multiple leadership exits, stretched EBITDA add-backs, leverage above 7x, a first-time tech sponsor, and unrealistic growth paired with aggressive cost cuts.
+-   **Green flags** — Demonstrated sector track record, reasonable leverage, a clear growth thesis beyond cost-cutting, management rolling over equity, and a realistic hold/exit timeline.
+-   **Scoring framework** — Rate any opportunity 1-5 on growth potential, sponsor quality, equity upside, role scope, and risk level to force explicit tradeoffs over gut feel.
 
 ### AI's Impact on the Operating Playbook
 
@@ -570,4 +975,49 @@ Taken as a whole, this course has argued that private equity ownership of softwa
 
 ### ✅ Knowledge Check
 
+**Q: AI is reshaping the PE operating playbook along two tracks. One is AI as a cost-reduction lever. What is the second?**
+
+-   A replacement for the entire engineering organization
+-   A genuine product differentiator and pricing lever (AI-native features and data moats) **(correct)**
+-   A new regulatory compliance requirement
+-   A tool for executing dividend recaps
+
+*Explanation: Beyond cutting headcount, AI-native features increasingly anchor premium pricing tiers, and companies with proprietary data moats command valuation premiums. The best operators treat AI as real product/R&D investment, not just a cost lever.*
+
+**Q: What is a continuation fund?**
+
+-   A fund that invests only in early-stage startups
+-   A vehicle that moves a strong-performing asset out of an aging fund into a new one, letting existing LPs cash out while new capital extends the hold **(correct)**
+-   A senior secured debt instrument
+-   A government subsidy for private equity
+
+*Explanation: Continuation funds let a GP extend the hold on an asset with remaining runway — old LPs get liquidity, new capital comes in — rather than forcing a sale just because a fund's life is ending. They are pushing average holds longer.*
+
+**Q: The module names a longer-term structural shift in where PE value creation comes from. From what, to what?**
+
+-   From operations toward pure financial leverage
+-   From financial engineering toward genuine operational and technical excellence **(correct)**
+-   From software back toward hardware
+-   From carried interest toward management fees
+
+*Explanation: As competition has competed away the returns available from leverage and multiple arbitrage alone, top firms increasingly compete on real operational and technical transformation — which is why AI fluency is becoming a genuine differentiator.*
+
+**Q: Which skills does the module say will command the greatest premium for technology leaders in PE-backed environments?**
+
+-   Genuine AI fluency and hands-on M&A integration experience **(correct)**
+-   Only legacy-system maintenance skills
+-   The ability to avoid financial metrics
+-   Pure academic research credentials
+
+*Explanation: Credible AI build-vs-buy and investment-sizing judgment, a demonstrated efficiency track record, and hands-on M&A integration experience are the skills that command the biggest premium as roll-ups and AI underwriting accelerate.*
+
 ### 🃏 Flashcards
+
+-   **AI as two tracks** — A cost-reduction lever (fewer engineers, automated support/QA) and a product/pricing differentiator (AI-native premium tiers, proprietary data moats).
+-   **Antitrust on roll-ups** — The FTC increasingly scrutinizes cumulative serial tuck-ins that create concentration even when no single deal would; expect longer reviews and more documentation.
+-   **PE firms as tech operators** — Thoma Bravo and Vista build in-house operating benches (former CTOs/CPTOs) and permanent AI/engineering centers of excellence embedded in the fund itself.
+-   **New competition for deals** — Sovereign wealth funds, family offices doing direct deals, and corporate VC increasingly compete with traditional PE for software assets, changing auction dynamics.
+-   **Continuation funds** — Vehicles that roll a strong asset into a new fund so existing LPs exit and new capital extends the hold — a mainstream tool lengthening average hold periods.
+-   **Shift in value creation** — As financial-engineering returns get competed away, the largest firms increasingly compete on genuine operational and technical transformation.
+-   **Premium skills for tech leaders** — Genuine AI fluency (credible build-vs-buy sizing), a demonstrated efficiency track record, and hands-on M&A integration experience.
+-   **Where the best roles will be** — At firms and companies pursuing genuine AI-native product transformation rather than pure cost-cutting plays, which typically target lower exit multiples.
