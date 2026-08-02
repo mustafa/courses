@@ -231,6 +231,43 @@ function extractContent($) {
     $el.replaceWith(replacement);
   });
 
+  // Expand quizzes and flashcards. course-framework.js renders these client-side
+  // from data-* attributes, so at export time the elements are empty and the
+  // empty-div sweep below would drop them silently — taking a large share of the
+  // instructional content of quiz-heavy courses with them. Serialize to prose.
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  $doc('.quiz[data-question]').each((_, el) => {
+    const $el = $doc(el);
+    const question = ($el.attr('data-question') || '').trim();
+    const raw = $el.attr('data-options') || '';
+    const opts = (raw.includes('|') ? raw.split('|') : raw.split(','))
+      .map(s => s.trim()).filter(Boolean);
+    const answer = parseInt($el.attr('data-answer'), 10);
+    const explanation = ($el.attr('data-explanation') || '').trim();
+    if (!question || !opts.length) { $el.remove(); return; }
+
+    let html = `<p><strong>Q: ${esc(question)}</strong></p><ul>`;
+    opts.forEach((o, i) => {
+      html += `<li>${esc(o)}${i === answer ? ' <strong>(correct)</strong>' : ''}</li>`;
+    });
+    html += '</ul>';
+    if (explanation) html += `<p><em>Explanation: ${esc(explanation)}</em></p>`;
+    $el.replaceWith(html);
+  });
+
+  $doc('.flashcards').each((_, el) => {
+    const $el = $doc(el);
+    const rows = [];
+    $el.find('.flashcard').each((__, card) => {
+      const front = ($doc(card).attr('data-front') || '').trim();
+      const back = ($doc(card).attr('data-back') || '').trim();
+      if (front || back) rows.push(`<li><strong>${esc(front)}</strong> — ${esc(back)}</li>`);
+    });
+    $el.replaceWith(rows.length ? `<ul>${rows.join('')}</ul>` : '');
+  });
+
   // Remove all UI chrome elements
   const removeSelectors = [
     'script',
