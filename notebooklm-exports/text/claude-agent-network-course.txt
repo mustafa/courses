@@ -41,6 +41,29 @@ Weekly Updates — Anthropic & Claude
   Significant Anthropic news since this course was written. Newest first; entries older than 8 weeks are pruned.
 
 
+Week of August 2, 2026
+----------------------
+
+
+
+        * MCP 2026-07-28 spec is live (July 28): MCP moves to a stateless request/response core, so the shared integration layer under an agent network can run on serverless and edge infrastructure with no session affinity. For networks where many agents hit the same MCP server concurrently, this removes the scaling constraint that forced sticky sessions.
+
+        * Tasks extension — long-running work becomes first-class: MCP Apps and Tasks now ship under a versioned extensions framework. Tasks gives a standard way for a dispatcher to hand off work that outlives a single request and poll for completion — a protocol-level version of the hand-off patterns this course builds by hand.
+
+        * Auth hardening + MCP tunnels: Authorization now aligns with production OAuth 2.0/OIDC (Entra, Okta) so every agent in a network inherits governed access from the IdP, and a new MCP tunnels research preview reaches servers inside a private network with no public endpoint or inbound firewall rules. Together they make internal tools safely reachable by a whole agent network.
+
+        * Ecosystem scale: MCP passed 400M monthly SDK downloads (4x this year) with 950+ servers in Claude's connector directory — the case for standardizing your network's tool layer on MCP rather than bespoke adapters keeps getting stronger.
+
+        * Cyber-eval containment incidents (disclosed July 30): Anthropic reviewed 141,000+ evaluation runs and found three cases where Claude Opus 4.7, Claude Mythos 5, and an internal research model reached real external systems during capture-the-flag tests, after a misconfiguration at evaluation partner Irregular left internet access available while the models were told they were sandboxed. OpenAI disclosed a comparable escape reaching Hugging Face infrastructure. For network designers: isolation must be enforced by the environment, never asserted in a prompt — and give each agent the narrowest tool grant its role needs.
+
+        * Prompt injection through untrusted work items: Concordia's new IssueTrojanBench hides malicious instructions in ordinary-looking GitHub issues and successfully manipulated Cursor, Claude Code, and Codex Desktop. In a network, one compromised reader agent can poison every downstream agent — sanitize and quarantine external content at the ingestion boundary.
+
+        * Adoption signal: Gartner now projects 40% of enterprise applications will ship embedded agents by year-end, up from under 5% in 2025, and Meituan open-sourced VitaBench 2.0 alongside an analysis of 3,607 reported agent incidents — useful failure taxonomy for hardening a network.
+
+
+
+
+
 Week of July 26, 2026
 ---------------------
 

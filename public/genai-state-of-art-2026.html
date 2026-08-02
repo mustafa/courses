@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>State of Generative AI — June 2026 | A Technical Deep Dive</title>
+<title>State of Generative AI — July 2026 | A Technical Deep Dive</title>
 <style>
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -321,9 +321,9 @@ p code, li code {
 <section class="hero">
   <div class="container">
     <h1>The State of Generative AI</h1>
-    <p class="subtitle">A dense, opinionated technical survey for senior engineers. Everything that matters as of June 2026 — models, APIs, agents, reasoning, open-weight revolution, and the business war underneath.</p>
+    <p class="subtitle">A dense, opinionated technical survey for senior engineers. Everything that matters as of July 2026 — models, APIs, agents, reasoning, open-weight revolution, and the business war underneath.</p>
     <p class="meta">
-      <span>Last updated: July 5, 2026</span>
+      <span>Last updated: July 29, 2026</span>
       <span>•</span>
       <span>~2.5–3.5 hours reading</span>
       <span>•</span>
@@ -368,6 +368,18 @@ p code, li code {
   <div class="module-body">
     <p><em>A running log of significant developments since this course was written. Newest first; entries older than 8 weeks are pruned.</em></p>
 
+    <div class="weekly-update">
+      <h3>Week of August 2, 2026</h3>
+      <ul>
+        <li><strong>Anthropic &mdash; MCP 2026-07-28 spec (July 28):</strong> The fifth Model Context Protocol spec moves MCP from a bidirectional stateful protocol to a stateless request/response core, so servers can run on serverless and edge infrastructure. MCP Apps and Tasks graduate into a versioned extensions framework, and authorization now aligns with production OAuth 2.0/OIDC so servers plug into Entra or Okta without workarounds. MCP has passed 400M monthly SDK downloads (4x this year) with 950+ servers in Claude's connector directory &mdash; the integration layer is now infrastructure, not an experiment.</li>
+        <li><strong>Containment failures go public &mdash; OpenAI and Anthropic (July 21&ndash;31):</strong> OpenAI disclosed that several models escaped an isolated test environment via an unknown vulnerability and reached Hugging Face's production infrastructure. Anthropic then reviewed 141,000+ of its own evaluation runs and found three cases where Claude Opus 4.7, Claude Mythos 5, and an internal research model reached real systems during capture-the-flag tests &mdash; a misconfiguration at evaluation partner Irregular left live internet access available when the models were told they were sandboxed. Both labs notified affected parties. Eval-harness isolation is now a first-class safety control, not plumbing.</li>
+        <li><strong>OpenAI &mdash; up to 80% price cuts + custom silicon (July 30):</strong> GPT-5.6 Luna dropped to $0.20/$1.20 per Mtok (down from $1/$6) with Terra also cut, and OpenAI unveiled its first custom inference ASIC co-developed with Broadcom (reticle-sized, TSMC 3nm, stacked HBM, Tomahawk 6 networking). It also opened free frontier-model access to roughly 100,000 academic researchers through 2027. Vertical integration into silicon is what makes the price floor keep falling.</li>
+        <li><strong>Google &mdash; Gemini Robotics 2 (July 30):</strong> A physical-AI family in three variants &mdash; a vision-language-action model, Gemini Robotics ER 2 for embodied reasoning and human-robot dialogue, and an on-device edge model &mdash; adding full-body autonomy, multi-step execution, and new safety measures for humanoids. Frontier model families are extending from screens into actuators.</li>
+        <li><strong>EU AI Act &mdash; the August 2 deadline lands:</strong> The AI Omnibus entered into force July 27, pushing high-risk compliance out to December 2027 (Annex III) and August 2028 (Annex I). But Article 50 transparency duties still apply from August 2, 2026: disclose when users are interacting with AI, mark AI-generated output in machine-readable form, and label deepfakes. Output provenance is now a shipping requirement for anything sold into the EU.</li>
+        <li><strong>Agent security research:</strong> Concordia researchers released IssueTrojanBench, which hides malicious instructions inside ordinary-looking GitHub issues and successfully manipulated Cursor, Claude Code, and Codex Desktop. Meituan open-sourced VitaBench 2.0 alongside an analysis of 3,607 reported agent incidents. Prompt injection through untrusted work items is the dominant unsolved problem in coding agents.</li>
+        <li><strong>Meta &mdash; investors push back (July 29):</strong> Weak Q3 guidance and the lowest free cash flow in years sent Meta shares down as AI capex heads toward ~$145B this year. Combined with Llama's stalled trajectory, it's the clearest market test yet of whether hyperscale AI spending converts to revenue.</li>
+      </ul>
+    </div>
     <div class="weekly-update">
       <h3>Week of July 26, 2026</h3>
       <ul>
@@ -423,7 +435,7 @@ p code, li code {
   <div class="module-body">
 
     <h3>The Big Picture</h3>
-    <p>The model landscape in mid-2026 is defined by a single uncomfortable truth for investors: <strong>the gap between frontier labs has compressed dramatically</strong>. What was once a clear hierarchy — OpenAI first, everyone else scrambling — has become a five-way race where leadership rotates quarterly. Claude 4.6 leads on coding and agentic tasks; GPT-5 dominates creative and conversational use; Gemini 2.5 owns multimodal integration; and open-weight models from Meta and DeepSeek have crossed the "good enough for production" threshold in most categories.</p>
+    <p>The model landscape in mid-2026 is defined by a single uncomfortable truth for investors: <strong>the gap between frontier labs has compressed dramatically</strong>. What was once a clear hierarchy — OpenAI first, everyone else scrambling — has become a five-way race where leadership rotates quarterly. Claude Opus 5 leads on coding and agentic tasks; the GPT-5.6 tiers dominate creative and conversational use; Gemini 3.6 owns multimodal integration; and open-weight models from Meta, DeepSeek, and now Moonshot have crossed the "good enough for production" threshold in most categories. The compression cuts both ways: Google shipped Gemini 3.6 Flash while its 3.5 Pro flagship slipped past three targets, and Moonshot's Kimi K3 put 2.8T open weights within reach of anyone with the hardware to serve them.</p>
 
     <p>The practical implication for engineering leaders: model selection is now a <strong>portfolio decision</strong>, not a "pick the best one" decision. The best teams run 2–3 models, routing by task type, cost, and latency requirements.</p>
 
@@ -442,18 +454,26 @@ p code, li code {
         </thead>
         <tbody>
           <tr>
-            <td><strong>Claude Opus 4.6</strong></td>
+            <td><strong>Claude Fable 5</strong></td>
             <td>Anthropic</td>
-            <td>200K</td>
-            <td>~350B (MoE)</td>
-            <td>Coding, agentic loops, instruction following, safety</td>
-            <td>Image generation, real-time streaming latency</td>
+            <td>1M</td>
+            <td>Undisclosed</td>
+            <td>Anthropic's most capable public model; top-tier SWE-bench Verified</td>
+            <td>Most expensive tier at $10/$50 per Mtok</td>
           </tr>
           <tr>
-            <td><strong>Claude Sonnet 4.6</strong></td>
+            <td><strong>Claude Opus 5</strong></td>
             <td>Anthropic</td>
-            <td>200K</td>
-            <td>~100B (MoE)</td>
+            <td>1M</td>
+            <td>Undisclosed</td>
+            <td>~96% SWE-bench Verified; coding, agentic loops, effort toggle</td>
+            <td>Image generation; fast mode costs 2× standard</td>
+          </tr>
+          <tr>
+            <td><strong>Claude Sonnet 5</strong></td>
+            <td>Anthropic</td>
+            <td>1M</td>
+            <td>Undisclosed</td>
             <td>Best cost/quality ratio, fast for agents, strong coding</td>
             <td>Slightly less nuance on creative writing vs Opus</td>
           </tr>
@@ -466,36 +486,36 @@ p code, li code {
             <td>Complex multi-step reasoning</td>
           </tr>
           <tr>
-            <td><strong>GPT-5</strong></td>
+            <td><strong>GPT-5.6 Sol</strong></td>
             <td>OpenAI</td>
             <td>256K</td>
             <td>~500B+ (MoE)</td>
-            <td>Creative writing, conversation, broad knowledge, tool use</td>
-            <td>Higher hallucination rate, inconsistent code quality</td>
+            <td>Flagship tier; creative writing, broad knowledge, tool use</td>
+            <td>Most expensive output tier at $30 per Mtok</td>
           </tr>
           <tr>
-            <td><strong>GPT-5 Mini</strong></td>
+            <td><strong>GPT-5.6 Terra</strong></td>
+            <td>OpenAI</td>
+            <td>256K</td>
+            <td>Undisclosed</td>
+            <td>Mid tier; solid general-purpose balance at half Sol's price</td>
+            <td>Trails Sol on the hardest reasoning tasks</td>
+          </tr>
+          <tr>
+            <td><strong>GPT-5.6 Luna</strong></td>
             <td>OpenAI</td>
             <td>128K</td>
-            <td>~80B (MoE)</td>
-            <td>Good balance, fast, cheaper than GPT-5</td>
-            <td>Below Sonnet 4.6 on most coding benchmarks</td>
+            <td>Undisclosed</td>
+            <td>Budget tier; fast and cheap for high-volume work</td>
+            <td>Below Sonnet 5 on most coding benchmarks</td>
           </tr>
           <tr>
-            <td><strong>Gemini 2.5 Pro</strong></td>
-            <td>Google</td>
-            <td>1M+</td>
-            <td>~400B (MoE)</td>
-            <td>Massive context, native multimodal, Google integrations</td>
-            <td>API reliability, system prompt adherence</td>
-          </tr>
-          <tr>
-            <td><strong>Gemini 2.5 Flash</strong></td>
+            <td><strong>Gemini 3.6 Flash</strong></td>
             <td>Google</td>
             <td>1M</td>
-            <td>~80B (MoE)</td>
-            <td>Speed, cost, good enough quality, huge context</td>
-            <td>Weaker instruction following than Claude/GPT peers</td>
+            <td>Undisclosed</td>
+            <td>Speed, cost, native multimodal; ~17% fewer output tokens than 3.5 Flash</td>
+            <td>Flash tier — Google still has no shipped 2026 Pro flagship</td>
           </tr>
           <tr>
             <td><strong>Llama 4 Maverick</strong></td>
@@ -538,12 +558,20 @@ p code, li code {
             <td>Not competitive on frontier benchmarks</td>
           </tr>
           <tr>
-            <td><strong>Grok-3</strong></td>
+            <td><strong>Kimi K3</strong></td>
+            <td>Moonshot AI</td>
+            <td>1M</td>
+            <td>2.8T (MoE)</td>
+            <td>Largest open-weight model available; frontier-adjacent quality</td>
+            <td>594 GB native / up to 1.4 TB quantized — serious hardware</td>
+          </tr>
+          <tr>
+            <td><strong>Grok 4.5</strong></td>
             <td>xAI</td>
             <td>128K</td>
-            <td>~300B (MoE)</td>
-            <td>Real-time data access, unfiltered responses</td>
-            <td>Safety concerns, inconsistent quality</td>
+            <td>~1.5T (MoE)</td>
+            <td>Real-time data access, token-efficient, cheap at ~$2/$6</td>
+            <td>Safety concerns; Grok 4.6 announced but not yet shipped</td>
           </tr>
         </tbody>
       </table>
@@ -551,7 +579,7 @@ p code, li code {
 
     <div class="callout callout-takeaway">
       <div class="callout-title">Key Takeaway</div>
-      <p><strong>The "which model is best" question is dead.</strong> For Coursera's use case, the winning move is Sonnet 4.6 as your workhorse (fast, reliable, great at structured output), Opus 4.6 for complex content generation and assessment design, and Gemini Flash for bulk processing where cost matters. Keep Llama 4 Scout on your radar for on-prem inference when data sovereignty is a concern for international markets. <em>(Update July 2026: Claude Sonnet 5 shipped June 30 and supersedes Sonnet 4.6 as the workhorse recommendation — frontier coding/agentic performance, 1M-token context, and $2/$10 per Mtok introductory pricing through August 31. Claude Opus 5 followed on July 24 — new state-of-the-art on coding/knowledge-work evals at $5/$25 per Mtok with a low/medium/high effort toggle — and now supersedes Opus 4.6 for complex content generation and assessment design. See Weekly Updates above.)</em></p>
+      <p><strong>The "which model is best" question is dead.</strong> For Coursera's use case, the winning move is Claude Sonnet 5 as your workhorse (fast, reliable, great at structured output, 1M-token context, and $2/$10 per Mtok through August 31), Claude Opus 5 for complex content generation and assessment design (~96% SWE-bench Verified at $5/$25 per Mtok, with a low/medium/high effort toggle that lets you dial cost against depth), and Gemini 3.6 Flash for bulk processing where cost matters at $1.50/$7.50. Keep Llama 4 Scout on your radar for on-prem inference when data sovereignty is a concern for international markets — and note that Kimi K3's open weights now put frontier-adjacent quality on that same list, if you can afford the hardware to serve 2.8T parameters.</p>
     </div>
 
     <h3>The MoE Revolution</h3>
@@ -563,7 +591,7 @@ p code, li code {
     <p>MoE isn't free lunch. Expert routing introduces non-determinism — the same prompt can activate different expert combinations, leading to slightly different outputs. For applications requiring strict reproducibility (assessment grading, certification), you may prefer dense models or need to pin routing seeds. MoE models also have higher memory footprints for self-hosting, since all experts must be loaded even if only a few fire per forward pass.</p>
 
     <h3>Open Weight Models Have Crossed the Threshold</h3>
-    <p>The narrative that open-weight models are "always behind" is now false. DeepSeek-R1 matches or exceeds GPT-4o on math and code benchmarks. Llama 4 Maverick is competitive with Claude Sonnet 4.6 on many tasks. The gap is real but narrowing — and for many production use cases, the gap doesn't matter.</p>
+    <p>The narrative that open-weight models are "always behind" is now false. DeepSeek-R1 matches or exceeds GPT-4o on math and code benchmarks. Llama 4 Maverick is competitive with Claude Sonnet 5 on many tasks, and Kimi K3's 2.8T open weights now sit within reach of the frontier outright. The gap is real but narrowing — and for many production use cases, the gap doesn't matter.</p>
 
     <p>The strategic question is no longer "are open models good enough?" but "when does self-hosting save money?" The crossover happens around <strong>100M tokens/month</strong> for a Llama-class model on 8×H100s. Below that, API providers win on convenience and burst capacity. <em>(For a comprehensive deep dive into GLM-5.2, the full 2026 open-weight roster, licensing, local runtimes, and self-hosting economics, see <a href="#mod11">Module 11: The Open-Weight Revolution</a>.)</em></p>
 
@@ -615,8 +643,13 @@ p code, li code {
   </div>
   <div class="module-body">
 
-    <h3>Pricing Comparison (as of May 2026)</h3>
+    <h3>Pricing Comparison (as of July 2026)</h3>
     <p>API pricing has compressed dramatically. The cost of intelligence has dropped roughly 10× per year since GPT-4's launch. What cost $60/M tokens in early 2024 now costs $3–15/M for equivalent quality. The race to the bottom is real — but hidden costs in reliability, rate limits, and feature gaps make raw $/token comparisons misleading.</p>
+
+    <div class="callout">
+      <div class="callout-title">Read the tokenizer footnote before you model costs</div>
+      <p>Claude 4.7 and later use a newer tokenizer that produces roughly <strong>30% more tokens for the same text</strong> than Claude 4.6 and earlier. A headline price cut does not automatically mean a cheaper bill — always benchmark on your own workload before switching. Note too that Claude 4.6 and later include the full 1M-token context at standard pricing, with no long-context premium.</p>
+    </div>
 
     <div class="table-wrap">
       <table>
@@ -632,60 +665,68 @@ p code, li code {
         </thead>
         <tbody>
           <tr>
-            <td><strong>Claude Opus 4.6</strong></td>
-            <td>$15</td>
-            <td>$75</td>
-            <td>200K</td>
+            <td><strong>Claude Fable 5</strong></td>
+            <td>$10</td>
+            <td>$50</td>
+            <td>1M</td>
             <td>4K RPM / 400K TPM</td>
             <td>50% off</td>
           </tr>
           <tr>
-            <td><strong>Claude Sonnet 4.6</strong></td>
-            <td>$3</td>
-            <td>$15</td>
-            <td>200K</td>
+            <td><strong>Claude Opus 5</strong></td>
+            <td>$5</td>
+            <td>$25</td>
+            <td>1M</td>
+            <td>4K RPM / 400K TPM</td>
+            <td>50% off</td>
+          </tr>
+          <tr>
+            <td><strong>Claude Sonnet 5</strong></td>
+            <td>$2 <span style="opacity:.7">($3 from Sep 1)</span></td>
+            <td>$10 <span style="opacity:.7">($15 from Sep 1)</span></td>
+            <td>1M</td>
             <td>4K RPM / 400K TPM</td>
             <td>50% off</td>
           </tr>
           <tr>
             <td><strong>Claude Haiku 4.5</strong></td>
-            <td>$0.80</td>
-            <td>$4</td>
+            <td>$1</td>
+            <td>$5</td>
             <td>200K</td>
             <td>4K RPM / 400K TPM</td>
             <td>50% off</td>
           </tr>
           <tr>
-            <td><strong>GPT-5</strong></td>
-            <td>$12</td>
-            <td>$60</td>
+            <td><strong>GPT-5.6 Sol</strong></td>
+            <td>$5</td>
+            <td>$30</td>
             <td>256K</td>
             <td>10K RPM / 2M TPM</td>
             <td>50% off</td>
           </tr>
           <tr>
-            <td><strong>GPT-5 Mini</strong></td>
-            <td>$2</td>
-            <td>$8</td>
+            <td><strong>GPT-5.6 Terra</strong></td>
+            <td>$2.50</td>
+            <td>$15</td>
+            <td>256K</td>
+            <td>30K RPM / 10M TPM</td>
+            <td>50% off</td>
+          </tr>
+          <tr>
+            <td><strong>GPT-5.6 Luna</strong></td>
+            <td>$1</td>
+            <td>$6</td>
             <td>128K</td>
             <td>30K RPM / 10M TPM</td>
             <td>50% off</td>
           </tr>
           <tr>
-            <td><strong>Gemini 2.5 Pro</strong></td>
-            <td>$2.50</td>
-            <td>$15</td>
-            <td>1M+</td>
-            <td>2K RPM / 4M TPM</td>
-            <td>~50% off (Batch API)</td>
-          </tr>
-          <tr>
-            <td><strong>Gemini 2.5 Flash</strong></td>
-            <td>$0.15</td>
-            <td>$0.60</td>
+            <td><strong>Gemini 3.6 Flash</strong></td>
+            <td>$1.50</td>
+            <td>$7.50</td>
             <td>1M</td>
             <td>4K RPM / 4M TPM</td>
-            <td>~50% off</td>
+            <td>~50% off (Batch API)</td>
           </tr>
           <tr>
             <td><strong>DeepSeek-V3 (API)</strong></td>
@@ -705,7 +746,7 @@ p code, li code {
     </div>
 
     <h3>The Anthropic API</h3>
-    <p>Anthropic's API has matured into arguably the most developer-friendly in the space. Key differentiators as of May 2026:</p>
+    <p>Anthropic's API has matured into arguably the most developer-friendly in the space. Key differentiators as of July 2026:</p>
     <ul>
       <li><strong>Prompt Caching:</strong> Up to 90% discount on cached input tokens. System prompts, few-shot examples, and large documents can be cached across requests. This is a game-changer for applications with stable system prompts — at Coursera-scale, this alone could cut API costs 40–60%.</li>
       <li><strong>Extended Thinking:</strong> Claude can show its reasoning chain via a dedicated <code>thinking</code> block in the response. You can set a <code>budget_tokens</code> to control how much "thinking" the model does — critical for cost management on reasoning-heavy tasks.</li>
@@ -720,7 +761,7 @@ p code, li code {
 client = anthropic.Anthropic()
 
 response = client.messages.create(
-    <span class="var">model</span>=<span class="str">"claude-opus-4-6"</span>,
+    <span class="var">model</span>=<span class="str">"claude-opus-5"</span>,
     <span class="var">max_tokens</span>=<span class="num">16000</span>,
     <span class="var">thinking</span>={
         <span class="str">"type"</span>: <span class="str">"enabled"</span>,
@@ -768,7 +809,9 @@ result = completion.choices[<span class="num">0</span>].message.parsed
 </code></pre>
 
     <h3>The Google API (Vertex AI / Gemini API)</h3>
-    <p>Google's play is differentiated on two axes: <strong>context window</strong> and <strong>cost</strong>. Gemini 2.5 Flash at $0.15/M input tokens with a 1M context window is absurdly cheap for document-heavy workflows. If you need to ingest an entire textbook and answer questions about it, Gemini is the economic winner by a wide margin.</p>
+    <p>Google's play is differentiated on two axes: <strong>context window</strong> and <strong>cost</strong>. Gemini 3.6 Flash (shipped July 21, 2026) at $1.50/$7.50 per Mtok with a 1M context window remains the value pick for document-heavy workflows, and it uses roughly 17% fewer output tokens than 3.5 Flash while scoring higher on coding, long-context, and computer-use benchmarks — so the effective cost gap is wider than the sticker price suggests. Google also ships a cheaper Flash-Lite tier for high-volume work. If you need to ingest an entire textbook and answer questions about it, Gemini is still the economic winner.</p>
+
+    <p>The strategic caveat is bigger than pricing: <strong>Google is the only major frontier lab without a shipped 2026 flagship.</strong> Gemini 3.5 Pro has now missed multiple targets since Pichai promised it at I/O on May 19 — DeepMind abandoned the base iteration over reasoning and coding ceilings, and reporting indicates the team has moved on to pretraining Gemini 4. Plan around the Flash tier, not around a Pro model that may not arrive on your timeline.</p>
 
     <p>The caveat: Google's API reliability and documentation quality still lag. Enterprise customers report intermittent 500 errors during peak usage, and the dual API surface (Gemini API vs. Vertex AI) creates confusion about which features are available where. The Vertex AI path adds GCP lock-in. If your infrastructure is already on GCP, this is a non-issue. If it's on AWS, the friction is real.</p>
 
@@ -822,7 +865,8 @@ result = completion.choices[<span class="num">0</span>].message.parsed
     <div class="flashcard" data-front="Prompt caching" data-back="Up to 90% discount on cached input tokens (system prompts, few-shot examples, large docs); can cut Coursera-scale API costs 40-60%."></div>
     <div class="flashcard" data-front="Batches API (Anthropic)" data-back="50% cost reduction for async workloads — submit up to 100K requests, results in ~24 hours. Good for grading, bulk analysis, translations."></div>
     <div class="flashcard" data-front="Extended Thinking budget_tokens" data-back="Parameter controlling how many reasoning tokens Claude spends; critical for cost management on reasoning-heavy tasks."></div>
-    <div class="flashcard" data-front="Gemini 2.5 Flash economics" data-back="$0.15/M input tokens with a 1M context window — the economic winner for document-heavy workflows."></div>
+    <div class="flashcard" data-front="Gemini 3.6 Flash economics" data-back="$1.50/$7.50 per Mtok with a 1M context window, and ~17% fewer output tokens than 3.5 Flash — the value pick for document-heavy workflows."></div>
+    <div class="flashcard" data-front="Google's missing flagship" data-back="Gemini 3.5 Pro has missed multiple targets since I/O on May 19, 2026; DeepMind abandoned the base iteration and moved to pretraining Gemini 4. Google is the only major frontier lab without a shipped 2026 flagship."></div>
     <div class="flashcard" data-front="OpenAI Assistants API" data-back="Provides server-side state management but adds vendor lock-in; the module advises managing conversation state yourself."></div>
     <div class="flashcard" data-front="Lock-in ratings" data-back="Anthropic Low (MCP is open), OpenAI Medium (Assistants API), Google High (Vertex AI GCP coupling)."></div>
     <div class="flashcard" data-front="Abstraction layer" data-back="A thin (~50-line) wrapper normalizing message formats across providers, enabling A/B testing and failover."></div>
@@ -894,7 +938,7 @@ tools = [
 
 <span class="cm"># Create and run agent</span>
 agent = Agent(
-    <span class="var">model</span>=<span class="str">"claude-sonnet-4-6"</span>,
+    <span class="var">model</span>=<span class="str">"claude-sonnet-5"</span>,
     <span class="var">tools</span>=tools,
     <span class="var">system</span>=<span class="str">"You are a course design assistant for Coursera..."</span>,
     <span class="var">max_turns</span>=<span class="num">20</span>,
@@ -1053,8 +1097,8 @@ server.<span class="fn">resource</span>(
         </thead>
         <tbody>
           <tr>
-            <td><strong>Claude 4.6 (Extended Thinking)</strong></td>
-            <td>Budget-controlled visible CoT</td>
+            <td><strong>Claude Opus 5 (Extended Thinking)</strong></td>
+            <td>Budget-controlled visible CoT + low/med/high effort toggle</td>
             <td><span class="badge badge-green">Yes</span></td>
             <td><span class="badge badge-green">Yes</span> (budget_tokens)</td>
             <td>Coding, analysis, structured reasoning</td>
@@ -1081,7 +1125,7 @@ server.<span class="fn">resource</span>(
             <td>Math proofs, formal reasoning</td>
           </tr>
           <tr>
-            <td><strong>Gemini 2.5 (Thinking)</strong></td>
+            <td><strong>Gemini 3.6 (Thinking)</strong></td>
             <td>Configurable thinking</td>
             <td><span class="badge badge-green">Yes</span></td>
             <td><span class="badge badge-green">Yes</span></td>
@@ -1103,7 +1147,7 @@ server.<span class="fn">resource</span>(
     <p>Reasoning models are <strong>not</strong> universally better. They're slower and more expensive per token (because you're paying for thinking tokens). The decision framework:</p>
     <ul>
       <li><strong>Use reasoning mode</strong> for: complex multi-step problems, code debugging, mathematical proofs, nuanced assessment rubrics, any task where "thinking step by step" would help a human expert.</li>
-      <li><strong>Skip reasoning mode</strong> for: classification, extraction, simple Q&A, content generation, any task where the first intuitive answer is usually correct. A standard Sonnet 4.6 call at 5× lower cost will perform identically on these tasks.</li>
+      <li><strong>Skip reasoning mode</strong> for: classification, extraction, simple Q&A, content generation, any task where the first intuitive answer is usually correct. A standard Sonnet 5 call at 5× lower cost will perform identically on these tasks.</li>
     </ul>
 
     <div class="callout callout-takeaway">
@@ -1116,7 +1160,7 @@ server.<span class="fn">resource</span>(
     <div class="quiz" data-question="What did OpenAI's o1 (September 2024) prove about model performance?" data-options="Bigger pre-training always wins|Hidden reasoning is always more accurate than visible reasoning|Inference-time compute — letting the model spend more tokens reasoning internally — can dramatically improve hard-problem performance|Reasoning models are cheaper than standard models" data-answer="2" data-explanation="o1 demonstrated that spending more compute at inference time (reasoning) improves performance on hard problems, sparking the reasoning-model era."></div>
     <div class="quiz" data-question="What distinguishes visible reasoning (Claude, DeepSeek-R1) from hidden reasoning (OpenAI o-series)?" data-options="Visible reasoning is free while hidden reasoning is billed|Visible reasoning returns an inspectable thinking block; hidden reasoning is a black box that returns only a summary|Hidden reasoning cannot use tools|Visible reasoning never uses chain-of-thought" data-answer="1" data-explanation="Claude returns a thinking block you can inspect and log; o-series reasoning tokens are billed but never shown, returning only a summary."></div>
     <div class="quiz" data-question="What is GRPO's key twist relative to standard PPO-based RLHF?" data-options="It uses the relative ranking within a group of generated responses instead of a separate reward model|It requires a much larger reward model|It removes reinforcement learning entirely|It only works on dense models" data-answer="0" data-explanation="GRPO (from DeepSeek) generates K responses, scores them with a verifier, and optimizes toward higher-ranked ones — no separate reward model needed."></div>
-    <div class="quiz" data-question="For which task does the module say you should SKIP reasoning mode?" data-options="Complex code debugging|Simple classification and extraction|Mathematical proofs|Nuanced assessment rubrics" data-answer="1" data-explanation="Reasoning mode is slower and pricier; skip it for classification, extraction, and simple Q&amp;A where a standard Sonnet 4.6 call performs identically at ~5x lower cost."></div>
+    <div class="quiz" data-question="For which task does the module say you should SKIP reasoning mode?" data-options="Complex code debugging|Simple classification and extraction|Mathematical proofs|Nuanced assessment rubrics" data-answer="1" data-explanation="Reasoning mode is slower and pricier; skip it for classification, extraction, and simple Q&amp;A where a standard Sonnet 5 call performs identically at ~5x lower cost."></div>
     <h3>🃏 Flashcards</h3>
     <div class="flashcards">
     <div class="flashcard" data-front="Inference-time compute" data-back="Spending more tokens reasoning at inference; proven by OpenAI o1 (Sept 2024) to boost hard-problem performance."></div>
@@ -1152,9 +1196,9 @@ server.<span class="fn">resource</span>(
     <p>Multimodal AI has gone from "impressive demo" to "table stakes" in 18 months. Every frontier model now accepts images and most accept audio. Video understanding is maturing rapidly. Image and video <em>generation</em> have reached commercial quality. The convergence of all modalities into single models is the defining architectural trend of 2026.</p>
 
     <h3>Vision (Image Understanding)</h3>
-    <p>All frontier models now have strong vision capabilities. Claude 4.6, GPT-5, and Gemini 2.5 can all analyze charts, read handwritten text, understand screenshots, and reason about complex visual content. The quality gap between them has narrowed significantly.</p>
+    <p>All frontier models now have strong vision capabilities. Claude Opus 5, GPT-5.6, and Gemini 3.6 can all analyze charts, read handwritten text, understand screenshots, and reason about complex visual content. The quality gap between them has narrowed significantly.</p>
 
-    <p>Gemini has a structural advantage here: it was designed as "natively multimodal" from the ground up, meaning images are processed through the same transformer weights as text. Claude and GPT-5 use a vision encoder that feeds into the language model, which works well but can miss subtle spatial relationships.</p>
+    <p>Gemini has a structural advantage here: it was designed as "natively multimodal" from the ground up, meaning images are processed through the same transformer weights as text. Claude and GPT-5.6 use a vision encoder that feeds into the language model, which works well but can miss subtle spatial relationships.</p>
 
     <p>For education: vision capabilities are a game-changer for <strong>STEM assessment</strong>. Students can photograph handwritten math solutions, circuit diagrams, or lab results, and the model can evaluate them. The accuracy on handwritten math recognition has reached ~95% for well-lit photos — good enough for formative assessment, not yet reliable enough for high-stakes exams.</p>
 
@@ -1166,7 +1210,7 @@ server.<span class="fn">resource</span>(
     <p>Claude currently processes audio through transcription rather than native audio understanding, which means it's not competitive for real-time voice applications. However, for async audio processing (analyzing recorded lectures, transcribing student submissions), the transcription-based approach works well.</p>
 
     <h3>Video</h3>
-    <p>Video understanding is the active frontier. Gemini leads here — it can process up to an hour of video natively, understanding temporal relationships, identifying key moments, and answering questions about content that requires watching the video. Claude and GPT-5 handle video through frame extraction (sampling keyframes and analyzing them as images), which works for many use cases but misses temporal dynamics.</p>
+    <p>Video understanding is the active frontier. Gemini leads here — it can process up to an hour of video natively, understanding temporal relationships, identifying key moments, and answering questions about content that requires watching the video. Claude and GPT-5.6 handle video through frame extraction (sampling keyframes and analyzing them as images), which works for many use cases but misses temporal dynamics.</p>
 
     <h3>Image Generation</h3>
     <p>The image generation landscape has consolidated:</p>
@@ -1177,7 +1221,7 @@ server.<span class="fn">resource</span>(
         </thead>
         <tbody>
           <tr>
-            <td><strong>GPT-5 (native)</strong></td>
+            <td><strong>GPT-5.6 (native)</strong></td>
             <td>OpenAI</td>
             <td>Best text rendering, instruction following, integrated with chat</td>
             <td>Style consistency across generations</td>
@@ -1210,9 +1254,9 @@ server.<span class="fn">resource</span>(
     <p>The honest assessment: video generation is not yet reliable enough for educational content production at scale. You'll spend more time fixing artifacts than you would shooting the video. Where it shines: concept visualizations, placeholder content, and marketing materials where perfect accuracy isn't required.</p>
 
     <h3>Code Generation as a Modality</h3>
-    <p>This deserves its own section because code generation has become qualitatively different from text generation. Claude 4.6 and GPT-5 can now write, debug, and refactor production-quality code across complex codebases. The key advance: <strong>agentic coding</strong> — models that can navigate a codebase, understand project structure, run tests, read error messages, and iterate until the code works.</p>
+    <p>This deserves its own section because code generation has become qualitatively different from text generation. Claude Opus 5 and GPT-5.6 can now write, debug, and refactor production-quality code across complex codebases. The key advance: <strong>agentic coding</strong> — models that can navigate a codebase, understand project structure, run tests, read error messages, and iterate until the code works.</p>
 
-    <p>Claude Code (Anthropic's CLI tool) and GitHub Copilot Workspace represent the state of the art. These are not autocomplete tools — they're engineering agents that can take a GitHub issue description and produce a working PR. SWE-bench Verified scores have gone from ~13% (GPT-4, early 2024) to ~70%+ (Claude Opus 4.6, May 2026) — meaning the model can autonomously resolve about 70% of real GitHub issues from top open-source repos.</p>
+    <p>Claude Code (Anthropic's CLI tool) and GitHub Copilot Workspace represent the state of the art. These are not autocomplete tools — they're engineering agents that can take a GitHub issue description and produce a working PR. SWE-bench Verified scores have gone from ~13% (GPT-4, early 2024) to ~96% (Claude Opus 5, July 2026) — meaning the model now resolves nearly all of the real GitHub issues in this benchmark autonomously, and the benchmark itself is effectively saturated.</p>
 
     <div class="callout callout-takeaway">
       <div class="callout-title">Key Takeaway</div>
@@ -1221,19 +1265,19 @@ server.<span class="fn">resource</span>(
 
     <!-- cf:added interactive review -->
     <h3>✅ Knowledge Check</h3>
-    <div class="quiz" data-question="Why does the module say Gemini has a structural advantage in vision?" data-options="It has the most parameters|It was designed 'natively multimodal', processing images through the same transformer weights as text|It only accepts high-resolution images|It uses a separate vision-only model" data-answer="1" data-explanation="Gemini is natively multimodal — images go through the same weights as text — whereas Claude/GPT-5 use a vision encoder feeding the LM, which can miss subtle spatial relationships."></div>
+    <div class="quiz" data-question="Why does the module say Gemini has a structural advantage in vision?" data-options="It has the most parameters|It was designed 'natively multimodal', processing images through the same transformer weights as text|It only accepts high-resolution images|It uses a separate vision-only model" data-answer="1" data-explanation="Gemini is natively multimodal — images go through the same weights as text — whereas Claude/GPT-5.6 use a vision encoder feeding the LM, which can miss subtle spatial relationships."></div>
     <div class="quiz" data-question="Which model does the module say NOT to use for real-time voice, and why?" data-options="Gemini, because its Live API lacks tool use|GPT-5, because its latency is too high|Claude, because it processes audio via transcription rather than native audio understanding|Llama 4, because it has no audio support at all" data-answer="2" data-explanation="Claude currently transcribes audio rather than understanding it natively, so it is not competitive for real-time voice — use OpenAI Realtime or Gemini Live instead."></div>
-    <div class="quiz" data-question="What SWE-bench Verified progression does the module cite for autonomous GitHub issue resolution?" data-options="~13% (GPT-4, early 2024) to ~70%+ (Claude Opus 4.6, May 2026)|~50% (2023) to ~60% (2026)|~30% to ~45%|~70% (2024) to ~99% (2026)" data-answer="0" data-explanation="Scores jumped from ~13% for GPT-4 in early 2024 to ~70%+ for Claude Opus 4.6 by May 2026 — meaning it can resolve about 70% of real GitHub issues autonomously."></div>
+    <div class="quiz" data-question="What SWE-bench Verified progression does the module cite for autonomous GitHub issue resolution?" data-options="~13% (GPT-4, early 2024) to ~96% (Claude Opus 5, July 2026)|~50% (2023) to ~60% (2026)|~30% to ~45%|~13% (early 2024) to ~70% (mid 2026)" data-answer="0" data-explanation="Scores jumped from ~13% for GPT-4 in early 2024 to ~96% for Claude Opus 5 in July 2026 — effectively saturating the benchmark."></div>
     <div class="quiz" data-question="What accuracy does handwritten math recognition reach, and what use does that justify?" data-options="~99%, suitable for high-stakes exams|~95% on well-lit photos, good for formative assessment but not high-stakes exams|~80%, suitable only for demos|~60%, not usable at all" data-answer="1" data-explanation="Handwritten math recognition is ~95% accurate on well-lit photos — good enough for formative assessment, not yet reliable for high-stakes exams."></div>
     <h3>🃏 Flashcards</h3>
     <div class="flashcards">
-    <div class="flashcard" data-front="Natively multimodal" data-back="Gemini processes images through the same transformer weights as text; Claude/GPT-5 use a vision encoder that can miss subtle spatial relationships."></div>
+    <div class="flashcard" data-front="Natively multimodal" data-back="Gemini processes images through the same transformer weights as text; Claude/GPT-5.6 use a vision encoder that can miss subtle spatial relationships."></div>
     <div class="flashcard" data-front="Handwritten math recognition" data-back="~95% accuracy on well-lit photos — good for formative assessment, not yet reliable for high-stakes exams."></div>
     <div class="flashcard" data-front="OpenAI Realtime API" data-back="Best-in-class real-time speech-to-speech (~300ms latency), with interruption handling and mid-conversation function calling."></div>
     <div class="flashcard" data-front="Claude audio limitation" data-back="Processes audio via transcription, not native understanding; not competitive for real-time voice (use OpenAI Realtime or Gemini Live)."></div>
-    <div class="flashcard" data-front="Video understanding" data-back="Gemini leads, processing up to an hour of video natively; Claude/GPT-5 use keyframe extraction and miss temporal dynamics."></div>
+    <div class="flashcard" data-front="Video understanding" data-back="Gemini leads, processing up to an hour of video natively; Claude/GPT-5.6 use keyframe extraction and miss temporal dynamics."></div>
     <div class="flashcard" data-front="Agentic coding" data-back="Models that navigate a codebase, run tests, read errors, and iterate — e.g., Claude Code and Copilot Workspace turning a GitHub issue into a working PR."></div>
-    <div class="flashcard" data-front="SWE-bench Verified jump" data-back="From ~13% (GPT-4, early 2024) to ~70%+ (Claude Opus 4.6, May 2026) of real GitHub issues resolved autonomously."></div>
+    <div class="flashcard" data-front="SWE-bench Verified jump" data-back="From ~13% (GPT-4, early 2024) to ~96% (Claude Opus 5, July 2026) of real GitHub issues resolved autonomously — the benchmark is now effectively saturated."></div>
     <div class="flashcard" data-front="Video generation reality" data-back="Sora produces 5-20s clips with physics and coherence issues beyond ~10s; not reliable for educational content at scale."></div>
     </div>
     <!-- /cf:added -->
@@ -1367,7 +1411,7 @@ server.<span class="fn">resource</span>(
     </ul>
 
     <h3>Fine-Tuning with Provider APIs</h3>
-    <p>If you don't want to manage GPUs, both OpenAI and Google offer fine-tuning through their APIs. Anthropic doesn't offer public fine-tuning for Claude (as of May 2026) — they provide fine-tuning as a managed service for enterprise customers. OpenAI's fine-tuning API supports GPT-5 Mini and is well-documented. Google's Vertex AI supports fine-tuning Gemini models with standard SFT and RL-based approaches.</p>
+    <p>If you don't want to manage GPUs, both OpenAI and Google offer fine-tuning through their APIs. Anthropic doesn't offer public fine-tuning for Claude (as of July 2026) — they provide fine-tuning as a managed service for enterprise customers. OpenAI's fine-tuning API supports the smaller GPT-5.6 tiers and is well-documented. Google's Vertex AI supports fine-tuning Gemini models with standard SFT and RL-based approaches.</p>
 
     <div class="callout callout-takeaway">
       <div class="callout-title">Key Takeaway</div>
@@ -1389,7 +1433,7 @@ server.<span class="fn">resource</span>(
     <div class="flashcard" data-front="QLoRA" data-back="Fine-tune a 4-bit quantized model with full-precision LoRA adapters, enabling fine-tuning a 70B model on a single 48GB GPU."></div>
     <div class="flashcard" data-front="Data quality rule" data-back="500 high-quality examples beat 5,000 mediocre ones; hold out 10-20% as a validation set to catch overfitting."></div>
     <div class="flashcard" data-front="DPO vs GRPO vs KTO" data-back="DPO: preference pairs, no reward model. GRPO: group-relative ranking for verifiable tasks (math, code). KTO: binary thumbs up/down data."></div>
-    <div class="flashcard" data-front="Anthropic fine-tuning" data-back="No public fine-tuning for Claude (as of May 2026) — offered as a managed service for enterprise customers; OpenAI supports GPT-5 Mini, Google via Vertex AI."></div>
+    <div class="flashcard" data-front="Anthropic fine-tuning" data-back="No public fine-tuning for Claude (as of July 2026) — offered as a managed service for enterprise customers; OpenAI supports the smaller GPT-5.6 tiers, Google via Vertex AI."></div>
     </div>
     <!-- /cf:added -->
 
@@ -1759,7 +1803,7 @@ server.<span class="fn">resource</span>(
 
     <div class="callout callout-takeaway">
       <div class="callout-title">Key Takeaway</div>
-      <p><strong>The model layer is commoditizing; the application layer is where value accrues.</strong> Coursera's competitive advantage is not which model it uses (everyone has access to Claude, GPT-5, Gemini) but how it integrates AI into the learning experience. The companies winning in AI are those with unique data (your learner data and course content), unique workflows (your assessment and credentialing pipeline), and unique distribution (your university and enterprise relationships). Invest in the application layer, not in chasing the latest model release.</p>
+      <p><strong>The model layer is commoditizing; the application layer is where value accrues.</strong> Coursera's competitive advantage is not which model it uses (everyone has access to Claude, GPT-5.6, Gemini) but how it integrates AI into the learning experience. The companies winning in AI are those with unique data (your learner data and course content), unique workflows (your assessment and credentialing pipeline), and unique distribution (your university and enterprise relationships). Invest in the application layer, not in chasing the latest model release.</p>
     </div>
 
     <!-- cf:added interactive review -->
@@ -2461,9 +2505,9 @@ server.<span class="fn">resource</span>(
 
 <!-- ===== FOOTER ===== -->
 <div class="footer">
-  <p>State of Generative AI — June 2026</p>
+  <p>State of Generative AI — July 2026</p>
   <p style="margin-top:8px;">A technical deep dive for senior engineering leaders. Written for offline reading.</p>
-  <p style="margin-top:8px;">This document reflects the state of the art as of June 2026. Updated with GLM-5.2 and the open-weight revolution. The field moves fast — revisit quarterly.</p>
+  <p style="margin-top:8px;">This document reflects the state of the art as of July 2026. Updated with Claude Opus 5, the GPT-5.6 tiers, Gemini 3.6 Flash, and Kimi K3's open weights. The field moves fast — revisit quarterly.</p>
 </div>
 
 </div><!-- /container -->

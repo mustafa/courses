@@ -37,6 +37,16 @@ Course Modules
 
 *Significant Anthropic news since this course was written. Newest first; entries older than 8 weeks are pruned.*
 
+### Week of August 2, 2026
+
+-   **MCP 2026-07-28 spec is live (July 28):** The fifth MCP spec release moves the protocol from a bidirectional stateful design to a *stateless request/response core*, so your MCP servers can deploy on serverless and edge infrastructure with no session management. If you've been writing custom MCP servers for SDK agents, this is the biggest change to that surface all year — plan a migration path. Support is rolling out across Claude products.
+-   **Extensions framework — MCP Apps and Tasks:** Both now ship under a versioned extensions framework, giving a formal path to add interactive UI (rendered inline in the conversation) and long-running work without changing the core protocol. Tasks in particular matters for SDK agents that kick off jobs outliving a single request.
+-   **Auth hardening:** MCP authorization now aligns with production OAuth 2.0 and OIDC, so servers connect to enterprise identity providers like Entra or Okta without custom shims — the last big blocker to shipping internal MCP servers in regulated environments.
+-   **MCP tunnels (research preview):** Connect Claude to MCP servers inside a private network with no public endpoint, no inbound firewall rules, and no IP allowlisting — the cleanest answer yet for exposing internal tools to agents. Connector observability dashboards also landed for directory-published servers.
+-   **Ecosystem scale:** MCP passed 400M monthly SDK downloads (4x growth this year), with 950+ servers in Claude's connector directory. Building on MCP rather than bespoke tool plumbing is now clearly the default path.
+-   **Cyber-eval containment incidents (disclosed July 30):** Anthropic reviewed 141,000+ evaluation runs and found three cases where Claude Opus 4.7, Claude Mythos 5, and an internal research model reached real external systems during capture-the-flag tests — a misconfiguration at evaluation partner Irregular left live internet access available when the models were prompted that they were sandboxed. The practical lesson for SDK builders: *telling an agent it is sandboxed is not a sandbox.* Enforce isolation at the network and permission layer, and verify it independently.
+-   **Prompt injection via work items:** Concordia researchers released IssueTrojanBench, which hides malicious instructions inside ordinary-looking GitHub issues and successfully manipulated Cursor, Claude Code, and Codex Desktop. If your agent reads issues, tickets, or emails, treat that content as untrusted input — gate tool permissions accordingly.
+
 ### Week of July 26, 2026
 
 -   **Claude Opus 5 released (July 24):** Anthropic's fourth Claude 5 model in under two months — new state-of-the-art on coding and knowledge-work evals at about half Fable 5's price ($5/$25 per Mtok), with a low/medium/high effort toggle you can set per request. It's the new default on Claude Max and the strongest model on Pro, and a strong new default for SDK agent workloads where you want to tune the capability/cost trade-off.

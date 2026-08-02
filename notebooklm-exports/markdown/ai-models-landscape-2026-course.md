@@ -6,7 +6,7 @@ Self-paced course · 10 modules
 
 A comprehensive, offline guide to every major model family shaping AI in 2026 — from Thinking Machines Lab's Inkling to the Mixture-of-Experts architecture that quietly took over the industry.
 
-📚 10 Modules ⏱️ ~90 min read 📝 15,000+ words 🗓️ Updated July 15, 2026
+📚 10 Modules ⏱️ ~90 min read 📝 15,000+ words 🗓️ Updated July 29, 2026
 
 0 of 10 modules complete
 
@@ -38,7 +38,7 @@ Open Weight ModelsThe full roster, license by license
 
 5
 
-Closed Frontier ModelsClaude, GPT-5.6, Gemini 3.5, Grok 4
+Closed Frontier ModelsClaude, GPT-5.6, Gemini 3.6, Grok 4.5
 
 ](#mod5)[
 
@@ -72,6 +72,18 @@ What's NextRoadmap, regulation, and predictions
 
 ](#mod10)
 
+## Module ★: Weekly Updates
+
+*A running log of significant developments since this course was written. Newest first; entries older than 8 weeks are pruned.*
+
+### Week of July 26, 2026
+
+-   **Anthropic — Claude Opus 5 (July 24):** The new Opus flagship ships at $5/$25 per Mtok — unchanged from Opus 4.8 — with a 1M-token context window, 128K max output, and a low/medium/high effort toggle. It posts roughly 96% on SWE-bench Verified, effectively saturating the benchmark, and Anthropic positions it as approaching Fable 5's intelligence at half the price. A research-preview fast mode runs $10/$50 on the first-party API. Module 5 and the master table are updated.
+-   **Moonshot AI — Kimi K3 open weights (July 26):** 2.8T parameters and a 1M-token context, released publicly — the largest open-weight model available. Roughly 594 GB in native MXFP4, up to 1.4 TB quantized, across 96 Hugging Face shards; Together AI and Modal announced day-zero hosting. See Module 4.
+-   **Google — Gemini 3.6 Flash (July 21):** $1.50/$7.50 per Mtok, 1M context, day-one availability in AI Studio, the Gemini API, and the Gemini app. It uses ~17% fewer output tokens than 3.5 Flash while scoring higher on coding, long-context, and computer-use benchmarks. Google also shipped 3.5 Flash-Lite and a gated 3.5 Flash Cyber.
+-   **Google — Gemini 3.5 Pro still has not shipped:** Promised at I/O on May 19, it missed the implied June target and a leaked July 17 target. DeepMind abandoned the base iteration over multi-step math and SVG generation ceilings, and reporting indicates the team moved to pretraining Gemini 4. Google remains the only major frontier lab without a 2026 flagship in general production.
+-   **xAI — Grok 4.6 announced, not shipped:** Confirmed by Musk on July 18 with pre-training finished the week of July 20; a ~2T-parameter model targeting Kimi K3's capability at Grok 4.5's speed. No pricing, context window, or benchmarks confirmed. Grok 4.7 is claimed to follow about two weeks behind it.
+
 ## Module 1: The 2026 Model Landscape — A Map
 
 If you last checked in on the AI model landscape when GPT-4 was the undisputed king, you would barely recognize the market today. In mid-2023, there were perhaps five models worth taking seriously. By July 2026, there are more than fifty models in active production use that can credibly claim frontier or near-frontier performance on at least one axis — reasoning, coding, multimodal understanding, cost-efficiency, or on-device deployment. The story of the last three years is not just "models got better." It's that the market fragmented into distinct categories, each optimizing for a different constraint, and no single lab dominates every category anymore.
@@ -88,12 +100,12 @@ The first shift was the maturation of Mixture-of-Experts (MoE) architectures, co
 
 The result is a landscape best understood as six categories:
 
--   **Frontier closed models** — Claude (Anthropic), GPT-5.6 (OpenAI), Gemini 3.5 (Google), Grok 4 (xAI). These are proprietary, API-only or app-gated, and represent the highest general-purpose capability ceiling, particularly for complex agentic coding and long-form reasoning.
+-   **Frontier closed models** — Claude (Anthropic), GPT-5.6 (OpenAI), Gemini (Google), Grok 4.5 (xAI). These are proprietary, API-only or app-gated, and represent the highest general-purpose capability ceiling, particularly for complex agentic coding and long-form reasoning.
 -   **Frontier open-weight models** — Inkling (Thinking Machines Lab), GLM-5.2 (Zhipu AI), Llama 4 (Meta), Qwen 3/3.5 (Alibaba), DeepSeek V4, Mistral Large 3. Downloadable weights, often permissive licenses, competitive benchmarks.
 -   **Reasoning-specialized models** — OpenAI's o-series, DeepSeek-R1, Claude's extended thinking mode, Gemini Deep Think. These trade inference-time compute for higher accuracy on math, logic, and multi-step problems.
 -   **Multimodal-native models** — Inkling, Gemini, GPT-5.6 with vision/audio, increasingly treating text, image, audio, and video as first-class citizens rather than bolted-on encoders.
 -   **Small and efficient models** — Phi-4, Gemma 4 (E4B/E2B), Mistral Small 4. Designed to run on a laptop, phone, or single consumer GPU.
--   **Domain-specific models** — Kimi K2.6/K2.7 (coding), Nemotron 3 Super (open training tooling), and a long tail of fine-tuned specialists for legal, medical, and scientific tasks.
+-   **Domain-specific models** — Nemotron 3 Super (open training tooling), Gemini 3.5 Flash Cyber (gated security model), and a long tail of fine-tuned specialists for legal, medical, and scientific tasks.
 
 ### Who's actually competing in each lane
 
@@ -107,15 +119,18 @@ Below is the most complete snapshot of the 2026 landscape we can offer in a sing
 
 | Model | Organization | Total Params | Active Params | Architecture | Context | License | Price (in/out per 1M) | Standout Strength |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Claude Opus 4.8 | Anthropic | Undisclosed | Undisclosed | Dense/Transformer | 1M+ | Closed | Premium tier | Overall leader, best coding + writing |
+| Claude Opus 5 | Anthropic | Undisclosed | Undisclosed | Dense/Transformer | 1M | Closed | $5 / $25 | ~96% SWE-bench Verified, effort toggle |
+| Claude Opus 4.8 | Anthropic | Undisclosed | Undisclosed | Dense/Transformer | 1M+ | Closed | $5 / $25 | Previous Opus flagship, ~88.6% SWE-bench |
 | Claude Fable 5 | Anthropic | Undisclosed | Undisclosed | Dense/Transformer | 1M+ | Closed | $10 / $50 | 95.0% SWE-Bench, 84.2% MMMU Pro |
-| Claude Sonnet 5 | Anthropic | Undisclosed | Undisclosed | Dense/Transformer | 1M+ | Closed | $3 / $15 | Balanced cost/performance |
+| Claude Sonnet 5 | Anthropic | Undisclosed | Undisclosed | Dense/Transformer | 1M+ | Closed | $2 / $10 → $3 / $15 Sep 1 | Balanced cost/performance |
+| Claude Haiku 4.5 | Anthropic | Undisclosed | Undisclosed | Dense/Transformer | 200K | Closed | $1 / $5 | Fast, cheap, high-volume |
 | GPT-5.6 Sol | OpenAI | Undisclosed | Undisclosed | Undisclosed (MoE rumored) | Large | Closed | $5 / $30 | 88.8% Terminal-Bench 2.1, 92.5% ARC-AGI-2 |
 | GPT-5.6 Terra | OpenAI | Undisclosed | Undisclosed | Undisclosed | Large | Closed | $2.50 / $15 | Mid-tier balance |
 | GPT-5.6 Luna | OpenAI | Undisclosed | Undisclosed | Undisclosed | Large | Closed | $1 / $6 | Cheap high-volume tasks |
-| Gemini 3.1 Pro | Google | Undisclosed | Undisclosed | Undisclosed (MoE) | 2M | Closed | $2 / $12 | GPQA Diamond leader |
+| Gemini 3.6 Flash | Google | Undisclosed | Undisclosed | Undisclosed (MoE) | 1M | Closed | $1.50 / $7.50 | ~17% fewer output tokens than 3.5 Flash |
+| Gemini 3.1 Pro | Google | Undisclosed | Undisclosed | Undisclosed (MoE) | 2M | Closed | $2 / $12 | GPQA Diamond leader; 3.5 Pro never shipped |
 | Gemini 3.1 Flash-Lite | Google | Undisclosed | Undisclosed | Undisclosed (MoE) | 1M | Closed | $0.10 / $0.40 | Cheapest frontier-adjacent option |
-| Grok 4 | xAI | Undisclosed | Undisclosed | Undisclosed | Large | Closed | Subscription/API | Real-time X integration |
+| Grok 4.5 | xAI | ~1.5T | Undisclosed | Undisclosed (MoE) | Large | Closed | ~$2 / $6 | Real-time X integration; 4.6 announced, unshipped |
 | Inkling | Thinking Machines Lab | 975B | 41B | MoE, encoder-free multimodal | 1M | Open weights | Free (self-host) / hosted tiers | Adaptability, Tinker fine-tuning |
 | GLM-5.2 | Zhipu AI | 750B | 40B | MoE | 1M | MIT | Free / hosted | Strongest all-round open-weight |
 | Llama 4 Maverick | Meta | 400B | ~17B (per expert config) | MoE | 1M | Llama Community License | Free / hosted | Enterprise familiarity |
@@ -123,7 +138,7 @@ Below is the most complete snapshot of the 2026 landscape we can offer in a sing
 | Qwen 3.5 (235B-A22B) | Alibaba | 235B | 22B | MoE | Large | Apache 2.0 | Free / hosted | 201 languages, strong reasoning |
 | DeepSeek V4 | DeepSeek | Undisclosed (MoE) | Undisclosed | MoE | Large | MIT | $0.14/token (Flash) | Reasoning specialist, cheap |
 | Mistral Large 3 | Mistral AI | Undisclosed | Undisclosed | Dense | Large | Apache 2.0 | Free / hosted | 80+ languages, European champion |
-| Kimi K2.6/K2.7 | Moonshot AI | Undisclosed (MoE) | Undisclosed | MoE | Large | Modified open | Free / hosted | Coding specialist |
+| Kimi K3 | Moonshot AI | 2.8T | Undisclosed | MoE | 1M | Kimi K3 License | Free / hosted | Largest open-weight model available |
 | Gemma 4 (12B) | Google | 12B | Dense | Dense | Medium | Apache 2.0 | Free | Local-friendly, strong for size |
 | Gemma 4 E4B | Google | 4.5B effective | Dense | Dense (edge) | Medium | Apache 2.0 | Free | 69.4% MMLU-Pro on-device |
 | Phi-4 | Microsoft | 14B | Dense | Dense | Medium | MIT | Free | 84.8% MMLU, fits 12GB GPU |
@@ -264,7 +279,7 @@ The training-side economics are more nuanced. You still need to store, checkpoin
 | Llama 4 Maverick | Meta | 400B | ~17B | ~4.3% |
 | DeepSeek V3/V4 | DeepSeek | Large (undisclosed exact) | Small subset | Low single digits |
 | Qwen3-Coder | Alibaba | 480B | Subset (coder-tuned) | Low single digits |
-| Kimi K2.6 | Moonshot AI | Large (undisclosed exact) | Subset | Low single digits |
+| Kimi K3 | Moonshot AI | 2.8T | Subset | Low single digits |
 | MiniMax M3 | MiniMax | Large (undisclosed exact) | Subset | Low single digits |
 
 Notice the pattern: active-parameter ratios across the industry cluster in the low single digits to roughly 5%. This isn't a coincidence — it reflects a fairly convergent understanding among researchers of the sweet spot between "enough active capacity per token to reason well" and "sparse enough to get the cost benefits that justify going MoE in the first place."
@@ -397,11 +412,17 @@ Mistral remains Europe's flagship AI lab and the closest thing to a European "na
 
 Covered in depth in Module 8. A 14-billion-parameter dense model achieving 84.8% on MMLU while fitting comfortably on a single 12GB consumer GPU, MIT licensed. Phi-4 is Microsoft's proof point that careful data curation and training methodology can substitute for raw parameter count, and it remains one of the most efficient "quality per parameter" models on the market.
 
-### Kimi K2.6 / K2.7 (Moonshot AI)
+### Kimi K3 (Moonshot AI)
 
-MoE, coding specialist
+MoE, largest open-weight model available
 
-Moonshot AI's Kimi K-series has positioned itself specifically as a coding specialist among open-weight MoE models, competing directly with Qwen3-Coder and DeepSeek for developer mindshare in code-generation and code-completion workloads. K2.7 represents an incremental refinement over K2.6, continuing Moonshot's rapid iteration cadence.
+Moonshot AI's Kimi K-series positioned itself as a coding specialist among open-weight MoE models, competing with Qwen3-Coder and DeepSeek for developer mindshare. The K2.6/K2.7 line continued that incremental cadence — and then **Kimi K3 changed the category**.
+
+Moonshot released K3's weights publicly on **July 26, 2026**: **2.8 trillion parameters** with a **1M-token context window**, making it the largest open-weight model publicly available by a wide margin. Together AI and Modal both announced day-zero hosted access timed to the drop, so you can evaluate it without owning the hardware.
+
+The catch is inference economics. The weights are roughly **594 GB in native MXFP4 format, and up to 1.4 TB depending on quantization** — the official Hugging Face repository ships 96 weight shards alongside the Kimi K3 License and deployment configs. "Open weights" here does not mean "runs on your workstation"; it means a well-funded team can self-host a frontier-adjacent model without vendor permission. That is a meaningful strategic difference, but the capital requirement is real.
+
+The release also landed squarely in the open-weights policy debate. Anthropic CEO Dario Amodei addressed it directly, saying Anthropic "has never advocated for a ban on open-weights models" and describing non-dangerous open models as "a public good," while continuing to push for chip export controls, anti-distillation enforcement, and mandatory safety testing.
 
 ### Nemotron 3 Super (NVIDIA)
 
@@ -421,7 +442,7 @@ NVIDIA's Nemotron 3 Super line is notable less for topping benchmarks and more f
 | Mistral Large 3 / Small 4 | Apache 2.0 | Unrestricted | Patent grant included |
 | Inkling | Open weights | Broadly permitted | Review Thinking Machines Lab's release terms per use case |
 | Llama 4 | Llama Community License | Conditional | Separate license required above large MAU threshold |
-| Kimi K2.6/K2.7 | Modified open license | Conditional | Check attribution/field-of-use terms |
+| Kimi K3 | Kimi K3 License | Conditional | Check attribution/field-of-use terms |
 
 Key Takeaway
 
@@ -429,7 +450,7 @@ Key Takeaway
 
 ### Choosing between them
 
-For maximum legal simplicity with frontier-adjacent capability: GLM-5.2. For the largest possible context window on genuinely enormous documents: Llama 4 Scout. For multilingual coverage: Qwen 3.5. For cheap, strong reasoning at scale: DeepSeek V4. For on-device/edge deployment: Gemma 4 E4B/E2B or Phi-4. For maximum fine-tuning adaptability with a well-funded platform behind it: Inkling via Tinker. For coding-specific workloads: Kimi K2.7 or Qwen3-Coder-480B. There is rarely a single "best" open-weight model — the right choice is a function of your license constraints, your context length needs, and your deployment target.
+For maximum legal simplicity with frontier-adjacent capability: GLM-5.2. For the largest possible context window on genuinely enormous documents: Llama 4 Scout. For multilingual coverage: Qwen 3.5. For cheap, strong reasoning at scale: DeepSeek V4. For on-device/edge deployment: Gemma 4 E4B/E2B or Phi-4. For maximum fine-tuning adaptability with a well-funded platform behind it: Inkling via Tinker. For coding-specific workloads: Kimi K3 (if you can serve 2.8T parameters) or Qwen3-Coder-480B. There is rarely a single "best" open-weight model — the right choice is a function of your license constraints, your context length needs, and your deployment target.
 
 ### The community and tooling ecosystem around open-weight models
 
@@ -447,14 +468,19 @@ It's worth being explicit about what closed labs are actually selling at a premi
 
 ### Claude family (Anthropic)
 
-Anthropic's Claude lineup is widely regarded as the overall capability leader in 2026, with particular strength in coding and long-form writing quality. The family spans three tiers:
+Anthropic's Claude lineup is widely regarded as the overall capability leader in 2026, with particular strength in coding and long-form writing quality. The family spans several tiers:
 
--   **Claude Opus 4.8** — the overall flagship, considered the best all-round model on the market for complex, high-stakes work including advanced coding and nuanced long-form writing.
--   **Claude Fable 5** — priced at $10/$50 per million input/output tokens, Fable 5 posts a striking 95.0% on SWE-Bench (the strongest disclosed result of any model in this course) and 84.2% on MMMU Pro, making it the top choice for autonomous coding agents and multimodal reasoning workloads where accuracy justifies premium pricing.
--   **Claude Sonnet 5** — priced at $3/$15, positioned as the balanced workhorse tier for teams that need strong general capability without Opus/Fable-tier pricing.
--   **Claude Haiku** — the fast, cheap tier for high-volume, latency-sensitive tasks.
+-   **Claude Opus 5** — released July 24, 2026 and now the flagship Opus tier. Priced at $5/$25 per million input/output tokens (unchanged from Opus 4.8), with a 1M-token context window, 128K max output, and a low/medium/high effort toggle that trades latency and cost against depth. It posts roughly 96% on SWE-bench Verified, essentially saturating the industry's standard software-engineering benchmark, and Anthropic positions it as approaching Fable 5's intelligence at half the price. A research-preview "fast mode" is available on the first-party API at $10/$50.
+-   **Claude Opus 4.8** — the previous Opus flagship, still available at the same $5/$25 pricing and ~88.6% on SWE-bench Verified. Worth keeping in mind for workloads already tuned against it.
+-   **Claude Fable 5** — priced at $10/$50 per million input/output tokens, Fable 5 posts a striking 95.0% on SWE-Bench and 84.2% on MMMU Pro, making it a top choice for autonomous coding agents and multimodal reasoning workloads where accuracy justifies premium pricing. Note that Opus 5's ~96% SWE-bench Verified result is reported from a different source than Fable 5's 95.0%; the two figures may not use identical methodology, so treat them as "both effectively saturate the benchmark" rather than as a precise ranking.
+-   **Claude Sonnet 5** — the balanced workhorse tier for teams that need strong general capability without Opus/Fable-tier pricing, with a 1M-token context window. Introductory pricing of **$2/$10 runs through August 31, 2026**, after which it moves to standard $3/$15 — budget for the step-up if you are costing out a long-lived workload.
+-   **Claude Haiku 4.5** — the fast, cheap tier for high-volume, latency-sensitive tasks, priced at $1/$5.
 
-Claude also offers an extended thinking mode (Module 7), refined since its introduction in the Claude 4 generation, which lets the model allocate additional inference-time compute to harder problems.
+Claude also offers an extended thinking mode (Module 7), refined since its introduction in the Claude 4 generation, which lets the model allocate additional inference-time compute to harder problems. Claude 4.6 and later include the full 1M-token context window at standard pricing, with no long-context premium.
+
+A pricing trap worth knowing about
+
+Claude 4.7 and later models use a newer tokenizer that produces roughly **30% more tokens for the same text** than Claude 4.6 and earlier. Because you are billed per token, a model at the same headline $/Mtok rate can still cost meaningfully more to run on identical inputs. Always benchmark on your own workload before assuming a same-price upgrade is cost-neutral.
 
 ### GPT-5.6 family (OpenAI)
 
@@ -464,29 +490,44 @@ OpenAI released GPT-5.6 on July 9, 2026 — just six days before Inkling's launc
 -   **GPT-5.6 Terra** — priced at $2.50/$15, a mid-tier option balancing cost and capability.
 -   **GPT-5.6 Luna** — priced at $1/$6, the cheapest tier, aimed at high-volume, cost-sensitive applications.
 
-### Gemini 3.5 (Google)
+### Gemini 3.6 Flash (Google) — and the flagship that never shipped
 
-Google's Gemini 3.5 generation was rolling out through mid-2026, with the Flash tier already available and the Pro tier expected in July 2026. As of this writing, **Gemini 3.1 Pro** remains the currently available flagship, priced at $2/$12, and holds the lead on GPQA Diamond — a graduate-level science question benchmark widely regarded as one of the more resistant-to-gaming reasoning evaluations. Gemini's defining structural advantage across generations has been context window size, with Gemini 3.1 Pro supporting up to 2 million tokens, useful for tasks involving huge codebases, long video transcripts, or large document collections.
+Google shipped **Gemini 3.6 Flash** on July 21, 2026 at $1.50/$7.50 per million input/output tokens with a 1M-token context window, available day one in AI Studio, the Gemini API, and the Gemini app. It is positioned as the everyday workhorse for coding, knowledge work, and multimodal tasks, and it uses roughly **17% fewer output tokens** than Gemini 3.5 Flash while scoring higher on coding, long-context, and computer-use benchmarks — so its effective cost advantage is larger than the sticker price implies. Google launched two companions alongside it: **Gemini 3.5 Flash-Lite**, a cheaper and faster tier for high-volume work, and **Gemini 3.5 Flash Cyber**, a gated security model restricted to governments and trusted partners.
 
-### Grok 4 (xAI)
+The more strategically important fact is what Google *hasn't* shipped. **Gemini 3.5 Pro has never launched.** Sundar Pichai promised it on stage at Google I/O on May 19, 2026, telling developers to "give us until next month"; it missed that implied June target, then missed a leaked July 17 target as well. Bloomberg reported Google was working to improve the model's coding capability, and that a late-June retraining pass on updated data produced disappointing results. DeepMind ultimately abandoned the base iteration over ceilings in multi-step mathematical reasoning and SVG scene generation, and reporting indicates the team has moved on to pretraining Gemini 4. **As of late July 2026, Google is the only major frontier lab without a 2026 flagship model in general production** — GPT-5.6 Sol launched publicly on July 9, Grok 4.5 opened to the public the same day, and Anthropic's Fable 5 had shipped in June. **Gemini 3.1 Pro** remains Google's available Pro-tier flagship at $2/$12, still holding a lead on GPQA Diamond and still supporting up to 2 million tokens of context — the largest window of any proprietary frontier model.
 
-xAI's Grok 4 differentiates primarily through deep integration with the X (formerly Twitter) platform, giving it access to real-time social data and discourse that other frontier models, trained on more static or delayed data snapshots, structurally lack. For use cases requiring awareness of breaking news, trending topics, or real-time public sentiment, Grok 4's integration is a genuine and hard-to-replicate advantage rather than a marketing point.
+> **Warning:** Planning implication
+>
+> If your architecture assumes a Gemini Pro-tier model arriving on a specific date, de-risk it. Google's Flash tier is excellent and shipping on schedule; its Pro tier has now slipped past three separate targets across more than two months. Build against what is generally available.
+
+### Grok 4.5 (xAI)
+
+xAI's Grok line differentiates primarily through deep integration with the X (formerly Twitter) platform, giving it access to real-time social data and discourse that other frontier models, trained on more static or delayed data snapshots, structurally lack. For use cases requiring awareness of breaking news, trending topics, or real-time public sentiment, that integration is a genuine and hard-to-replicate advantage rather than a marketing point.
+
+**Grok 4.5** is the current publicly available model — roughly 1.5T parameters, opened to the public on July 9, 2026, and priced around $2/$6 per million input/output tokens, which makes it one of the cheaper frontier-tier options.
+
+**Grok 4.6 has been announced but has not shipped.** Musk confirmed it publicly on July 18, 2026; initial pre-training finished the week of July 20, and his July 25 statements pointed at a ship date roughly two weeks out, with Grok 4.7 about four weeks out. It is reported as a ~2T-parameter model aimed at matching or exceeding Kimi K3's capability while preserving Grok 4.5's speed and token efficiency. No pricing, context window, or benchmark results have been officially confirmed. Treat the back-to-back 4.6/4.7 cadence as a stated intention rather than a delivered roadmap — xAI's public timelines have slipped before.
 
 ### Side-by-side pricing comparison
 
 | Model | Input ($/1M tokens) | Output ($/1M tokens) | Positioning |
 | --- | --- | --- | --- |
 | Claude Fable 5 | $10 | $50 | Top-tier coding & multimodal |
+| Claude Opus 5 | $5 | $25 | ~96% SWE-bench Verified; effort toggle |
+| Claude Opus 4.8 | $5 | $25 | Previous Opus flagship |
 | GPT-5.6 Sol | $5 | $30 | Top-tier agentic/terminal reasoning |
-| Claude Sonnet 5 | $3 | $15 | Balanced workhorse |
 | GPT-5.6 Terra | $2.50 | $15 | Balanced workhorse |
-| Gemini 3.1 Pro | $2 | $12 | Long context, science reasoning |
+| Claude Sonnet 5 | $2 ($3 from Sep 1) | $10 ($15 from Sep 1) | Balanced workhorse; intro pricing ends Aug 31 |
+| Gemini 3.1 Pro | $2 | $12 | Long context (2M), science reasoning |
+| Gemini 3.6 Flash | $1.50 | $7.50 | Everyday multimodal workhorse |
+| Grok 4.5 | ~$2 | ~$6 | Real-time X data |
 | GPT-5.6 Luna | $1 | $6 | High-volume, low-cost |
+| Claude Haiku 4.5 | $1 | $5 | Fast, cheap, high-throughput |
 | Gemini 3.1 Flash-Lite | $0.10 | $0.40 | Cheapest frontier-adjacent tier |
 
 Key Takeaway
 
-There is no single "best" closed model in 2026 — Claude Fable 5 leads coding (SWE-Bench 95.0%), GPT-5.6 Sol leads terminal/agentic reasoning (Terminal-Bench 88.8%, ARC-AGI-2 92.5%), and Gemini 3.1 Pro leads scientific reasoning (GPQA Diamond) and context length (2M tokens). Model selection should be benchmark-matched to your actual workload, not based on a single aggregate leaderboard.
+There is no single "best" closed model in 2026 — Anthropic's top tier leads coding (Fable 5 at 95.0% SWE-Bench, Opus 5 at ~96% SWE-bench Verified for half Fable's price), GPT-5.6 Sol leads terminal/agentic reasoning (Terminal-Bench 88.8%, ARC-AGI-2 92.5%), and Gemini 3.1 Pro leads scientific reasoning (GPQA Diamond) and context length (2M tokens). Model selection should be benchmark-matched to your actual workload, not based on a single aggregate leaderboard. And note what the leaderboard hides: Google has no shipped 2026 Pro flagship, and xAI's announced Grok 4.6 has not landed — availability is part of the selection criteria, not a footnote.
 
 ### When closed beats open
 
@@ -556,7 +597,7 @@ The reasoning models that emerged from 2024 onward internalize this: they're tra
 
 **Claude's extended thinking mode**, introduced with the Claude 4 generation and refined through Claude 4.7, gives users and developers a controllable thinking budget: you can ask Claude to spend more or less inference-time compute reasoning before responding, trading cost and latency for accuracy on demand rather than having reasoning mode be all-or-nothing.
 
-**Gemini 2.5 Pro Deep Think** represents Google's entry in this space, similarly offering an extended, higher-compute reasoning mode distinct from the model's standard response path.
+**Gemini Deep Think** represents Google's entry in this space, similarly offering an extended, higher-compute reasoning mode distinct from the model's standard response path.
 
 ### How the reasoning market has split
 
@@ -792,4 +833,4 @@ Because this landscape will look meaningfully different within months, it's wort
 
 The 2026 AI Model Landscape — A Complete Course · 10 modules · Offline reference document
 
-Content current as of July 15, 2026. The AI model landscape moves fast — verify pricing and benchmark figures against primary sources before making production decisions.
+Content current as of July 29, 2026. The AI model landscape moves fast — verify pricing and benchmark figures against primary sources before making production decisions. See Weekly Updates at the top for developments since the course was written.
