@@ -9,6 +9,8 @@
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+        html { color-scheme: dark; }   /* native <select> popup + scrollbars */
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: #0a0a0a;
@@ -156,6 +158,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 0.6rem;
         }
 
         .card-type {
@@ -175,6 +178,146 @@
             transform: translateX(3px);
         }
 
+        /* ============ index tools (toolbar is injected by the script below) ============ */
+
+        /* .card sets display:flex, which beats the UA's [hidden]{display:none}
+           on specificity — without this, filtering silently does nothing. */
+        .card[hidden], .category[hidden] { display: none; }
+
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            margin: -3rem -2rem 2.5rem;   /* cancel main's padding so the blur spans full width */
+            padding: 1.25rem 2rem;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid #1e1e1e;
+        }
+
+        .toolbar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar input[type="search"], .toolbar select {
+            background: #141414;
+            border: 1px solid #1e1e1e;
+            border-radius: 8px;
+            color: #e4e4e7;
+            font: inherit;
+            font-size: 0.9rem;
+            padding: 0.55rem 0.8rem;
+            -webkit-appearance: none;     /* iOS Safari ignores border-radius without this */
+            appearance: none;
+        }
+
+        .toolbar input[type="search"] { flex: 1; min-width: 190px; }
+        .toolbar input[type="search"]::placeholder { color: #52525b; }
+
+        .toolbar select {
+            padding-right: 2rem;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%2371717a' d='M2 4.5h8L6 9z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.65rem center;
+            background-size: 12px;
+            cursor: pointer;
+        }
+
+        .toolbar input:focus, .toolbar select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .toolbar-count {
+            font-size: 0.78rem;
+            color: #52525b;
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
+
+        .chips {
+            display: flex;
+            gap: 0.4rem;
+            margin-top: 0.85rem;
+            flex-wrap: wrap;              /* scrolls instead of wrapping on mobile */
+        }
+        .chips::-webkit-scrollbar { display: none; }
+
+        /* Chips reuse .category-tag, so a new category inherits its colour for free. */
+        .chip {
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            filter: grayscale(1) opacity(0.42);
+            transition: filter 0.18s;
+        }
+        .chip:hover, .chip[aria-pressed="true"] { filter: none; }
+        .chip:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+        .chip-all { background: #3f3f46; }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.85rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.04em;
+            color: #52525b;
+        }
+
+        .card-cat { display: inline-flex; align-items: center; gap: 0.35rem; }
+
+        .card-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .card-sep { color: #27272a; }
+
+        .card-badge {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            margin-right: 0.15rem;
+        }
+        .card-badge.is-new { background: rgba(16, 185, 129, 0.14); color: #10b981; }
+        .card-badge.is-upd { background: rgba(59, 130, 246, 0.14); color: #3b82f6; }
+
+        main.flat .category-header { display: none; }
+
+        .idx-empty {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #71717a;
+        }
+        .idx-empty button {
+            margin-top: 1rem;
+            background: #141414;
+            border: 1px solid #1e1e1e;
+            border-radius: 8px;
+            color: #e4e4e7;
+            font: inherit;
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+        .idx-empty button:hover { border-color: #333; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .chip { transition: none; }
+        }
+
         footer {
             text-align: center;
             padding: 2rem;
@@ -189,6 +332,9 @@
             main { padding: 2rem 1.25rem 4rem; }
             .grid { grid-template-columns: 1fr; }
             .stats { gap: 1.5rem; }
+            .toolbar { margin: -2rem -1.25rem 2rem; padding: 1rem 1.25rem; }
+            .toolbar-count { width: 100%; }
+            .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
         }
     </style>
 </head>
@@ -197,13 +343,13 @@
 <header>
     <h1>Mustafa's Courses</h1>
     <p>Interactive HTML courses on AI, machine learning, infrastructure, product strategy, and more.</p>
-    <div class="stats">
+    <div class="stats" aria-live="polite">
         <div class="stat">
-            <div class="stat-number">42</div>
+            <div class="stat-number" id="stat-courses">42</div>
             <div class="stat-label">Courses</div>
         </div>
         <div class="stat">
-            <div class="stat-number">14</div>
+            <div class="stat-number" id="stat-categories">14</div>
             <div class="stat-label">Categories</div>
         </div>
     </div>
@@ -218,7 +364,7 @@
             <h2 class="category-title">AI &amp; Machine Learning</h2>
         </div>
         <div class="grid">
-            <a class="card" href="context-engineering-claude5-course.html">
+            <a class="card" href="context-engineering-claude5-course.html" data-added="2026-07-26" data-words="14252">
                 <div class="card-title">The New Rules of Context Engineering for Claude 5 Models</div>
                 <div class="card-desc">Anthropic deleted 80%+ of Claude Code's system prompt for Opus 5 and Fable 5 with no measurable eval loss. Built on Thariq's July 2026 article: the six then&rarr;now shifts (rules&rarr;judgement, examples&rarr;interfaces, upfront&rarr;progressive disclosure, repetition&rarr;tool descriptions, CLAUDE.md&rarr;auto-memory, specs&rarr;rich references), plus applied modules on CLAUDE.md, skills, tool design, and a staged deletion playbook. 15 modules with quizzes &amp; flashcards.</div>
                 <div class="card-footer">
@@ -226,7 +372,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-governance-hassabis-course.html">
+            <a class="card" href="ai-governance-hassabis-course.html" data-added="2026-07-19" data-words="8000">
                 <div class="card-title">AI Governance &amp; the Frontier Standards Body — Hassabis's FINRA-for-AI</div>
                 <div class="card-desc">Inside Demis Hassabis's July 2026 manifesto calling for a "FINRA for AI" — the Anthropic Mythos &amp; Fable export-freeze that triggered it, the three competing blueprints (Hassabis's SRO, Amodei's FAA, Altman's IAEA), the regulatory-capture and open-weight fights, a full governance history, key-figure profiles, and a timeline. 14 modules with quizzes &amp; flashcards.</div>
                 <div class="card-footer">
@@ -234,7 +380,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-frontier-voices-course.html">
+            <a class="card" href="ai-frontier-voices-course.html" data-added="2026-07-12" data-updated="2026-07-27" data-words="3364">
                 <div class="card-title">AI Frontier Voices — Learning from the People Building It</div>
                 <div class="card-desc">A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they teach, and what they're saying now. Auto-updated weekly.</div>
                 <div class="card-footer">
@@ -242,7 +388,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="genai-state-of-art-2026.html">
+            <a class="card" href="genai-state-of-art-2026.html" data-added="2026-06-13" data-updated="2026-08-02" data-words="14072">
                 <div class="card-title">State of Generative AI — July 2026</div>
                 <div class="card-desc">A technical deep dive into the current landscape of generative AI: frontier models, benchmarks, architectures, and emerging trends shaping the field.</div>
                 <div class="card-footer">
@@ -250,7 +396,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-models-landscape-2026-course.html">
+            <a class="card" href="ai-models-landscape-2026-course.html" data-added="2026-07-15" data-updated="2026-08-02" data-words="16031">
                 <div class="card-title">The 2026 AI Model Landscape — Inkling, MoE, Open Weights & Every Major Model</div>
                 <div class="card-desc">Comprehensive deep dive into the July 2026 model landscape: Thinking Machines' Inkling (975B MoE), the MoE architecture revolution, every major open-weight and closed model family, reasoning models, multimodal, small/efficient models, pricing, and what's next.</div>
                 <div class="card-footer">
@@ -258,7 +404,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="rl-for-llms-course.html">
+            <a class="card" href="rl-for-llms-course.html" data-added="2026-06-13" data-words="9119">
                 <div class="card-title">RL for LLMs: Building Coursera's AI Moat</div>
                 <div class="card-desc">Explore how reinforcement learning techniques are applied to large language models — RLHF, reward modeling, and alignment strategies for production systems.</div>
                 <div class="card-footer">
@@ -266,7 +412,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="gemma-4-local-ai-course.html">
+            <a class="card" href="gemma-4-local-ai-course.html" data-added="2026-06-13" data-words="7176">
                 <div class="card-title">Gemma 4 12B — Local AI Masterclass</div>
                 <div class="card-desc">Run state-of-the-art AI locally: quantization, fine-tuning, deployment, and performance optimization with Google's Gemma 4 model family.</div>
                 <div class="card-footer">
@@ -274,7 +420,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="voice-ai-education-course.html">
+            <a class="card" href="voice-ai-education-course.html" data-added="2026-06-13" data-words="7084">
                 <div class="card-title">Voice AI for Education</div>
                 <div class="card-desc">Building the next interface for learning — speech recognition, synthesis, real-time processing, and designing voice-first educational experiences.</div>
                 <div class="card-footer">
@@ -282,7 +428,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-evals-measurement-course.html">
+            <a class="card" href="ai-evals-measurement-course.html" data-added="2026-06-30" data-words="7059">
                 <div class="card-title">AI Evals &amp; Measurement</div>
                 <div class="card-desc">Building trustworthy AI products through rigorous measurement — eval design, datasets, LLM-as-judge, offline vs. online testing, reading results honestly, and a production measurement culture.</div>
                 <div class="card-footer">
@@ -290,7 +436,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-native-product-building-course.html">
+            <a class="card" href="ai-native-product-building-course.html" data-added="2026-07-01" data-words="18288">
                 <div class="card-title">Building AI-Native Products — From LLM Integration to AI-First Architecture</div>
                 <div class="card-desc">Advanced course on building AI-native products: LLM integration patterns, RAG deep dive, AI agent architecture with MCP, fine-tuning, AI product design patterns, evaluation, MLOps, AI at Coursera, and building an AI-first engineering org.</div>
                 <div class="card-footer">
@@ -308,7 +454,7 @@
             <h2 class="category-title">AI Agents &amp; SDKs</h2>
         </div>
         <div class="grid">
-            <a class="card" href="claude-agent-sdk-course.html">
+            <a class="card" href="claude-agent-sdk-course.html" data-added="2026-06-13" data-updated="2026-08-02" data-words="5476">
                 <div class="card-title">Claude Agent SDK — Interactive Course</div>
                 <div class="card-desc">Hands-on guide to building autonomous agents with the Claude Agent SDK: tool use, multi-turn conversations, and agent orchestration patterns.</div>
                 <div class="card-footer">
@@ -316,7 +462,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="claude-agent-network-course.html">
+            <a class="card" href="claude-agent-network-course.html" data-added="2026-06-13" data-updated="2026-08-02" data-words="13523">
                 <div class="card-title">Building an Agent Network with Claude Managed Agents</div>
                 <div class="card-desc">Design and deploy multi-agent systems — delegation, coordination, shared context, and scaling agent networks for complex workflows.</div>
                 <div class="card-footer">
@@ -324,7 +470,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="agent-tracing-observability-course.html">
+            <a class="card" href="agent-tracing-observability-course.html" data-added="2026-06-13" data-words="9254">
                 <div class="card-title">Agent Tracing &amp; Observability</div>
                 <div class="card-desc">Comprehensive course on monitoring, debugging, and optimizing AI agent systems — traces, spans, metrics, and production observability patterns.</div>
                 <div class="card-footer">
@@ -332,7 +478,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="openai-realtime-course.html">
+            <a class="card" href="openai-realtime-course.html" data-added="2026-06-13" data-words="2858">
                 <div class="card-title">OpenAI Realtime API</div>
                 <div class="card-desc">Build real-time AI applications with streaming, WebSockets, function calling, and low-latency voice and text interactions.</div>
                 <div class="card-footer">
@@ -340,7 +486,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="mcp-agentic-stack-course.html">
+            <a class="card" href="mcp-agentic-stack-course.html" data-added="2026-06-30" data-words="6346">
                 <div class="card-title">MCP &amp; the Agentic Tooling Stack</div>
                 <div class="card-desc">Deep dive into the Model Context Protocol and the full stack around it — primitives, transports, tool design, building servers, the agent harness, multi-agent orchestration, and security.</div>
                 <div class="card-footer">
@@ -348,7 +494,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="loop-engineering-course.html">
+            <a class="card" href="loop-engineering-course.html" data-added="2026-07-13" data-updated="2026-07-18" data-words="17674" data-video="1">
                 <div class="card-title">Loop Engineering — Designing Systems That Run AI Agents</div>
                 <div class="card-desc">The definitive course on the hot new discipline (June 2026): designing automated, self-correcting loops for coding agents. Based on Addy Osmani, Boris Cherny, Geoffrey Huntley, and Peter Steinberger. 10 modules, 30+ code examples, 15K+ words, plus an animated explainer and in-module concept clips.</div>
                 <div class="card-footer">
@@ -356,7 +502,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-adoption-steps-course.html">
+            <a class="card" href="ai-adoption-steps-course.html" data-added="2026-07-18" data-words="400" data-video="1">
                 <div class="card-title">The 5 Steps of AI Adoption — From Gated to AI-Native</div>
                 <div class="card-desc">Boris Cherny's ladder for how a team grows into working with AI: Gated → Assisted → Parallel → Supervised Autonomy → AI-Native, and how leverage climbs from 0 to 1,000+ agents per engineer. Includes a 42-second animated explainer.</div>
                 <div class="card-footer">
@@ -364,7 +510,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="coding-agents-course.html">
+            <a class="card" href="coding-agents-course.html" data-added="2026-06-30" data-words="33223">
                 <div class="card-title">Coding Agents — Using AI to Build Software 10x Faster</div>
                 <div class="card-desc">The practical guide to the 2026 coding agent landscape: Claude Code, Cursor, Copilot, Kiro, Devin, and more — effective prompting, real-world workflows, and building an agent-first engineering culture.</div>
                 <div class="card-footer">
@@ -372,7 +518,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-agents-production-course.html">
+            <a class="card" href="ai-agents-production-course.html" data-added="2026-06-29" data-words="14480">
                 <div class="card-title">AI Agents in Production</div>
                 <div class="card-desc">Agent architectures (ReAct, plan-and-execute, multi-agent), tool use, MCP, memory systems, guardrails, evaluation frameworks, cost optimization, observability, and real-world case studies.</div>
                 <div class="card-footer">
@@ -390,7 +536,7 @@
             <h2 class="category-title">Certifications &amp; Exam Prep</h2>
         </div>
         <div class="grid">
-            <a class="card" href="claude-certified-architect-prep-course.html">
+            <a class="card" href="claude-certified-architect-prep-course.html" data-added="2026-07-12" data-words="22500">
                 <div class="card-title">Claude Certified Architect (CCA-F) — Complete Exam Prep</div>
                 <div class="card-desc">Comprehensive prep for Anthropic's CCA-F certification exam: all 5 domains (agentic architecture, MCP, Claude Code, prompt engineering, context management), 120 practice questions, full mock exam with timer, and quick-reference cheat sheet.</div>
                 <div class="card-footer">
@@ -398,7 +544,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="anthropic-academy-study-guide.html">
+            <a class="card" href="anthropic-academy-study-guide.html" data-added="2026-07-12" data-words="12988">
                 <div class="card-title">Anthropic Academy — Complete Study Guide for All Free Courses</div>
                 <div class="card-desc">Companion study guide covering all 17+ free Anthropic Academy courses: API fundamentals, Claude Code mastery, Agent SDK &amp; subagents, MCP, prompt engineering, production patterns, and a CCA-F certification readiness checklist with study plans.</div>
                 <div class="card-footer">
@@ -416,7 +562,7 @@
             <h2 class="category-title">Learning &amp; Education</h2>
         </div>
         <div class="grid">
-            <a class="card" href="ai-native-learning-course.html">
+            <a class="card" href="ai-native-learning-course.html" data-added="2026-07-26" data-words="17147" data-video="1">
                 <div class="card-title">Learning That Proves Itself — AI-Native Learning and the Evidence Behind It</div>
                 <div class="card-desc">The same GPT-4 raised practice scores 48% and left students 17% <em>worse</em> on the exam they took without it &mdash; while a hints-only variant raised practice 127% and erased the harm. Built on the pre-registered PNAS RCT and a 2026 evidence review: the replicated pedagogy core and where it backfires, honest effect sizes against the 2-sigma myth, and a six-level architecture whose credential is an evidence chain that decays. 15 modules with quizzes &amp; flashcards.</div>
                 <div class="card-footer">
@@ -434,7 +580,7 @@
             <h2 class="category-title">Cloud &amp; Edge Platforms</h2>
         </div>
         <div class="grid">
-            <a class="card" href="cloudflare-platform-course.html">
+            <a class="card" href="cloudflare-platform-course.html" data-added="2026-06-30" data-words="13709">
                 <div class="card-title">Cloudflare for Developers — The Full Stack Edge Platform</div>
                 <div class="card-desc">The complete Cloudflare developer platform: Workers, KV, R2, D1, Pages, Workers AI, Durable Objects, security, and why coding agents make it the new default for internal tools.</div>
                 <div class="card-footer">
@@ -452,7 +598,7 @@
             <h2 class="category-title">Infrastructure &amp; Architecture</h2>
         </div>
         <div class="grid">
-            <a class="card" href="system-design-at-scale-course.html">
+            <a class="card" href="system-design-at-scale-course.html" data-added="2026-06-29" data-words="14790">
                 <div class="card-title">System Design at Scale</div>
                 <div class="card-desc">Distributed systems, microservices vs monolith, database sharding, caching strategies, load balancing, message queues, CAP theorem, and 5 interview-ready system design problems with solutions.</div>
                 <div class="card-footer">
@@ -460,7 +606,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="platform-engineering-course.html">
+            <a class="card" href="platform-engineering-course.html" data-added="2026-06-29" data-words="13402">
                 <div class="card-title">Platform Engineering</div>
                 <div class="card-desc">Internal developer platforms, CI/CD pipelines, Terraform &amp; Kubernetes in production, observability with OpenTelemetry, SRE practices, feature flags, and database migrations at scale.</div>
                 <div class="card-footer">
@@ -468,7 +614,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-infrastructure-at-scale-course.html">
+            <a class="card" href="ai-infrastructure-at-scale-course.html" data-added="2026-06-13" data-words="4307">
                 <div class="card-title">AI Infrastructure at Scale</div>
                 <div class="card-desc">Production operations for AI systems — GPU clusters, model serving, inference optimization, cost management, and reliability engineering.</div>
                 <div class="card-footer">
@@ -476,7 +622,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="claims-system-architecture-course.html">
+            <a class="card" href="claims-system-architecture-course.html" data-added="2026-06-13" data-words="25781">
                 <div class="card-title">Health Insurance Claims Systems Architecture</div>
                 <div class="card-desc">CTO-level deep dive into claims processing systems — event-driven architecture, HIPAA compliance, real-time adjudication, and system modernization.</div>
                 <div class="card-footer">
@@ -494,7 +640,7 @@
             <h2 class="category-title">Data Engineering &amp; Analytics</h2>
         </div>
         <div class="grid">
-            <a class="card" href="data-engineering-analytics-course.html">
+            <a class="card" href="data-engineering-analytics-course.html" data-added="2026-06-29" data-words="17346">
                 <div class="card-title">Data Engineering &amp; Analytics for Leaders</div>
                 <div class="card-desc">Modern data stack, Snowflake/BigQuery/Redshift, dbt, Airflow, real-time streaming with Kafka &amp; Flink, data mesh vs lakehouse, A/B testing infrastructure, and ML feature stores.</div>
                 <div class="card-footer">
@@ -512,7 +658,7 @@
             <h2 class="category-title">Security &amp; Compliance</h2>
         </div>
         <div class="grid">
-            <a class="card" href="fedramp-course.html">
+            <a class="card" href="fedramp-course.html" data-added="2026-07-27" data-words="13595">
                 <div class="card-title">FedRAMP for SaaS Leaders — A Coursera Decision Guide</div>
                 <div class="card-desc">The 2026 CR26 overhaul, Certification Classes A&ndash;D, and the FedRAMP 20x fast track. Should Coursera pursue federal certification? Market sizing, competitor status, engineering implications, an interactive cost estimator, a readiness checklist, CMMC, and a 90-day decision plan.</div>
                 <div class="card-footer">
@@ -520,7 +666,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="cybersecurity-tech-leaders-course.html">
+            <a class="card" href="cybersecurity-tech-leaders-course.html" data-added="2026-06-29" data-words="13969">
                 <div class="card-title">Cybersecurity for Technology Leaders</div>
                 <div class="card-desc">Zero trust architecture, SOC 2 Type II, OWASP Top 10, supply chain security, secrets management, IAM, vulnerability management, and the Instructure/Canvas breach case study.</div>
                 <div class="card-footer">
@@ -538,7 +684,7 @@
             <h2 class="category-title">Product Strategy</h2>
         </div>
         <div class="grid">
-            <a class="card" href="ai-product-strategy-edtech-course.html">
+            <a class="card" href="ai-product-strategy-edtech-course.html" data-added="2026-06-13" data-words="6054">
                 <div class="card-title">AI Product Strategy for Edtech Leaders</div>
                 <div class="card-desc">Strategic frameworks for integrating AI into education products — market positioning, user research, roadmapping, and competitive moats.</div>
                 <div class="card-footer">
@@ -556,7 +702,7 @@
             <h2 class="category-title">Business &amp; Strategy</h2>
         </div>
         <div class="grid">
-            <a class="card" href="fanatics-collect-business-course.html">
+            <a class="card" href="fanatics-collect-business-course.html" data-added="2026-06-14" data-words="6694">
                 <div class="card-title">Fanatics Collect — The Business of Collectibles</div>
                 <div class="card-desc">A CTO-level briefing on Fanatics: the direct-to-fan empire, the trading-card economy, Collect vs Collectibles vs Live, the competitive landscape, marketplace/vault/auction architecture, and a first-90-days playbook.</div>
                 <div class="card-footer">
@@ -564,7 +710,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="kiddom-company-cto-course.html">
+            <a class="card" href="kiddom-company-cto-course.html" data-added="2026-06-30" data-words="7416">
                 <div class="card-title">Kiddom — The Business of K-12 Curriculum</div>
                 <div class="card-desc">A CTO onboarding briefing on Kiddom: the "human-first" thesis, the K-12 / HQIM market, the curriculum + LMS + assessment + AI platform, the partner-content moat and its fault line, competitors, a reference architecture, and a first-90-days playbook.</div>
                 <div class="card-footer">
@@ -572,7 +718,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="bending-spoons-course.html">
+            <a class="card" href="bending-spoons-course.html" data-added="2026-07-01" data-words="14324">
                 <div class="card-title">Bending Spoons — IPO &amp; Operating Model Deep Dive</div>
                 <div class="card-desc">How an Italian startup built an $18B acquisition machine: the F-1 filing, the buy-cut-optimize playbook, 50+ acquisitions (Evernote, Vimeo, AOL), AI-first engineering with ~800 people running 500M+ users, and lessons for tech leaders.</div>
                 <div class="card-footer">
@@ -580,7 +726,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="instructure-company-course.html">
+            <a class="card" href="instructure-company-course.html" data-added="2026-06-30" data-words="6499">
                 <div class="card-title">Instructure — The Business of Canvas &amp; the Learning Ecosystem</div>
                 <div class="card-desc">A company briefing on Instructure (maker of Canvas LMS): the BYU open-source origin, the LMS market, the Canvas + Mastery + Parchment ecosystem, the IPO &rarr; Thoma Bravo &rarr; KKR private-equity story, the post-Blackboard-collapse competitive map, a reference architecture, the IgniteAI strategy, and a risk-and-playbook module shaped by the 2026 breach.</div>
                 <div class="card-footer">
@@ -588,7 +734,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="pe-playbook-tech-course.html">
+            <a class="card" href="pe-playbook-tech-course.html" data-added="2026-07-01" data-updated="2026-07-15" data-words="16970">
                 <div class="card-title">The PE Playbook for Tech — How Private Equity Actually Runs Software Companies</div>
                 <div class="card-desc">LBO mechanics, the operating playbooks of Thoma Bravo, Vista, KKR, Silver Lake, Francisco Partners &amp; H&amp;F, what CTOs experience under PE, the Instructure/KKR case study, financial engineering, PE success stories and failures, and a practical framework for evaluating PE-backed roles.</div>
                 <div class="card-footer">
@@ -606,7 +752,7 @@
             <h2 class="category-title">Engineering Leadership</h2>
         </div>
         <div class="grid">
-            <a class="card" href="engineering-leadership-course.html">
+            <a class="card" href="engineering-leadership-course.html" data-added="2026-06-29" data-words="14656">
                 <div class="card-title">Engineering Leadership at Scale</div>
                 <div class="card-desc">Managing managers, org design (pods, chapters, guilds), hiring at scale, performance management, engineering culture, roadmap planning, reorgs, remote teams, and developer experience.</div>
                 <div class="card-footer">
@@ -614,7 +760,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="executive-communication-course.html">
+            <a class="card" href="executive-communication-course.html" data-added="2026-06-29" data-words="16224">
                 <div class="card-title">Negotiation &amp; Executive Communication</div>
                 <div class="card-desc">BATNA/ZOPA frameworks, VP/CTO compensation negotiation with real numbers, board presentations, executive presence, crisis communication, and a CPTO role negotiation playbook.</div>
                 <div class="card-footer">
@@ -632,7 +778,7 @@
             <h2 class="category-title">Finance &amp; Wealth</h2>
         </div>
         <div class="grid">
-            <a class="card" href="personal-finance-advanced-course.html">
+            <a class="card" href="personal-finance-advanced-course.html" data-added="2026-06-29" data-words="15168">
                 <div class="card-title">Advanced Personal Finance &amp; Investing</div>
                 <div class="card-desc">Options strategies, angel investing, concentrated stock management, RSU/ISO optimization, direct indexing, real estate syndications, estate planning, mega backdoor Roth, and philanthropy strategies.</div>
                 <div class="card-footer">
@@ -640,7 +786,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="wealth-planning-course.html">
+            <a class="card" href="wealth-planning-course.html" data-added="2026-06-13" data-words="12927">
                 <div class="card-title">Wealth Planning &amp; Tax Efficiency</div>
                 <div class="card-desc">A course for tech executives — equity compensation, tax-loss harvesting, estate planning, RSU strategies, and building long-term wealth.</div>
                 <div class="card-footer">
@@ -658,7 +804,7 @@
             <h2 class="category-title">Travel Guides</h2>
         </div>
         <div class="grid">
-            <a class="card" href="Iceland_Driving_Guide.html">
+            <a class="card" href="Iceland_Driving_Guide.html" data-added="2026-06-13" data-words="1953">
                 <div class="card-title">Driving in Iceland — A Bay Area Driver's Guide</div>
                 <div class="card-desc">Everything you need to know about driving Iceland's Ring Road and beyond — F-roads, weather, fuel stops, safety tips, and scenic detours.</div>
                 <div class="card-footer">
@@ -676,7 +822,7 @@
             <h2 class="category-title">Personal &amp; Life</h2>
         </div>
         <div class="grid">
-            <a class="card" href="citizenship-interview-prep-course.html">
+            <a class="card" href="citizenship-interview-prep-course.html" data-added="2026-07-19" data-words="5586">
                 <div class="card-title">U.S. Citizenship Interview Prep — N-400, English &amp; the 2025 Civics Test</div>
                 <div class="card-desc">The complete, interactive guide to the naturalization interview: what happens in the room, a line-by-line N-400 review (including the 2026 &ldquo;define the legal term&rdquo; trend), the English reading/writing/speaking test with the official vocabulary lists, and all 128 civics questions of the 2025 test as interactive quizzes and flashcards — plus a mock interview, California-specific answers, and a day-of checklist. 14 modules.</div>
                 <div class="card-footer">
@@ -692,6 +838,242 @@
 <footer>
     Mustafa Furniturewala &middot; 2026
 </footer>
+
+<script>
+/* Index tools — sort, search, category filter. No dependencies, no build step.
+ * Reads metadata stamped onto each card by scripts/sync-index-data.js:
+ *   data-added / data-updated  YYYY-MM-DD    data-words  reading time
+ * Everything else (title, type, category) is read from the DOM, so editing a
+ * card's copy never needs a rerun. The toolbar is injected rather than written
+ * into the markup, so with JS off you get the plain category listing — exactly
+ * the page that shipped before this feature. Styles live in the <style> block
+ * above, alongside the rest of this page's CSS.
+ */
+(function () {
+    'use strict';
+
+    var main = document.querySelector('main');
+    var cards = [].slice.call(document.querySelectorAll('main .card'));
+    if (!main || !cards.length) return;
+    var sections = [].slice.call(main.querySelectorAll('.category'));
+
+    /* ---- snapshot home grid + search text BEFORE anything moves ----
+       Once flattened, every card's closest('.category') is section 1. */
+    cards.forEach(function (c, i) {
+        var sec = c.closest('.category');
+        var tag = sec.querySelector('.category-tag');
+        var title = sec.querySelector('.category-title');
+        c._home = c.parentElement;
+        c._ord = i;                                   // curated order = tiebreaker
+        c._key = (tag.className.match(/tag-[a-z]+/) || [''])[0];
+        c._short = (tag.textContent || '').trim();
+        c._title = (c.querySelector('.card-title').textContent || '').trim().toLowerCase();
+        c._words = +c.getAttribute('data-words') || 0;
+        c._hay = (c.textContent + ' ' + (title.textContent || ''))
+                     .toLowerCase().replace(/\s+/g, ' ');
+    });
+    var firstGrid = cards[0]._home;
+
+    /* ---- dates: ISO strings only. new Date('2026-07-27') is UTC midnight,
+           which renders as Jul 26 in every US timezone. ---- */
+    var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var THIS_YEAR = String(new Date().getFullYear());
+    function added(c)   { return c.getAttribute('data-added') || ''; }
+    function updated(c) { return c.getAttribute('data-updated') || added(c); }
+    function pretty(iso) {
+        var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+        if (!m) return '';
+        return MON[+m[2] - 1] + ' ' + (+m[3]) + (m[1] === THIS_YEAR ? '' : ', ' + m[1]);
+    }
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function daysAgo(n) {                              // local time, no UTC drift
+        var d = new Date();
+        d.setDate(d.getDate() - n);
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+    var NEW_CUTOFF = daysAgo(14);
+    var UPD_CUTOFF = daysAgo(21);
+
+    function esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    /* ---- meta line on each card: badge, category dot, reading time, date ---- */
+    cards.forEach(function (c) {
+        var a = added(c), u = updated(c);
+        var meta = document.createElement('div');
+        meta.className = 'card-meta';
+
+        var html = '';
+        if (a && a >= NEW_CUTOFF) html += '<span class="card-badge is-new">NEW</span>';
+        else if (u > a && u >= UPD_CUTOFF) html += '<span class="card-badge is-upd">UPDATED</span>';
+
+        var parts = ['<span class="card-cat"><span class="card-dot ' + c._key + '"></span>' +
+                     esc(c._short) + '</span>'];
+        if (c._words) parts.push('<span>&#9719; ' + Math.max(1, Math.round(c._words / 200)) + ' min</span>');
+        if (a) parts.push('<span>' + (u > a ? 'Updated ' : '') + pretty(u > a ? u : a) + '</span>');
+
+        meta.innerHTML = html + parts.join('<span class="card-sep">&middot;</span>');
+        c.insertBefore(meta, c.querySelector('.card-footer'));
+    });
+
+    /* ---- toolbar ---- */
+    var bar = document.createElement('div');
+    bar.className = 'toolbar';
+    bar.innerHTML =
+        '<div class="toolbar-row">' +
+            '<input id="idx-q" type="search" placeholder="Filter courses&hellip;" ' +
+                   'aria-label="Filter courses" autocomplete="off" spellcheck="false">' +
+            '<select id="idx-sort" aria-label="Sort courses">' +
+                '<option value="cat">By category</option>' +
+                '<option value="upd">Recently updated</option>' +
+                '<option value="add">Recently added</option>' +
+                '<option value="az">Title A&ndash;Z</option>' +
+                '<option value="long">Longest read</option>' +
+                '<option value="short">Shortest read</option>' +
+            '</select>' +
+            '<span class="toolbar-count" id="idx-count"></span>' +
+        '</div>' +
+        '<div class="chips" id="idx-chips" role="group" aria-label="Filter by category"></div>';
+    main.insertBefore(bar, main.firstChild);
+
+    var q = bar.querySelector('#idx-q');
+    var sortSel = bar.querySelector('#idx-sort');
+    var count = bar.querySelector('#idx-count');
+    var chipWrap = bar.querySelector('#idx-chips');
+    var statCourses = document.getElementById('stat-courses');
+    var statCats = document.getElementById('stat-categories');
+
+    var activeCat = '';
+    var chips = [];
+
+    function addChip(key, label, cls) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip category-tag ' + cls;
+        b.textContent = label;
+        b.setAttribute('aria-pressed', 'false');
+        b.addEventListener('click', function () {
+            activeCat = (activeCat === key) ? '' : key;
+            apply();
+        });
+        chips.push({ el: b, key: key });
+        chipWrap.appendChild(b);
+    }
+    addChip('', 'All', 'chip-all');
+    sections.forEach(function (s) {
+        var t = s.querySelector('.category-tag');
+        addChip((t.className.match(/tag-[a-z]+/) || [''])[0], (t.textContent || '').trim(),
+                (t.className.match(/tag-[a-z]+/) || [''])[0]);
+    });
+
+    /* ---- empty state ---- */
+    var empty = document.createElement('div');
+    empty.className = 'idx-empty';
+    empty.hidden = true;
+    empty.innerHTML = '<div id="idx-empty-msg"></div><button type="button">Clear filters</button>';
+    empty.querySelector('button').addEventListener('click', function () {
+        q.value = ''; activeCat = ''; apply();
+    });
+    main.appendChild(empty);
+
+    /* ---- sorting. ISO dates compare lexicographically; '0' sinks undated cards. ---- */
+    var CMP = {
+        upd:   function (a, b) { return (updated(b) || '0').localeCompare(updated(a) || '0') || a._ord - b._ord; },
+        add:   function (a, b) { return (added(b)   || '0').localeCompare(added(a)   || '0') || a._ord - b._ord; },
+        az:    function (a, b) { return a._title.localeCompare(b._title); },
+        long:  function (a, b) { return b._words - a._words || a._ord - b._ord; },
+        short: function (a, b) { return a._words - b._words || a._ord - b._ord; }
+    };
+
+    function layout() {
+        var cmp = CMP[sortSel.value];
+        if (!cmp) {
+            // `cards` is in document order, so re-homing in that order restores it exactly.
+            cards.forEach(function (c) { c._home.appendChild(c); });
+            main.classList.remove('flat');
+        } else {
+            // appendChild on an attached node MOVES it — no cloning, no lost handlers.
+            cards.slice().sort(cmp).forEach(function (c) { firstGrid.appendChild(c); });
+            main.classList.add('flat');
+        }
+    }
+
+    function filter() {
+        var terms = q.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        var shown = 0, cats = {}, n = 0;
+        cards.forEach(function (c) {
+            var hit = (!activeCat || c._key === activeCat) && terms.every(function (t) {
+                return c._hay.indexOf(t) !== -1;
+            });
+            c.hidden = !hit;
+            if (hit) { shown++; if (!cats[c._key]) { cats[c._key] = 1; n++; } }
+        });
+        // Also collapses sections 2-14 in flat mode: they're empty, so nothing matches.
+        sections.forEach(function (s) { s.hidden = !s.querySelector('.card:not([hidden])'); });
+
+        var filtered = terms.length > 0 || activeCat;
+        count.textContent = filtered ? shown + ' of ' + cards.length : cards.length + ' courses';
+        statCourses.textContent = shown;
+        statCats.textContent = n;
+
+        empty.hidden = shown > 0;
+        if (!shown) {
+            document.getElementById('idx-empty-msg').textContent =
+                terms.length ? 'No courses match “' + q.value.trim() + '”.' : 'No courses in this category.';
+        }
+    }
+
+    function syncChips() {
+        chips.forEach(function (c) {
+            c.el.setAttribute('aria-pressed', c.key === activeCat ? 'true' : 'false');
+        });
+    }
+
+    // replaceState, not pushState — Back should leave the index, not walk filter states.
+    function syncUrl() {
+        var p = [];
+        if (q.value.trim()) p.push('q=' + encodeURIComponent(q.value.trim()));
+        if (sortSel.value !== 'cat') p.push('sort=' + sortSel.value);
+        if (activeCat) p.push('cat=' + activeCat.slice(4));
+        try {
+            history.replaceState(null, '', p.length ? '?' + p.join('&') : location.pathname);
+        } catch (e) { /* file:// — harmless */ }
+    }
+
+    function apply() { syncChips(); layout(); filter(); syncUrl(); }
+
+    /* ---- restore from URL ---- */
+    (function restore() {
+        var p = {};
+        location.search.replace(/^\?/, '').split('&').forEach(function (kv) {
+            if (!kv) return;
+            var i = kv.indexOf('=');
+            p[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, ' '));
+        });
+        if (p.q) q.value = p.q;
+        if (p.sort && [].some.call(sortSel.options, function (o) { return o.value === p.sort; })) {
+            sortSel.value = p.sort;
+        }
+        if (p.cat) {
+            var k = 'tag-' + p.cat;
+            if (cards.some(function (c) { return c._key === k; })) activeCat = k;
+        }
+    })();
+
+    sortSel.addEventListener('change', apply);
+    q.addEventListener('input', function () { filter(); syncUrl(); });
+
+    document.addEventListener('keydown', function (e) {
+        var typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+        if (e.key === '/' && !typing) { e.preventDefault(); q.focus(); }
+        else if (e.key === 'Escape' && document.activeElement === q) { q.value = ''; apply(); }
+    });
+
+    apply();
+})();
+</script>
 
 <script>
 if ('serviceWorker' in navigator) {
