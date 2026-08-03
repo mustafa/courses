@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: July 27, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: August 3, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,15 @@ Last updated: July 27, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of August 2, 2026
+
+-   **@polynoamial (OpenAI):** The week's biggest story. Brown announced on August 1 that an internal version of [Astra — OpenAI's next major model family — produced new results on ten problems open for at least a decade](https://the-decoder.com/openai-announces-its-next-major-model-astra-by-dropping-ten-previously-unsolved-math-solutions/), across sphere packing, von Neumann algebras, circuit complexity, quantum complexity, lattice cryptography and Ramsey theory. Each came with a machine-checkable Lean certificate, and the whole run cost roughly $2,000 in API compute. Brown's own caveat matters as much as the claim: "sadly no Millennium Prize problems (yet)… we didn't spend a lot on each problem."
+-   **Counterpoint worth reading:** Gary Marcus published ["amazing — but vastly oversold"](https://garymarcus.substack.com/p/openais-amazing-but-vastly-oversold) on August 2, arguing the methodology isn't public and that math is a special case: it has symbolic verification and cheap correct synthetic data, so success there doesn't transfer to open-ended reasoning. He also flagged that at least one Astra proof may be wrong. Hold both — the result is real and the generalization claim is unproven.
+-   **@milichab & @skcd42 (xAI):** Musk [dated Grok 4.6 to around August 7](https://crypto.news/grok-4-6-gets-aug-7-launch-date-grok-4-7-follows/) on July 28, and the specs walked back last week's numbers: 1.5T parameters on the same V9 foundation as 4.5, not a 2T new base. The improvement is post-training — better SFT and RL — with 4.7 (2.1T) a few weeks out. xAI is now shipping gains from training technique rather than scale, which is a notable shift in its own right.
+-   **@trq212 (Anthropic):** His [context-engineering post for Claude 5 models](https://x.com/trq212/status/2080710971228918066) kept spreading all week. Anthropic cut Claude Code's system prompt from ~2,686 words to ~514 with no measurable loss on coding evals — but the instructions were *relocated* into tool descriptions and skills, not deleted. The six shifts he names (rules → judgment, examples → interface design, upfront context → progressive disclosure) are the most directly actionable thing on this list for anyone writing CLAUDE.md files.
+-   **@karpathy (Anthropic):** Released a document on agent architecture that [trended on X](https://www.aibuilderclub.com/blog/loop-engineering-karpathy) — nine rules for pushing execution and bookkeeping onto the model and keeping state on disk, so the human sets up a gen-verify loop instead of prompting turn by turn. It's the formal version of the "agentic engineering, not vibe coding" line he's been making since Sequoia Ascent.
+-   **@OfficialLoganK (Google AI):** Gemini 3.6 Flash and 3.5 Flash-Lite went [generally available in the API](https://ai.google.dev/gemini-api/docs/changelog), and Kilpatrick has now hinted at an August window for 3.5 Pro after three slips. Four months of Pro delay while Gemini 4 pre-training is already underway is starting to look less like a schedule problem and more like a decision about which model is worth shipping.
 
 ### Week of July 26, 2026
 
@@ -267,8 +276,8 @@ xAI ships faster than any other lab, and these two accounts are how you keep up:
 -   **Grok Build (May 2026):** skcd's project — a coding agent "built by engineers who live in the terminal: people who reach for vim, think in keybindings, and treat the alt-screen as home." xAI's answer to Claude Code.
 -   **Grok Voice (June 4):** Conversational spoken interaction in the Grok mobile app.
 -   **Grok Imagine Video 1.5:** #1 on the Image-to-Video Arena — 720p clips up to 15 seconds with native audio.
--   **Grok 4.6 (training complete, week of July 20):** A 2T-parameter model built explicitly to beat Moonshot's Kimi K3 on benchmarks; in post-training as of late July.
--   **Grok 4.7 watch:** Estimated 4–6T parameters, already on the roadmap only weeks behind 4.6. The 6T Grok 5 line has effectively been renumbered into this cadence; Q3 2026 or later remains the realistic window for the largest model.
+-   **Grok 4.6 (dated ~August 7, 2026):** Musk confirmed the specs on July 28, and they revise earlier reporting downward: 1.5T parameters, reusing the same V9 foundation as Grok 4.5 rather than scaling up. The gains come from improved supervised fine-tuning and RL, which keeps 4.5's speed and token efficiency. Target: Kimi K3 and the Opus tier.
+-   **Grok 4.7 watch:** 2.1T parameters, a few weeks behind 4.6 — "better in every way except slightly slower to serve," with better token efficiency again. The 6T Grok 5 line has effectively been renumbered into this cadence; the largest model remains Q3 2026 or later.
 
 Why Follow xAI Accounts
 
@@ -319,4 +328,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated July 27, 2026.
+Updated weekly by an automated research task. Last updated August 3, 2026.
