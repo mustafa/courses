@@ -1,0 +1,1992 @@
+CLOUDFLARE OS — THE OPEN-SOURCE AI OPERATING SYSTEM FOR COMPANIES
+=================================================================
+
+    Shipped today — August 5, 2026
+
+=============
+CLOUDFLARE OS
+=============
+
+
+    Cloudflare just open-sourced the AI workspace that runs its own company — agents, user-owned apps, and a capability-based security layer that finally makes human-in-the-loop asynchronous. Here is what it actually is, how it is built, and whether Coursera should run one.
+
+      8 modules·
+      ~75 min read·
+      Apache 2.0·
+      Built for Mustafa Furniturewala, VP Engineering, Coursera
+
+
+
+
+  Aug 5Open-sourced (Agents Week)
+  v2Complete rewrite, early access
+  16Gatekeeper packages shipped
+  Apache 2.0License — fork it freely
+
+
+  Progress
+
+  0 / 8 complete
+
+
+  How to read this course
+  Modules 1–6 are the technology, sourced directly from the cloudflare/cloudflare-os repository, its docs/ directory, the write-gatekeeper agent skill, and the deployment starter repo. Module 7 is the one that matters for your day job — a real adopt/don't-adopt analysis for Coursera, including a correction to a common assumption about Coursera's infrastructure that changes the cost model. Module 8 places it against Retool, Copilot Studio, Glean, and plain MCP.
+  Every technical claim traces to primary source. Every Coursera claim is either public knowledge or explicitly flagged Verify.
+
+
+  1What Is Cloudflare OS?
+  2Gadgets — A New Software Paradigm
+  3Gatekeepers — Secure Agent Access
+  4The Architecture
+  5Security Deep Dive
+  6Getting Started
+  7Coursera Analysis — Should We Adopt?
+  8Competitive Landscape
+
+
+
+--------------------------------
+Module 1: What Is Cloudflare OS?
+--------------------------------
+
+
+
+
+    On August 5, 2026, as part of Agents Week, Cloudflare open-sourced the internal AI workspace that a large portion of its own workforce — engineering through sales — uses every day. It is not a chatbot with connectors. It is a runtime with a kernel, drivers, processes, and a permission model.
+
+
+The announcement, precisely
+---------------------------
+
+
+
+        * Repository: github.com/cloudflare/cloudflare-os — note the name is cloudflare-os, not os. Apache 2.0.
+
+        * Homepage / hosted deploy flow: os.cloudflare.app
+
+        * Deployment starter: github.com/cloudflare/cloudflare-os-starter — a wrapper repo for pinning a release and customizing it without patching upstream.
+
+        * Status: the public repo is version 2, a complete rewrite of the internal v1 on a new foundation. Cloudflare labels it Early Access and says plainly that it has many rough edges.
+
+        * Rollout partners: Presidio and Happy Cog offer customization and rollout services — a signal that Cloudflare expects enterprise deployments to need integration help.
+
+
+
+
+      The thesis, in Cloudflare's own words
+      “make it Your Company OS” — cloudflare/cloudflare-os README
+      That single line is the product strategy. The expectation is not that you run Cloudflare's OS. It is that you fork it, load it with your company's context, wire it to your systems, and run your own.
+
+
+
+Two meanings of “operating system”
+----------------------------------
+
+
+    The term is doing double duty, and both senses are load-bearing:
+
+
+
+1. An OS for the company
+
+
+        A way for a whole organization to be productive with AI safely — the README's framing is that the security team should be able to sleep at night. Non-technical staff can build and run things without a security review per artifact.
+
+
+
+2. An OS for AI workloads
+
+
+        In the literal systems sense: it schedules and isolates untrusted code, mediates access to external devices, enforces permissions, and manages identities — the same job a kernel does for processes.
+
+
+
+
+The three things it provides
+----------------------------
+
+
+
+
+
+Agent chat UI, preloaded with company context
+
+
+        Ask agents to do tasks. The agent knows how your company operates — terminology, systems, conventions — because you loaded that context in. It is a Code Mode agent: it performs tasks by writing and immediately executing code snippets, not by emitting tool-call JSON.
+
+
+
+Sandboxed application development — “Gadgets”
+
+
+        Ask an agent to build a small personal app. It runs in an isolated sandbox that you own, and you can safely share it. Covered in Module 2.
+
+
+
+A security framework — “Gatekeepers”
+
+
+        Guardrails applied to both agents and apps, such that (the README's phrasing) non-technical users can go nuts and nothing bad happens. Covered in Module 3.
+
+
+
+
+What it is not
+--------------
+
+
+
+
+People assume…	|	Reality
+It is a Linux distribution / real OS	|	No. Zero kernel code. The OS metaphor describes the architecture, and Module 4 shows how far the analogy actually holds.
+It is ChatGPT Enterprise with connectors	|	No. A connector gives an agent ambient access to a whole service. A Gatekeeper gives it a typed capability over one resource, with logging, approvals, and simulation.
+It is a SaaS product Cloudflare sells you	|	No. It is source you deploy into your own account. Cloudflare's pitch is explicitly anti-lock-in: you own what you build on it.
+It is a low-code app builder	|	Closer, but the differentiator is that every user gets their own private instance of every app. That is a different distribution model, not a different editor.
+It only runs on Cloudflare	|	Mostly true today. workerd self-hosting is documented as COMING SOON. See Module 6 — this materially affects the adoption calculus.
+
+
+
+
+
+How Cloudflare uses it internally
+---------------------------------
+
+
+    This is the strongest available evidence that the thing works: it is not a demo Cloudflare built for a launch. Per the README and the launch materials, thousands of Cloudflare employees across every team use it daily to research, create documents connected to live data, automate repetitive work, and build working apps for their jobs. The engineering-to-sales span is the interesting claim — it means the sandbox and approval model are tolerable to people who will never read the code.
+
+
+      Read this before you get excited
+      The README's own warning: Cloudflare OS is in a state of heavy development, and the August 2026 release is “very capable, but still has many rough edges.” Treat it as early access, and see Module 7 for what that means for a pilot's risk profile.
+
+
+
+      Why this should be on your radar at Coursera
+      You already have the two ingredients this system assumes: a workforce that wants AI leverage beyond chat, and internal systems (course catalog, learner analytics, Salesforce, internal APIs) that nobody wants to expose to a generic agent. Cloudflare OS is the first credible open-source answer to “how do we let 500 non-engineers build against our internal data without 500 security reviews?” Whether the answer is good enough is Module 7.
+
+
+
+Check yourself
+--------------
+
+
+    Q: In what two senses does Cloudflare use the word "operating system"?  * A Linux distribution, and a container runtime
+  * An OS for the company to be productive with AI safely, and an OS for managing AI workloads the way a kernel manages compute (correct)
+  * A desktop environment, and a mobile OS
+  * A CI system, and a package manager
+Explanation: Both senses are explicit in the README: an OS for the company to use AI safely so the security team can sleep, and an OS for AI workloads analogous to how a traditional OS manages compute workloads.
+    Q: What is the correct GitHub repository and license for Cloudflare OS?  * cloudflare/os, MIT
+  * cloudflare/cloudflare-os, Apache 2.0 (correct)
+  * cloudflare/workerd, BSD
+  * cloudflare/workshop, AGPL
+Explanation: The repo is github.com/cloudflare/cloudflare-os under Apache 2.0. The deployment wrapper is a separate repo, cloudflare/cloudflare-os-starter.
+    Q: What does Cloudflare say the intended adoption pattern is?  * Companies subscribe to Cloudflare OS as a hosted SaaS product
+  * Companies fork it and make it "Your Company OS" loaded with their own context and systems (correct)
+  * Only Cloudflare runs it; the source is published for reference
+  * It replaces your identity provider
+Explanation: The README states the idea is not that your company uses Cloudflare OS, but that you make it 'Your Company OS' — fork, customize, load your context.
+
+
+      Why would Cloudflare give this away?
+      Three reasons worth naming, because they affect how durable the project is:
+      1. It sells the substrate. Cloudflare OS is a maximal showcase for Workers, Durable Objects, Dynamic Workers, Facets, KV, R2, Browser Rendering, and AI Gateway. Every deployment is a large, sticky Workers bill. The code is free; the runtime is not.
+      2. It is a runtime forcing function. The README states that Dynamic Workers, Facets, and several other runtime features were added specifically to support Cloudflare OS. Open-sourcing the flagship consumer pressure-tests those primitives in public.
+      3. Distribution against closed suites. Against Microsoft and Google bundling AI into the productivity suite, an open, self-owned alternative is the only differentiated play Cloudflare has. “You own what you build” is a wedge against lock-in, which is Cloudflare's standard positioning.
+      The implication for you: the incentives point toward Cloudflare maintaining this seriously, but they also point toward it staying Cloudflare-runtime-shaped. Do not expect first-class portability to be prioritized.
+
+
+
+
+
+
+-------------------------------------------
+Module 2: Gadgets — A New Software Paradigm
+-------------------------------------------
+
+
+
+
+    This is the part that is genuinely new. Not the agent, not the sandbox — the distribution model. When you make a slide deck in Cloudflare OS, you are not using a slide-deck service. The system instantiates a private copy of slide-deck software that belongs only to you.
+
+
+The core move
+-------------
+
+
+    A Gadget is a small application — client UI, server logic, and persistent state — that exists as your instance. Not your document inside someone's app. Your instance of the app. It runs in a sandbox separate from everyone else's.
+
+    The README calls out two consequences, and both are worth sitting with:
+
+
+
+
+1. Cross-tenant leaks become structurally impossible
+
+
+        It is impossible for the slide-deck app to have a bug that leaks your slides to an attacker, because there is no shared multi-tenant store to leak from. The sandbox controls all access to your private instance. The whole class of “IDOR in a SaaS app exposed other tenants' data” stops applying.
+
+
+
+2. The user can change the software
+
+
+        Missing a feature? Ask your agent to add it. No feature request, no roadmap, no vendor. And because of consequence 1, letting an end user modify their own instance is safe — the blast radius is one person's sandbox.
+
+
+
+
+      The argument in one sentence
+      Centralized SaaS exists because software is expensive to build and hard to operate. If an end user can prompt an agent into adding the feature they need, the first reason weakens; if the platform operates the instance for them, the second disappears. Cloudflare's claim is that AI has changed the equation that produced 25 years of multi-tenant cloud architecture.
+
+
+
+The office-suite mental model
+-----------------------------
+
+
+    The most useful analogy in the README: imagine Google Docs or Office, but instead of a fixed set of file types (doc, sheet, deck), each file is potentially its own custom application, written by AI to serve exactly your needs.
+
+
+Office suite	|	Cloudflare OS	|	The twist
+A document	|	A Gadget	|	It is an app, not content
+Private by default, shareable	|	Private by default, shareable	|	Sharing is verified against what the Gadget has read (Module 5)
+You can have thousands	|	You can have thousands	|	Each is its own isolate + its own SQLite
+Templates	|	Blueprints	|	A template is content; a Blueprint is a whole application
+Save a doc as a new template	|	Publish a Gadget as a Blueprint	|	You are distributing source code, not a service
+
+
+
+
+
+Blueprints: share the code, not the instance
+----------------------------------------
+
+
+    If you build something others would want, you have two options. Share the Gadget (they collaborate in your live instance, real-time, shared state), or share a Blueprint (they stamp out their own independent copy, with their own bindings and storage).
+
+    From docs/blueprints.md, precisely what a Blueprint captures:
+
+
+
+Captured
+
+
+
+            * Source code — a snapshot of the committed Yjs document, stripped of edit history
+
+            * Binding requirements — what kind of connection each named binding needs
+
+            * Metadata — title, description, author, version, screenshot
+
+
+
+
+
+Not captured
+
+
+
+            * SQLite storage contents
+
+            * AI chat history or edit history
+
+            * Live connections or credentials — only the shape of each binding
+
+
+
+
+    Mechanics worth knowing: Blueprints get 128-bit random hex IDs and are shared at https://<host>/blueprint/<id>. Anyone with the link can view metadata unauthenticated; creating a Gadget from it requires auth. A single Gadget can have multiple Blueprints at different code versions (a “stable” and a “latest”). Blueprints export to a .gadget file and import into a different Workshop instance — which is your escape hatch for moving work between environments. Bundled Blueprints that ship with a deployment get stable readable IDs like format.document.
+
+    Three binding types a Blueprint can require: gatekeeper (an external resource), aiModel (a model binding), and agentSpawner (an agent-spawner config). When someone instantiates it, they pick their own connected account and their own model.
+
+
+      Why Blueprints are the strategically interesting primitive
+      The README's framing: traditionally, sharing a web app means hosting it and having users connect to your server. Blueprints work like mobile apps or old PC software — every user runs their own copy. Two effects compound in the AI era. An individual can now build far more than before, but still cannot operate a service; Blueprints remove the need to. And every user having their own copy means every user can change it — no feature request, no begging the maintainer to prioritize.
+      For an org, this is the answer to a chronic internal-tools problem: the team that built the dashboard gets stuck maintaining it forever. With Blueprints, they publish once; forty teams fork forty variants; nobody owns a backlog.
+
+
+
+Real-time multiplayer, for free
+-------------------------------
+
+
+    Every Gadget is backed by a Durable Object — Cloudflare's stateful serverless primitive, which makes real-time collaboration close to trivial. The README's claim is telling: it is so easy that the coding agent implements multiplayer by default, without being asked. Presence, live cursors, and shared state come from the substrate, not from the prompt.
+
+
+The agent can use the app it built
+----------------------------------
+
+
+    This is subtle and it is the reason the architecture choices in Module 4 exist. Every Gadget's client and server must communicate via Cap'n Web RPC. That requirement buys two things simultaneously:
+
+        1. Cap'n Web is extremely low-boilerplate — define a method on the server, call it from the client as if local. Easy for an agent to write.
+
+        2. Because the server necessarily exposes a clean typed API, an agent can call that same API directly. No MCP server to build, no custom agent loop to integrate.
+
+
+    So after you ask AI to build the app, you can ask AI to work inside the app. “Fill in the Q3 numbers on slide 4” hits the same RPC surface your UI does.
+
+
+SaaS vs. the Gadget model
+-------------------------
+
+
+
+
+Dimension	|	Traditional SaaS / internal tool	|	Gadget
+Instances	|	One multi-tenant deployment	|	One per user
+Cross-tenant risk	|	The permanent top-of-list risk	|	Structurally absent
+Customization	|	File a ticket, wait a quarter	|	Ask your agent, wait a minute
+Who maintains it	|	The owning team, forever	|	Each user's own copy; the author maintains nothing
+Upgrade path	|	Everyone moves at once	|	Fork drift — each copy diverges real cost
+Consistency of output	|	Enforced by the app	|	Not enforced — forty forks, forty behaviors real cost
+Compute cost	|	Amortized across tenants	|	Per user — cheap on isolates, but non-zero
+
+
+
+
+
+      The honest downside nobody in the launch materials says out loud
+      Per-user instances trade one problem for another. You eliminate cross-tenant leaks and maintenance bottlenecks; you acquire divergence. When forty people fork the “quarterly revenue” Gadget and three of them tweak the aggregation logic, you now have three numbers and no single source of truth.
+      The mitigation is architectural, not cultural: anything that must produce one answer should live behind a Gatekeeper (a governed API that every Gadget calls) rather than inside Gadget code. Gadgets are for presentation and workflow; the number itself comes from the governed service. Get this boundary wrong at Coursera and you will spend a quarter reconciling dashboards.
+
+
+
+Check yourself
+--------------
+
+
+    Q: When you create a slide deck in Cloudflare OS, what actually happens?  * A document is stored in a shared multi-tenant slides service
+  * The system creates a private instance of the slide deck software, sandboxed just for you (correct)
+  * A static file is rendered to R2
+  * An MCP server proxies to Google Slides
+Explanation: The system creates a private instance of the software — a Gadget — running in a sandbox separate from everyone else's. That is what makes both cross-tenant leaks impossible and user modification safe.
+    Q: What does a Blueprint capture?  * Source code, binding requirements, and metadata — but not storage, chat history, or credentials (correct)
+  * A full snapshot including the SQLite database and OAuth tokens
+  * Only a screenshot and description
+  * The running Durable Object, migrated to a new owner
+Explanation: Per docs/blueprints.md, a Blueprint captures the code snapshot, the shape of each required binding, and metadata. It deliberately excludes SQLite contents, chat/edit history, and any live connections or credentials.
+    Q: Why does Cloudflare OS require Gadget client-server communication to use Cap'n Web RPC?  * It is faster than HTTP
+  * It is the only protocol Durable Objects support
+  * Low boilerplate makes it easy for agents to write, and the resulting clean API is directly callable by an agent — so every Gadget gets an agent API for free (correct)
+  * It provides end-to-end encryption
+Explanation: It is a win-win: low-boilerplate so agents write it easily, and it forces the server to expose an understandable API that the agent harness can invoke directly via Code Mode. No MCP server or custom agent loop needed.
+    Q: What is the main organizational risk introduced by the per-user-instance model?  * Higher compute cost than multi-tenant SaaS
+  * Divergence — many forked copies producing inconsistent results, with no single source of truth (correct)
+  * Users cannot collaborate in real time
+  * Blueprints leak credentials between users
+Explanation: Per-user instances eliminate cross-tenant leaks and maintenance bottlenecks but create divergence. The mitigation is to put anything that must produce one canonical answer behind a Gatekeeper, not inside Gadget code.
+
+
+🃏 Flashcards
+-------------
+
+
+      * Gadget — A small application (client UI + server logic + persistent state) instantiated privately per user, running in its own sandbox. Not a document in a shared app — your own instance of the app.
+  * Blueprint — A shareable snapshot of a Gadget's source code plus its binding requirements and metadata. Others stamp out independent copies with their own storage, bindings, and credentials. 128-bit hex ID; exportable as a .gadget file.
+  * Gadget vs Blueprint sharing — Share the Gadget = collaborators join your live instance with shared real-time state. Share the Blueprint = they get their own independent copy of the code. Different security models entirely.
+  * Why per-user instances kill a whole bug class — There is no shared multi-tenant datastore, so an app bug cannot leak one user's data to another. The sandbox — not the app's own access-control code — is what enforces isolation.
+  * Free multiplayer — Every Gadget is backed by a Durable Object, so real-time collaboration is near-trivial — the coding agent implements it by default without being asked.
+  * Blueprint binding types — gatekeeper (external resource connection), aiModel (a model binding), agentSpawner (agent-spawner config). The instantiating user supplies their own account and model for each.
+  * Divergence risk — Forty forks of a revenue dashboard produce forty possible answers. Mitigation: canonical numbers live behind a Gatekeeper-governed API; Gadgets handle presentation and workflow only.
+
+
+
+
+
+
+-------------------------------------------
+Module 3: Gatekeepers — Secure Agent Access
+-------------------------------------------
+
+
+
+
+    The README describes Gatekeepers as “supercharged MCP servers.” That undersells them. An MCP server is a tool surface. A Gatekeeper is a policy enforcement point with an approval queue, an audit log, a cache, and — the genuinely novel part — a simulator that lets the agent keep working while a human approval is still pending.
+
+
+What a Gatekeeper does
+----------------------
+
+
+    When you introduce an agent or a Gadget to an external resource, a Gatekeeper is created to manage that access. It is service-specific software that mediates the connection. Per the README, it:
+
+        * Provides a clean Cap'n Web API to the service, wrapping whatever the native API looks like
+
+        * Handles authorization (typically OAuth), including token storage, refresh, and revocation
+
+        * Enforces narrow access to only the specific resource the user intended
+
+        * Logs every action the Gadget or agent performs, for your review
+
+        * For any action with side effects, gives the human a chance to approve or deny
+
+
+
+    The launch materials give the concrete flavor: a Gatekeeper can give an agent access to a single repository, allow it to read issues but not source code, mask particular fields, and apply rate limits. That granularity is the point.
+
+
+The async human-in-the-loop breakthrough
+----------------------------------------
+
+
+
+      The problem everyone has and nobody solved
+      Traditional human-in-the-loop is synchronous. The agent wants to do something, it stops, and it waits. You give the agent a task, walk away to get coffee, come back, and find it got stuck on an approval at step one and made zero progress. So people give in and set auto-approve — or --dangerously-skip-permissions — which is obviously unsafe.
+      If you have run coding agents at any scale, you have lived this exact failure. It is the single biggest reason agent permission systems get disabled in practice.
+
+
+    Gatekeepers do something different. When an agent performs an action requiring approval, the Gatekeeper simulates the outcome locally. It tells the agent the action completed. If the agent reads the result back, it gets simulated results consistent with the action having happened. The agent proceeds and queues up more work.
+
+    Later — when it is convenient — the human approves or rejects, in bulk or one by one. The agent never blocked. The human never rubber-stamped under time pressure.
+
+
+
+        Synchronous approval — the coffee problem
+        step 1
+        BLOCKED ⏳
+        step 2
+        step 3
+        ← you are at the coffee machine
+
+
+        Gatekeeper simulation — async approval
+        step 1
+        step 2
+        step 3
+        step 4
+        done ✅
+        writes are held in the approval queue; reads return simulated state, so the agent never notices
+
+
+        human batch-approves later
+
+
+
+
+
+      Why this is the most important idea in the repo
+      Every enterprise AI governance conversation dead-ends at the same place: security wants approvals, users want throughput, and synchronous approval makes those mutually exclusive. Simulation dissolves the trade-off. It is the difference between a policy that gets followed and a policy that gets disabled in week three.
+      If you take one architectural idea from this launch into Coursera — even if you never deploy Cloudflare OS — take this one. Any internal agent platform you build should hold side effects in a queue and simulate reads rather than blocking on approval.
+
+
+
+How it is built: the three-tier hierarchy
+----------------------------------------
+
+
+    From the repo's write-gatekeeper agent skill, each Gatekeeper implements three levels:
+
+
+Tier	|	Type	|	Scope
+Vendor	|	GatekeeperVendor, a WorkerEntrypoint	|	Top-level entry for the service. One per service.
+User	|	GatekeeperUser, a WorkerEntrypoint with ctx.props	|	One human user's authenticated connection (their OAuth tokens live here, in a UserAccount Durable Object).
+Instance	|	Gatekeeper, a DO facet of the Overseer	|	Per-resource, per-Gadget binding. This is the object that actually exposes the Session API.
+
+
+
+    Each Gatekeeper is a separate Worker. Cloudflare envisions Gatekeeper services eventually being deployed and maintained independently from OS instances — but for now they ship in-repo and deploy alongside your instance. The backend auto-discovers vendors from service bindings whose names start with GATEKEEPER_.
+
+
+The seven responsibilities
+--------------------------
+
+
+    The skill file enumerates what a correct Gatekeeper must do. This is effectively the security specification:
+
+
+Auth management
+
+OAuth on behalf of the human user — connected accounts, token storage, refresh, and revocation in a UserAccount DO.
+
+API design
+
+A TypeScript wrapper over the service, designed object-oriented and capability-shaped. The Google Docs Gatekeeper gives you an interface to a specific document — not a coarse API where you pass a doc ID to every method. This distinction is what makes narrowing authority possible at all.
+
+Fine-grained resource granting
+
+Users grant access at meaningful granularities — a single Google Doc, a single GitHub repo — not just “everything I can do.” The skill explicitly warns against absurd granularity: a Jira Gatekeeper should support service / project / issue, but not per-field.
+
+Logging & approvals
+
+Every read calls authorizeObservation(); every externally-visible side effect goes through submitAction() and must not actually execute until applyAction(). The skill is blunt: miss this on any method and the security model is broken.
+
+Caching
+
+Cache remote content in the Gatekeeper's DO storage. Performance, yes — but also API quality. Gmail's native list API returns thread IDs with no metadata; with a cache, the Gatekeeper can return rich thread summaries directly.
+
+Simulation
+
+Submitted-but-unapplied actions must be reflected in subsequent reads. This is what makes async approval invisible to the agent.
+
+Observer verification
+
+When a Gadget is shared, collaborators may observe data it previously read. The Gatekeeper must verify each collaborator could access that data themselves, via getVerifier() / addObserver() / removeObserver(). Covered in depth in Module 5 — it is the sleeper feature.
+
+
+
+Two ways to implement simulation
+--------------------------------
+
+
+
+
+
+Mutate the cache
+
+
+        Apply the action's effects to cached data on submit; invalidate or rebuild on reject. Simple, and works well when the cache is already a transformed view. Gotcha: you must re-apply queued actions whenever you refresh the cache.
+
+
+
+Overlay at read time
+
+
+        Store pending actions separately; merge them into read results on demand. The skill calls this “arguably cleaner but trickier to implement correctly.” Better separation of concerns.
+
+
+
+
+      Documentation discipline that is easy to get wrong
+      The skill instructs that the agent-facing types.d.ts JSDoc must never mention submitAction, applyAction, approvals, caching, DO storage, OAuth, or syncing. Rationale: correct simulation keeps the approval machinery invisible, and leaking it into the agent's only documentation invites the agent to reason about — and route around — the control plane. Implementation details go in the .ts file or the PR, never the agent-visible types.
+
+
+
+Shipped Gatekeepers
+-------------------
+
+
+    Sixteen Gatekeeper packages are in the repo today. The README lists setup instructions for eleven; five more exist as packages:
+
+
+Gatekeeper	|	Package	|	Setup docs in README	|	Likely relevance at Coursera
+GitHub	|	gatekeeper-github	|	Yes	|	High — repos, issues, PRs; also an SSO option
+Google	|	gatekeeper-google	|	Yes	|	High — Docs, Drive, Gmail, Calendar
+Slack	|	gatekeeper-slack	|	Yes	|	High — where the work actually gets discussed
+Notion	|	gatekeeper-notion	|	Yes	|	Medium — depends on your wiki of record
+Confluence	|	gatekeeper-confluence	|	Yes	|	Medium — same
+Cloudflare	|	gatekeeper-cloudflare	|	Yes	|	Low — unless you adopt Cloudflare broadly
+Supabase	|	gatekeeper-supabase	|	Yes	|	Low — useful as a reference implementation for a database Gatekeeper
+Email Workers	|	gatekeeper-email	|	Yes	|	Medium — requires a Cloudflare zone
+ZoomInfo	|	gatekeeper-zoominfo	|	Yes	|	Medium — sales prospecting
+Home Assistant	|	gatekeeper-homeassistant	|	Yes	|	None — but a charming proof of the model's generality
+Spotify	|	gatekeeper-spotify	|	Yes	|	None — ditto
+Linear	|	gatekeeper-linear	|	Package only	|	High, if Linear is your tracker
+MCP (generic)	|	gatekeeper-mcp	|	Package only	|	Very high — bridges existing MCP servers into the Gatekeeper model
+MCP Portal	|	gatekeeper-mcp-portal	|	Package only	|	High — MCP server management surface
+Context	|	gatekeeper-context	|	Package only	|	High — this is the company-knowledge injection point
+Scheduler	|	gatekeeper-scheduler	|	Package only	|	High — recurring/triggered agent runs
+
+
+
+
+
+      The MCP Gatekeeper is the migration path
+      gatekeeper-mcp matters more than its billing suggests. If your teams have already built MCP servers — and by mid-2026 most engineering orgs have — you do not have to rewrite them to adopt this model. You wrap them, and they inherit the capability introduction, logging, and approval queue they never had. That collapses a large chunk of the migration cost estimated in Module 7.
+
+
+
+Building a custom Gatekeeper
+----------------------------
+
+
+    The repo ships an agent skill at .agents/skills/write-gatekeeper/SKILL.md that walks an AI through building one. It is a two-phase process with two mandatory stop-and-review gates — a notable design choice, since it means Cloudflare does not trust an agent to one-shot a security boundary.
+
+
+Phase 1 — core implementation
+
+
+
+        3. Understand the service. Auth model, which resources to expose, which operations are observations (reads) vs. actions (side effects).
+
+        4. Design the Session types in src/types.d.ts. One interface per logical resource, not a god-object. Methods return structured data, not raw API responses. Design so that limiting authority means limiting access to specific objects.
+
+        5. STOP Present the API for review. The skill is emphatic: do not proceed without operator approval. “Getting the API right is the most important and delicate part” — getting it wrong means rebuilding.
+
+        6. Implement from the provided SKELETON.md template.
+
+        7. Register a service binding in packages/workshop-backend/wrangler.jsonc.
+
+        8. Add resource-selection UI — an iframe configurator so users can pick which repo/doc/project to grant.
+
+        9. STOP Ask whether to proceed to Phase 2 (which may happen in a separate session).
+
+
+
+
+Phase 2 — the security pass
+
+
+    Logging and approvals, caching, simulation, and observer verification. This is where a Gatekeeper stops being an API wrapper and becomes a control point.
+
+    Registration looks like this:
+
+---code---
+// packages/workshop-backend/wrangler.jsonc
+{
+  "binding": "GATEKEEPER_COURSE_CATALOG",
+  "service": "gatekeeper-course-catalog",
+  "entrypoint": "GatekeeperVendor"
+}
+---/code---
+
+
+    And the package layout:
+
+---code---
+packages/gatekeeper-/
+  src/
+    configurator/         # resource-picker UI modules
+    .ts             # Vendor, UserAccount, UserImpl, GatekeeperImpl, SessionImpl
+    types.d.ts            # Session/Hook types — the agent's only API documentation
+    types.txt -> types.d.ts   # symlink, read at runtime by getTypeScriptTypes()
+    -api.ts         # optional HTTP helper
+  wrangler.jsonc
+  package.json
+  tsconfig.json
+---/code---
+
+
+
+      The capability-shaped API rule, made concrete
+      This is the design principle that everything else depends on, so here it is as code. The shapes below are illustrative — written to show the pattern the skill mandates, not copied from the repo.
+
+
+
+---code---
+// ❌ Coarse: authority cannot be narrowed. Holding this object
+//    means holding the whole catalog. Every method needs an ID,
+//    and any ID is as good as any other.
+interface CatalogSession {
+  getCourse(courseId: string): Promise;
+  updateCourse(courseId: string, patch: Patch): Promise;
+  listLearners(courseId: string): Promise;
+}
+
+// ✅ Capability-shaped: the object IS the authority.
+//    Handing out a CourseRef grants exactly one course.
+//    Withholding .learners() grants read access without roster access.
+interface CatalogSession {
+  /** Resolve a single course by slug. Throws NotFound if it does
+   *  not exist or this connection was not granted access to it. */
+  course(slug: string): Promise;
+}
+
+interface CourseRef {
+  /** Title, description, and publication state for this course. */
+  metadata(): Promise;
+  /** Update editable metadata fields on this course. */
+  update(patch: CoursePatch): Promise;
+  /** Enrolled learners. Omitted from the ref entirely when the
+   *  connection was granted metadata-only access. */
+  learners?(): Promise;
+}
+---/code---
+
+
+    The difference is not stylistic. In the first version, an agent introduced to “one course” still holds a handle that can reach every course — enforcement has to happen inside every method, by checking IDs. In the second, the reference is the permission, and there is no ID to tamper with. That is what capability-based means in practice.
+
+
+Check yourself
+--------------
+
+
+    Q: What is the key innovation in how Gatekeepers handle human-in-the-loop approval?  * Approvals are pushed to Slack for faster response
+  * The Gatekeeper simulates the action's outcome locally so the agent proceeds immediately, and the human approves in bulk later (correct)
+  * Approvals are skipped for low-risk actions using an ML classifier
+  * The agent waits, but with a longer timeout
+Explanation: Simulation is the breakthrough: the Gatekeeper tells the agent the action completed and returns simulated results on read-back, so the agent never blocks. The human approves or rejects later, in bulk or individually.
+    Q: Which ApprovalQueue call must a read-only operation make?  * submitAction()
+  * applyAction()
+  * authorizeObservation() (correct)
+  * rejectAction()
+Explanation: Reads with no side effects call authorizeObservation() before returning data. Operations with externally-visible side effects call submitAction() and must not execute until applyAction().
+    Q: Why does the write-gatekeeper skill forbid mentioning submitAction/applyAction/approvals in the agent-facing types.d.ts JSDoc?  * To keep the file size small
+  * Because correct simulation makes the approval machinery invisible, and leaking it into the agent's only documentation invites the agent to reason about and route around the control plane (correct)
+  * Because JSDoc does not support those terms
+  * Because approvals are deprecated
+Explanation: The types.d.ts is the agent's sole API documentation. Implementation and control-plane details belong in the .ts file or the PR — never in the agent-visible types.
+    Q: What are the three tiers of a Gatekeeper implementation?  * Client, Server, Database
+  * Vendor (per service), User (per human's authenticated connection), Instance (per-resource, per-Gadget binding) (correct)
+  * Read, Write, Admin
+  * Proxy, Cache, Origin
+Explanation: GatekeeperVendor is the top-level service entry, GatekeeperUser holds one human's connected account and tokens, and Gatekeeper<Session> is the per-resource per-Gadget facet exposing the Session API.
+    Q: Which existing Gatekeeper package most reduces migration cost for an org that already runs MCP servers?  * gatekeeper-context
+  * gatekeeper-mcp (correct)
+  * gatekeeper-scheduler
+  * gatekeeper-supabase
+Explanation: gatekeeper-mcp bridges existing MCP servers into the Gatekeeper model, so prior MCP investment is wrapped rather than rewritten — and inherits capability introduction, logging, and the approval queue.
+
+
+🃏 Flashcards
+-------------
+
+
+      * Gatekeeper — A service-specific Cloudflare Worker mediating all access between a Gadget/agent and an external service. Provides a Cap'n Web API, handles OAuth, enforces narrow resource access, logs every action, and gates side effects behind human approval.
+  * Simulation (async HITL) — When an action needs approval, the Gatekeeper applies it locally and reports success, returning simulated results on read-back. The agent keeps working; the human batch-approves later. Solves the 'agent blocked while you got coffee' failure that drives people to auto-approve.
+  * authorizeObservation() — Called before returning any externally-read data to the caller. Registers the read as an observation — which later constrains who the Gadget can be shared with (see observer verification).
+  * submitAction() / applyAction() / rejectAction() — submitAction queues a side-effecting operation; the real effect only happens on applyAction. rejectAction discards it and unwinds any simulated state. Missing these on any method breaks the security model.
+  * Capability-shaped API design — One interface per logical resource, where holding the object IS the permission — e.g. a ref to a specific Google Doc, not a method taking a docId. Narrowing authority means withholding objects or methods, not checking IDs inside every call.
+  * The two STOP gates — The write-gatekeeper skill halts the agent twice: after designing types.d.ts (operator must approve the API before implementation) and before Phase 2. Cloudflare does not let an agent one-shot a security boundary.
+  * Phase 1 vs Phase 2 — Phase 1 = auth, API design, fine-grained granting (a working wrapper). Phase 2 = logging/approvals, caching, simulation, observer verification (an actual control point). Phase 2 is what makes it a Gatekeeper rather than an SDK.
+  * GATEKEEPER_ prefix — The workshop backend auto-discovers Gatekeeper vendors from service bindings whose names start with GATEKEEPER_ in packages/workshop-backend/wrangler.jsonc. Registration is convention-based.
+
+
+
+
+
+
+--------------------------
+Module 4: The Architecture
+--------------------------
+
+
+
+
+    Cloudflare OS is built by the team that built Workers, using runtime features that were added specifically to support it. That is the single most useful fact about its architecture — it explains both why it is elegant and why porting it elsewhere is hard.
+
+
+The primitive stack
+-------------------
+
+
+
+
+Primitive	|	What it is	|	How Cloudflare OS uses it
+Workers	|	V8 isolates at the edge	|	Everything. Each Gatekeeper is its own Worker.
+Durable Objects	|	Stateful single-instance actors with private storage	|	Every workspace is its own Durable Object. Also backs every Gadget's state and enables real-time multiplayer.
+Dynamic Workers	|	Workers loaded and run at runtime, from code produced on the fly	|	The sandbox for agent-written Gadget server code. Internet access disabled by default.
+Facets	|	Nested Durable Objects within a parent DO, each with its own isolate and SQLite	|	Every Gadget runs in a Dynamic Worker Facet. Gatekeepers also install facets into each workspace.
+Cap'n Web	|	Object-capability RPC	|	Client↔server for every Gadget; also the Gatekeeper API surface. Doubles as the agent's API.
+KV	|	Eventually-consistent key-value	|	Public-facing Blueprint lookup (BLUEPRINTS namespace).
+R2	|	Object storage	|	Blueprint code content, keyed /.
+Browser Rendering	|	Headless browser	|	Required by the deployment; used for rendering/screenshotting.
+AI Gateway	|	Model routing + observability	|	Routes inference calls, enabling model selection, cost tracking, and budget enforcement per user/team/workspace.
+
+
+
+
+
+      The isolation story in one sentence
+      Each Gadget gets its own lightweight V8 isolate and its own dedicated SQLite database, courtesy of Durable Object Facets — which is why per-user app instances are economically viable at all. This is not a container per user. It is an isolate per user, and isolates are cheap.
+
+
+
+How it fits together
+--------------------
+
+
+
+
+
+        workshop-frontend
+        the “shell”
+
+        Cap'n Web RPC
+
+
+        workshop-backend — the “kernel”
+        auth · sandboxing · access control · routing
+
+
+        Workspace = one Durable Object
+
+
+        Gadget facet
+        Dynamic Worker
+        own V8 isolate
+        own SQLite
+        no internet
+
+
+        Gadget facet
+        Dynamic Worker
+        own V8 isolate
+        own SQLite
+        no internet
+
+
+        Gatekeeper
+        facet
+        per-resource
+        binding
+
+
+        Agent
+        Code Mode
+        writes + runs
+        code snippets
+
+
+
+
+        binding (the only way out)
+
+
+        gatekeeper-* Worker
+        OAuth · log · approve · simulate
+
+
+
+        GitHub · Google · Slack · …
+
+
+
+
+
+
+The OS analogy, as Cloudflare states it
+---------------------------------------
+
+
+    This mapping is verbatim from the README, and it is more literal than marketing usually is:
+
+
+Normal OS	|	Cloudflare OS	|	What that actually means
+kernel	|	packages/workshop-backend	|	Connects users to programs and devices, sandboxes applications, enforces access control
+device drivers	|	packages/gatekeeper-*	|	Drivers connect programs to devices; Gatekeepers connect agents to external services
+shell	|	packages/workshop-frontend	|	The interface a human drives it from
+processes	|	gadgets	|	Running instances, isolated from one another
+executables	|	blueprints	|	The on-disk artifact you instantiate into a process
+users	|	users	|	—
+ACLs	|	shared permissions	|	—
+???	|	agents	|	The gap. Traditional OSes have no concept for this.
+
+
+
+
+
+      The “???” row is the interesting claim
+      Cloudflare's argument: AI agents cannot simply be treated as users. An agent must be accountable to a human user while holding its own, more restricted, permissions. And because agents work by writing and executing code on the fly, the right security model for them is capability-based, not ACL-based. The README's closing thought is that traditional OSes arguably ought to give agents special treatment too.
+      Whether or not you deploy this, that framing is worth stealing for any internal agent platform: an agent is not a service account and not a user. It is a third principal type, deriving authority from a human but never equal to them.
+
+
+
+Package map
+-----------
+
+
+    The 25 packages in the monorepo, grouped by role:
+
+
+Group	|	Packages
+Core	|	workshop-backend (kernel), workshop-frontend (shell), workshop-shared (the canonical interfaces — gatekeeper.ts lives here), router
+Gatekeepers	|	gatekeeper-{github, google, slack, notion, confluence, cloudflare, supabase, email, linear, zoominfo, spotify, homeassistant, mcp, mcp-portal, context, scheduler}
+Support	|	backend-utils, typed-storage, mcp-shared, error-reporting, configurator-ui, integration-tests
+
+
+
+    Also at the root: AGENTS.md, an .agents/ directory of skills (including write-gatekeeper), a plans/ directory, and a docs/ directory covering blueprints, sharing, observers, OAuth sign-in, AI Gateway billing, integration testing, and public server config. The repo is written to be operated on by agents as much as by people — which is itself a useful thing to study.
+
+
+Cap'n Web and Code Mode
+-----------------------
+
+
+    Two choices that reinforce each other:
+    Cap'n Web is an object-capability RPC system. “Object-capability” is the operative half: you do not pass identifiers and let the receiver check permissions; you pass references, and holding the reference is the permission. This is why the Gatekeeper API design rules in Module 3 look the way they do — the RPC layer makes capability-shaped APIs the natural thing to write.
+    Code Mode is how the agent calls tools: rather than emitting structured tool-call JSON per step, it writes a snippet of code and executes it. For multi-step work this is dramatically more efficient — a loop over 200 issues is one snippet, not 200 round trips. The README claims that because of the tight integration, the Cloudflare OS agent often performs better and faster with fewer tokens than a general-purpose coding agent on the same underlying model.
+
+
+      Why these two compose so well
+      Code Mode needs a good API to write code against. Cap'n Web forces every Gadget and every Gatekeeper to expose exactly that. The agent's tool surface and the app's own client API are the same surface — which is why the README can claim every Gadget has an agent-friendly API by default, with no MCP server and no custom agent loop.
+
+
+
+Blueprint storage: a one-way propagation chain
+----------------------------------------
+
+
+    Worth understanding because it explains a UI behavior you will hit:
+
+        10. Gadget DO (blueprints collection) — authoritative source. Holds full metadata, the exported code version, and a dirty flag.
+
+        11. User DO (blueprints collection) — denormalized copy for fast listing, so you can audit and manage your Blueprints even if the source Gadget was deleted.
+
+        12. Workers KV (BLUEPRINTS) — the public lookup store, keyed by hex ID; this is what the public API reads.
+
+
+    Code content lives separately in R2 (BLUEPRINT_CONTENT), as a Yjs V2-encoded full-state document. Old versions are retained on update to avoid races during concurrent instantiation. The dirty flag is set before propagation and cleared only after all three writes succeed — if it stays set, the UI shows a warning with a Retry button. That is the failure you will occasionally see; it is by design, not corruption.
+
+
+Model providers and billing
+---------------------------
+
+
+
+        * Bring your own model. Works with many major providers and self-hosted models. The heavy lifting is done by Pi (pi-agent-core), which gives one API across providers.
+
+        * AI Gateway routes inference, enabling model selection, cost tracking, and budget enforcement per user, team, or workspace. For an org rollout this is the cost-control lever — and the reason a pilot's spend is measurable rather than a surprise.
+
+        * Collaborator billing: when a collaborator uses AI chat in someone else's Gadget, the model resolves from their own account. Spend follows whoever prompted, not the Gadget owner.
+
+        * The deployment starter ships with AI disabled by default — you opt into Workers AI and AI Gateway explicitly.
+
+
+
+
+Other notable dependencies
+--------------------------
+
+
+
+        * Yjs — CRDT sync for code changes between clients and agents, and for replaying histories. This is why an agent editing your Gadget's code while you are also editing it does not corrupt anything.
+
+        * Monaco — the embedded editor, for the people who still look at the code.
+
+        * Vite — the dev loop.
+
+
+
+
+Check yourself
+--------------
+
+
+    Q: In the Cloudflare OS / operating system analogy, what plays the role of device drivers?  * Durable Objects
+  * Gatekeepers (packages/gatekeeper-*) (correct)
+  * Blueprints
+  * The workshop-frontend shell
+Explanation: Drivers connect programs to external devices; Gatekeepers connect users and agents to external services. The kernel is workshop-backend, the shell is workshop-frontend, processes are gadgets, and executables are blueprints.
+    Q: What runtime primitive gives each Gadget its own V8 isolate and dedicated SQLite database?  * Containers
+  * Durable Object Facets (correct)
+  * Workers KV namespaces
+  * R2 buckets
+Explanation: Every workspace is a Durable Object, and every Gadget runs in a Dynamic Worker Facet — a nested DO with its own isolate and SQLite. Isolates being cheap is what makes per-user app instances economically viable.
+    Q: What is "Code Mode" and why does it pair well with Cap'n Web?  * A read-only mode for viewing Gadget source
+  * The agent writes and immediately executes code snippets instead of emitting per-step tool calls; Cap'n Web guarantees every Gadget and Gatekeeper exposes a clean typed API to write that code against (correct)
+  * A syntax highlighting theme in Monaco
+  * A billing tier for AI Gateway
+Explanation: Code Mode collapses multi-step tool use into executable snippets, which needs a good API to target. Cap'n Web forces exactly that API to exist — so the agent's tool surface and the app's client API are the same surface.
+    Q: Where does Blueprint code content actually live?  * In the Gadget's SQLite database
+  * In Workers KV alongside the metadata
+  * In R2, keyed by blueprintId/version, as a Yjs V2-encoded document (correct)
+  * In the user's browser localStorage
+Explanation: Metadata propagates Gadget DO → User DO → Workers KV, but the code content is stored separately in the BLUEPRINT_CONTENT R2 bucket keyed <blueprintId>/<version>, with old versions retained to avoid races during concurrent instantiation.
+
+
+🃏 Flashcards
+-------------
+
+
+      * Durable Object Facet — A nested Durable Object inside a parent DO, with its own V8 isolate and its own SQLite. Every Gadget runs in a Dynamic Worker Facet; Gatekeepers install facets into each workspace too.
+  * Cap'n Web — Cloudflare's object-capability RPC system. You pass references, not identifiers — holding the reference IS the permission. Used for Gadget client↔server and for every Gatekeeper API.
+  * Code Mode — The agent performs tasks by writing and immediately executing code snippets rather than emitting per-step tool-call JSON. Far fewer round trips and tokens for multi-step work.
+  * The kernel — packages/workshop-backend. Connects users to Gadgets and Gatekeepers, sandboxes applications, and enforces access control — genuinely kernel-shaped responsibilities.
+  * The '???' row — In Cloudflare's OS-analogy table, agents map to nothing in a traditional OS. Their argument: an agent is neither a user nor a service account — it's a third principal type, accountable to a human but with its own narrower capability-based permissions.
+  * AI Gateway's role here — All inference routes through it, enabling model choice, cost tracking, and budget enforcement per user/team/workspace. It's the spend-control lever for an org rollout. Disabled by default in the deployment starter.
+  * Yjs in Cloudflare OS — CRDT sync for Gadget code between clients and agents, plus history replay. It's why a human and an agent can edit the same Gadget concurrently without corruption. Blueprints store a stripped Yjs snapshot.
+  * Runtime features built for this product — Dynamic Workers, Facets, and several other Workers Runtime features were added specifically to support Cloudflare OS. Explains both the elegance and the portability problem.
+
+
+
+
+
+
+----------------------------
+Module 5: Security Deep Dive
+----------------------------
+
+
+
+
+    This module is the one to send to your security team. The interesting content is not the sandbox — sandboxes are well understood. It is the observation-tracking system, which enforces that sharing a Gadget cannot leak data the recipient was never entitled to see. I have not seen another agent platform attempt this.
+
+
+Capability-based, not ACL-based
+-------------------------------
+
+
+    Every agent and every Gadget starts with access to nothing. Even if the workshop is configured with credentials for GitHub, Google, and Slack, agents and Gadgets do not automatically get to use them.
+    Instead you must introduce each agent or Gadget to the specific resource you want it to reach — paste a link to a GitHub repo, or click “add resource” and pick it. An agent can also request an introduction to a resource it believes it needs, which you grant or deny.
+
+
+
+
+Ambient access (typical MCP setup)
+
+
+        MCP servers are configured up front. Every chat session inherits broad access to every configured service. An agent asked to summarize a meeting has, incidentally, the ability to read your entire Drive and post to any Slack channel. The blast radius of a prompt injection is everything you ever connected.
+
+
+
+Capability introduction (Cloudflare OS)
+
+
+        Each agent holds only what it was introduced to, for the job at hand. The meeting-summary agent has a reference to one document. A prompt injection in that document cannot reach anything else, because there is nothing else to reach.
+
+
+
+
+      Why this is the right answer to prompt injection
+      Prompt injection is not solved by better prompts or better classifiers — it is contained by narrowing what a compromised agent can do. Capability introduction makes the containment structural: the agent's authority is the set of object references it holds, and untrusted content cannot mint new references. Combine that with Gatekeeper approval on every side effect, and the realistic worst case for an injected agent drops from “exfiltrated the CRM” to “queued some actions a human then rejected.”
+
+
+
+The sandbox, both halves
+------------------------
+
+
+
+
+Layer	|	Mechanism	|	Effect
+Gadget server	|	Dynamic Worker with internet access disabled	|	Can only reach explicitly designated external resources, via Workers Bindings. There is no fetch to the open internet.
+Gadget client	|	Sandboxed iframe with strict CSP	|	Talks to its server only via a Cap'n Web session over postMessage() to the parent frame. Otherwise blocked from the internet to the maximum extent browsers allow.
+External access	|	Gatekeeper bindings	|	The single, logged, approvable path out. If it did not come through a Gatekeeper, it did not happen.
+
+
+
+    Note the shape of this: the sandbox is deny-by-default on egress, not deny-by-default on API surface. That is the stronger property. A Gadget cannot exfiltrate to an attacker-controlled endpoint because it cannot open a socket at all, regardless of what its code says.
+
+
+Observations and observer verification
+--------------------------------------
+
+
+    Here is the problem this solves. Alice builds a Gadget that reads a sensitive HR spreadsheet through the Google Gatekeeper. Alice shares the Gadget with Bob. Bob cannot see the spreadsheet — but the Gadget can, and now Bob is looking at the Gadget. Every agent platform on the market has this hole.
+
+    Cloudflare OS closes it. The invariant, from docs/observers.md:
+
+      The security invariant
+      If a Gadget can read restricted information, any user who cannot read that information is also prohibited from interacting with the Gadget.
+
+
+    The mechanism:
+
+
+Every read is recorded as an observation
+
+Gatekeepers call authorizeObservation() before returning external data. The system accumulates a history of what this Gadget has actually seen.
+
+Opening a shared Gadget requires your own connected account
+
+When Bob opens Alice's Gadget, he must supply his own connected account for each Gatekeeper the Gadget uses. He does not borrow Alice's credentials — ever.
+
+Each Gatekeeper verifies Bob independently
+
+Bob's own GatekeeperUser mints an opaque GatekeeperUserVerifier. The overseer hands it to the Gatekeeper, which unwraps it to learn Bob's vendor-level identity and checks whether Bob could directly read everything the Gadget has historically read. The check runs inside the Gatekeeper's trust domain, because only the vendor understands its own ACL model.
+
+If Bob fails, he is denied — before seeing anything
+
+No partial access, no redaction. v1 is deliberately all-or-nothing per observer.
+
+Forward enforcement
+
+If the Gadget later makes a new observation that any registered observer could not make directly, that observation is blocked and throws. Alice can resolve it by revoking Bob's access. Bob is also re-checked every time he opens the Gadget.
+
+
+
+      Why this should matter to you specifically
+      Coursera handles learner data, and the compliance surface around it (FERPA-adjacent obligations, GDPR, enterprise customer DPAs, university partner agreements) makes “who can see what, transitively, through an AI tool” a genuinely hard question to answer for auditors.
+      Observer verification is the first mechanism I have seen that gives a defensible answer at the platform layer rather than the policy layer. “A user cannot see data through a shared Gadget that they could not have read directly, and the source system itself adjudicates that” is a sentence you can put in front of a security review. Whether the implementation holds up is a question for your team — but the design intent is right, and it is the strongest single argument for this platform over the alternatives in Module 8.
+
+
+    Two scope caveats from the docs, stated honestly:
+
+        * No per-thread enforcement in v1. It is all-or-nothing per observer; individual chat threads and observations are not hidden from individual collaborators.
+
+        * Role-dependent breadth. build collaborators — who get full access to chat, code, and all bindings — must be verified against every Gatekeeper the Gadget has.
+
+
+
+
+The lockdown flag
+-----------------
+
+
+    Before observer verification existed, the only enforcement mechanism was prohibitAllSharing — a blunt flag a Gatekeeper sets on a maximally sensitive observation. When set, the Gadget can no longer be shared with anyone and drops into “lockdown”: no further actions, no web fetches. It still exists as a backstop for data that should never be shared regardless of the recipient's entitlements. Worth knowing about, because a Gadget that mysteriously stops working after touching sensitive data has probably hit it.
+
+
+Sharing: roles, links, and revocation
+-------------------------------------
+
+
+    Two roles, totally ordered (build > use):
+
+
+	|	build	|	use
+Edit code, use AI chat, manage bindings	|	Yes	|	No
+Render and interact with the deployed UI	|	Yes	|	Yes
+Read metadata	|	Full	|	Restricted to id / title / owner / role
+Delete the Gadget	|	Owner only	|	No
+Whose AI models are used	|	Their own (BYOK billing follows the prompter)	|	n/a
+Whose connected accounts are used	|	Their own — never the owner's	|	n/a
+Revocation authority	|	Only users they themselves added	|	n/a
+
+
+
+
+    Three implementation details worth flagging to a reviewer, because they are the kind of thing usually gotten wrong:
+
+        * Default-deny by construction. The restricted use session is a class that implements Overseer and throws Unauthorized for everything outside an allowlist. Because it implements the full interface, any newly added method fails to compile until a developer consciously decides whether use callers may invoke it. The compiler enforces the security review.
+
+        * Share keys are never stored. The server generates a random 128-bit key and stores only its HMAC-SHA-256 hash with a domain-separation constant. A database leak does not expose valid share links, and the server cannot reconstruct them. “Copying” a link mints a new key rather than revealing the old one.
+
+        * Revocation is graph-based. The system tracks how each collaborator gained access as directed permission edges (user edge or share-link edge). A collaborator keeps access while at least one valid edge remains, which is what makes transitive revocation coherent when Alice added Bob and Bob added Carol.
+
+
+
+
+What this model stops — and what it does not
+----------------------------------------
+
+
+
+
+Threat	|	Handled?	|	By what
+Gadget exfiltrates data to an attacker endpoint	|	Yes	|	No egress from the Dynamic Worker or the iframe; bindings are the only path
+Cross-user data leak via an app bug	|	Yes	|	Per-user instances; no shared multi-tenant store
+Prompt injection causes destructive writes	|	Largely	|	Side effects queue for human approval; the agent only holds narrow capabilities
+Sharing leaks data the recipient cannot access	|	Yes	|	Observer verification, adjudicated by each Gatekeeper
+Over-broad grant by a careless user	|	Partly	|	Fine-grained introduction is possible; nothing forces users to be narrow. Depends on Gatekeeper API design and defaults.
+A malicious or buggy custom Gatekeeper	|	No	|	Gatekeepers are the trusted computing base. One that skips submitAction() silently breaks the model. Custom Gatekeepers need real code review.
+Approval fatigue — humans rubber-stamping batches	|	No	|	Async batching reduces pressure but makes bulk-approve one click. A process and UX problem, not a platform one.
+Sensitive data reaching a third-party model provider	|	Your call	|	AI Gateway centralizes routing; which provider sees what is a configuration decision you own.
+Per-thread confidentiality among collaborators	|	Not in v1	|	Explicitly out of scope; observer checks are all-or-nothing
+
+
+
+
+
+      The line to hold in a security review
+      Everything in this model rests on Gatekeepers being correct. A Gatekeeper that forgets authorizeObservation() on one read method silently disables observer verification for that path; one that performs a side effect without submitAction() silently disables approvals. The skill file says this outright.
+      So the governance rule for any adoption is simple and non-negotiable: custom Gatekeepers are security-critical code and go through the same review bar as authentication. Gadgets can be vibe-coded by anyone. Gatekeepers cannot.
+
+
+
+Check yourself
+--------------
+
+
+    Q: How does Cloudflare OS differ from a typical MCP setup in how agents get access to services?  * It uses API keys instead of OAuth
+  * Agents start with zero access and must be explicitly introduced to specific resources, rather than inheriting ambient access to all configured servers (correct)
+  * It requires a VPN connection
+  * Agents get read-only access by default, write access on request
+Explanation: With MCP, servers are configured up front and every session has broad ambient access to everything connected. In Cloudflare OS an agent holds only the capabilities it was introduced to for the job at hand — which structurally contains prompt injection.
+    Q: Alice's Gadget read a sensitive spreadsheet Bob cannot access. Alice shares the Gadget with Bob. What happens?  * Bob sees the Gadget; the spreadsheet data is redacted automatically
+  * Bob must supply his own connected account, and the Google Gatekeeper verifies he could directly read everything the Gadget has read — he fails, so he is denied access entirely (correct)
+  * Bob inherits Alice's credentials for the duration of the session
+  * Nothing is enforced; this is a known gap
+Explanation: Observer verification: Bob supplies his own connected accounts, each Gatekeeper independently verifies his access against the Gadget's observation history inside its own trust domain, and v1 is all-or-nothing — he is denied, not partially served.
+    Q: Why does the restricted "use" session class implement the full Overseer interface?  * For backwards compatibility with older clients
+  * So that any newly added interface method fails to compile until a developer consciously decides whether "use" callers may invoke it — the compiler enforces default-deny (correct)
+  * To reduce bundle size
+  * Because Cap'n Web requires it
+Explanation: It's a default-deny-by-construction trick: because the class implements Overseer, adding a method to the interface breaks the build until someone explicitly classifies it. The type system enforces the security review.
+    Q: Which threat does the Cloudflare OS security model NOT handle?  * A Gadget exfiltrating data to an attacker-controlled endpoint
+  * A cross-user data leak from an app bug
+  * A buggy or malicious custom Gatekeeper that skips submitAction() (correct)
+  * Sharing a Gadget with someone who lacks access to the data it read
+Explanation: Gatekeepers are the trusted computing base. One that skips authorizeObservation() or submitAction() silently disables observer verification or approvals on that path. Custom Gatekeepers require the same review bar as authentication code.
+    Q: How are share links stored server-side?  * Encrypted with a rotating key
+  * Only as an HMAC-SHA-256 hash of a random 128-bit key, so a database leak cannot reveal valid links (correct)
+  * In plaintext, scoped to the Gadget
+  * As JWTs signed by the workspace DO
+Explanation: The server stores only the HMAC-SHA-256 hash with a domain-separation constant. It cannot reconstruct share links from stored data, and 'copying' a link mints a new key rather than revealing the original.
+
+
+      What would you actually ask Cloudflare before putting learner data behind this?
+      A starting list for your security team — these are the questions the public docs do not fully answer:
+
+          13. Observation history retention. How long is the per-Gadget observation log kept, where does it live, and is it itself covered by deletion requests?
+
+          14. Verifier unwrapping. docs/observers.md notes the Gatekeeper unwraps the verifier “today, by calling semi-private methods it defined on its own verifier object.” That is an acknowledged soft boundary. What is the hardening plan?
+
+          15. Simulated-state divergence. If an agent acts on simulated results and the human then rejects, what guarantees exist that downstream derived artifacts are invalidated rather than left carrying phantom data?
+
+          16. Dynamic Worker escape surface. What is the isolation guarantee between facets in the same workspace DO, and has it been independently reviewed?
+
+          17. Model provider data flow. With BYOK and per-collaborator model resolution, what stops a collaborator's personal provider key from routing Coursera data to an unvetted endpoint?
+
+          18. Deletion. When a learner deletion request arrives, what enumerates every Gadget SQLite database that may hold a copy?
+
+
+      Question 6 is the one I would lead with. Per-user instances are excellent for confidentiality and awkward for erasure — you have traded one shared datastore you can query for thousands of small ones you cannot. Get an answer before a pilot touches production learner data, and design the pilot to avoid it until you have one.
+
+
+
+
+
+
+-------------------------
+Module 6: Getting Started
+-------------------------
+
+
+
+
+    Three paths, in ascending order of commitment: run it on your laptop in one command, click a hosted deploy into a Cloudflare account, or use the starter repo for a real deployment you control. A fourth — self-hosting on workerd — is documented as coming soon, which matters more than it sounds.
+
+
+Path 1 — run it locally (15 minutes)
+------------------------------------
+
+
+    Install pnpm, then:
+
+---code---
+git clone https://github.com/cloudflare/cloudflare-os
+cd cloudflare-os
+pnpm run-local
+# → http://localhost:8787
+---/code---
+
+
+    This runs the whole stack locally on wrangler and workerd. Not for production. Your data lands in a .wrangler subdirectory. This is the right first move — do it before any meeting about it.
+
+    For actual development work, run the halves separately in two terminals:
+
+---code---
+pnpm dev-server     # terminal 1
+pnpm dev-client     # terminal 2
+# → http://localhost:3000
+---/code---
+
+
+
+What to try first
+
+
+    The README's own suggested prompts, which are well chosen because each one exercises a different part of the system:
+
+
+Prompt	|	What it exercises
+“Make slides for my upcoming meeting with a customer.”	|	The built-in slides Blueprint — instantiation from a bundled template
+“Make a collaborative whiteboard app.”	|	App generation from scratch, plus automatic multiplayer via Durable Objects
+“Make a tic tac toe game.” then “I'll be X and you be O. I've made my first move. Your turn.”	|	The agent using the app it just built — via the Cap'n Web API it necessarily exposed. This is the one to demo.
+“Make an issue dashboard for this GitHub repo.” (attach a repo)	|	Gatekeeper introduction and capability scoping. Requires GitHub configured.
+“Fix the typos in this Google Doc.” (attach a doc)	|	The approval queue and simulation on write. Requires Google configured.
+
+
+
+
+      Demo advice
+      If you show this to anyone at Coursera, lead with tic-tac-toe. “The AI built an app, and now the AI is playing it with me through the same API my browser uses” lands the architectural point in ten seconds in a way no slide about object-capability RPC will.
+
+
+
+Path 2 — hosted deploy (branding only)
+--------------------------------------
+
+
+    A guided flow at os.cloudflare.app/deploy deploys the upstream release into your own Cloudflare account. It builds nothing locally, configures sign-in and admin emails for you, and leaves the whole /admin surface intact: site name, logo, accent color, announcements, agent instructions, featured Blueprints, and which connectors your users can reach. Built-in Gatekeepers are yours to connect with your own OAuth credentials.
+    The constraint: hosted deployments run on a workers.dev address. If you want your own domain — or the email Gatekeeper, which needs a zone — you need Path 3.
+
+
+Path 3 — the starter repo (a real deployment)
+----------------------------------------
+
+
+    cloudflare/cloudflare-os-starter wraps a pinned upstream release with deployment controls, without modifying upstream source. This is how a company should run it.
+
+
+
+
+Prepare the workspace
+
+
+        Node.js 24, pnpm 11, then:
+
+
+
+---code---
+git submodule update --init
+pnpm install
+pnpm --dir cloudflare-os install
+pnpm exec wrangler login
+---/code---
+
+
+
+
+
+Configure sign-in
+
+
+        The starter deploys Cloudflare Access mode, which verifies identity before a request reaches the Worker. Pick a hostname in an active zone (os.example.com), create a self-hosted Access application, copy its audience tag, and fill in deployment.jsonc — account ID, Worker names, hostname, Access audience, admin emails. Every control is annotated in place. For an evaluation without a zone, switch the route to { "workersDev": true }.
+
+
+
+Validate and deploy
+
+
+        pnpm check then pnpm deploy. The deploy derives temporary Wrangler files from upstream base configs, builds the frontend in Access mode, deploys the private Error Reporter and Gatekeepers before the Workshop, and removes generated files even on failure. Secrets never enter tracked configuration.
+
+
+
+Verify
+
+
+        Confirm Access signs you in as expected; open /admin and confirm your email is an administrator; enable a custom Gatekeeper and confirm its read appears as an observation; check the Error Reporter's structured error_report logs.
+
+
+
+    Account requirements: Workers, KV, R2, Browser Rendering, and Dynamic Worker Loaders. AI products are optional — AI is disabled by default and you opt into Workers AI and AI Gateway. With resource values left null, Wrangler auto-provisions three KV namespaces and an R2 bucket and reconnects them on later deploys.
+
+
+
+What you want to change	|	Where	|	Redeploy needed?
+Site name, logo, accent color, announcements, agent instructions, featured Blueprints, connectors	|	/admin	|	No
+Sign-in, routes, AI, storage, observability, Worker identities	|	deployment.jsonc	|	Yes
+Your organization's APIs and capabilities	|	packages/custom-gatekeeper	|	Yes
+Product behavior not reachable through Worker boundaries	|	A pinned upstream fork/commit	|	Yes — and you now maintain a fork
+
+
+
+
+
+      The starter repo's design is the adoption advice
+      Note what it optimizes for: a pinned submodule you upgrade deliberately, customization through Worker boundaries rather than patches, and an explicit upgrade checklist. That is Cloudflare telling you, structurally, “do not fork upstream unless you must.” Given the contribution policy (below), that guidance is load-bearing — a fork here is a fork you own forever.
+
+
+
+Path 4 — self-hosting on workerd
+--------------------------------
+
+
+
+      Status: COMING SOON
+      Cloudflare OS can run entirely on workerd, the open-source Workers runtime — the local dev path already uses it under the hood. But the README states plainly that documentation and tooling for deploying on your own servers are still being worked on. The current guidance for the adventurous is to read the low-level workerd.capnp config documentation, or point an agent at it.
+      Plan as if this does not exist yet. If your adoption case depends on “we can always self-host to avoid the Cloudflare dependency,” that argument is a roadmap promise today, not a capability. This is the single biggest gap between how this launch is being summarized and what actually ships.
+
+
+
+Configuring external services
+-----------------------------
+
+
+    Most Gatekeepers need OAuth client credentials for their service. The README is refreshingly candid that this is annoying — many providers deliberately do not make it easy, since OAuth's intended audience is developers. Each Gatekeeper package carries its own setup instructions.
+    The GitHub Gatekeeper is a good illustration of the gotchas you will hit:
+
+        * Use a GitHub OAuth App, not a GitHub App. Only OAuth Apps honor the scope parameter, which is what enables minimal scopes on login (read:user user:email) and full scopes only on connect (repo read:user user:email).
+
+        * Callback URL: http://localhost:8787/gatekeeper/github/oauth locally; swap the host for your PUBLIC_BASE_URL in a real deployment.
+
+        * Credentials go in a gitignored .env in the package directory.
+
+        * To offer “Continue with GitHub” on the login page, add github to AUTH_GATEKEEPERS. Users are keyed by primary verified email.
+
+
+    Budget real time for this step. Eleven services × OAuth app registration, scope review, and callback configuration is not a morning's work, and each one needs someone with admin rights in that service.
+
+
+Operations
+----------
+
+
+
+        * wrangler tail for live production events.
+
+        * Roll back from the Worker's dashboard deployment history or wrangler rollback.
+
+        * Backend error reporting works without a vendor account — explicit upstream issue events become structured logs in a private Error Reporter Worker.
+
+        * Follow the starter's upgrade checklist before bumping the pinned submodule, and review upstream release history first.
+
+
+
+
+      The contribution policy — read this before planning any upstream work
+      Cloudflare is not seeking outside contributions. Their stated reasoning: AI made writing code easy, so the hard part is reviewing it and keeping the product coherent — external PRs donate the easy part while creating more of the hard part. They will accept small, trivially verified fixes, but explicitly ask you not to send typo fixes or anything beyond roughly a dozen lines. Larger PRs get closed with a pointer to the policy. Big ideas go to Discussions.
+      Consequence for you: any Coursera-specific change that cannot be expressed as a custom Gatekeeper or a deployment.jsonc setting becomes a fork you maintain against an upstream that moves fast and will not take your patches back. Scope every customization request against that reality. This is a genuine long-term cost and it belongs in the Module 7 risk column.
+
+
+
+Check yourself
+--------------
+
+
+    Q: What is the fastest way to see Cloudflare OS working?  * Deploy to a Cloudflare account with the starter repo
+  * Install pnpm and run `pnpm run-local`, then visit localhost:8787 (correct)
+  * Sign up for a hosted trial
+  * Build workerd from source
+Explanation: `pnpm run-local` runs the whole stack locally on wrangler and workerd, storing data in a .wrangler subdirectory. Not for production, but the right first move.
+    Q: What is the actual status of self-hosting on workerd?  * Fully supported and documented
+  * Possible in principle — local dev already uses workerd — but the deployment documentation and tooling are marked COMING SOON (correct)
+  * Not possible; Cloudflare OS requires Cloudflare's network
+  * Available only under a commercial license
+Explanation: The README says Cloudflare OS can run entirely on workerd, but that docs and tooling for deploying on your own servers are still being worked on. Treat 'we can always self-host' as a roadmap promise, not a current capability.
+    Q: What is Cloudflare's stated policy on external code contributions?  * All PRs welcome under a CLA
+  * They are not seeking outside contributions — AI made writing code easy, so external PRs donate the easy part and add review burden; only small trivially-verified fixes are accepted (correct)
+  * Contributions accepted only from Cloudflare customers
+  * The project accepts contributions but requires paid support
+Explanation: This matters strategically: any customization you cannot express as a custom Gatekeeper or a deployment.jsonc setting becomes a fork you maintain forever against a fast-moving upstream that will not merge it back.
+    Q: Which Cloudflare products must be available on the account for a starter-repo deployment?  * Workers and R2 only
+  * Workers, KV, R2, Browser Rendering, and Dynamic Worker Loaders (AI products optional) (correct)
+  * Workers, D1, and Pages
+  * Only Workers AI and AI Gateway
+Explanation: Workers, KV, R2, Browser Rendering, and Dynamic Worker Loaders are required. AI is optional and disabled by default — you explicitly opt into Workers AI and AI Gateway.
+
+
+
+
+
+---------------------------------------------------
+Module 7: Coursera Analysis — Should We Adopt This?
+---------------------------------------------------
+
+
+
+
+    The honest version. Cloudflare OS solves a real problem Coursera has, using a security model better than anything else available. It also arrives as early-access software from a vendor you are not currently on, that will not accept your patches, with self-hosting unfinished. Both halves are true, and the recommendation follows from weighing them rather than picking one.
+
+
+First, a correction that changes the math
+----------------------------------------
+
+
+
+      Coursera is not on Cloudflare
+      A common framing of this opportunity assumes Coursera already runs on Cloudflare, making adoption nearly free. That assumption does not hold. A DNS and header check on coursera.org (August 5, 2026) shows www.coursera.org resolving through www-cloudfront-alias.coursera.org to AWS ranges, with responses carrying via: 1.1 …cloudfront.net (CloudFront), x-amz-cf-pop, and x-amz-cf-id headers, fronting an envoy origin. Coursera's public edge is AWS CloudFront.
+      This does not kill the case. It relocates it. Cloudflare OS does not need to sit in your production request path — it is an internal workspace, and running it on a Cloudflare account alongside an AWS-based production estate is entirely normal. But three “free” items become line items:
+
+          * A new vendor relationship: Cloudflare account, contract, security review, DPA, procurement cycle.
+
+          * A second identity and network perimeter to integrate — Cloudflare Access needs wiring to your existing IdP.
+
+          * No existing in-house Workers expertise to assume. Budget ramp-up time for whoever owns this.
+
+
+      Verify the current state with your infrastructure team before quoting this — edge providers change, and a partial Cloudflare footprint somewhere in the estate would soften the finding. But do not build a business case on “we are already there.”
+
+
+
+The problem this would actually solve at Coursera
+----------------------------------------
+
+
+    Strip away the technology and the organizational problem is this: a large number of non-engineers need leverage over internal data, and every path to giving it to them is currently bad.
+
+
+Today's path	|	Why it fails
+File a ticket with engineering	|	Quarters-long queue for tools worth days of value. Most requests never get made.
+Generic AI chat with copy-pasted data	|	Works, and is a data-governance problem you cannot see. No audit trail, no scoping, no answer for a security review.
+Spreadsheets and manual exports	|	Stale, ungoverned, duplicated, and the exports themselves are the leak.
+Buy a point SaaS tool per workflow	|	Vendor sprawl, per-seat costs, each one needing its own data-sharing review.
+Give agents broad MCP access to internal systems	|	Fastest to build, worst blast radius. Ambient access means one prompt injection reaches everything.
+
+
+
+    Cloudflare OS is a credible sixth option: non-engineers build their own tools, against narrowly scoped capabilities, with every read logged and every write queued for approval. That is the pitch. Now the scrutiny.
+
+
+Use case inventory
+------------------
+
+
+    Ranked by value-to-effort, with the Gatekeeper work each requires. Verify marks assumptions about Coursera's internal systems that I cannot confirm from outside.
+
+
+Team / use case	|	Value	|	Gatekeeper needed	|	Effort	|	Data risk
+Everyone — decks, docs, analysis with company context baked in	|	High	|	Built-in Google/Slack + gatekeeper-context	|	Low	|	Low
+Engineering — internal dashboards, ops runbooks, workflow automation	|	High	|	GitHub + Linear/Jira (built-in or thin custom)	|	Low	|	Low
+Product — PRD generation with company context, competitive analysis	|	High	|	Context + Confluence/Notion + Google	|	Low	|	Low
+Content — course-authoring aids, content review workflows	|	High	|	Custom: course catalog Verify	|	Medium	|	Medium
+Sales — proposal generation, account research, pipeline tooling	|	High	|	Custom: Salesforce + built-in ZoomInfo	|	Medium	|	High — customer PII
+Support — issue resolution with learner context	|	Medium	|	Custom: support + learner lookup	|	High	|	High — learner PII
+Analytics — self-serve learner analytics for non-analysts	|	High	|	Custom: warehouse, read-only, aggregate-only	|	High	|	High
+Enterprise CS — per-customer usage reporting	|	Medium	|	Custom: warehouse + Salesforce	|	High	|	High
+
+
+
+
+
+      Read the table diagonally
+      Value does not correlate with effort or risk — but effort and risk correlate with each other almost perfectly. The top three rows are high value, low effort, and low risk, because they touch documents and code rather than learner records. The bottom three are where the transformative value lives and where every hard question sits.
+      That shape dictates the pilot: start entirely above the line. Anything requiring a custom Gatekeeper over learner data is phase two, gated on answers to the security questions in Module 5.
+
+
+
+The case for
+------------
+
+
+
+        * The security model is genuinely better than the alternatives. Capability introduction instead of ambient access, plus observer verification on sharing, is a stronger story than anything in Module 8. For a company whose data includes learner records under multiple regulatory regimes, this is the argument that actually matters — not the productivity claims.
+
+        * Async human-in-the-loop is the difference between a policy that survives and one that gets disabled. Every governance regime you have deployed that required synchronous approval has degraded into rubber-stamping. Simulation is a real answer.
+
+        * Apache 2.0, deployed in your own account. No per-seat licensing. No vendor holding your workflows hostage. You own what you build, and Cloudflare's positioning is explicitly anti-lock-in.
+
+        * Battle-tested internally at real scale. Thousands of Cloudflare employees, engineering through sales, daily. That is far better evidence than a launch demo.
+
+        * It consolidates a tool sprawl you are probably already paying for. One platform can absorb several point AI tools, a chunk of internal-tools backlog, and the “custom GPT” deployments that have likely appeared organically.
+
+        * The MCP Gatekeeper preserves prior investment. Existing MCP servers get wrapped, not rewritten — and gain logging, approvals, and scoping they never had.
+
+        * The per-user model kills the internal-tools maintenance treadmill. Publish a Blueprint; forty teams fork it; nobody inherits a backlog.
+
+
+
+
+The case against
+----------------
+
+
+
+        * Early access, and Cloudflare says so. v2 is a complete rewrite with “many rough edges.” You would be adopting a platform whose public life is measured in days.
+
+        * New vendor, new perimeter, new expertise. Per the correction above, this is not free. Procurement, security review, DPA, IdP integration, and a team learning Workers and Durable Objects from zero.
+
+        * Upstream will not take your patches. Anything not expressible as a custom Gatekeeper or a config setting becomes a permanent fork against a fast-moving upstream. This compounds.
+
+        * Self-hosting is not ready. The workerd escape hatch that makes the Cloudflare dependency palatable is documented COMING SOON. Do not price it in.
+
+        * Custom Gatekeepers are security-critical code. The valuable use cases all need them, and each one needs authentication-grade review. That is the real engineering cost, and it is recurring, not one-time.
+
+        * Erasure is genuinely harder. Per-user instances mean learner data could land in thousands of separate SQLite databases. Your deletion pipeline has no way to enumerate them today. This is the risk I would rank first.
+
+        * Divergence. Forty forks of the revenue dashboard produce forty numbers. Mitigable by architecture, not by hoping.
+
+        * Adoption is a change-management project, not a deploy. The whole thesis depends on non-engineers building things. Cloudflare's culture is unusually technical; Coursera's distribution across sales, content, and support is different. This is the assumption most likely to be wrong.
+
+        * Unbounded AI spend without discipline. AI Gateway gives you per-user and per-team budget enforcement — but only if configured on day one, not month three.
+
+
+
+
+Scorecard
+---------
+
+
+    My assessment across the dimensions that should drive the decision. Higher is better for Coursera specifically.
+
+      Security architecture9.2
+      Problem/solution fit8.5
+      Strategic alignment7.8
+      Licensing / ownership9.0
+      Evidence it works at scale7.5
+      Production readiness4.2
+      Integration cost at Coursera4.0
+      Maintenance burden3.8
+      Vendor independence (today)3.0
+      Learner-data / erasure readiness2.5
+
+    The pattern is unambiguous: the design is excellent and the operational readiness is not. That combination has a standard answer — a bounded pilot that buys you optionality without betting anything, and a deliberate re-decision when the readiness scores move.
+
+
+What it would replace — and what it would not
+----------------------------------------
+
+
+
+
+
+Plausibly replaces
+
+
+
+            * Ad-hoc “custom GPT” deployments with pasted context
+
+            * A meaningful slice of internal admin-tool backlog
+
+            * Some point AI SaaS subscriptions
+
+            * One-off scripts and notebooks that became load-bearing
+
+            * Low-code internal apps built and then abandoned
+
+
+
+
+
+Does not replace
+
+
+
+            * Anything in the learner-facing product path
+
+            * Your data warehouse or BI semantic layer
+
+            * Salesforce, Workday, or any system of record
+
+            * Engineering coding agents in the IDE
+
+            * Canonical reporting — that must stay behind governed APIs
+
+
+
+
+
+
+The Gatekeepers Coursera would have to build
+----------------------------------------
+
+
+    This is where the engineering estimate lives. Each is security-critical code requiring authentication-grade review, and each needs a Phase 1 (API design + auth) and Phase 2 (approvals, caching, simulation, observers) pass. Sizing assumes one senior engineer familiar with the codebase, following the write-gatekeeper skill. Verify against your actual systems.
+
+
+Gatekeeper	|	Granularity to expose	|	Phase 1	|	Phase 2	|	Notes
+Course catalog	|	Course → module → item; read + limited metadata write	|	1–2 wk	|	1–2 wk	|	Best first custom Gatekeeper. Mostly non-PII, high value, clean resource hierarchy.
+Salesforce	|	Account → opportunity → contact; writes queued	|	2–3 wk	|	2–3 wk	|	Customer PII. Simulation on opportunity updates is the tricky part.
+Internal service APIs	|	Per-service, per-endpoint capability objects	|	2–4 wk	|	2–3 wk	|	Scope tightly. One Gatekeeper per bounded context, not one “internal API” god-object.
+Learner analytics / warehouse	|	Aggregate-only queries; enforce minimum cohort size	|	3–4 wk	|	3–4 wk	|	Highest risk. Design so row-level learner data is not expressible through the API at all.
+Support / ticketing	|	Ticket → conversation; learner lookup by ticket only	|	2–3 wk	|	2–3 wk	|	Learner PII. Defer until erasure question is answered.
+Company context	|	Docs, glossary, org conventions	|	Use gatekeeper-context	|	Configuration, not code. Do this first.
+
+
+
+
+
+      The single most important design decision
+      For the analytics Gatekeeper, do not build “query the warehouse” and then try to restrict it. Build an API in which row-level learner data cannot be expressed — only aggregates above a minimum cohort size, only pre-defined dimensions. Capability-based security works by withholding objects, not by filtering results. If the API can return one learner's record, every downstream control is a mitigation rather than a guarantee.
+      This is the difference between a design your security team blesses in a week and one they argue about for a quarter.
+
+
+
+A 90-day pilot
+--------------
+
+
+    Designed to buy maximum information for minimum commitment, and to fail cheaply and visibly if it is going to fail.
+
+
+
+
+Days 1–10 — Evaluate, decide nothing
+
+
+        pnpm run-local on two or three laptops. Run the five README prompts. Read workshop-shared/src/gatekeeper.ts and the write-gatekeeper skill. Deliverable: a one-page technical assessment and a go/no-go on proceeding to a hosted trial. Cost: ~1 engineer-week. No procurement, no vendor conversation.
+
+
+
+Days 11–30 — Deploy behind Access, zero custom code
+
+
+        Starter repo, pinned release, Cloudflare Access wired to your IdP, workers.dev route. Enable only Google, GitHub, Slack, and gatekeeper-context. Load company context. AI Gateway on from day one with per-user budgets. No custom Gatekeepers. No learner data. No production systems. Invite 15–25 people across engineering, product, and one non-technical function.
+
+
+
+Days 31–60 — Observe real usage
+
+
+        Do not evangelize. Measure: how many people build something in week one and are still using it in week four; what fraction of Gadgets are built by non-engineers; what breaks; how often approvals are batch-approved without inspection; what the AI spend per active user actually is. Ship the course catalog Gatekeeper (Phase 1 + 2) as the single custom integration — it is the cheapest real test of the model.
+
+
+
+Days 61–90 — Security review and decide
+
+
+        Full review against the Module 5 threat table and the six questions in that module's reveal. Get written answers from Cloudflare on erasure and observation retention. Write the decision memo: expand, hold, or stop. Do not let this phase slip — an unended pilot becomes unowned production.
+
+
+
+
+
+Pilot cost line	|	Estimate
+Engineering — one senior owner, ~60% time for 90 days	|	~0.6 FTE-quarter
+Engineering — course catalog Gatekeeper (Phase 1 + 2)	|	2–4 weeks, same person or a second
+Security review	|	~1–2 weeks of security-team time
+Cloudflare platform spend (25 users, non-production)	|	Low — Workers/DO/KV/R2 at this scale is noise
+Model inference	|	The real variable. Cap it with AI Gateway budgets on day one; measure per-active-user cost as a pilot output.
+Procurement / legal / DPA	|	Whatever your standard new-vendor cycle costs
+
+
+
+
+
+      Kill criteria — agree these before you start
+      A pilot without predefined failure conditions becomes a permanent unfunded system. Stop if any of these are true at day 90:
+
+          * Fewer than 40% of invited users built something they still used four weeks later.
+
+          * Zero Gadgets of real value built by a non-engineer. This is the core thesis; if it does not hold at Coursera, nothing else matters.
+
+          * The course catalog Gatekeeper took more than 6 weeks end to end. That is your cost multiplier for every future integration — extrapolate it before committing.
+
+          * Security cannot get satisfactory answers on erasure and observation retention.
+
+          * Upstream shipped breaking changes you could not absorb within the pilot window.
+
+          * Per-active-user inference cost exceeds what an equivalent commercial seat would cost.
+
+
+
+
+
+Eight questions to answer before committing beyond the pilot
+----------------------------------------
+
+
+
+
+#	|	Question	|	Why it is decisive
+1	|	Can we answer a learner erasure request that touches Gadget storage?	|	If no, learner data never enters the system. This gates half the value.
+2	|	Who owns this platform in 18 months, with what headcount?	|	Unowned internal platforms decay into liabilities. Name the team before the pilot ends.
+3	|	Will non-engineers actually build things here?	|	The entire thesis. Cloudflare's workforce is unusually technical; do not assume transfer.
+4	|	What is our fork policy?	|	Upstream will not take patches. Decide now that customization happens via Gatekeepers and config only — or accept a permanent fork.
+5	|	How do we prevent divergence on canonical numbers?	|	Architectural answer required: canonical data behind Gatekeepers, never in Gadget code.
+6	|	What is the AI spend ceiling and who enforces it?	|	AI Gateway makes this solvable; not configuring it makes it a surprise.
+7	|	Does this replace anything we currently pay for?	|	A consolidation story makes the business case; a pure addition makes it a cost.
+8	|	What is our exit if Cloudflare deprioritizes this?	|	Apache 2.0 means you keep the code — but running it without Cloudflare needs workerd self-hosting, which does not ship yet.
+
+
+
+
+
+Recommendation
+--------------
+
+
+
+      Run the 90-day pilot. Do not commit beyond it yet.
+      Yes to a bounded pilot, scoped exactly as above: hosted-adjacent deployment behind Cloudflare Access, built-in Gatekeepers only plus one custom (course catalog), no learner PII, 15–25 users, hard stop at day 90 with a written decision.
+      No to an org-wide rollout in 2026. Production readiness, self-hosting, and erasure are all unresolved, and the contribution policy means every unmet need becomes your permanent fork. None of those are reasons to ignore this; all of them are reasons not to bet the internal tooling strategy on it this year.
+      The asymmetry is what makes this an easy call. Downside is roughly one engineer-quarter and a procurement cycle. Upside is arriving at 2027 with a working, governed, self-owned agent platform and a team that understands capability-based security — while peers are still deciding between Copilot Studio and a pile of MCP servers. Even if you never expand it, the Gatekeeper pattern is worth learning by building one.
+
+
+
+What I would do regardless of the adopt decision
+
+
+
+        19. Steal the async approval pattern. Any internal agent platform Coursera builds should queue side effects and simulate reads rather than blocking. This is the highest-value idea in the launch and it is free.
+
+        20. Steal capability introduction. Stop configuring MCP servers with ambient access. Move to per-task resource introduction wherever you already run agents against internal systems.
+
+        21. Adopt the “agent is a third principal type” framing. Not a user, not a service account — accountable to a human, with strictly narrower authority. Put it in your internal agent standards.
+
+        22. Apply the observer question to what you already run. “If user A's agent read something and shares the output with user B, what stops the leak?” Ask this of every internal AI tool at Coursera today. Most will have no answer.
+
+
+
+
+The two-minute version for your staff meeting
+----------------------------------------
+
+
+
+      Exec summary
+      Cloudflare open-sourced the AI workspace it runs internally — agents plus user-built apps plus a security layer that scopes what agents can touch and queues their writes for human approval without making the agent wait. The security design is better than anything commercially available: agents start with zero access and are introduced to one resource at a time, and sharing an app is blocked unless the recipient could have read the underlying data themselves.
+      It is early-access software, it requires a Cloudflare account we do not currently have, and the self-hosting option is not finished. Three of the questions that would gate learner-data use are unanswered.
+      Recommendation: a 90-day, 25-person pilot with no learner data and one custom integration, costing about an engineer-quarter, with predefined kill criteria and a written decision at day 90. We learn whether non-engineers here will really build their own tools, and we get a concrete cost figure for integrating our systems — both of which we need regardless of which agent platform we eventually standardize on.
+
+
+
+Check yourself
+--------------
+
+
+    Q: What does a DNS and header check of coursera.org show about its edge provider?  * Cloudflare, so adopting Cloudflare OS is nearly free
+  * AWS CloudFront fronting an envoy origin — so a Cloudflare account, contract, and security review become real line items (correct)
+  * Fastly
+  * No CDN
+Explanation: www.coursera.org resolves via www-cloudfront-alias.coursera.org to AWS ranges, with via/x-amz-cf-pop/x-amz-cf-id CloudFront headers. Cloudflare OS need not sit in the production path, but 'we're already on Cloudflare' cannot support the business case.
+    Q: Which use case should the pilot start with?  * Learner analytics — highest transformative value
+  * Support ticket resolution with learner context
+  * Documents, decks, code and product work using built-in Gatekeepers plus company context (correct)
+  * Enterprise customer usage reporting
+Explanation: Effort and risk correlate almost perfectly, and both are lowest for document/code/product work. Anything needing a custom Gatekeeper over learner data is phase two, gated on erasure and retention answers.
+    Q: What is the most important design rule for a Coursera learner-analytics Gatekeeper?  * Cache aggressively to reduce warehouse cost
+  * Design the API so row-level learner data cannot be expressed at all — only aggregates above a minimum cohort size (correct)
+  * Require two approvals for every query
+  * Log all queries to the data warehouse
+Explanation: Capability-based security works by withholding objects, not filtering results. If the API can return a single learner's record, every downstream control becomes a mitigation rather than a guarantee.
+    Q: Which risk should rank first for Coursera specifically?  * Cloudflare deprecating the project
+  * Learner data erasure — per-user instances mean data could land in thousands of separate SQLite databases with no way to enumerate them (correct)
+  * AI inference cost
+  * The UI being rough
+Explanation: Per-user instances are excellent for confidentiality and awkward for erasure: you trade one queryable datastore for thousands of small ones. Get a written answer before any pilot touches production learner data.
+    Q: What makes the bounded pilot an easy call despite the platform being early access?  * Cloudflare offers free support
+  * The asymmetry: downside is roughly one engineer-quarter, upside is a working governed self-owned agent platform plus organizational expertise in capability-based security (correct)
+  * It replaces all existing tooling immediately
+  * There are no competing options
+Explanation: Bounded downside against significant option value, plus the Gatekeeper pattern being worth learning by building one even if the platform is never expanded.
+
+
+      What is the strongest argument against my own recommendation?
+      That the pilot is a distraction with a foregone conclusion.
+      The argument goes: the readiness scores are so low that no 90-day pilot will move them. Self-hosting will not ship by then. Erasure will not be answered by then. The contribution policy will not change. So you will arrive at day 90 with exactly the information you have now, minus an engineer-quarter, plus a group of 25 people who liked a tool you then take away — which has a real morale cost and makes the next platform rollout harder.
+      It is a serious argument and I would not dismiss it. Two things answer it. First, the two facts the pilot actually produces are not knowable from outside: whether non-engineers at Coursera will build their own tools, and what a custom Gatekeeper genuinely costs you to build and review. Both are decision-relevant for any agent platform you eventually choose, including one you build yourself. Second, the taking-it-away cost is manageable if you say at the start that it is a time-boxed evaluation — and unmanageable if you let it drift into unowned production, which is exactly what the hard stop and kill criteria exist to prevent.
+      If you cannot commit to the day-90 decision and the kill criteria, the counterargument wins and you should not start.
+
+
+
+
+
+
+-------------------------------
+Module 8: Competitive Landscape
+-------------------------------
+
+
+
+
+    Almost everything in this category is a chat interface with connectors, or an app builder with AI bolted on. Cloudflare OS is the only one where the distribution model and the permission model are the product. That is either a decisive advantage or an unnecessary complication, depending on what you are actually trying to do.
+
+
+The field
+---------
+
+
+
+
+Contender	|	Core model	|	Where it wins	|	Where it loses to Cloudflare OS
+Retool + AI	|	Centrally built internal apps over shared connections	|	Mature, polished, huge connector library, real RBAC, teams already know it	|	One shared multi-tenant app per tool. End users cannot modify. Connections are broad and ambient. Per-seat cost. Someone owns every app forever.
+Custom ChatGPT / Claude deployments	|	Chat with company context + connectors/MCP	|	Zero infrastructure, best-in-class models, instant adoption, people already use them	|	Produces text, not running software. Ambient connector access. No approval queue, no observation tracking, no answer to the shared-output leak question.
+Microsoft Copilot Studio	|	Agent builder inside the Microsoft estate	|	Deep M365/Graph integration, enterprise identity and compliance, single vendor	|	Closed. Locked to Microsoft's estate. Agents share tenant-wide permissions. You do not own what you build.
+Google Workspace AI (Gemini)	|	AI inside the productivity suite	|	Frictionless where Workspace already is; no rollout needed	|	Assists with documents; does not produce applications. No capability model, no custom system integration story.
+Glean and enterprise search/assistant tools	|	Indexed company knowledge + assistant	|	Excellent retrieval; permission-aware search is genuinely good	|	Read-oriented. Does not build tools or take governed actions. Complementary rather than competing.
+Plain MCP + a coding agent	|	DIY: MCP servers plus Claude Code or similar	|	Free, flexible, uses tools engineers already have, no new platform	|	Engineers only. Ambient access. Synchronous approvals that get disabled. No sharing model, no observation tracking, nothing for non-engineers.
+Build it yourself	|	An internal agent platform	|	Exactly your needs; no vendor	|	You would be rebuilding sandboxing, capability RPC, approval queues, and observer verification. Cloudflare OS is a credible head start even if you fork it heavily.
+
+
+
+
+
+The two axes that actually separate them
+----------------------------------------
+
+
+
+
+
+Axis 1 — who runs the instance
+
+
+        Everyone else: one instance, many users, permissions enforced inside the app. Cloudflare OS: one instance per user, isolation enforced by the platform. This is what makes end-user modification safe, and it is not a feature others can add incrementally — it is an architectural commitment.
+
+
+
+Axis 2 — how the agent gets authority
+
+
+        Everyone else: configure connectors up front, agent has ambient access to everything connected. Cloudflare OS: agent starts with nothing and is introduced to one resource per task. This is the difference between a prompt injection reaching your whole estate and reaching one document.
+
+
+
+
+      The capability nobody else has
+      Observer verification. Across all the alternatives above, ask: if my agent reads something sensitive and I share the resulting artifact with a colleague who lacks access, what stops the leak?
+      The answers range from “nothing” to “a policy.” Cloudflare OS is the only one where the source system itself adjudicates, per collaborator, against a recorded history of what was actually read — and blocks future reads that any registered observer could not make directly. For a company handling learner data across multiple regulatory regimes, that is the differentiator that matters more than any productivity claim.
+
+
+
+Honest positioning
+------------------
+
+
+    Cloudflare OS wins when you need non-engineers building real tools against sensitive internal systems, and you have to defend that to a security team. That is a narrow but valuable slot, and it happens to describe Coursera's situation well.
+    It loses when you need something today, when your estate is deeply Microsoft or Google and single-vendor integration outweighs everything, when your use case is retrieval rather than action, or when your users are engineers who are perfectly happy with an IDE agent and a few MCP servers.
+
+
+      What would have to be true for this to win the category
+
+          23. workerd self-hosting ships and is genuinely supported — this converts the biggest objection into the biggest advantage.
+
+          24. The Gatekeeper ecosystem grows beyond Cloudflare's own repo, so companies are not writing every integration themselves.
+
+          25. The contribution policy relaxes, or a healthy ecosystem forms around it that does not require upstream merges.
+
+          26. The per-user-instance model proves it scales organizationally, not just technically — divergence being managed in practice, not just in principle.
+
+
+      Watch item 1 most closely. It is the one that changes the recommendation in Module 7.
+
+
+
+Check yourself
+--------------
+
+
+    Q: What most fundamentally separates the Gadgets model from Retool and similar internal-tool platforms?  * Better AI models
+  * One app instance per user with platform-enforced isolation, versus one shared multi-tenant app with permissions enforced inside the app (correct)
+  * Lower cost
+  * More connectors
+Explanation: Per-user instances make end-user modification safe and eliminate cross-tenant leaks structurally. It is an architectural commitment, not a feature competitors can add incrementally.
+    Q: Which capability does Cloudflare OS have that none of the listed alternatives offer?  * Real-time multiplayer collaboration
+  * Observer verification — the source system adjudicates, per collaborator, whether they could have read everything a shared artifact was built from (correct)
+  * Support for multiple LLM providers
+  * OAuth-based connectors
+Explanation: Others answer the shared-output leak question with 'nothing' or 'a policy.' Cloudflare OS enforces it at the platform layer, per Gatekeeper, against a recorded observation history.
+    Q: Which development would most change the adoption recommendation?  * More prebuilt Gatekeepers
+  * workerd self-hosting shipping as a genuinely supported path (correct)
+  * A nicer UI
+  * Cheaper Workers pricing
+Explanation: Self-hosting converts the largest objection — vendor dependence and the unfinished escape hatch — into the platform's biggest advantage over closed alternatives. It is the item to watch.
+
+
+🃏 Flashcards
+-------------
+
+
+      * vs Retool — Retool: one shared app, permissions inside the app, end users can't modify, someone owns it forever. Cloudflare OS: per-user instance, platform-enforced isolation, users modify their own copy via AI, Blueprints remove the maintenance owner.
+  * vs custom ChatGPT/Claude deployments — They produce text with ambient connector access and no approval queue or observation tracking. Cloudflare OS produces running software with per-task capability introduction and governed writes. Much lower friction on their side, much stronger governance on this side.
+  * vs Copilot Studio — Deep Microsoft integration and enterprise identity, but closed, estate-locked, tenant-wide agent permissions, and you don't own what you build. Cloudflare OS is Apache 2.0 in your own account.
+  * vs plain MCP + coding agent — Free and flexible but engineer-only, ambient access, synchronous approvals that get disabled, and no sharing or observation model. gatekeeper-mcp is the bridge: wrap existing MCP servers rather than rewriting them.
+  * The two separating axes — (1) Who runs the instance — one shared vs one per user. (2) How the agent gets authority — ambient preconfigured connectors vs zero-by-default with per-task introduction.
+  * Where Cloudflare OS loses — When you need something today; when a deep Microsoft/Google estate makes single-vendor integration decisive; when the use case is retrieval not action; when your users are engineers already happy with an IDE agent.
+
+
+
+
+
+
+------------------------------------
+Module ⚑: Your Action List & Sources
+------------------------------------
+
+
+
+
+
+Ten things to do, in order
+--------------------------
+
+
+
+        27. Run it locally today. pnpm run-local, then the tic-tac-toe prompt. Fifteen minutes, no commitment, and you will understand the architecture better than any writeup can convey.
+
+        28. Confirm the CloudFront finding with your infrastructure team before quoting the vendor-cost argument either way.
+
+        29. Read workshop-shared/src/gatekeeper.ts and the write-gatekeeper skill. Roughly an hour, and it is the clearest articulation of capability-based agent security currently in public.
+
+        30. Ask the observer question of every AI tool Coursera runs today. If user A's agent reads something restricted and shares the output with user B, what stops the leak? Collect the answers — that inventory is valuable on its own.
+
+        31. Get written answers on erasure and observation retention before any pilot touches production learner data.
+
+        32. Name the owner. One senior engineer, ~60% time, for 90 days. If you cannot name them, do not start.
+
+        33. Agree the kill criteria in writing with whoever approves the pilot.
+
+        34. Turn on AI Gateway budgets on day one, per user and per team. Not month three.
+
+        35. Adopt the async-approval pattern in your own agent work regardless. Queue side effects, simulate reads. It is the best idea in this launch and it costs nothing to steal.
+
+        36. Put the day-90 decision on the calendar now, with the memo as a named deliverable.
+
+
+
+
+Primary sources
+---------------
+
+
+
+        * github.com/cloudflare/cloudflare-os — README, docs/blueprints.md, docs/sharing.md, docs/observers.md, and .agents/skills/write-gatekeeper/SKILL.md. Apache 2.0.
+
+        * github.com/cloudflare/cloudflare-os-starter — deployment controls, deployment.jsonc, customization and observability guides.
+
+        * blog.cloudflare.com/cloudflare-os — the launch post.
+
+        * Cloudflare press release, August 5, 2026.
+
+        * os.cloudflare.app — product site and hosted deploy flow.
+
+        * Supporting Cloudflare posts: Code Mode, Dynamic Workers, Durable Object Facets, and Cap'n Web.
+
+        * Coverage: SiliconANGLE, Phoronix, Decrypt, SD Times.
+
+        * Coursera edge-provider finding: DNS resolution and HTTP response headers for coursera.org, checked August 5, 2026.
+
+
+
+
+      Shelf life
+      This course documents a project that is days old and explicitly labeled early access. Repository structure, package lists, and setup commands will drift. The architectural ideas — capability introduction, async approval via simulation, observer verification, per-user instances — will not. Re-check the repo before acting on any specific command in Module 6.
+
+
+
+
+
+  Cloudflare OS — The Open-Source AI Operating System for Companies
+  Built for Mustafa Furniturewala · August 5, 2026 · Sourced from the cloudflare/cloudflare-os repository and launch materials
