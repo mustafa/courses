@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mustafa-courses-v11';
+const CACHE_NAME = 'mustafa-courses-v12';
 
 // Framework + all courses. Individual cache.add (below) means one failure
 // never breaks the rest, and the network-first fetch handler backfills anything
@@ -27,6 +27,7 @@ const ASSETS_TO_CACHE = [
   '/claude-agent-network-course.html',
   '/claude-agent-sdk-course.html',
   '/claude-certified-architect-prep-course.html',
+  '/carrot-fertility-cto-prep.html',
   '/citizenship-interview-prep-course.html',
   '/cloudflare-os-course.html',
   '/cloudflare-platform-course.html',

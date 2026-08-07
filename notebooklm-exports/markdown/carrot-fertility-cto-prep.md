@@ -1,0 +1,1570 @@
+# Carrot Fertility — CTO Interview Prep | Aug 2026
+
+Personal Prep · Carrot Fertility · CTO · Aug 2026
+
+# Carrot Fertility — CTO Interview Prep
+
+A complete brief for the Carrot CTO conversation: what the business actually is and how the money moves, the real tech stack and engineering culture (it is not what the market assumes), the CTO/CPO/CIO boundary problem that defines this job, five systems designs on claims and fraud and clinical AI, a competitive read against Progyny and Maven, an honest opportunity assessment including the 2021 funding overhang, a 90-day plan, and the questions to ask each executive.
+
+📚 10 Modules 🏗 5 Systems Designs 📊 Competitive & Comp Analysis ❓ Quizzes & Flashcards 🔌 Fully Offline
+
+**🎯 For Zeesha.** This is built for a **CTO** conversation, not an IC or director loop — which means the currency is judgment, not implementation detail. If time is short: **Module 3** is the single highest-value read (the real stack, the real org, and the boundary problem that will define whether this job is good or miserable), **Module 8** is the one that decides whether you want it, and **Module 10** is the day-of runbook. Modules 4–6 are drilling material. Read Module 1 first for the 20 minutes of context everything else sits on.
+
+**⚑ On the numbers — read this before you quote anything.** Carrot is *private*. Nothing here is audited. Figures come from Carrot’s own press releases and website, its live job postings, Progyny’s public filings, and third-party aggregators (Crunchbase, PitchBook, Tracxn, The Org, D&B) that *disagree with each other* — total funding is reported anywhere from **$115M to $166M**, and provider-network counts range from **10,000 to 17,000** depending on whether the source means global eligible providers or US contracts. Every figure below is dated and attributed so you can see how stale and how soft it is. **Rule for the room: never state a number more precisely than you can defend.** “Reported at roughly a billion dollars in claims across 195 countries” is safe. “$1.04B” is a trap. Anything marked *inference* is this brief’s reasoning, not a sourced fact — those are the things to *ask*, not assert. Verified against public sources as of **August 7, 2026**.
+
+0 / 10 completed
+
+🔍
+
+1.  [1 Understanding Carrot — The Business & The Money](#mod1)
+2.  [2 The Product & Platform (incl. Carrot Intelligence)](#mod2)
+3.  [3 The Technology Landscape — What You’d Actually Own](#mod3)
+4.  [4 Strategy & Vision Questions — Worked Answers](#mod4)
+5.  [5 Leadership & Culture — STAR Scaffolding](#mod5)
+6.  [6 Technical Deep Dives — Five Designs](#mod6)
+7.  [7 Competitive Analysis & The IPO Question](#mod7)
+8.  [8 Opportunity Assessment — Should You Take It?](#mod8)
+9.  [9 The First 90 Days](#mod9)
+10.  [10 Day-of Runbook & Questions to Ask](#mod10)
+
+### The One-Sentence Version
+
+Carrot is a **global fertility and family-care benefit** that employers and health plans buy on behalf of their people — and the thing Carrot actually sells its buyers is not treatment, it is *managed access plus cost control in places where neither exists*. A multinational with staff in Bangalore, São Paulo, Warsaw and Ohio cannot build a fertility benefit itself; the providers, the currencies, the regulations and the clinical standards are all different. Carrot abstracts that away into one benefit, one member experience, one invoice.
+
+The framing that wins the room
+
+Do not describe Carrot as “an IVF benefit.” Describe it as **a global care-and-payments network for a category insurance historically excluded**. Fertility, adoption, surrogacy and menopause sit outside most medical plans, in cash-pay markets with no price transparency and no negotiated rates. That is why Carrot’s two hardest problems are *network* and *price integrity* — and it is exactly why their 2026 product news is an AI fraud-detection system rather than a nicer app. Say that early and you have already demonstrated you understand where the engineering value is.
+
+### Who Pays, Who Uses, Who Delivers
+
+Carrot is **B2B2C**, and the three-party split is the source of nearly every product tension you will be asked about:
+
+```
+BUYER                        CARROT                      MEMBER
+  (employer /                                              (employee &
+   health plan)                                             partner)
+     |                            |                            |
+     |-- buys the benefit ------>|                            |
+     |   picks plan design        |-- eligibility, comms ---->|
+     |   (max $ / cycles)         |<-- enrolls, asks for help -|
+     |                            |                            |
+     |                            |-- Care Companion +        |
+     |                            |   clinical guidance ----->|
+     |                            |                            |
+     |                            |        PROVIDER (10K+ eligible, 195 countries)
+     |                            |            |               |
+     |                            |<-- bills --|<-- treats ----|
+     |                            |                            |
+     |                            |-- price / fraud check      |
+     |                            |   (Global Price Monitoring)|
+     |<-- one invoice, one -------|                            |
+     |    reporting surface,      |   Carrot pays the provider |
+     |    audited spend           |   or the member (Carrot Card)
+```
+
+Three consequences you should be able to say out loud in an interview:
+
+1.  **The buyer’s fear is cost, the member’s fear is access.** Every product decision trades one against the other. A CTO who only optimizes member delight will lose renewals; one who only optimizes cost will lose members. *Carrot Intelligence is explicitly an attempt to serve both at once* — better routing lowers cost *and* improves outcomes. That is the strategic story of the whole platform.
+2.  **Carrot sits in the payment path.** Between the Carrot Card, direct provider payment and multi-currency claims, this is partly a *fintech* business wearing a healthtech coat. Ledger correctness, FX, reconciliation and fraud are first-class engineering problems, not back office.
+3.  **Global is the moat and the tax.** 195 countries means data residency, local clinical standards, 50+ currencies and reportedly 300 languages of member support. Nobody else has that. It is also why the platform is expensive to run — and why an incoming CTO’s honest first question should be “what does it cost us to serve the 150th country?”
+
+### Scale — The Numbers Worth Memorizing
+
+~$1B
+
+Claims processed, cumulative (Carrot, Apr 2026)
+
+195
+
+Countries the platform operates across
+
+1,000+
+
+Employer & health-plan customers
+
+10K+
+
+Eligible providers (17K+ cited for US)
+
+~615
+
+Employees, mid-2026 (~12.6% YoY)
+
+50+
+
+Currencies in the claims system
+
+300
+
+Languages of member support (per Carrot)
+
+~$88M
+
+Revenue, third-party estimate — unverified
+
+> **Warning:** Handle the revenue number carefully
+>
+> The **~$88M** figure comes from a commercial data aggregator, not from Carrot. Treat it as an order of magnitude, not a fact. What it is *useful* for is calibration: Progyny — the public comparable — reported roughly **$350M in a single quarter** (Q2 2026). Even if the estimate is off by 2x, Carrot is a fraction of Progyny’s revenue. That should reshape how you talk about scale: *Carrot’s claim to leadership is global reach and breadth of scope, not volume*. Never imply otherwise in the room — the CFO will know the real number and you will not.
+
+### History & Funding — And The Five-Year Gap
+
+| When | Event | Detail |
+| --- | --- | --- |
+| 2015 | Founded | Tammy Sun (Founder & CEO) with Dr. Asima Ahmad (Co-founder & CMO) |
+| Sept 2017 | Seed / early round | $3.6M, framed around making IVF and egg freezing affordable |
+| — | Series A, Series B | Growth through the employer-benefits boom; global expansion begins |
+| Aug 17, 2021 | $75M Series C | Led by Tiger Global; OrbiMed, F-Prime, CRV, U.S. Venture Partners, SVB. Brought total to ~$115M at the time. |
+| 2021–2026 | No announced priced round | Aggregators report totals of $115M–$166M; the delta is likely debt, extensions or secondary, not a new primary mark |
+| Ongoing | Nasdaq Private Market listing | Shares tradeable pre-IPO; no announced IPO plans |
+
+Do this arithmetic before you walk in
+
+The last *priced* round was **August 2021** — five years ago, led by **Tiger Global**, at the absolute peak of the zero-interest-rate growth-equity cycle. Since then: headcount growth of roughly **12.6% year over year**, a product roadmap built around *cost control*, and a single open engineering requisition. None of that describes a company sprinting toward a growth round. It describes a company *optimizing toward profitability, durability, and an eventual sale or listing on its own timeline*.
+
+This is the most important inference in this brief, because it changes what the CTO job *is*. It is not “scale engineering from 100 to 300.” It is **“get more leverage out of the team you have, make the platform cheaper to run per country and per member, and make the data asset into a product.”** Prepare for that job, not the one the org chart implies.
+
+### Leadership — And The Thing That Is Missing
+
+| Name | Role | Why they matter to you |
+| --- | --- | --- |
+| Tammy Sun | Founder & CEO | Ex-Evernote comms/marketing background; a narrative CEO who has put Carrot in HBR, WSJ, CNBC, The Economist. Non-engineering. She is your primary relationship and your primary translation problem. |
+| Dr. Asima Ahmad | Co-founder & Chief Medical Officer | Board-certified REI physician. Clinical authority. Carrot’s public AI stance — “clinicians define the care guidance framework” — is hers. Any AI you propose runs through her. |
+| Hilary Bartlett | Chief Product Officer | Owns product direction. The CTO/CPO seam is where this role is won or lost. |
+| Matt Thorne | Chief Information Officer | The other half of the seam. A CIO and a CTO in a ~615-person company is unusual and demands an explicit boundary. |
+| Brooke Quinn | Chief Operating Officer | Owns the ops machine — Care Companions, clinical ops, member engagement. Your biggest internal customer: automation lands on her org first. |
+| Dave Chandler | Chief Financial Officer | Owns the profitability path and the cap table. The person who will grade your cost-per-member and infrastructure spend answers. |
+| James Wong | Chief Outcomes Officer | An unusual title — signals that clinical/financial outcome measurement is a named executive function. Your data platform serves him. |
+| Randy Forman | Chief Growth Officer, Partnerships | Owns the Cigna / BCBS Global / Guardian / Teladoc channel. Partner integrations are engineering work with a revenue number attached. |
+| Bernard Chien | CTO (per third-party sources) | MIT; 20+ years healthcare tech — COTA (CTO/CTPO/CSO), Best Doctors (CTO), athenahealth, Applause, MedVentive, Radisphere, SS&C Intralinks, Sapient. |
+
+⚠ The single most important thing in this brief
+
+As of **August 7, 2026**, Carrot’s own leadership page lists eight executives — CEO, CMO, COO, CFO, Chief Outcomes Officer, **CIO**, **CPO**, and CGO. It does *not* list a CTO. Bernard Chien is identified as CTO only by third-party databases (The Org, ZoomInfo, Equilar), which lag reality by months.
+
+There are three readings, and *you need to know which one is true before you accept anything*:
+
+1.  **The seat is open or in transition.** Most likely, and consistent with them talking to you. Fine — but ask directly what happened and why.
+2.  **The page is stale.** Possible. Then you are being lined up as a *successor* to a sitting CTO, which is a fundamentally different and more delicate conversation.
+3.  **CTO is not an executive-team seat at Carrot.** The dangerous one. If the CIO and CPO are on the exec page and the CTO is not, the role may sit *below* the executive bar — a senior engineering leader with a CTO title. That is a legitimate job, but it is not the job the title implies, and the compensation and mandate should be negotiated accordingly.
+
+**Ask it plainly, early, and without apology:** “Your leadership page lists a CIO and a CPO but no CTO. Help me understand the history of this seat and where it sits on the executive team.” Senior candidates are *expected* to have done this homework. Not asking reads as not looking.
+
+### Where Carrot Sits In The Market
+
+Fertility benefits went from perk to table-stakes for large employers over the last five years, and coverage has grown roughly a third in two years. But the category is now **maturing, not exploding** — Progyny’s fertility benefit services revenue grew about **7.6% year over year** in Q2 2026, and its pharmacy line grew about **1.2%**. Single-digit growth at the category leader is the whole strategic context for Carrot’s 2026 roadmap.
+
+Connect the dots out loud
+
+Category growth slows → buyers stop asking “do you have a fertility benefit?” and start asking “why did my fertility spend go up 30%?” → the winning product is **cost integrity and outcome proof**, not feature breadth. Carrot shipped a fraud-detection system in March 2026 and an AI platform built on claims data in April 2026. *Those are not AI-hype launches; they are a deliberate repositioning from access to accountability.* If you say that sentence in the interview, you will sound like you already work there.
+
+**Q: Who is Carrot's paying customer?**
+
+-   The member receiving fertility care
+-   Employers and health plans, who buy the benefit for their populations **(correct)**
+-   Fertility clinics, who pay for referrals
+-   Insurers, via a share of medical claims
+
+*Explanation: Carrot is B2B2C. Employers and health plans buy and configure the benefit; members use it. This is why cost control and audited reporting are product features, not back-office concerns — the buyer renews based on spend predictability, while the member judges it on access.*
+
+**Q: What is the strongest read on why Carrot launched fraud detection and an AI claims platform in early 2026?**
+
+-   AI was trending and they needed a launch
+-   Category growth has slowed to single digits, so buyers now judge vendors on cost integrity rather than access — Carrot is repositioning from access to accountability **(correct)**
+-   Regulators required it
+-   They were losing a lawsuit over billing
+
+*Explanation: Progyny's Q2 2026 fertility revenue grew ~7.6% YoY. When a category matures, the buying question shifts from 'do you offer this?' to 'why is my spend up?'. Shipping a Global Price Monitoring System and an AI platform trained on a proprietary claims dataset is a direct answer to that shift.*
+
+**Q: Carrot's leadership page lists a CIO and a CPO but no CTO. What should you do with that?**
+
+-   Ignore it — websites are always stale
+-   Assume the CTO was fired and say so
+-   Ask directly and early about the seat's history and whether it sits on the executive team, because the answer changes the mandate and the comp **(correct)**
+-   Wait until an offer arrives to raise it
+
+*Explanation: It is a factual observation about their own public page, and asking about it demonstrates diligence. The three possible answers — open seat, stale page, or CTO below the exec bar — imply three very different jobs. Waiting until the offer stage means negotiating scope after they have anchored on a level.*
+
+-   **Founded & founders** — 2015. Tammy Sun (Founder & CEO, non-technical, comms/marketing background) and Dr. Asima Ahmad (Co-founder & Chief Medical Officer, board-certified REI physician).
+-   **Last priced round** — $75M Series C, August 17, 2021, led by Tiger Global. Also OrbiMed, F-Prime, CRV, U.S. Venture Partners, SVB. Total ~$115M at the time; aggregators now report $115M–$166M. No announced priced round since.
+-   **Scale headline** — ~$1B in cumulative claims across 195 countries, 1,000+ employer/health-plan customers, 10,000+ eligible providers, 50+ currencies, ~615 employees (mid-2026).
+-   **The public comparable** — Progyny (NASDAQ: PGNY). Q2 2026: fertility benefit services revenue $230.2M (+7.6% YoY), pharmacy benefit services $120.3M (+1.2% YoY). Single-digit growth at the category leader.
+-   **Executive team (Aug 2026)** — Tammy Sun (CEO), Asima Ahmad (CMO), Brooke Quinn (COO), Dave Chandler (CFO), James Wong (Chief Outcomes Officer), Matt Thorne (CIO), Hilary Bartlett (CPO), Randy Forman (CGO Partnerships). No CTO listed on the page.
+-   **Distribution partners** — Cigna Global Health Benefits, Blue Cross Blue Shield Global Solutions, Guardian Life, Teladoc. Channel partnerships are engineering integrations with revenue attached — and a lever the CTO owns.
+-   **The strategic pivot to name** — From access to accountability. 2026 launches (Global Price Monitoring, Carrot Intelligence) are cost-integrity and outcome-proof products, aimed at a maturing category where buyers question spend rather than coverage.
+
+### The Product Surface, End To End
+
+```
++---------------------------------------------------------------+
+  |  BUYER SURFACE     plan design | eligibility feed | reporting  |
+  |                    utilization & spend dashboards | invoicing  |
+  +---------------------------------------------------------------+
+  |  MEMBER SURFACE    app / web | eligibility & benefit balance   |
+  |                    provider search | Carrot Card | telemedicine|
+  |                    content, coaching, support groups           |
+  +---------------------------------------------------------------+
+  |  CARE LAYER        Care Companions (24/7, ~300 languages)      |
+  |                    clinical guidance framework (CMO-owned)     |
+  |                    care navigation & routing                   |
+  +---------------------------------------------------------------+
+  |  NETWORK LAYER     provider contracting | credential & quality |
+  |                    global directory | availability             |
+  +---------------------------------------------------------------+
+  |  MONEY LAYER       claims intake (50+ currencies) | pricing    |
+  |                    benchmarks | Global Price Monitoring        |
+  |                    adjudication | provider & member payment    |
+  +---------------------------------------------------------------+
+  |  INTELLIGENCE      Carrot Intelligence: ~$1B claims + clinical |
+  |                    evidence, 195 countries. Routing, earlier   |
+  |                    intervention, fraud, price benchmarks.      |
+  +---------------------------------------------------------------+
+```
+
+Read that stack top to bottom and the CTO’s prioritization problem becomes obvious: *the top two layers are what gets demoed, the bottom two are where the margin and the risk live.* Almost every good answer you give in this loop should connect a member-facing improvement to a money-layer or intelligence-layer capability.
+
+### Scope Of Care — Broader Than Anyone Else
+
+Preconception Fertility testing Egg & sperm freezing IVF / IUI Male-factor infertility Donor services Gestational carrier / surrogacy Adoption Pregnancy & postpartum Menopause Low testosterone Global HRT prescriptions
+
+The menopause and low-testosterone expansion matters more than it looks. It converts Carrot from a benefit that serves a narrow, temporary population — people actively trying to conceive — into one that serves **a much larger share of the employee base across a much longer arc of life**. For the buyer that is a better utilization story. For engineering it means *the data model cannot assume a “fertility journey” is the only journey*, and the guidance engine has to reason about hormonal health generally. That is a real architectural constraint and a good thing to notice out loud.
+
+### Flexible Plan Design — The Three Shapes
+
+| Design | How it works | What it demands from the platform |
+| --- | --- | --- |
+| Benefit maximum (“wallet”) | A dollar cap the member draws down across eligible services | Real-time balance, multi-currency conversion at the right rate and date, eligibility rules per service type |
+| Cycle-based (announced Jan 28, 2026) | A defined number of treatment rounds covered, rather than a dollar cap | Far harder: you must define what constitutes a “cycle,” detect its start and end from heterogeneous global claims, and handle cancelled, converted and partial cycles |
+| Combined | Customers can now mix maximums and cycles | Combinatorial benefit-rules engine; a config surface where a mis-set rule becomes a financial liability |
+
+A genuinely good technical observation to bring up
+
+Cycle-based coverage is a **clinical-event-detection problem disguised as a billing feature**. A “cycle” is not a line item — it is a clinical episode that may be coded a dozen different ways in a dozen countries, may be cancelled mid-stream, may convert from IVF to freeze-all, and may span months and multiple providers. Building it correctly means an *episode-grouping engine over a global claims stream*. Building it incorrectly means either denying a member care they are owed or paying for a fourth cycle you sold three of. If you get asked “what looks hard about our product?”, this is the best possible answer — it is specific, it is recent, and it proves you read past the marketing page.
+
+### Carrot Intelligence — April 16, 2026
+
+The flagship launch. Carrot positions it as a proprietary AI platform built on **nearly $1 billion in claims data and clinical evidence across 195 countries**, which they describe as the largest proprietary clinical dataset in the category. Four stated capabilities:
+
+| Capability | What Carrot says it does | What it implies technically |
+| --- | --- | --- |
+| Intelligent intervention, earlier | Reaches members before problems escalate, across preconception, fertility, family-building and hormonal health | Risk stratification and propensity models over longitudinal member data; an outbound orchestration system with clinical guardrails |
+| Context-driven care | Guidance shaped by medical history, preferences, geography and journey stage — in the tone, timing and format most likely to land | A personalization layer over content and channel selection; segmentation plus experimentation infrastructure |
+| Fraud detection at scale | Detects billing anomalies, price inflation and unprecedented fee structures | Anomaly detection against dynamic price benchmarks per service, per market, per currency; human review queue |
+| Precision that compounds | Constant learning loops with clinical validation | Feedback capture, labeling and retraining pipeline with a clinician in the loop — the hardest part to build well |
+
+Tammy Sun, on the AI standard — worth being able to paraphrase
+
+Her framing at launch was that AI in this space should be held to the same standard as the care itself: grounded in evidence, accountable to outcomes, and designed to improve over time.
+
+The two design commitments you must not miss
+
+Carrot stated publicly, at launch, that:
+
+1.  **Clinicians define the care guidance framework.** The model does not decide what good care is; it decides how and when to deliver guidance a clinician already sanctioned.
+2.  **They do not train proprietary foundation models on member protected health information.**
+
+Both are *architectural commitments, not marketing lines*, and both constrain any AI proposal you make. If you walk in suggesting they fine-tune a foundation model on member PHI to improve personalization, you have contradicted their published position in front of the co-founder who authored it. The right posture is the opposite: **“your published stance is the correct one and I would harden it”** — then talk about retrieval over de-identified aggregates, clinician-authored guidance as the retrieval corpus, and evaluation against clinical review rather than engagement metrics.
+
+### Global Price Monitoring System — March 24, 2026
+
+Announced a few weeks before Carrot Intelligence and now described as powered by it. It analyzes claims against **dynamic pricing benchmarks** to flag unusual charges *before the employer pays them*, then routes flagged claims to specialist teams for investigation.
+
+-   **Scope:** nearly $1B in fertility claims, **50+ currencies**, 195 countries.
+-   **Three fraud archetypes they name:** ordinary billing errors; deliberate price inflation by clinics who know an employer is paying; and surrogacy-agency service fees with *no precedent in Carrot’s dataset*.
+-   **Market context they cite:** a global surrogacy market projected toward roughly $200B by 2034 — i.e. the fraud surface is growing faster than the clinical one.
+
+Why the third archetype is the interesting one
+
+Billing errors and price inflation are **anomaly detection against a known distribution** — solved with benchmarks and statistics. “A fee structure with no precedent in our dataset” is **novelty detection**, which is a different and much harder problem: you are trying to flag things you have never seen, in a domain where legitimate novelty (a new procedure, a new market, a new regulation) is constant. Get that distinction right in the room and you will separate yourself from every candidate who says “we’d train a fraud model.” The honest answer includes *a high false-positive tolerance, a human specialist queue, and an explicit feedback loop that turns each adjudicated novelty into a new benchmark* — which is exactly the architecture Carrot describes.
+
+### The Carrot Card — The Part People Underrate
+
+Carrot issues a payment card members use directly with providers worldwide. It sounds like a convenience feature; it is actually the mechanism that makes a global benefit possible without contracting every clinic on earth. It also means Carrot runs **card issuing, authorization rules, multi-currency settlement, receipt capture and substantiation** — a payments stack with healthcare eligibility rules layered on top.
+
+> **Tip:** A differentiated angle for the CTO conversation
+>
+> Most candidates will talk about the clinical AI. Fewer will notice that **a card in the payment path is where cost control gets decided in real time**. Price monitoring that runs after the claim arrives is detection; authorization rules that run at swipe are *prevention*. Asking “how much of the price-integrity logic runs pre-authorization versus post-claim, and what stops us from pushing more of it left?” is a question a payments-literate CTO asks and a healthtech generalist does not.
+
+### Distribution — Partnerships Are An Engineering Roadmap
+
+Carrot reaches customers not only direct but through **Cigna Global Health Benefits**, **Blue Cross Blue Shield Global Solutions**, **Guardian Life** and **Teladoc**. Each of those is an integration: eligibility feeds, SSO, claims and encounter exchange, co-branded member experiences, and partner-specific reporting and security review.
+
+> **Warning:** The hidden cost to name
+>
+> Channel partnerships in healthcare have a habit of becoming *bespoke forks maintained forever*. Four partners today, each with a slightly different eligibility format and a slightly different security questionnaire, is manageable. Twelve is a platform problem. A CTO answer that scores well here: “I would want to know whether partner integrations are being built as one configurable integration platform or as four one-offs — because that single architectural choice determines whether the partnerships channel scales or caps out.”
+
+**Q: Why is cycle-based plan design technically harder than a dollar-maximum plan?**
+
+-   It requires more storage
+-   Because a 'cycle' is a clinical episode that must be detected and grouped from heterogeneous global claims — including cancelled, converted and partial cycles — rather than being a single line item **(correct)**
+-   Because currencies fluctuate
+-   Because members prefer it
+
+*Explanation: A dollar maximum is arithmetic on a balance. A cycle is an episode: it may be coded differently in every country, may be cancelled mid-stream, may convert from IVF to freeze-all, and may span months and multiple providers. Getting it wrong means either denying covered care or paying for a cycle you never sold.*
+
+**Q: Carrot has publicly stated it does NOT train proprietary foundation models on member PHI. What does that mean for an AI proposal you bring to the interview?**
+
+-   It is marketing language you can safely ignore
+-   It is an architectural commitment — propose retrieval over de-identified aggregates and clinician-authored guidance, and evaluate against clinical review rather than engagement **(correct)**
+-   It means they cannot use AI at all
+-   It only applies in the EU
+
+*Explanation: It was stated at the Carrot Intelligence launch alongside 'clinicians define the care guidance framework.' Proposing PHI fine-tuning contradicts a published position authored by the co-founder and CMO who will likely be in your loop. The stronger move is to endorse the constraint and show you can build within it.*
+
+**Q: Which fraud archetype named by Carrot is the genuinely hard machine-learning problem?**
+
+-   Ordinary billing errors
+-   Deliberate price inflation by clinics
+-   Surrogacy-agency fee structures with no precedent in the dataset **(correct)**
+-   Duplicate claims
+
+*Explanation: Errors and inflation are anomaly detection against a known distribution — benchmarks and statistics handle them. 'No precedent in our dataset' is novelty detection, where legitimate novelty (new procedures, markets, regulations) is constant. It needs high false-positive tolerance, a human specialist queue, and a loop that converts each adjudicated case into a new benchmark.*
+
+-   **Carrot Intelligence** — Launched April 16, 2026. Proprietary AI platform on ~$1B claims data + clinical evidence across 195 countries. Four capabilities: earlier intervention, context-driven care, fraud detection at scale, compounding precision via clinically-validated learning loops.
+-   **The two AI design commitments** — (1) Clinicians define the care guidance framework — the model decides delivery, not what good care is. (2) Carrot does not train proprietary foundation models on member PHI. Both are architectural constraints on anything you propose.
+-   **Global Price Monitoring System** — March 24, 2026. Analyzes claims against dynamic pricing benchmarks to flag anomalies before the plan sponsor pays; routes flagged claims to specialist teams. 50+ currencies, 195 countries, ~300 languages of support.
+-   **Flexible Plan Design** — Benefit maximum (wallet), cycle-based (announced Jan 28, 2026), or a combination. The combination is a combinatorial benefit-rules engine where a mis-set config is a direct financial liability.
+-   **Carrot Card** — Member payment card usable with providers worldwide. Makes global coverage possible without contracting every clinic. Implies card issuing, authorization rules, multi-currency settlement, receipt capture and substantiation — a payments stack with eligibility rules on top.
+-   **Scope expansion signal** — Menopause, low testosterone and global HRT prescriptions extend Carrot from a narrow, temporary population to a large share of the employee base over a long arc — and break any data model that assumes a 'fertility journey' is the only journey.
+
+Read this module twice
+
+Everything here comes from Carrot’s own live job postings and careers page rather than from press releases — which makes it the most reliable and least-known material in this brief. It also contradicts what most people would assume about a healthtech company’s stack and org. *Knowing this is your single biggest information edge in the room.*
+
+### The Real Stack — Not What You’d Guess
+
+The reasonable prior for a 2015-vintage healthtech company is Python, Postgres, AWS. That prior is **wrong** here. From the current Senior Software Engineer and Data Engineer postings:
+
+| Layer | What they actually use | What it tells you |
+| --- | --- | --- |
+| Backend | C# / .NET | A deliberate, enterprise-grade choice. Strong typing, mature tooling, easy to hire into in the Midwest. Also: a smaller AI/ML library ecosystem than Python, so ML almost certainly lives elsewhere. |
+| Frontend | TypeScript, React | Conventional and healthy. Nothing to fix here. |
+| Data store | SQL (relational) | Relational core. Fits claims, eligibility and benefit balances — these are transactional, auditable, money-shaped problems. |
+| Cloud | Azure and AWS | The most interesting line in the posting. Two clouds. See the callout below. |
+| Data platform | Snowflake, Fivetran, dbt, Prefect (on AWS) | A modern, well-chosen ELT stack. This is where Carrot Intelligence is fed from. |
+| Dev tooling | Codex, Claude Code or equivalent — “daily fluency” is a stated requirement | They are not experimenting with AI-assisted development. They have standardized on it and screen for it. |
+
+The two-cloud fact is a question, not a criticism
+
+Azure *and* AWS in a ~615-person company is either (a) a deliberate split — .NET application workloads on Azure, data platform on AWS where Snowflake and the ELT tooling live, which is coherent; or (b) an accident of history and acquisition that now costs real money in egress, duplicated compliance evidence, duplicated on-call and duplicated identity plumbing.
+
+**Do not walk in and say “you should consolidate clouds.”** That is the classic new-CTO applause line that turns into an 18-month migration nobody wanted. Instead: *“I noticed you run both Azure and AWS. Is that a deliberate application/data split, or historical? And what does the second cloud cost us in compliance evidence and on-call surface?”* That question shows you think in total cost of ownership rather than architectural tidiness — and it will land especially well with the CFO and the CIO.
+
+### The Engineering Culture — They Told You In The Job Ad
+
+The Senior Software Engineer posting is unusually explicit about how the org runs. Three quoted-in-substance commitments:
+
+-   **Small, focused pods with a named DRI.** One engineer or PM owns each initiative’s outcome *and its decisions*. Not a committee model.
+-   **Explicit AI leverage thesis.** The posting states that what used to take a team of engineers a quarter can now be done by a smaller group using AI tools effectively.
+-   **Shipping bias.** “Good enough, shipped, and ready to iterate” over perfectionism, with high autonomy paired with accountability for production reliability and incident response.
+
+This is the most load-bearing paragraph in the whole brief
+
+A company that writes *“what used to take a team of engineers a quarter can now be done by a smaller group”* into its job ad has made a **strategic bet that engineering headcount is not the growth lever**. Combine that with: 12.6% annual headcount growth, no priced round since 2021, a 2026 roadmap centered on cost control, and *exactly one open engineering requisition out of fifteen open roles company-wide*.
+
+The conclusion is unavoidable, and you should internalize it before you prepare a single answer: **they are not hiring a CTO to build a big engineering organization. They are hiring a CTO to get more out of a small one.**
+
+Any answer built around “here’s how I scale from 100 to 300 engineers” is answering a question they are not asking, and worse, signals that you have not read their own materials. Rewrite that instinct as: throughput per engineer, platform leverage, buy-versus-build discipline, automation of ops load, and cost per member served.
+
+### How Big Is Engineering, Really?
+
+Nobody publishes this. Here is the reasoning — carry the *method* into the room, not the number:
+
+| Signal | Observation | Direction |
+| --- | --- | --- |
+| Total headcount | ~615 employees (mid-2026) | — |
+| Business shape | Care Companions, clinical ops, member engagement, CSM, sales across 195 countries and ~300 languages | Heavily operations-weighted, not product-weighted |
+| Open roles mix | 15 open roles; 9 in operations / clinical / CS, 1 engineering, 1 contract design, plus legal, marketing, sales, HR | Ops is where they add people |
+| Stated org model | “Small, focused pods” with DRIs; explicit AI-leverage thesis | Small teams by design |
+| Comp bands | Sr SWE I $140–160K, Sr SWE II $160–200K, Sr Data Engineer $155–195K — remote, national bands | Not a Bay-Area-scale payroll |
+
+> **Warning:** *Inference* — state it as an estimate, and ask
+>
+> Benefits-navigation businesses typically run **12–20% of headcount in product and engineering**, and Carrot skews operations-heavy even for the category. That puts **Product & Engineering combined at roughly 75–120 people**, of whom perhaps **50–90 are engineers** including data and platform — likely toward the lower half of that range given the pods-and-AI thesis.
+>
+> So: **your span is plausibly 50–90 engineers, not 200.** Do not assert this in the room. Do this instead: *“From the outside it looks like Product and Engineering is somewhere around 80 to 120 people in an operations-heavy business of 600 — is that roughly right, and how is it split across product, platform, data and security?”* Showing the estimate *and* the reasoning, then inviting correction, is a strictly better move than pretending to know or pretending not to have thought about it.
+
+### The Boundary Problem — This Defines The Job
+
+Carrot has a sitting **CPO (Hilary Bartlett)** and a sitting **CIO (Matt Thorne)**, both on the executive page. A CTO arriving into that configuration is squeezed from two sides simultaneously:
+
+```
+CPO  (Hilary Bartlett)
+                 what we build, for whom, in what order
+                                |
+                                | <-- seam 1: roadmap authority,
+                                |     architecture vs. product tradeoffs
+                                v
+    CIO  <----- seam 2 ----->  CTO  <----- seam 3 ----->  CMO
+ (Matt Thorne)               (you?)                  (Asima Ahmad)
+ corporate IT,            product engineering,        clinical safety,
+ internal systems,        platform, data, ML,         guidance framework,
+ vendor stack, often      architecture, delivery      what AI may say
+ security & compliance
+                                ^
+                                | <-- seam 4: automation lands
+                                |     on the ops org first
+                                |
+                        COO  (Brooke Quinn)
+                 Care Companions, clinical ops, member engagement
+
+  THE FOUR QUESTIONS THAT DECIDE WHETHER THIS JOB IS GOOD:
+   1. Who owns SECURITY and COMPLIANCE -- CTO or CIO?
+   2. Who owns the DATA PLATFORM and ML -- CTO, CIO, or a data org?
+   3. Does ENGINEERING report to the CTO, or to the CPO?
+   4. Does the CTO sit on the EXECUTIVE TEAM and report to the CEO?
+```
+
+Negotiate scope before you negotiate money
+
+Those four questions are not interview curiosities — they are the difference between a real CTO role and a title. A CTO who does not own security in a HIPAA/GDPR business is accountable for breaches they cannot prevent. A CTO who does not own the data platform cannot deliver on Carrot Intelligence, which is the entire strategic thesis. A CTO whose engineers report to the CPO is a principal architect with a nicer business card.
+
+**Ask all four, early, in one breath, framed constructively:** *“With a CPO and a CIO already in place, I want to make sure I understand the boundaries. Where do security and compliance sit? Where does the data and ML platform sit? Does engineering report into this role? And does this role sit on the executive team reporting to Tammy?”* Delivered evenly, that is not a demanding question — it is the question a person who has done the job before knows to ask. Delivered late, after an offer, it becomes a renegotiation.
+
+### The Six Technical Problems That Are Actually Hard Here
+
+| # | Problem | Why it is hard at Carrot specifically |
+| --- | --- | --- |
+| 1 | Global claims ingestion & normalization | 195 countries, 50+ currencies, no universal coding standard outside the US. Fertility is largely cash-pay abroad — you are normalizing invoices, not standardized claim forms. |
+| 2 | Price benchmarking & fraud | Requires a live, per-market, per-service, per-currency price distribution — and novelty detection for fee structures never seen before. Thin data in small markets makes benchmarks statistically fragile exactly where fraud is most likely. |
+| 3 | Clinical AI under a clinician-authored framework | The constraint is not model quality, it is governance: versioned guidance, traceability from output to sanctioned source, clinician sign-off, and evaluation against clinical review rather than engagement. |
+| 4 | Data residency & privacy across 195 jurisdictions | HIPAA in the US, GDPR in the EU, plus India’s DPDP Act, Brazil’s LGPD, China’s PIPL and others. Fertility data is special-category data almost everywhere — the strictest classification GDPR has. |
+| 5 | Benefit-rules engine correctness | Maximums × cycles × service eligibility × country × currency × 1,000+ customers. Every wrong answer is either a denied member or an unbudgeted payout. This is where a bug is a lawsuit. |
+| 6 | Operations automation | The largest cost center is people — Care Companions, clinical ops, claims specialists. The single biggest margin lever the CTO controls is automating ops workload without degrading a care experience people are emotionally invested in. |
+
+> **Tip:** If you only remember one strategic sentence, make it this
+>
+> **“At Carrot, the CTO’s job is to turn a claims dataset and an operations org into a margin advantage — without ever letting a member feel like they got the cheap version of care.”** That single sentence covers Carrot Intelligence, price monitoring, ops automation and clinical safety at once, and it is phrased in the CEO’s and CFO’s language rather than an engineer’s. Use it as your closing line when asked for your view of the role.
+
+### Sensitivity — The Non-Obvious Risk Nobody Will Raise First
+
+> **Warning:** Bring this up yourself; it will land
+>
+> Carrot holds data about fertility treatment, pregnancy, pregnancy loss, adoption and surrogacy. In the current US legal environment, **reproductive health data carries risks ordinary PHI does not** — subpoena exposure, cross-state legal variation, and employer-adjacent data flows where a member may reasonably fear their employer learning they are trying to conceive. Add cross-border transfers of that data across 195 countries.
+>
+> The engineering implications are concrete: strict minimization and segregation of the employer-visible reporting surface, aggregation thresholds that prevent re-identification in small-population employers, defensible retention and deletion policy, encryption and key management posture, and a documented legal-process response plan. *A CTO candidate who raises reproductive-data risk unprompted — especially to the CEO or CMO — demonstrates that they understand this is not generic healthtech.* Very few candidates will do it. It is the highest-signal unprompted point available to you in this loop.
+
+**Q: What is Carrot's actual primary backend stack?**
+
+-   Python and Django on AWS
+-   C#/.NET with TypeScript/React and SQL, running on both Azure and AWS **(correct)**
+-   Java and Spring on GCP
+-   Ruby on Rails
+
+*Explanation: Straight from their live Senior Software Engineer posting: C#/.NET, TypeScript, React, SQL, Azure and AWS. The data platform is Snowflake, Fivetran, dbt and Prefect on AWS. The common assumption of a Python stack is wrong, and knowing the real answer is a cheap, high-signal edge.*
+
+**Q: Their job posting says a smaller group with AI tools can now do what took a team a quarter, they run small pods with DRIs, and only 1 of 15 open roles is engineering. What does that mean for your interview strategy?**
+
+-   Lead with a plan to triple engineering headcount
+-   Lead with throughput per engineer, platform leverage, buy-vs-build discipline and ops automation — they are hiring a CTO to get more from a small org, not to build a big one **(correct)**
+-   Avoid discussing the org entirely
+-   Argue that AI-assisted development is overrated
+
+*Explanation: Headcount growth of ~12.6%, no priced round since 2021, a cost-control roadmap, and one open engineering req all point the same direction. A '100 to 300 engineers' answer is answering a question they are not asking and signals you did not read their own materials.*
+
+**Q: Which boundary question most determines whether the Carrot CTO role is real or nominal?**
+
+-   Which cloud provider they standardize on
+-   Whether engineering reports to the CTO or to the CPO, and whether the CTO sits on the exec team reporting to the CEO **(correct)**
+-   What their code review process looks like
+-   Whether they use Jira or Linear
+
+*Explanation: With a sitting CPO and CIO, the CTO's surface is squeezed from both sides. If engineers report to the CPO and the CTO is not on the exec team, the role is a principal architect with a better title. Ask all four boundary questions early — scope is negotiated before money, not after.*
+
+**Q: What is the highest-signal risk to raise unprompted with the CEO or CMO?**
+
+-   Technical debt in the frontend
+-   Cloud cost overruns
+-   Reproductive health data risk — subpoena exposure, employer-adjacent data flows, cross-border transfer of special-category data, and re-identification in small employer populations **(correct)**
+-   Slow CI pipelines
+
+*Explanation: Carrot holds data about fertility treatment, pregnancy loss, adoption and surrogacy across 195 jurisdictions, sold to employers. That is materially riskier than generic PHI, and it implies concrete engineering work: minimization, aggregation thresholds in employer reporting, retention policy, key management, and a legal-process response plan. Almost no candidate raises it first.*
+
+-   **The real stack** — C#/.NET backend, TypeScript + React frontend, SQL, Azure AND AWS. Data platform: Snowflake, Fivetran, dbt, Prefect on AWS. Codex / Claude Code fluency is a stated hiring requirement.
+-   **Engineering culture (from the job ad)** — Small focused pods, one named DRI per initiative owning outcome and decisions. Explicit thesis that AI tooling lets a smaller group do a quarter's work. 'Good enough, shipped, ready to iterate.' High autonomy with production and incident accountability.
+-   **Comp bands (public)** — Sr Software Engineer I $140–160K; Sr SWE II $160–200K; Sr Data Engineer $155–195K. Remote, national bands — not Bay Area scale. Anchor your own comp expectations against this reality.
+-   **Engineering org size (inference)** — ~615 employees, operations-heavy, 9 of 15 open roles in ops/clinical/CS, only 1 engineering req. Product + Engineering plausibly 75–120 total; engineers likely 50–90. Present as an estimate with reasoning and invite correction — never assert it.
+-   **The four boundary questions** — (1) Who owns security & compliance — CTO or CIO? (2) Who owns the data platform and ML? (3) Does engineering report to the CTO or the CPO? (4) Is the CTO on the exec team reporting to the CEO? Ask all four early.
+-   **Your one-sentence thesis** — 'The CTO's job here is to turn a claims dataset and an operations org into a margin advantage — without ever letting a member feel like they got the cheap version of care.'
+
+How to use this module
+
+These are scaffolds, not scripts. Read the shape, then say it in your own words — a memorized answer is audible. Each one follows the same structure: **a position, the reasoning behind it, a concrete first move, and an honest caveat.** The caveat is not weakness; at executive level, an answer with no acknowledged trade-off reads as inexperience. Aim for *90 seconds to two minutes* each, then stop and let them pull.
+
+### Q1. “What’s your three-year technical vision for Carrot?”
+
+#### The position
+
+Three years from now, Carrot’s defensibility should not be the size of its provider network — networks get replicated. It should be that **Carrot is the only company that knows what fertility care actually costs and actually works, everywhere in the world**, and can act on that knowledge in real time.
+
+#### The three arcs to name
+
+1.  **From detection to prevention.** Today price integrity largely runs after a claim arrives. Over three years, move that logic left — into authorization at the point of payment, and into provider routing *before* care is chosen. Detecting a bad bill saves the claim; routing away from a bad-value provider saves the episode.
+2.  **From dataset to product.** The ~$1B claims asset is currently an input to internal models. It should become something buyers *feel*: benchmark reporting, forecastable spend, outcome comparisons by market. A CFO at a customer who can forecast fertility spend within a few points renews without a competitive process.
+3.  **From headcount to leverage.** Ops cost scales with members today. Over three years, the ratio of members-served to ops-headcount should improve materially through AI-assisted care navigation, claims automation and self-service — with clinician-in-the-loop preserved where it matters.
+
+#### The honest caveat
+
+“All three depend on data quality I can’t assess from outside. If the claims data is less normalized than the marketing implies, arc one and arc two both start with a normalization investment that isn’t glamorous, and I’d rather tell you that in month one than discover it in month six.”
+
+### Q2. “How would you scale engineering from 100 to 300 while maintaining quality?”
+
+Handle this one carefully — it may be a test, or a stale question
+
+Everything in Module 3 says Carrot is not planning to triple engineering. If they ask this anyway, **do not just answer it**, and do not refuse it either. Answer the question *and* reframe:
+
+#### The move
+
+*“I’ll answer that, but let me first say what I’d actually push for. Reading your engineering job posting — small pods, named DRIs, an explicit expectation that AI tooling lets a smaller group do what used to take a team a quarter — my read is that you’ve already made a bet that headcount isn’t your growth lever. I agree with that bet. So the question I’d rather solve is how we double output without doubling the org. If the answer is that we do need to triple, here’s how I’d do it safely...”*
+
+#### Then deliver the actual scaling answer, briefly
+
+-   **Grow around durable domains, not projects.** Teams named for outcomes that persist — Claims & Payments, Member Experience, Provider Network, Data & Intelligence — not for whatever ships this quarter.
+-   **Platform before people.** Every hire past a certain point costs more than they add unless CI, environments, deploy, observability and data access are self-serve. Pay that down before the hiring, not after.
+-   **Protect the DRI model deliberately.** Ownership clarity is the first casualty of growth. Written ownership map, one accountable name per system, and reviews that ask “who decided?” rather than “what did the group think?”
+-   **Onboarding is a product.** Time-to-first-meaningful-PR is the metric. In a regulated codebase it is also the compliance training path.
+-   **Quality gates that scale sublinearly.** Automated compliance evidence, contract tests at service boundaries, and a definition of done that includes observability — so review load does not grow with team size.
+
+#### Close on their terms
+
+“But I’d hold you to a real answer on why we need 300. In a business with your margin profile, I’d want to see the cost-per-member curve bend before I’d sign up to triple payroll.”
+
+### Q3. “How do you think about AI in healthcare — the opportunity and the guardrails?”
+
+#### The position — lead with the guardrail, not the opportunity
+
+Most candidates lead with capability. Lead with the boundary and you sound like someone who has shipped in a regulated environment.
+
+*“I draw a hard line between AI that **informs a clinician or an operator** and AI that **speaks directly to a member about their care**. The first is an efficiency problem and you can move fast. The second is a safety problem and it moves at the speed of clinical governance. Most healthcare AI failures come from letting the second quietly inherit the risk tolerance of the first.”*
+
+#### Where the opportunity is, in priority order
+
+1.  **Operational AI — highest value, lowest risk.** Claims normalization, document extraction, coding assistance, price anomaly triage, drafting member communications for a human to send, summarizing case history for a Care Companion before a call. Direct margin impact, no clinical exposure, immediately measurable.
+2.  **Decision support for named humans.** Routing recommendations, risk flags, next-best-action for a Care Companion. A human remains accountable; the model shortens their path.
+3.  **Member-facing guidance — slowest, most governed.** Only within the clinician-authored framework, only with traceability from every output to a sanctioned source, only after evaluation against clinical review.
+
+#### The guardrails, named concretely
+
+-   **Provenance.** Every member-facing generated statement traceable to a specific version of clinician-approved guidance. If it cannot be traced, it does not ship.
+-   **Evaluation against clinical review, not engagement.** Optimizing member-facing health guidance for engagement is how you end up with a system that is compelling and wrong.
+-   **Data boundary.** Endorse their published position — no training proprietary foundation models on member PHI — and build for it: retrieval over de-identified aggregates, strict tenancy isolation, zero-retention terms with any external model vendor, and a documented record of what data touched which model.
+-   **Reversibility.** Every AI surface has an off switch that a non-engineer can pull, and a defined fallback path to a human.
+-   **Bias in a reproductive context.** Care recommendations that vary by geography, age or coverage tier can encode inequity. Measure outcome differences across cohorts deliberately, because nobody will complain until it is a headline.
+
+#### The caveat
+
+“The uncomfortable part is that guardrails slow you down exactly where the competitive pressure is highest. I’d rather be second to a member-facing AI feature and first to an operational one that moves margin.”
+
+### Q4. “What would you do differently with Carrot Intelligence?”
+
+> **Warning:** Trap question — answer it as a builder, not a critic
+>
+> You are being asked to critique a flagship launch that the CEO personally fronted, in front of people who built it, with no access to how it actually works. Criticize it directly and you look arrogant; refuse to engage and you look evasive. *The path through is to praise the design commitments, then push on the parts every platform like this struggles with — framed as questions you would ask on day one.*
+
+#### Open by endorsing the two things they got right
+
+“Two decisions in the public description are ones I’d have fought for myself: clinicians owning the guidance framework, and not training proprietary foundation models on member PHI. Those are the decisions that are expensive to reverse, and they made them correctly at the start.”
+
+#### Then the three things you would want to pressure-test
+
+1.  **Benchmark density in thin markets.** “A price benchmark built from a billion dollars of claims is strong in your top ten markets and statistically thin in your hundredth. But fraud is *most* likely where oversight is weakest, which is often exactly where the data is thinnest. I’d want to know how confidence intervals vary by market, and whether we flag on absolute thresholds where the distribution is too sparse to trust.”
+2.  **The feedback loop is the whole asset.** “‘Precision that compounds’ only compounds if every specialist adjudication is captured as a label and flows back into the benchmark. In practice that loop is where these systems break — the reviewer resolves the case in a ticketing tool and the model never learns. I’d want to see the instrumentation on that loop before I’d believe the compounding claim.”
+3.  **Measurement of the intervention arm.** “‘Earlier intervention’ is a causal claim. Do we have a design that can actually prove it — holdouts, staged rollout, or matched cohorts? Because if we cannot prove it, we cannot sell it to a benefits leader who has been pitched outcomes claims by fifteen vendors.”
+
+#### Close generously
+
+“None of that is a criticism of the launch — those are the questions I’d be asking about my own system in month three.”
+
+### Q5. “How do you handle technical debt in a high-growth healthcare company?”
+
+#### The position
+
+*“I don’t treat technical debt as one category, because it isn’t. I sort it into three buckets and they get completely different treatment.”*
+
+-   **Debt that is a liability** — anything touching PHI handling, access control, audit logging, benefit-calculation correctness, or money movement. *This is not scheduled against roadmap; it is fixed.* In healthcare, the cost of this category is not slower development, it is a breach notification or a regulator.
+-   **Debt that is a tax** — slow builds, flaky tests, manual deploys, duplicated integration code. It compounds quietly and it is the real reason velocity decays. Pay it down continuously with a standing capacity allocation, not a heroic quarter.
+-   **Debt that is fine** — ugly code in a stable, rarely-touched system with no compliance surface. Leave it. Rewriting it is a vanity project.
+
+#### The mechanism
+
+“A standing allocation — I usually run 15–20% — that the team spends without asking permission, plus an explicit rule that the liability bucket jumps the queue. The allocation matters less than its predictability: if engineers believe the time is real, they surface debt honestly instead of hiding it inside estimates.”
+
+#### Tie it to their reality
+
+“At Carrot specifically, the debt I’d go looking for first is in the benefit-rules engine and the claims normalization layer — because those are where a defect is financial or member-harming rather than merely annoying. And with a combined maximum-plus-cycle plan design shipping this year, that engine just got materially more complex.”
+
+#### The caveat
+
+“The failure mode of my approach is under-investing in the ‘fine’ bucket until it quietly moves into the ‘tax’ bucket. I re-triage roughly twice a year for that reason.”
+
+### Q6. “How would you architect a platform for 195 countries and their regulations?”
+
+#### The organizing principle
+
+*“One platform, configured — never one platform per region. The moment you fork by geography you have signed up to maintain N products forever, and in a company this size that is fatal. So the design question is: what varies by country, and can each variation be pushed into configuration or policy rather than code?”*
+
+#### What actually varies, and where it belongs
+
+| Dimension | Varies by country? | Where it should live |
+| --- | --- | --- |
+| Data residency & cross-border transfer | Yes, materially | Infrastructure + data layer. The one thing that legitimately forces regional deployment topology — and the decision to make deliberately, once. |
+| Legal basis / consent model | Yes (GDPR, DPDP, LGPD, PIPL) | Policy engine with per-jurisdiction rules; consent as versioned, auditable state on the member record. |
+| Currency, tax, payment rails | Yes | Money layer, as data. Never in application branching. |
+| Clinical standards & permitted services | Yes — surrogacy and donor services are illegal in some markets | Clinician-owned rules, expressed as configuration the CMO’s org can review — not conditionals engineers guess at. |
+| Language & localization | Yes (~300 supported) | Content platform, decoupled from release cycle. |
+| Core domain model | No — and defend this | Member, benefit, claim, provider, episode. One model, universally. |
+
+#### The line that lands
+
+“The test I apply: **can we launch a new country without an engineer writing code?** If the answer is no, we have not built a global platform — we have built a US platform with international features. Getting to yes is a multi-year arc, but it is the right north star, and it converts market expansion from an engineering project into a business decision.”
+
+#### The caveat
+
+“Configuration-driven systems fail in a specific way: the config surface becomes a programming language with no tests and no reviewers. So I’d pair it with validation, simulation against historical claims before a config goes live, and staged rollout — otherwise you have moved the bugs somewhere less visible.”
+
+### Q7. “What’s the biggest risk you see in our business?”
+
+#### Pick one, name it plainly, then show you have a response
+
+*“Consolidation by the people who already own the member relationship. Fertility benefits started as a category the big health plans ignored because it was small and clinically unusual. It is no longer small. The moment a major carrier decides to build or buy this in-house, a standalone point solution is competing with something bundled into the medical plan at effectively zero marginal cost to the employer.”*
+
+#### Then the defense — which is also the technical strategy
+
+-   **Be the thing they cannot easily replicate:** the global network and the global claims dataset. A US carrier can build a US fertility benefit; building one that works in 195 countries is a decade of contracting.
+-   **Be their supplier, not only their competitor.** The Cigna Global, BCBS Global Solutions, Guardian and Teladoc partnerships already point this way. Every carrier integration makes Carrot harder to displace and cheaper to distribute.
+-   **Own the outcome proof.** If Carrot can demonstrate lower cost per live birth and fewer high-risk pregnancies with data a carrier cannot assemble, the buy-versus-build math stops being about feature parity.
+
+“That is a strategy question more than a technology question — but it determines what I’d build, so I’d want to be in the room where it’s decided.” *(That last clause is a quiet, appropriate ask for the exec seat.)*
+
+**Q: They ask 'how would you scale engineering from 100 to 300?'. Best response?**
+
+-   Deliver a textbook scaling answer and stop
+-   Refuse the premise and say they don't need to
+-   Answer it, but first reframe toward output-per-engineer given their stated AI-leverage and small-pod model, then close by asking what would justify tripling payroll **(correct)**
+-   Say it depends on funding
+
+*Explanation: Refusing looks evasive; answering blindly ignores everything their own job ad says about small pods, DRIs and AI leverage. Reframing first shows you read their materials, then delivering a real scaling answer shows you can do the job if the premise turns out to be true.*
+
+**Q: Asked what you'd do differently with Carrot Intelligence, what is the safest high-scoring structure?**
+
+-   List its weaknesses directly and confidently
+-   Decline to critique a system you haven't seen
+-   Endorse the two hard-to-reverse design commitments they got right, then raise three pressure-test questions — thin-market benchmark confidence, whether the adjudication feedback loop is truly instrumented, and whether 'earlier intervention' is causally measurable **(correct)**
+-   Suggest rebuilding it on a foundation model
+
+*Explanation: You are critiquing a CEO-fronted flagship in front of its builders with no internal access. Endorsing the expensive-to-reverse decisions buys credibility; framing the rest as questions you'd ask about your own system in month three is honest without being arrogant.*
+
+**Q: What is the right first-order split when talking about AI in healthcare?**
+
+-   Generative vs predictive
+-   Build vs buy
+-   AI that informs a clinician or operator (efficiency problem, move fast) vs AI that speaks directly to a member about care (safety problem, moves at the speed of clinical governance) **(correct)**
+-   Cloud vs on-prem
+
+*Explanation: Leading with this boundary rather than with capability signals regulated-environment experience. Most healthcare AI failures come from member-facing systems quietly inheriting the risk tolerance of internal tooling.*
+
+**Q: What is the north-star test for a genuinely global platform?**
+
+-   Support for 195 currencies
+-   Sub-second latency in every region
+-   Whether a new country can be launched without an engineer writing code **(correct)**
+-   Having offices on every continent
+
+*Explanation: If launching a country requires code, you have a US platform with international features. Making it configuration-driven converts expansion from an engineering project into a business decision — but must be paired with config validation, simulation against historical claims, and staged rollout, or you have just hidden the bugs.*
+
+### The STAR+S Shape For Executive Interviews
+
+| Section | Time | What it must contain |
+| --- | --- | --- |
+| Situation | ~15 sec | Company stage, your scope, the constraint. Not a history lesson. |
+| Task | ~15 sec | What you specifically were accountable for. The word “I,” not “we.” |
+| Action | 60–90 sec | The concrete moves and the reasoning — including the option you rejected and why. This is ~70% of your score. |
+| Result | ~20 sec | Baseline → delta, with a timeframe. “From 40% to 78% over two quarters,” not “significantly improved.” |
+| + Scale-forward | ~10 sec | One sentence: “The version of that problem here would be…” |
+
+The single highest-leverage habit
+
+The **+S scale-forward** costs ten seconds and changes how every story is remembered. Without it, the interviewer pictures you in your last job. With it, they picture you in this one. Attach one to every story below — e.g. *“the version of that here is the combined maximum-plus-cycle rules engine,”* or *“the version of that here is automating Care Companion workload without members feeling downgraded.”*
+
+### The Seven Stories To Have Loaded
+
+Write one bullet per STAR section for each of these in your own notes before the loop. Do not write full prose — prose gets recited and recitation is audible.
+
+Story 1 — Scaling or restructuring a team
+
+**What they’re grading:** whether you design orgs around durable outcomes or around whatever is urgent. **Must include:** the boundary you chose and the one you rejected, how you handled the people cost, and what broke that you did not anticipate. **Carrot-specific +S:** “Here I’d expect the interesting boundary to be between the money layer — claims, benefits, payments — and the member experience, because those have completely different reliability and correctness bars.”
+
+Story 2 — Leading through genuine ambiguity
+
+**What they’re grading:** whether you can act without complete information and still be accountable. **Must include:** what you decided *with insufficient data*, the smallest experiment you ran to reduce uncertainty before committing, and what you would have done if it had gone the other way. **Avoid:** stories where the ambiguity resolved itself.
+
+Story 3 — A compliance, security or privacy call
+
+**Essential for this role.** **What they’re grading:** whether you treat compliance as a real constraint or as a checkbox someone else owns. **Must include:** a moment where the compliant path was slower and you took it anyway, and how you explained that trade to a business stakeholder who did not want to hear it. **Carrot-specific +S:** reproductive health data, employer-adjacent reporting, cross-border transfer.
+
+Story 4 — A hard technical decision with business consequences
+
+**What they’re grading:** whether you can hold a technical position under commercial pressure — and whether you know when not to. **Best shape:** a build-versus-buy call, a deprecation, or a “we are not shipping this on that date” conversation. **Must include:** the dollar or date impact, who disagreed, and how it was resolved. **Bonus:** a case where you were overruled and executed well anyway.
+
+Story 5 — A real failure you owned
+
+**The most commonly botched story.** **Must contain three things:** a decision *you* made that was wrong, a cost *someone else* paid, and a *durable change* in how you now operate. **Disqualifying shapes:** a disguised success, a failure caused by someone else, or a failure with no lasting change. The durable change is the part actually being graded.
+
+Story 6 — Global or distributed engineering
+
+**Highly relevant here** given 195 countries and a remote-first posture. **What they’re grading:** whether you have run teams across time zones without either burning out one region or slowing everything to the pace of async. **Must include:** a concrete mechanism — how decisions got made, how handoffs worked, what you stopped doing synchronously.
+
+Story 7 — Making a non-technical executive a real partner
+
+**Directly predictive of success with Tammy Sun.** **Must include:** a specific translation device you built — a metric, a dashboard, a recurring ritual, a way of framing risk in dollars or dates — and evidence it changed a decision. “I explained things clearly” is not an answer.
+
+### “How Do You Build Trust With A Non-Technical CEO?”
+
+#### The position
+
+*“Trust with a non-technical CEO is not built by simplifying technology. It’s built by being **predictable** — by making sure that what I say in January is what happens by March, and that when it isn’t, she hears it from me first and early.”*
+
+#### The four mechanisms
+
+1.  **Translate into her units.** Tammy Sun’s background is narrative and market-building. She thinks in customers, categories and story. So: not “we’re refactoring the claims pipeline” but “this is what lets us tell a benefits buyer we can forecast their spend — and it takes two quarters.”
+2.  **Never surprise her in public.** Bad news travels to the CEO before it travels to the board, the customer or the all-hands. One surprise in a board meeting costs more trust than a year of good delivery builds.
+3.  **Give her a small number of durable metrics.** Three or four that do not change quarterly — delivery predictability, reliability, cost per member served, security posture. A dashboard she can read without me is worth more than any presentation I give.
+4.  **Bring options with prices, not requests for permission.** “Here are three ways to do this: six weeks and fragile, one quarter and right, two quarters and it becomes a product we can sell. My recommendation is the middle one, here’s why.” That is a CEO-legible conversation.
+
+#### The caveat that shows self-awareness
+
+“The failure mode I watch for in myself is over-simplifying to the point where she can’t participate in the real trade-off. My job isn’t to shield her from technical complexity — it’s to give her exactly the amount she needs to make the call that’s actually hers.”
+
+### “How Do You Balance Velocity With Compliance In Healthcare?”
+
+#### The reframe that separates senior from mid-level
+
+*“I don’t think of them as a dial with velocity at one end and compliance at the other — that framing loses every time, because it invites people to argue about where the dial should sit. I think of compliance as a set of **invariants**, and then I go make everything inside those invariants fast.”*
+
+#### Made concrete
+
+-   **Automate the evidence, not just the control.** Most compliance drag is not the control itself — it is a human assembling proof at audit time. Continuous evidence collection turns an audit from a fire drill into a report.
+-   **Make the compliant path the easy path.** Golden paths for logging, access, encryption and data handling, so a developer gets compliance by using the platform rather than by remembering a policy. Nobody complies their way to a deadline; they take the path of least resistance, so that path must be the safe one.
+-   **Tier the risk honestly.** A change to marketing content and a change to the benefit-calculation engine should not carry the same process. Uniform process is how organizations end up slow *and* unsafe — heavy where it doesn’t matter, and resented where it does.
+-   **Bring legal and clinical in early.** The expensive version is discovering a constraint at the end. A standing early-review ritual with the CMO’s org and legal is cheaper than a rebuild.
+
+#### The line to close on
+
+“The teams I’ve seen move fastest in regulated environments are not the ones that cut corners — they’re the ones where nobody has to think about the corners at all, because the platform already handled it.”
+
+### Working The Triad — CPO, CIO, And You
+
+| Relationship | The tension | Your opening position |
+| --- | --- | --- |
+| CTO ↔ CPOHilary Bartlett | Who sets the roadmap; whether platform and architecture work can win against feature work; whether engineers feel they have two bosses | “The CPO owns what and why. I own how, how fast and how safely — and I own the honest cost estimate. We should be jointly accountable for one delivery number, not separately accountable for two.” |
+| CTO ↔ CIOMatt Thorne | Overlap on security, compliance, data, identity, vendor stack. The most likely source of real friction. | “The cleanest split I’ve seen: CIO owns systems the company runs on — corporate IT, internal tooling, vendor and endpoint estate. CTO owns systems the company runs as — the product platform, data and ML. Security needs a single accountable owner; I’m comfortable either way as long as it’s explicit and the product-side security engineering sits with the product platform.” |
+| CTO ↔ CMODr. Asima Ahmad | Clinical governance is a gate on AI and on member-facing product. Can feel like a brake. | “She’s not a gate, she’s a spec. My job is to turn clinical guidance into something versioned, testable and traceable, so approvals get faster over time rather than being re-litigated every launch.” |
+| CTO ↔ COOBrooke Quinn | Automation targets her org’s workload — and, done badly, her people’s jobs | “I’d build the automation roadmap with her, from her team’s biggest time sinks, and measure it as capacity freed for higher-value member contact rather than headcount removed. She is the first customer of everything I build, and if she doesn’t trust it, it doesn’t get adopted.” |
+| CTO ↔ CFODave Chandler | Infrastructure and vendor spend; the profitability path | “I’d want to own a cost-per-member-served number publicly, and report it the way he reports gross margin. Engineering leaders who volunteer a cost metric get trusted with budget.” |
+
+The meta-point about the triad
+
+In any conversation about these boundaries, **propose a split rather than asking for one.** Candidates who ask “what would I own?” sound like they are checking whether the job is big enough. Candidates who say “here’s the split I’ve seen work, does that match how you think about it?” sound like they have already started. Same information, opposite signal. *Then genuinely listen — if their answer is materially smaller than your proposal, you have learned the most important thing about this job.*
+
+### Culture Read — What They Will Be Testing For
+
+-   **Mission seriousness.** This is a company built around fertility, pregnancy loss and family-building. Some interviewers will have personal stakes. Do not treat the mission as a warm-up topic before the real conversation — and do not perform emotion you do not feel. Sincere and plain beats effusive.
+-   **Ownership over consensus.** Their job ad says one named DRI owns each initiative’s decisions. Stories where you built alignment across eleven stakeholders will land worse than stories where you decided and were accountable.
+-   **Pragmatism over craft.** “Good enough, shipped, ready to iterate” is their stated posture. A candidate who signals perfectionism reads as a culture mismatch, even if they are right.
+-   **AI fluency as table stakes.** They screen engineers for daily use of Codex and Claude Code. A CTO who cannot speak concretely about how AI tooling changes engineering throughput — and where it fails — will feel behind their own ICs.
+-   **Comfort in a distributed, non-coastal company.** HQ is West Des Moines with a remote workforce and 24/7 global operations. Enthusiasm that is visibly conditional on a Bay Area center of gravity will read badly.
+
+**Q: What must a failure story contain to score well in an executive loop?**
+
+-   A failure that was ultimately someone else's fault
+-   A decision you made that was wrong, a cost someone else paid, and a durable change in how you now operate **(correct)**
+-   A minor mistake with no consequences
+-   A project that succeeded despite being late
+
+*Explanation: The durable change is the part being graded. Disguised successes, blame-shifted failures, and failures with no lasting change all read as evasion — and this is the single most commonly botched executive-interview story.*
+
+**Q: Asked how you'd divide responsibilities with the sitting CIO, what is the strongest move?**
+
+-   Ask them what you would own
+-   Propose a concrete split — CIO owns systems the company runs ON, CTO owns systems it runs AS — and ask whether that matches their thinking **(correct)**
+-   Say you're flexible on anything
+-   Argue the CIO role should be eliminated
+
+*Explanation: Asking 'what would I own?' sounds like checking whether the job is big enough. Proposing a split you've seen work sounds like you've already started — same information, opposite signal. Then listen: if their answer is materially smaller, that is the most important thing you'll learn.*
+
+**Q: What is the strongest reframe of 'velocity vs compliance'?**
+
+-   Compliance always wins in healthcare
+-   It's a dial you tune per project
+-   Compliance is a set of invariants; the job is to make everything inside those invariants fast — automate the evidence, make the compliant path the easy path, and tier process by real risk **(correct)**
+-   Hire a compliance team and let engineering move freely
+
+*Explanation: Framing it as a dial invites endless argument about where the dial sits. Framing compliance as invariants moves the conversation to engineering: golden paths, continuous evidence collection, and honest risk tiering so process is heavy only where it matters.*
+
+-   **STAR+S timing** — Situation ~15s, Task ~15s, Action 60–90s (about 70% of the score, and must include the option you rejected), Result ~20s with baseline → delta → timeframe, plus a 10-second scale-forward: 'the version of that problem here would be...'
+-   **Trust with a non-technical CEO** — Predictability, not simplification. Translate into her units (customers, category, story). Never surprise her in public. Three or four durable metrics she can read without you. Bring options with prices, not requests for permission.
+-   **CTO vs CIO split** — CIO owns systems the company runs ON (corporate IT, internal tooling, vendor and endpoint estate). CTO owns systems the company runs AS (product platform, data, ML). Security needs one explicit accountable owner — product-side security engineering should sit with the product platform.
+-   **CTO vs CPO split** — CPO owns what and why. CTO owns how, how fast, how safely — and owns the honest cost estimate. Jointly accountable for one delivery number rather than separately accountable for two.
+-   **The CMO relationship** — Dr. Asima Ahmad is not a gate, she is a spec. Turn clinical guidance into versioned, testable, traceable configuration so approvals accelerate over time instead of being re-litigated every launch.
+-   **Culture signals to match** — Ownership over consensus (named DRIs). Pragmatism over craft ('good enough, shipped'). Mission sincerity without performance. Concrete AI-tooling fluency — they screen ICs for it. Comfort in a distributed, non-coastal, 24/7 global company.
+
+How a CTO does a systems design differently
+
+You will not be graded on whether you can name a message queue. At this level the grading is: **do you find the actual hard part**, **do you state trade-offs with prices**, **do you know what to buy rather than build**, and **do you connect the design to money and risk**. Spend your first 90 seconds on requirements and constraints, not boxes. And say the sentence that most candidates never say: *“Here’s what I’d deliberately not build.”*
+
+Everything below is a **reference pattern** — standard industry architecture reasoned from Carrot’s public description, not their confidential internals. Present it that way.
+
+### Design 1 — Global Claims Processing
+
+#### The hard part (find it out loud)
+
+Not throughput. Carrot’s cumulative volume is ~$1B in claims — that is *small* data by transaction standards. The hard part is **heterogeneity and correctness**: outside the US, fertility care is largely cash-pay, so what arrives is an *invoice in a local format and language*, not a standardized claim. And every output is money moving, which means it must be idempotent, auditable and reversible.
+
+```
+INTAKE                NORMALIZE              ADJUDICATE           PAY
+  +---------+          +-------------+        +------------+     +---------+
+  | US 837  |          | document AI |        | eligibility|     | provider|
+  | payer   |-------->| extraction  |------>| benefit    |--->| payment |
+  | feeds   |          | + human     |        | rules eng. |     | rails   |
+  +---------+          | review queue|        | (max/cycle)|     +---------+
+  | invoice |          +-------------+        +------------+     | member  |
+  | PDF /   |-------->|             |        |            |     | reimb.  |
+  | photo   |          | canonical   |        | price      |     +---------+
+  +---------+          | CLAIM model |        | integrity  |
+  | Carrot  |          | - service   |        | check      |
+  | Card    |-------->|   taxonomy  |        +------------+
+  | auth    |          | - currency  |              |
+  +---------+          |   + FX date |              v
+  | partner |          | - provider  |        +------------------+
+  | feeds   |-------->|   identity  |        | EPISODE GROUPER  |
+  +---------+          +-------------+        | claim -> cycle   |
+                              |               | (clinical event) |
+                              v               +------------------+
+                      +-----------------+
+                      | EVENT LOG       |  append-only, replayable,
+                      | (source of      |  every state change carries
+                      |  truth)         |  actor + reason + timestamp
+                      +-----------------+
+```
+
+#### The five decisions worth defending
+
+1.  **Canonical claim model, adapters at the edge.** One internal representation; every source format is an adapter. The alternative — per-country pipelines — is how you end up with 195 products.
+2.  **Event-sourced core.** Money and eligibility state must be reconstructible and explainable. “Why was this member denied on March 4?” has to be answerable exactly, years later, possibly to a regulator or a court.
+3.  **Document extraction is AI-assisted with a human queue, never fully automatic.** Confidence-thresholded: high-confidence auto-processes, low-confidence routes to a specialist. This is the highest-ROI operational AI in the whole company.
+4.  **Currency handled as (amount, currency, FX date, rate source).** Never store a converted number alone. Restating history is a finance and audit nightmare.
+5.  **Episode grouping is a first-class service**, not a report. Cycle-based plans depend on it, and it is the piece most likely to be under-built.
+
+> **Tip:** What you would not build
+>
+> Payment rails, FX execution, card issuing, OCR primitives, and tax/regulatory reporting per country. Buy all of it. The differentiation is the canonical model, the benefit rules and the episode grouper — nothing else.
+
+### Design 2 — Real-Time Fraud & Price Integrity
+
+#### The hard part
+
+**Thin data where it matters most.** Your price distribution for IVF in a top-ten market is dense and trustworthy. Your distribution for a niche service in your hundredth market may be a dozen data points — and that is precisely where oversight is weakest and fraud most likely. Plus the novelty case: a surrogacy fee structure with no precedent in the dataset.
+
+```
++--------------------------+
+   claim / auth -->| FEATURE ASSEMBLY         |
+                    | service code, market,    |
+                    | currency, provider hist, |
+                    | member episode context   |
+                    +--------------------------+
+                                |
+              +-----------------+------------------+
+              v                 v                  v
+      +---------------+ +---------------+ +------------------+
+      | BENCHMARK     | | PROVIDER      | | NOVELTY          |
+      | DEVIATION     | | BEHAVIOUR     | | DETECTION        |
+      | vs p50/p90 by | | vs own hist,  | | unseen fee type, |
+      | service+market| | vs peers      | | unseen structure |
+      | + CONFIDENCE  | +---------------+ +------------------+
+      +---------------+         |                  |
+              |                 v                  |
+              +--------> RISK SCORE + REASONS <---+
+                                |
+         +----------------------+----------------------+
+         v                      v                      v
+   AUTO-APPROVE          SPECIALIST QUEUE          HARD BLOCK
+   (low risk)            (ranked by $ at risk)     (rare, policy-driven)
+                                |
+                                v
+                        ADJUDICATION CAPTURED AS A LABEL
+                                |
+                                v
+                    feeds benchmarks + model retraining
+                    ^^^ this loop IS the moat ^^^
+```
+
+#### The positions to hold
+
+-   **Every score ships with reasons, not just a number.** A specialist must see “this is 3.2x the market p90 for this service, and this provider has moved 40% above their own trailing median in 60 days.” Unexplainable scores do not get acted on, and cannot be defended to a provider or a customer.
+-   **Confidence is part of the output.** Where the benchmark is thin, widen the band and fall back to absolute policy thresholds rather than pretending to a percentile you cannot compute.
+-   **Optimize for dollars caught per specialist hour**, not for model accuracy. The queue is capacity-bound; ranking by expected value recovered is the objective function.
+-   **Start with rules, add models where rules plateau.** Rules are explainable, instantly adjustable, and defensible to a provider dispute. Models earn their place by beating rules on a measured metric.
+-   **Feedback capture is the requirement, not a nice-to-have.** If a specialist resolves a case in a ticketing tool and the model never learns, “precision that compounds” is a slogan. Instrument the loop first.
+
+> **Warning:** The trade-off to name explicitly
+>
+> A false positive here has a *human* cost, not just an operational one: a member mid-IVF whose payment is delayed while a claim is reviewed. So the design must include **a fast lane for member-blocking cases and a policy that the member is never the one who waits** — pay or advance, then recover from the provider. Saying that unprompted shows you understand this is care, not commerce.
+
+### Design 3 — A HIPAA-Compliant AI Platform On Clinical Data
+
+#### The hard part
+
+Not model serving. It is **provenance and governance**: proving, months later, exactly what data reached which model, what guidance version produced a given member-facing statement, and who approved it.
+
+```
+CLINICAL AUTHORING                        MEMBER SURFACE
+  +----------------------+                  +-------------------+
+  | clinician-authored   |                  | member asks / is  |
+  | guidance, VERSIONED  |                  | proactively       |
+  | + approval record    |                  | contacted         |
+  +----------------------+                  +-------------------+
+            |                                        |
+            v                                        v
+  +----------------------+                  +-------------------+
+  | GUIDANCE CORPUS      |<--- retrieval ---| ORCHESTRATOR      |
+  | (the ONLY sanctioned |                  | - policy check    |
+  |  source of clinical  |                  | - locale + lang   |
+  |  content)            |                  | - PHI minimizer   |
+  +----------------------+                  +-------------------+
+            |                                        |
+            |                              +---------+---------+
+            |                              v                   v
+            |                     +----------------+  +----------------+
+            |                     | MODEL (vendor, |  | HUMAN HANDOFF  |
+            |                     | zero-retention,|  | Care Companion |
+            |                     | BAA in place)  |  | or clinician   |
+            |                     +----------------+  +----------------+
+            |                              |
+            v                              v
+  +---------------------------------------------------+
+  | PROVENANCE LEDGER                                  |
+  | every output -> guidance version + retrieved docs |
+  | + model + prompt version + policy decisions        |
+  +---------------------------------------------------+
+            |
+            v
+  +---------------------------------------------------+
+  | EVAL HARNESS: clinical review panel, red-team set, |
+  | regression suite. Ships gate on THIS, not on       |
+  | engagement metrics.                                |
+  +---------------------------------------------------+
+
+  SEPARATE PLANE: de-identified aggregate store -> analytics,
+  benchmarks, model development. PHI never crosses into it
+  un-minimized. No foundation-model training on member PHI.
+```
+
+#### The five non-negotiables to state
+
+1.  **BAAs and zero-retention terms with every model vendor.** No PHI to an endpoint without a signed agreement and a contractual no-training, no-retention clause.
+2.  **Retrieval, not memorization.** Clinical content comes from the versioned corpus at inference time. This makes updating guidance an authoring action rather than a retraining project — which is also what makes it *fast*.
+3.  **Minimize before the boundary.** Strip identifiers at the orchestrator. Most tasks need clinical context, not identity.
+4.  **Provenance ledger is a hard requirement.** If you cannot reconstruct why a member was told something, you cannot defend it — to the CMO, to a regulator, or in litigation.
+5.  **Evaluation gates on clinical review.** Engagement is a product metric; it is not a safety metric, and using it as one is the standard failure mode.
+
+The sentence that proves you have done this before
+
+“The reason I’d insist on retrieval over a fine-tuned clinical model isn’t only privacy — it’s **change velocity**. When your CMO updates a care protocol, a retrieval system reflects it the same day and a fine-tuned model reflects it next quarter. In a clinical product, the ability to correct fast *is* the safety property.”
+
+### Design 4 — Provider Network Matching
+
+#### The hard part
+
+Matching is not search ranking. It is a **multi-objective constraint problem under sparse and stale data**: clinical fit, geography, language, availability, cost, quality, and what the member’s specific plan actually covers in their specific country — where donor or surrogacy services may be legally unavailable.
+
+```
+MEMBER CONTEXT              HARD FILTERS            RANKING
+  +---------------+          +-----------------+     +------------------+
+  | clinical need |          | legal in market?|     | outcome signal   |
+  | location      |-------->| covered by plan?|-->| cost vs benchmark |
+  | language      |          | accepting new   |     | wait time        |
+  | plan + country|          |   patients?     |     | language match   |
+  | prior history |          | credential valid|     | member prefs     |
+  +---------------+          |   & in date?    |     | prior continuity |
+                             +-----------------+     +------------------+
+                                    |                        |
+                                    v                        v
+                             (hard: never                (soft: tune,
+                              violate)                    explain, A/B)
+                                          |
+                                          v
+                            +---------------------------+
+                            | RANKED SET + WHY EACH      |
+                            | (member-legible reasons)   |
+                            +---------------------------+
+                                          |
+                              +-----------+-----------+
+                              v                       v
+                     +-----------------+     +------------------+
+                     | member chooses  |     | Care Companion   |
+                     +-----------------+     | overrides w/     |
+                              |              | recorded reason  |
+                              v              +------------------+
+                       OUTCOME CAPTURED --------> feeds ranking
+                       (booked? completed? result? cost? rating?)
+```
+
+#### The four positions
+
+-   **Hard constraints and soft ranking must be architecturally separate.** Legality, coverage and valid credentials are filters that can never be traded off. Everything else is tunable. Conflating them is how a member gets recommended a service that is illegal where they live.
+-   **Data freshness is the real problem, not the algorithm.** Directory rot — providers who moved, retired, closed their panel, or let a credential lapse — is the industry’s chronic failure. Invest in *continuous verification*: booking outcomes as a freshness signal, periodic re-attestation, and treating a stale record as a hard filter, not a ranking penalty.
+-   **Care Companion override is a feature, not a workaround.** Capture the override reason as training data. Your best labels come from experts disagreeing with the system.
+-   **Explainability is member-facing here.** “This clinic is recommended because it speaks your language, has availability in three weeks, and is fully covered by your plan” converts far better than an unexplained ordering — and it is honest.
+
+### Design 5 — Data Architecture For The $1B Claims Asset
+
+#### The hard part
+
+Again, not volume — a billion dollars of claims is likely tens of millions of rows, which is unremarkable. The hard parts are **jurisdictional data residency**, **de-identification that survives small-population re-identification attacks**, and **making the asset usable by analytics and ML without letting PHI sprawl**.
+
+```
+PLANE 1: OPERATIONAL (PHI)          PLANE 2: ANALYTICAL (de-identified)
+  +---------------------------+       +--------------------------------+
+  | transactional stores      |       | Snowflake                      |
+  | claims, members, benefits |       |  - de-identified claim facts   |
+  | regional where residency  |       |  - k-anonymity + suppression   |
+  | law requires it           |       |    thresholds enforced at load |
+  +---------------------------+       |  - dbt models, tested          |
+             |                        |  - Fivetran ingest, Prefect    |
+             | minimization +         |    orchestration               |
+             | tokenization at        +--------------------------------+
+             | the boundary                        |
+             v                            +--------+---------+
+  +---------------------------+           v                  v
+  | RE-IDENTIFICATION VAULT   |   +---------------+  +----------------+
+  | token -> identity,        |   | BENCHMARKS    |  | ML FEATURES    |
+  | access logged & approved  |   | price by      |  | risk, routing, |
+  | (rarely used, never bulk) |   | service/market|  | fraud          |
+  +---------------------------+   +---------------+  +----------------+
+                                          |
+                                          v
+                              +-------------------------+
+                              | CUSTOMER-FACING          |
+                              | REPORTING                |
+                              | *** min-cohort           |
+                              | thresholds ***           |
+                              | (never let a 50-person   |
+                              |  employer infer WHO)     |
+                              +-------------------------+
+```
+
+#### The four points that matter
+
+1.  **Two planes, one boundary.** PHI lives operationally; analytics runs on de-identified data. The minimization boundary is the single most important control in the company, and it should be code, not policy.
+2.  **Small-employer re-identification is the sharp risk.** In a 60-person company, “one IVF cycle in Q3” may identify a specific person to their own HR team. *Minimum-cohort suppression in customer reporting is not a nice-to-have; it is the difference between a benefit people trust and one they avoid using.* Raise this yourself — it is the kind of detail that tells a CEO you understand her product emotionally as well as technically.
+3.  **Residency forces topology, not forks.** Where law requires local storage, deploy the same platform regionally. Same code, different placement. Never a regional codebase.
+4.  **The benchmark table is the crown jewel.** It is the derived asset that powers pricing, fraud and eventually a customer-facing product. Version it, test it, monitor it for drift, and treat a bad benchmark deploy like a bad money deploy.
+
+Closing line for any of these designs
+
+“If I had to pick the one component I’d staff first, it’s the **feedback capture** — the adjudication labels, the override reasons, the booking outcomes. Every one of these systems is only as good as the loop that teaches it, and that loop is the part organizations consistently skip because it doesn’t demo.”
+
+**Q: What is the genuinely hard part of Carrot's global claims processing?**
+
+-   Transaction throughput at ~$1B cumulative claims
+-   Heterogeneity and correctness — outside the US fertility care is largely cash-pay, so inputs are local-format invoices, and every output moves money and must be auditable and reversible **(correct)**
+-   Storing the data
+-   Real-time latency
+
+*Explanation: A billion dollars of cumulative claims is small by transaction standards. The difficulty is normalizing invoices in many formats, languages and currencies into a canonical model, and making every money-moving decision idempotent, explainable and reconstructible years later.*
+
+**Q: Why should price-integrity scores ship with reasons and confidence, not just a number?**
+
+-   It looks more professional
+-   Because specialists cannot act on unexplainable scores, disputes must be defensible to providers and customers, and benchmarks are statistically thin in exactly the small markets where fraud is most likely **(correct)**
+-   Because regulators require confidence intervals
+-   To reduce compute cost
+
+*Explanation: A specialist needs 'this is 3.2x market p90 and this provider moved 40% above their own trailing median in 60 days' to act. And where the benchmark has a dozen data points, the right behavior is to widen the band and fall back to absolute policy thresholds rather than assert a percentile you cannot compute.*
+
+**Q: Beyond privacy, what is the strongest argument for retrieval over a fine-tuned clinical model?**
+
+-   It is cheaper to run
+-   Change velocity — when the CMO updates a protocol, retrieval reflects it the same day while a fine-tuned model reflects it next quarter, and the ability to correct fast IS a safety property **(correct)**
+-   Retrieval is more accurate
+-   It avoids vendor lock-in
+
+*Explanation: In clinical products, correction speed is safety. Retrieval also makes guidance updates an authoring action rather than an ML project, which keeps the clinician in control of clinical content — matching Carrot's published stance that clinicians define the guidance framework.*
+
+**Q: In provider matching, why must hard constraints be architecturally separate from soft ranking?**
+
+-   It improves query performance
+-   Because legality in market, plan coverage, and valid in-date credentials can never be traded off against convenience — conflating them can recommend a service that is illegal where the member lives **(correct)**
+-   Because ranking models are slow
+-   To simplify A/B testing
+
+*Explanation: Donor and surrogacy services are unavailable in some markets. Filters are absolute; ranking is tunable. Separately, directory rot is the industry's chronic failure — a stale credential should be a hard filter, not a ranking penalty.*
+
+**Q: What re-identification risk should you raise unprompted about customer-facing reporting?**
+
+-   Employees might share dashboards
+-   In a small employer, an aggregate like 'one IVF cycle in Q3' can identify a specific person to their own HR team — minimum-cohort suppression is what makes the benefit safe to use **(correct)**
+-   Competitors could scrape the reports
+-   Reports may load slowly
+
+*Explanation: This is the risk that determines whether members trust the benefit enough to use it. Minimum-cohort thresholds in employer reporting are a product-trust feature, not a compliance checkbox — and naming it shows you understand the emotional reality of the product, not just its architecture.*
+
+-   **Claims: what to buy** — Payment rails, FX execution, card issuing, OCR primitives, per-country tax and regulatory reporting. Build only: the canonical claim model, the benefit-rules engine, and the episode grouper.
+-   **Currency rule** — Store (amount, currency, FX date, rate source) — never a bare converted number. Restating converted history is a finance and audit nightmare.
+-   **Fraud objective function** — Optimize dollars caught per specialist hour, not model accuracy. The review queue is capacity-bound, so rank by expected value recovered. Start with explainable rules; models must beat rules on a measured metric to earn their place.
+-   **The member-never-waits rule** — A false positive in price integrity can delay payment for someone mid-IVF. Design a fast lane for member-blocking cases: pay or advance first, recover from the provider after. Raise this unprompted.
+-   **Clinical AI non-negotiables** — BAAs + zero-retention with model vendors; retrieval from a versioned clinician-authored corpus; PHI minimization before the model boundary; a provenance ledger linking every output to guidance version, retrieved docs, model and prompt; evaluation gated on clinical review, never engagement.
+-   **Two-plane data architecture** — Plane 1 operational (PHI, regional where residency law demands). Plane 2 analytical (de-identified, in Snowflake with k-anonymity and suppression enforced at load). A logged, approval-gated re-identification vault sits between them. The minimization boundary should be code, not policy.
+-   **What to staff first** — Feedback capture — adjudication labels, Care Companion override reasons, booking outcomes. Every one of these systems is only as good as the loop that teaches it, and that loop gets skipped because it does not demo.
+
+### The Field
+
+| Player | Model | Scale signal | Where they beat Carrot |
+| --- | --- | --- | --- |
+| Progyny(NASDAQ: PGNY) | Managed fertility benefit + specialty pharmacy, US-focused, curated clinic network with Patient Care Advocates | Q2 2026: $230.2M fertility benefit services (+7.6% YoY) and $120.3M pharmacy (+1.2% YoY) — in a single quarter | Scale, public-market credibility, audited outcomes, and a pharmacy revenue line Carrot does not have |
+| Maven Clinic | Virtual clinic for women’s and family health — care delivery, not just benefit administration | ~$1.7B valuation, $425M+ raised, roughly $268M ARR (third-party estimate) | Far better funded and more recently valued; owns the clinical relationship directly; broader women’s-health surface |
+| Kindbody | Benefits platform plus owned clinics — vertically integrated | 115+ employers, 2.4M+ lives covered | Owns supply, so controls cost and experience directly; a real structural answer to price inflation |
+| Ovia Health (Labcorp) | Pregnancy and parenting apps distributed via employers and plans | Owned by a diagnostics giant | Distribution through Labcorp; low-cost, high-reach engagement layer |
+| Spring Health / Lyra | Adjacent — mental health benefits | Well funded | Not direct competitors, but compete for the same benefits budget and the same HR buyer attention |
+| Carriers building in-house | Bundled fertility management inside the medical plan | — | Zero marginal cost to the employer; already own the member and the claims data |
+
+> **Warning:** Calibrate before you speak
+>
+> If the ~$88M third-party revenue estimate is even directionally right, **Progyny books more revenue in a single quarter than Carrot does in three years**, and Maven is roughly 3x Carrot’s size with 3x the funding and a far more recent valuation mark. Carrot is *not* the biggest player in this category. It is the *most global* and the *broadest in scope*. Those are real, defensible claims. “Market leader” unqualified is not — and using it loosely in front of the CFO would be a bad first impression.
+
+### Where Carrot Genuinely Wins
+
+| Advantage | Why it is defensible | How the CTO extends it |
+| --- | --- | --- |
+| True global coverage195 countries, 50+ currencies, ~300 languages | Competitors are overwhelmingly US-centric. Replicating a global network is years of contracting, not a product sprint. For a multinational buyer, this is often a single-vendor decision. | Make country launch configuration-driven, so expansion is a business decision rather than an engineering project |
+| Widest scope of carefertility → adoption → surrogacy → menopause → low-T | Serves far more of the employee base for far longer than a fertility-only benefit — a better utilization and per-employee-cost story for the buyer | A domain model that treats hormonal health generally rather than assuming a fertility journey |
+| The claims dataset~$1B across 195 countries | Genuinely hard to replicate — especially in markets where no one else has volume. This is the one asset a well-funded competitor cannot simply buy. | Turn it from an internal input into a customer-visible product: benchmarks, spend forecasting, outcome comparison |
+| Channel partnershipsCigna Global, BCBS Global Solutions, Guardian, Teladoc | Turns potential competitors into distributors; raises switching cost inside carrier ecosystems | Build one configurable integration platform, not four bespoke forks — this decides whether the channel scales |
+
+### Where Carrot Is Vulnerable
+
+-   **Capital position.** Last priced round August 2021, led by a growth investor whose vintage did not age well. Maven raised more, more recently, at a higher mark. In a category where the next phase may be consolidation, *being the least-recently-funded credible player is a strategic weakness, not just a finance detail*.
+-   **No owned supply.** Kindbody owns clinics; Carrot manages a network. Owning supply is the strongest possible answer to price inflation — you cannot be overbilled by yourself. Carrot’s answer is data and monitoring, which is cheaper and more scalable but structurally weaker.
+-   **No pharmacy line.** Progyny’s specialty pharmacy is roughly a third of its revenue. Fertility drugs are a large, recurring, high-margin spend category. Carrot appears not to monetize it comparably — a real revenue gap and a reasonable question to ask.
+-   **Category maturation.** Single-digit growth at the leader means the easy adoption curve is over. Growth now comes from taking share, expanding scope, or expanding internationally — Carrot is best positioned on the third.
+-   **Carrier in-housing.** The existential one. When a major carrier bundles fertility management into the medical plan, a point solution competes against something the employer perceives as free.
+-   **Concentration risk.** 1,000+ customers sounds diversified, but large multinational contracts are usually heavily concentrated in revenue. Worth asking about — it drives reliability requirements and, frankly, your own risk in taking the job.
+
+### The IPO Question
+
+Read the signals honestly
+
+Carrot shares trade on Nasdaq Private Market, which people sometimes misread as an IPO signal. It is not — **NPM is a liquidity venue for private shares**, and its existence often means the opposite: that employees and early investors have been waiting long enough to need a secondary route. There are **no announced IPO plans**.
+
+| IPO readiness dimension | Carrot’s apparent position | What the CTO would need to build |
+| --- | --- | --- |
+| Revenue scale | Likely well under $150M; public healthtech typically wants $200M+ with clean growth | Not a CTO lever directly — but platform leverage and international expansion are |
+| Growth rate | Category growing single digits at the leader | Product-led expansion into adjacent scope; making the data asset sellable |
+| Gross margin | Unknown; heavy ops load implies pressure | The single biggest CTO contribution — automation of claims and care operations directly moves gross margin |
+| Financial controls & SOX readiness | Unknown | Auditable claims and payment systems, change management, access controls, segregation of duties — an event-sourced core makes this dramatically easier |
+| Security & compliance posture | HIPAA/GDPR necessarily in place; SOC 2 presumably; HITRUST unknown | Continuous evidence collection; a defensible position across 195 jurisdictions |
+| Data-driven outcome proof | The Carrot Intelligence thesis; unproven publicly | Causal measurement infrastructure — without it, outcome claims cannot survive analyst scrutiny |
+
+How to talk about IPO in the interview — and how not to
+
+**Do not** ask “when is the IPO?” It reads as asking when you get paid, and against a 2021 mark it is also a slightly awkward question.
+
+**Do** ask the version that shows you understand the work: *“Whether the path is an IPO, a sale, or staying private and profitable, the engineering readiness work overlaps a lot — auditable financial systems, gross-margin leverage, and defensible outcome measurement. Which of those is furthest along, and which would you want a new CTO to attack first?”* That question is impossible to answer without telling you a great deal about the company’s real strategy — which is exactly why it is a good question.
+
+### The Comparison Table To Have In Your Head
+
+| Dimension | Carrot | Progyny | Maven | Kindbody |
+| --- | --- | --- | --- | --- |
+| Geography | 195 countries | Primarily US | Primarily US, some global | Primarily US |
+| Model | Managed global network + card | Managed network + pharmacy | Virtual clinic | Network + owned clinics |
+| Scope | Widest — fertility → menopause → low-T | Fertility + pharmacy | Broad women’s & family health | Fertility-centric |
+| Status | Private, last mark 2021 | Public | Private, ~$1.7B | Private |
+| Scale | ~$88M revenue (est.), 1,000+ customers | ~$350M/quarter | ~$268M ARR (est.) | 115+ employers, 2.4M lives |
+| Data moat | ~$1B global claims | Large US claims + outcomes | Clinical encounter data | Owned-clinic clinical data |
+| Key weakness | Capital age, no owned supply, no pharmacy line | US-only, growth decelerating | Less benefits-administration depth | Capital-intensive to scale clinics |
+
+**Q: How should you characterize Carrot's market position accurately?**
+
+-   The market leader in fertility benefits
+-   The most global and broadest-scope player — but materially smaller in revenue than Progyny and likely smaller than Maven **(correct)**
+-   The fastest growing company in the category
+-   The best funded player
+
+*Explanation: Progyny books roughly $350M in a quarter; Maven is estimated near $268M ARR with $425M+ raised at a $1.7B mark. Carrot's defensible claims are global reach (195 countries) and scope breadth (fertility through menopause and low-T). Calling it 'the market leader' unqualified in front of the CFO would be a bad first impression.*
+
+**Q: What does Carrot's presence on Nasdaq Private Market indicate?**
+
+-   An IPO is imminent
+-   It is a liquidity venue for private shares — often a sign that employees and early investors have waited long enough to need a secondary route, not an IPO signal **(correct)**
+-   The company has filed an S-1
+-   It has been acquired
+
+*Explanation: NPM facilitates trading of private company shares. With no priced round since August 2021 and no announced IPO plans, its presence more likely reflects demand for interim liquidity than proximity to a listing.*
+
+**Q: Which CTO-controlled lever matters most to any exit path — IPO, sale, or staying private?**
+
+-   Frontend performance
+-   Gross margin, via automation of claims and care operations — plus auditable financial systems and causal outcome measurement **(correct)**
+-   Number of engineers hired
+-   Cloud vendor choice
+
+*Explanation: Ops load is the dominant cost in a care-navigation business, so automation moves gross margin directly. Auditable systems support SOX readiness and diligence, and causal measurement is what makes outcome claims survive analyst or acquirer scrutiny. All three overlap regardless of which path the company takes.*
+
+**Q: What is Carrot's most serious structural vulnerability?**
+
+-   Its choice of C#/.NET
+-   A major carrier bundling fertility management into the medical plan, making a point solution compete with something the employer perceives as free **(correct)**
+-   Remote work culture
+-   Having offices in Iowa
+
+*Explanation: Carriers already own the member relationship and the claims data. The defenses are the ones a CTO can actually extend: global reach a US carrier cannot replicate quickly, becoming the carriers' supplier through partnerships like Cigna Global and BCBS Global Solutions, and outcome proof that changes the buy-vs-build math.*
+
+-   **Progyny scale** — Public (NASDAQ: PGNY). Q2 2026: fertility benefit services $230.2M (+7.6% YoY), pharmacy benefit services $120.3M (+1.2% YoY). Roughly $350M in a single quarter — and specialty pharmacy is about a third of revenue, a line Carrot lacks.
+-   **Maven Clinic** — ~$1.7B valuation, $425M+ raised, roughly $268M ARR (third-party estimate). Virtual clinic model — owns the clinical relationship rather than administering a benefit. Better funded and more recently marked than Carrot.
+-   **Kindbody** — 115+ employers, 2.4M+ lives. Vertically integrated — owns clinics. Owning supply is the strongest structural answer to price inflation: you cannot be overbilled by yourself.
+-   **Carrot's four real advantages** — (1) 195-country coverage nobody else has. (2) Widest scope — fertility through menopause and low-T. (3) The ~$1B global claims dataset, which money alone cannot replicate. (4) Carrier channel partnerships that turn competitors into distributors.
+-   **Carrot's four real vulnerabilities** — (1) Capital age — last priced round Aug 2021. (2) No owned supply. (3) No comparable pharmacy revenue line. (4) Carrier in-housing, plus likely revenue concentration in large multinational contracts.
+-   **The IPO question to actually ask** — 'Whether the path is IPO, sale, or staying private and profitable, the engineering readiness work overlaps — auditable financial systems, gross-margin leverage, defensible outcome measurement. Which is furthest along, and which should a new CTO attack first?'
+
+This module is for you, not for them
+
+Nothing here should be said out loud in an interview. It is the analysis to do before you decide how hard to want this. *This brief is not financial or legal advice* — for equity structure and any offer terms, get a compensation lawyer or an advisor who reads cap tables for a living. What follows is the list of things to **ask about and diligence**, not a valuation of anything.
+
+### The Case For
+
+-   **A genuine data moat, underexploited.** A ~$1B global claims dataset across 195 countries is a real asset, and by their own account they only started productizing it in 2026. Arriving at the beginning of that arc is the good version of timing.
+-   **The AI mandate is already funded politically.** The CEO personally fronted Carrot Intelligence. You would not be selling an AI strategy internally — you would be executing one the CEO has already committed to publicly. That is a materially easier job than evangelizing.
+-   **Clear, measurable levers.** Ops automation, claims normalization, fraud recovery, cost per member. In many CTO roles it is hard to prove your contribution; here the metrics are unambiguous and financial.
+-   **Small org, real leverage.** If engineering is 50–90 people with a pods-and-DRIs model, one person’s decisions actually propagate. That is more satisfying than steering a 400-person org through committees.
+-   **A mission that holds up.** Fertility, adoption, menopause and family-building are work that is easy to explain to yourself at 11pm. That matters more over three years than people admit.
+-   **Scarce, transferable expertise.** Global healthcare payments, clinical AI governance, and multi-jurisdiction privacy is a rare combination. It travels well to any healthtech CTO role afterward.
+-   **A defined technical agenda.** You would not spend six months figuring out what to work on. Modules 3 and 6 are essentially the roadmap.
+
+### The Case Against
+
+-   **The CTO seat is ambiguous.** Not on the public leadership page, with a CIO and CPO already seated. Until resolved, assume the scope is smaller than the title implies.
+-   **Five-year-old capital.** A 2021 Tiger Global mark with no priced round since. This constrains hiring, compensation, and your ability to fund a platform investment.
+-   **Modest comp bands.** Senior engineers top out near $200K. Whatever the CTO number is, it will be anchored to a national-remote payroll philosophy, not a Bay Area one.
+-   **Equity value is genuinely uncertain.** Common shares sit behind whatever preference stack was built in 2021, at a mark set in a very different market. See the diligence list below.
+-   **Growth is the category’s problem, not just Carrot’s.** Single-digit growth at the leader means you are being hired into an efficiency story, not a hypergrowth one. Some leaders find that energizing; some find it grinding. Know which you are.
+-   **Executive density.** Eight C-level executives for ~615 people. That means a lot of peer coordination and a lot of surface for boundary friction — and it is one reason the scope questions matter so much.
+-   **Two clouds, a .NET core, and unknown debt.** The stack is respectable but you will inherit whatever ten years produced, with limited capital to modernize it.
+
+### Compensation — How To Calibrate
+
+> **Warning:** Anchor on their published numbers, not on category rumor
+>
+> The only hard compensation data available is from Carrot’s own postings: **Sr Software Engineer I $140–160K, Sr SWE II $160–200K, Sr Data Engineer $155–195K**, remote. That is a national-remote philosophy — roughly 20–35% below top-tier Bay Area bands for the same level. A company that pays senior engineers at those bands is *not going to pay a CTO like a San Francisco unicorn*, and going in with a Bay-Area anchor will read as a mismatch rather than a strong negotiation.
+
+| Component | What to expect at this stage & scale | How to approach it |
+| --- | --- | --- |
+| Base salary | The number will reflect a national-remote band for a C-level role at a ~615-person private company, scaled off the IC bands above | Get their range first. Then anchor on scope, not title — a CTO owning security, data and engineering is a different job from one owning engineering delivery only, and should be priced differently |
+| Bonus | Typically a meaningful target percentage at C-level | Ask what it has actually paid out the last two years, not what the target is |
+| Equity | The number is meaningless without the structure — see the diligence list | Never negotiate percentage in isolation. Percentage of what, behind what, at what strike, on what schedule |
+| Severance | Often overlooked and highly negotiable for executives | At a company with an ambiguous CTO seat and a fifth-year-post-round balance sheet, this is arguably more valuable than a few points of base. Ask for meaningful severance with single- or double-trigger acceleration on change of control |
+
+##### Equity diligence — the questions to have answered before you sign
+
+1.  What is the **current 409A** valuation, and when was it last set?
+2.  What is the **total liquidation preference** outstanding, and is it **participating or non-participating**? Any multiples or ratchets from the 2021 round?
+3.  What has **secondary** actually traded at recently on Nasdaq Private Market — and how does that compare to the last primary mark?
+4.  What does the **common-stock waterfall** look like at illustrative exit values? Ask them to model it. A company that will not is telling you something.
+5.  **Options or RSUs?** If options: strike price, and the **post-termination exercise window** (90 days versus extended is a very large practical difference).
+6.  **Vesting schedule**, cliff, and what happens on change of control or on termination without cause.
+7.  Is there a **refresh** policy, and has it actually been honored?
+
+> **Tip:** The framing that makes these questions land well
+>
+> Executives are *expected* to ask this. Frame it as diligence, not distrust: *“I want to be able to get genuinely excited about the equity, which means I need to understand the structure well enough to value it properly. Could we walk through the preference stack and a waterfall at a couple of illustrative outcomes?”* A company with a clean story will answer readily. Evasion here is itself the answer.
+
+### Red Flags To Watch For In The Loop
+
+| Signal | What it may mean | How to probe |
+| --- | --- | --- |
+| Vague or shifting answers about why the seat is open | A difficult exit, or a structural problem with the role | “What would you want the next person to do differently?” — then listen for whether the answer is about the person or the system |
+| Engineering reports to the CPO and stays there | The role is a principal architect with a CTO title | “Walk me through the reporting lines you envision on day one.” |
+| No clear owner for security | You will inherit accountability without authority in a HIPAA business | “Who is accountable today if we have a breach?” |
+| Nobody can state the top three technical priorities consistently | No alignment at the exec level; your roadmap will be relitigated continuously | Ask the same question of four different executives and compare the answers — this is the highest-value diagnostic in the whole loop |
+| Reluctance to discuss the financial picture even directionally | The runway or growth story may be weaker than presented | “What does the path to profitability look like, and what role does engineering play in it?” |
+| Recent senior engineering departures | Culture or leadership problem below the exec line | Check LinkedIn for the eng leadership layer before your final round; ask about tenure and voluntary attrition |
+| “We need someone to make us AI-first” with no specifics | AI as narrative rather than strategy — you would be delivering a press release | “What's the business metric you expect AI to move in the next twelve months?” |
+| A loop with no CTO-level technical peer in it | Nobody left who can evaluate you technically — often a sign the function has been hollowed out | Ask who the most senior engineer in the company is, and ask to meet them |
+
+### Green Flags Worth Weighting Heavily
+
+-   The CEO can articulate a **specific** technology bet and what it should produce — not just “we need to be AI-first.”
+-   The CTO role is explicitly on the executive team, reporting to the CEO, with security and data platform inside it.
+-   The four executives you meet give you **the same top three priorities**.
+-   They volunteer a problem rather than only selling — “here is what is broken and why we need help” is a far better sign than a polished pitch.
+-   Someone can describe the engineering org’s *actual* current pain in specific terms.
+-   They answer the equity structure questions readily and with numbers.
+
+The decision frame
+
+Reduce it to three questions, in this order:
+
+1.  **Is the scope real?** Engineering + data + security, on the exec team, reporting to the CEO. If no, the rest does not matter — and the honest move may be to propose the role you would actually take.
+2.  **Is the mandate specific?** Can they name the business metric you are accountable for? “Modernize our technology” is not a mandate; “take 30% of manual claims handling out and prove the fraud system pays for itself” is.
+3.  **Is the compensation honest about the risk?** Given a 2021 mark and an uncertain exit path, the cash and severance should reflect that the equity may be worth less than the headline. If they want you to accept 2021-vintage paper as if it were fresh, that is the negotiation to have.
+
+If all three are yes, this is a *good job with a real data asset and a clear agenda*. If the first is no, it is a senior engineering leadership role that happens to be called CTO — which can still be worth taking, but should be priced and understood as what it is.
+
+**Q: What should you anchor CTO compensation expectations against?**
+
+-   Bay Area unicorn CTO benchmarks
+-   Carrot's own published bands — Sr SWE II tops near $200K on a national-remote philosophy, so the whole payroll is roughly 20–35% below top-tier Bay Area **(correct)**
+-   Progyny's executive compensation filings
+-   The 2021 valuation
+
+*Explanation: Their published IC bands are the only hard compensation data available and they reveal a national-remote philosophy. Arriving with a Bay Area anchor reads as a mismatch rather than a strong negotiation. Get their range first, then negotiate on scope.*
+
+**Q: Which offer component is unusually valuable given Carrot's specific situation?**
+
+-   Signing bonus
+-   Severance terms plus acceleration on change of control — because the CTO seat is ambiguous and the balance sheet is five years past its last priced round **(correct)**
+-   Extra vacation
+-   Title
+
+*Explanation: An ambiguous seat and an aging capital position both raise the probability of a discontinuity. Executive severance is highly negotiable and often overlooked; at this company it is arguably worth more than a few points of base salary.*
+
+**Q: What is the single highest-value diagnostic you can run during the interview loop?**
+
+-   Asking about the tech stack
+-   Asking four different executives for their top three technical priorities and comparing the answers **(correct)**
+-   Asking about work-from-home policy
+-   Reviewing their public API docs
+
+*Explanation: If the CEO, CPO, CIO and COO give you materially different answers, your roadmap will be relitigated continuously and no amount of technical skill will fix it. Consistent answers are one of the strongest green flags available.*
+
+**Q: Why is 'what percentage equity am I getting?' the wrong question on its own?**
+
+-   Percentage is confidential
+-   Because percentage is meaningless without the structure — the preference stack from the 2021 round, participating vs non-participating, the current 409A, recent secondary prices, the waterfall at illustrative exits, and the post-termination exercise window **(correct)**
+-   Because equity is always worthless at private companies
+-   Because RSUs have no strike price
+
+*Explanation: Common stock sits behind whatever preferences were built in a 2021 round priced in a very different market. Ask them to model the waterfall at a couple of illustrative outcomes; frame it as wanting to value the equity properly. A clean story gets answered readily — evasion is itself the answer. For actual offer terms, use a compensation lawyer.*
+
+-   **The three-question decision frame** — (1) Is the scope real — engineering + data + security, exec team, CEO reporting? (2) Is the mandate specific — can they name the business metric you own? (3) Is the comp honest about the risk of 2021-vintage equity? If (1) is no, it is a senior eng leadership role called CTO.
+-   **Equity diligence checklist** — Current 409A and its date; total liquidation preference and whether participating; recent NPM secondary prices vs last primary mark; common-stock waterfall at illustrative exits; options vs RSUs, strike, post-termination exercise window; vesting and change-of-control terms; refresh policy and whether it has been honored.
+-   **Biggest red flag** — Four executives giving four different answers about the top three technical priorities. It means no exec-level alignment, and your roadmap will be relitigated continuously regardless of how good you are.
+-   **Strongest reason to take it** — A ~$1B global claims dataset they only began productizing in 2026, with an AI mandate the CEO has already committed to publicly — so you execute rather than evangelize — in an org small enough that your decisions actually propagate.
+-   **Strongest reason to hesitate** — The CTO seat is absent from the public leadership page while a CIO and CPO sit on it, and the last priced round was August 2021 — meaning constrained capital for hiring and platform investment, and equity of genuinely uncertain value.
+
+Have this ready even if they don’t ask
+
+“What would your first 90 days look like?” is near-certain in a CTO loop. But the plan is also useful as a *closing move*: if the conversation is going well and you have five minutes left, offering an unprompted 90-day sketch is one of the strongest finishes available. It converts you from a candidate being evaluated into a colleague already working.
+
+**The framing that makes it credible:** lead with what you would *not* do. A CTO who promises a reorg and a re-platform in month one is telling you they will break things before they understand them.
+
+### Days 1–30 — Listen, Measure, Resist
+
+##### People
+
+-   **Every engineer, if the org is under ~60.** If larger, everyone down two levels plus a sample of ICs. Three questions each: *What is the most frustrating part of your week? What would you fix if you had a month? What do you think I’m going to get wrong?*
+-   **Every executive peer** — Tammy, Hilary, Matt, Brooke, Dave, Asima, James, Randy. Ask each for their top three technical priorities and write down the differences. The *divergence* is your real map.
+-   **Care Companions and claims specialists.** Sit with them and watch them work for a full session. This is where the automation roadmap actually comes from, and it buys enormous credibility with the COO’s org — the people most exposed to what you will build.
+-   **The two or three biggest customers,** alongside the CGO. You cannot design a benefits platform without hearing a benefits leader describe their year.
+
+##### Systems
+
+-   Read the architecture as it *is*, not as documented. Trace one claim end to end, from invoice arrival to provider payment, personally.
+-   Establish a baseline on: delivery predictability, incident rate and MTTR, cloud and vendor spend, cost per member served, manual-touch rate in claims and care ops, and security posture.
+-   Inventory the compliance surface: what certifications exist, when the next audits are, what is manual, and where the evidence lives.
+-   Understand the two-cloud reality — deliberate split or historical accident, and what it costs.
+
+> **Warning:** What NOT to do in month one
+>
+> -   **No reorg.** You do not yet know who is load-bearing. Reorging early destroys the informal structure that is holding things together.
+> -   **No re-platform announcement.** Especially not a cloud consolidation. It is the most predictable new-CTO move and it burns a year of goodwill for an outcome nobody asked for.
+> -   **No new tooling mandates.** Changing the ticket tracker in week two is how you become the person who changed the ticket tracker.
+> -   **No public criticism of anything your predecessor built.** Their team still works there, and they built it under constraints you have not yet learned.
+> -   **Do not hire yet** — except to backfill a genuine hole. You do not know the shape of the org you need.
+
+### Days 30–60 — Prove, Then Propose
+
+##### Ship something small and real
+
+Pick one visible, low-risk improvement and land it inside 60 days. Best candidates at Carrot, in order of preference:
+
+1.  **A manual-touch reduction in claims processing.** Measurable, financial, and it makes the COO’s org an ally rather than a skeptic.
+2.  **Instrumentation of the fraud adjudication feedback loop.** Cheap, and it converts “precision that compounds” from a claim into a measured fact.
+3.  **A developer-experience fix** the team already knows about — build time, environment setup, deploy friction. Buys internal credibility fast.
+
+The point is not the size of the win. It is establishing that when you say something will happen, it happens.
+
+##### Build the operating cadence
+
+-   **A weekly written update** to the exec team: what shipped, what is at risk, what changed. Written, not verbal — it creates a record and it scales.
+-   **An engineering metrics review** the whole company can see. Four or five durable numbers, not a dashboard sprawl.
+-   **A standing architecture review** with a decision record. In a regulated business, written decisions are also compliance artifacts.
+-   **A recurring 1:1 with the CPO and the CIO specifically** to keep the boundaries live rather than letting them calcify into resentment.
+
+##### Write the assessment
+
+By day 60, deliver a written technical assessment to the CEO: **what is strong, what is at risk, what it will cost to fix, and what you recommend not fixing.** That last category is the one that earns trust — it shows you are allocating, not empire-building.
+
+### Days 60–90 — Commit
+
+-   **Publish a 12-month technical strategy** with three to five themes, each tied to a business metric. Not a technology list — a set of outcomes with technology attached.
+-   **Make the org changes you now understand are necessary** — and only those. If the pods-and-DRI model is working, protect it rather than replacing it with your own preferred shape.
+-   **Open the one or two roles that genuinely unblock the strategy.** At Carrot the likely candidates are a data/ML platform lead and a security engineering owner — but only if diligence in the first 60 days confirms it.
+-   **Fix the highest-severity liability debt** identified in the assessment. Do it before anyone asks, and report that you did.
+-   **Set the AI operating model:** what is allowed where, who approves member-facing outputs, how evaluation gates work, and what data may cross which boundary. Get it signed by the CMO and the CIO so it becomes policy rather than opinion.
+
+The 90-day answer, compressed to 45 seconds
+
+“First thirty days I’m listening and measuring — every engineer, every exec peer, and time sitting with Care Companions and claims specialists, because that’s where the automation roadmap actually comes from. I’d establish a baseline on delivery, reliability, cost per member and manual-touch rate. **I would not reorg and I would not announce a re-platform** — I don’t know yet what’s load-bearing. By sixty days I’d have shipped one small, real, measurable win — most likely a manual-touch reduction in claims — and delivered a written assessment to Tammy including what I recommend *not* fixing. By ninety I’d publish a twelve-month strategy with three to five themes, each tied to a business metric, make only the org changes I now understand are necessary, and get an AI operating model signed by Asima and Matt so it’s policy rather than my opinion.”
+
+**Q: What is the strongest way to open a 90-day plan answer?**
+
+-   With the reorg you'd run in week two
+-   With what you would NOT do — no reorg, no re-platform announcement, no tooling mandates — because you don't yet know what is load-bearing **(correct)**
+-   With a list of technologies you'd introduce
+-   With your hiring plan
+
+*Explanation: A CTO who promises a reorg and a re-platform in month one is telling you they will break things before understanding them. Leading with restraint signals judgment, and it makes everything you do commit to more credible.*
+
+**Q: Which first win should a new Carrot CTO target inside 60 days?**
+
+-   A cloud migration
+-   A manual-touch reduction in claims processing — measurable, financial, and it turns the COO's operations org into an ally **(correct)**
+-   A frontend redesign
+-   A company-wide framework upgrade
+
+*Explanation: It hits the biggest cost center, produces a number the CFO cares about, and builds trust with the org most exposed to future automation. The size of the win matters less than establishing that what you say will happen, happens.*
+
+**Q: What makes a day-60 written assessment land well with the CEO?**
+
+-   Listing every problem found
+-   Including an explicit category of what you recommend NOT fixing **(correct)**
+-   Focusing only on wins
+-   Keeping it verbal to avoid a paper trail
+
+*Explanation: Naming what you will deliberately leave alone shows you are allocating scarce capacity rather than building an empire. It is also the section a non-technical CEO can most easily engage with, because it is a resource conversation rather than a technical one.*
+
+### Questions For Tammy Sun (Founder & CEO)
+
+Priority order — ask 3–4, not all of them
+
+Tammy Sun — Founder & CEO
+
+Non-technical, narrative-driven, has personally fronted the AI strategy. She is grading whether you can be a partner she trusts in front of a board and a customer.
+
+1.  **“Your leadership page lists a CIO and a CPO but no CTO. Help me understand the history of this seat, and where it sits on the executive team.”** *— The most important question you will ask anyone. Ask it early and evenly.*
+2.  **“Twelve months from now, what would make you say hiring this person was clearly the right call?”** *— Forces a specific mandate. If the answer is vague, that is your answer.*
+3.  **“Carrot Intelligence is a big public commitment. What did you promise the market it would do, and how are you measuring whether it’s doing it?”**
+4.  **“Whether the path is an IPO, a sale, or staying private and profitable, the engineering readiness work overlaps a lot. Which of those readiness areas is furthest along?”** *— The IPO question, asked the way an executive asks it.*
+5.  **“Where do you think we’re most exposed competitively over the next three years?”** *— Listen for whether she names carrier in-housing. If she does, she is thinking clearly.*
+6.  **“What’s a technology decision the company got wrong, and what did you learn from it?”**
+
+### Questions For Hilary Bartlett (CPO)
+
+1.  “How do you and the CTO divide the roadmap? Who owns the estimate, and who owns the sequencing?”
+2.  “When platform or architecture work competes with feature work, how has that been resolved historically?” *— Historically is the key word; it asks for evidence rather than intent.*
+3.  “Cycle-based plan design looks like it requires detecting clinical episodes from global claims. How did that land in practice, and what surprised you?” *— Shows you read past the marketing page.*
+4.  “What’s the product bet you most want engineering to make possible that it can’t today?”
+
+### Questions For Matt Thorne (CIO)
+
+1.  “Where do you see the clean line between your scope and a CTO’s? I’ve generally seen CIO owning what the company runs *on* and CTO owning what it runs *as* — does that match how you think about it?”
+2.  “Who is accountable for security today, and where does product-side security engineering sit?”
+3.  “You run both Azure and AWS. Is that a deliberate application-versus-data split, or historical? What does the second cloud cost us in compliance evidence and on-call surface?”
+4.  “What does the compliance calendar look like — certifications, audits, and how much of the evidence collection is still manual?”
+
+### Questions For Dr. Asima Ahmad (Co-founder & CMO)
+
+1.  “Your public position is that clinicians define the care guidance framework. How does that work operationally — how is guidance authored, versioned and approved today?”
+2.  “What’s your bar for a member-facing AI output? What would have to be true for you to sign off?”
+3.  “Where do you worry about bias — care recommendations varying by geography, age or coverage tier — and are we measuring it?”
+4.  “What clinical capability do you most wish the platform had?”
+
+### Questions For Brooke Quinn (COO) And Dave Chandler (CFO)
+
+1.  *To the COO:* “If I sat with a Care Companion for a day, where would I see them doing something a system should be doing?”
+2.  *To the COO:* “How would you want automation measured — capacity freed for higher-value member contact, or headcount?” *— Her answer tells you a great deal about the culture.*
+3.  *To the CFO:* “Is there a cost-per-member-served number today? I’d want to own one publicly.”
+4.  *To the CFO:* “What’s the path to profitability, and what does engineering need to contribute to it?”
+5.  *To either:* “How concentrated is revenue in the largest customers?” *— Drives reliability requirements, and your own risk calculus.*
+
+> **Tip:** The question to ask every single person
+>
+> **“What are the top three technical priorities for the next year?”** Ask it of everyone, write down each answer, and compare. Consistency is the strongest green flag in this entire process; divergence is the strongest red flag. It costs you thirty seconds per conversation and it is the highest-information question available to you.
+
+### Day-of Runbook
+
+| When | Do this |
+| --- | --- |
+| Night before | Re-read Module 3 (stack, org, boundaries) and Module 1’s leadership table. Say the CTO-seat question out loud twice so it comes out calm rather than pointed. Pick your three STAR stories — scaling, compliance call, real failure — and rehearse only the Action section of each. |
+| 90 minutes before | Skim the flashcards. Fix in mind: C#/.NET, TypeScript/React, SQL, Azure + AWS, Snowflake/Fivetran/dbt/Prefect. April 16 2026 Carrot Intelligence. March 24 2026 Global Price Monitoring. ~$1B claims, 195 countries, ~615 people. Last priced round Aug 2021, Tiger Global. |
+| Opening | Have your one-sentence thesis ready for “what interests you about this role”: turning a claims dataset and an operations org into a margin advantage without members ever feeling they got the cheap version of care. |
+| Throughout | Every technical answer connects to money or risk. Every story ends with a ten-second scale-forward. Every strong opinion arrives with its trade-off. When you don’t know, say so and say what you’d do to find out — at CTO level that reads as strength. |
+| If a number is uncertain | Say “reported at roughly…” or “from the outside it looks like…”. Never invent precision. Volunteering the uncertainty is a credibility gain, not a loss. |
+| Last five minutes | If it has gone well, offer the compressed 90-day plan unprompted. Then ask what their concerns are about you — and address them on the spot rather than in a follow-up email. |
+| After | Note each person’s “top three priorities” answer while it is fresh. Compare across the loop. That comparison is your decision data. |
+
+### One-Page Cheat Sheet
+
+#### The company
+
+Founded 2015 by Tammy Sun (CEO) and Dr. Asima Ahmad (CMO). Global fertility and family care benefit sold to employers and health plans. ~615 employees, HQ West Des Moines IA, remote-first. 195 countries, 1,000+ customers, 10,000+ eligible providers, 50+ currencies, ~300 languages. ~$1B cumulative claims. Revenue estimated ~$88M (third-party, unverified). Last priced round: $75M Series C, Aug 2021, Tiger Global. No announced IPO plans; shares trade on Nasdaq Private Market.
+
+#### The tech
+
+C#/.NET · TypeScript/React · SQL · Azure *and* AWS · Snowflake, Fivetran, dbt, Prefect · Codex/Claude Code fluency required of engineers · small pods with named DRIs · “good enough, shipped, ready to iterate.”
+
+#### The 2026 launches
+
+Jan 28 — cycle-based Flexible Plan Design. Mar 24 — AI Global Price Monitoring System. Apr 16 — Carrot Intelligence. Plus menopause, low-T and global HRT expansion.
+
+#### The two AI commitments to respect
+
+Clinicians define the care guidance framework. No training of proprietary foundation models on member PHI.
+
+#### The four boundary questions
+
+Security & compliance — CTO or CIO? Data platform and ML — where? Does engineering report to the CTO or the CPO? Is the CTO on the exec team reporting to the CEO?
+
+#### Your thesis sentence
+
+“The CTO’s job here is to turn a claims dataset and an operations org into a margin advantage — without ever letting a member feel like they got the cheap version of care.”
+
+#### Three things to raise unprompted
+
+Reproductive-data risk and small-employer re-identification. The adjudication feedback loop as the actual moat. The member-never-waits rule in fraud review.
+
+**Q: What is the single most important question to ask Tammy Sun?**
+
+-   What is the IPO timeline?
+-   Why the leadership page lists a CIO and CPO but no CTO — the seat's history and whether it sits on the executive team **(correct)**
+-   How large is the engineering budget?
+-   What is the equity refresh policy?
+
+*Explanation: The answer determines whether this is a real CTO role or a senior engineering leadership role with a CTO title — which changes the mandate, the comp and whether you want it. Ask it early and evenly; senior candidates are expected to have noticed.*
+
+**Q: What should you do in the last five minutes of a strong interview?**
+
+-   Thank them and leave promptly
+-   Offer the compressed 90-day plan unprompted, then ask what concerns they have about you and address them on the spot **(correct)**
+-   Ask about salary
+-   Summarize your resume
+
+*Explanation: An unprompted 90-day sketch converts you from a candidate being evaluated into a colleague already working. Asking for their concerns lets you address objections live rather than leaving them to harden in a debrief you are not in.*
+
+**Q: How should you handle a number you are unsure about during the interview?**
+
+-   State it confidently — hesitation looks weak
+-   Avoid numbers entirely
+-   Say 'reported at roughly...' or 'from the outside it looks like...' — volunteering the uncertainty is a credibility gain **(correct)**
+-   Ask them for the number first
+
+*Explanation: Carrot is private and public figures disagree with each other — total funding is reported anywhere from $115M to $166M. Inventing precision in front of a CFO who knows the real number is the fastest way to lose credibility. Naming your uncertainty demonstrates exactly the discipline they want in a CTO.*
+
+-   **Ask everyone this** — 'What are the top three technical priorities for the next year?' Consistency across executives is the strongest green flag; divergence is the strongest red flag. Thirty seconds per conversation, highest information yield in the loop.
+-   **Opening thesis** — 'The CTO's job here is to turn a claims dataset and an operations org into a margin advantage — without ever letting a member feel like they got the cheap version of care.'
+-   **Three things to raise unprompted** — (1) Reproductive-data risk and small-employer re-identification in customer reporting. (2) The adjudication feedback loop as the real moat behind 'precision that compounds'. (3) The member-never-waits rule — pay or advance first, recover from the provider after.
+-   **Dates to have cold** — Jan 28, 2026 — cycle-based Flexible Plan Design. Mar 24, 2026 — AI Global Price Monitoring System. Apr 16, 2026 — Carrot Intelligence. Aug 17, 2021 — $75M Series C led by Tiger Global, the last priced round.
+-   **Uncertainty phrasing** — 'Reported at roughly...' / 'From the outside it looks like...' / 'That's my estimate from your public materials — is it close?' Never invent precision in front of people who know the real number.
+
+Built for Zeesha Furniturewala · Carrot Fertility CTO prep · August 2026
+
+Sourced from Carrot press releases and website, live Carrot job postings, Progyny public results, and third-party aggregators. Private-company figures are unaudited and sources disagree — verify before quoting.
