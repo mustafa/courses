@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: August 3, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: August 10, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,15 @@ Last updated: August 3, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of August 9, 2026
+
+-   **@milichab & @skcd42 (xAI):** [Grok 4.6 shipped on August 7](https://neomanex.com/news/grok-4-6-august-7-launch-confirmed), on schedule and to the walked-back spec: 1.5T parameters on the same V9 foundation as 4.5, with the gains coming from post-training rather than scale. It went out through xAI's own surfaces first — SuperGrok tiers, the API console, and Grok Build. The 2.1T Grok 4.7 is still a few weeks out.
+-   **@bcherny (Anthropic):** Anthropic announced that [auto mode becomes the default in Claude Code on August 14](https://claude.com/blog/auto-mode-default-in-claude-code) for Pro, Max, and Team. The number that carried the argument: across 1,053 paid testers, auto mode's classifier caught 89% of harmful actions versus 13.6% for humans clicking through manual permission prompts. Anthropic also stopped charging for the classifier's token overhead. Enterprise, API, and cloud-platform users stay opt-in for now.
+-   **@polynoamial (OpenAI):** The Astra verdict firmed up over the week. Thomas Bloom — the mathematician who took apart OpenAI's 2025 math claim — called this result "big news" and rated it above the May 2026 Erdős work, which is meaningful validation from the most credible skeptic available. OpenAI has also started framing Astra less as a math model and more as a long-horizon system that coordinates multiple agents over extended runs.
+-   **@OfficialLoganK (Google AI):** The August 6 window for Gemini 3.5 Pro [came and went with no launch](https://tech.yahoo.com/ai/gemini/articles/where-gemini-3-5-pro-200026497.html) — the model is still in limited preview on Vertex AI. That's the fourth slip since the May 19 I/O announcement, and the new unconfirmed rumor points at August 12. Meanwhile Gemini 4 pre-training continues, which increasingly looks like the real explanation.
+-   **@leerob & @ericzakariasson (Cursor):** Cursor [restored the Cost column and historical CSV dollar values on August 2](https://releasebot.io/updates/cursor) after replacing them with raw token counts drew user pushback — a small thing, but a clean example of the pricing-transparency pressure every agent product is under. Cursor for iOS also moved to public beta on all paid plans, and a lower-priced Cursor Start tier launched for developers in India.
+-   **@jxnlco (OpenAI):** Worth a calendar note for anyone deep in Codex: [GPT-5.4 and 5.4-mini stop being available in Codex for ChatGPT-authenticated sessions on August 31](https://developers.openai.com/codex/changelog), migrating to the GPT-5.6 Terra and Luna variants. API-key sessions keep access. If your workflows pin a model, they will break silently.
 
 ### Week of August 2, 2026
 
@@ -276,7 +285,7 @@ xAI ships faster than any other lab, and these two accounts are how you keep up:
 -   **Grok Build (May 2026):** skcd's project — a coding agent "built by engineers who live in the terminal: people who reach for vim, think in keybindings, and treat the alt-screen as home." xAI's answer to Claude Code.
 -   **Grok Voice (June 4):** Conversational spoken interaction in the Grok mobile app.
 -   **Grok Imagine Video 1.5:** #1 on the Image-to-Video Arena — 720p clips up to 15 seconds with native audio.
--   **Grok 4.6 (dated ~August 7, 2026):** Musk confirmed the specs on July 28, and they revise earlier reporting downward: 1.5T parameters, reusing the same V9 foundation as Grok 4.5 rather than scaling up. The gains come from improved supervised fine-tuning and RL, which keeps 4.5's speed and token efficiency. Target: Kimi K3 and the Opus tier.
+-   **Grok 4.6 (shipped August 7, 2026):** Released on schedule and to spec: 1.5T parameters, reusing the same V9 foundation as Grok 4.5 rather than scaling up. The gains come from improved supervised fine-tuning and RL, which keeps 4.5's speed and token efficiency. It launched first on SuperGrok, the xAI API console, and Grok Build. Target: Kimi K3 and the Opus tier.
 -   **Grok 4.7 watch:** 2.1T parameters, a few weeks behind 4.6 — "better in every way except slightly slower to serve," with better token efficiency again. The 6T Grok 5 line has effectively been renumbered into this cadence; the largest model remains Q3 2026 or later.
 
 Why Follow xAI Accounts
@@ -328,4 +337,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated August 3, 2026.
+Updated weekly by an automated research task. Last updated August 10, 2026.
