@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: August 10, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: August 14, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,17 @@ Last updated: August 10, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of August 14, 2026
+
+-   **@bcherny (Anthropic):** Auto mode [flipped to default in Claude Code today](https://www.theregister.com/ai-and-ml/2026/08/10/claude_code_puts_auto_mode_in_the_drivers_seat/) for new sessions on Pro, Max, and Team — the change trailed last week from the 1,053-tester classifier study. Enterprise, the Claude API, and the cloud platforms (Bedrock, Vertex, Foundry) stay opt-in, with Anthropic saying it plans to make it default there within a month. If you script Claude Code, assume permission behavior changed underneath you.
+-   **Anthropic platform:** Two enterprise pieces landed alongside it. [Self-hosted environments went to public beta](https://claude.com/blog/run-claude-code-sessions-on-your-own-compute) (Aug 6) — `claude self-hosted-runner` turns your own machines into the compute layer, so agents sit next to private registries and databases without exposing them. Read the fine print: it is self-hosted *execution*, not self-hosted inference — prompts still go to Anthropic. Separately, the [Compliance API now covers Cowork and Claude Code sessions](https://claude.com/blog/compliance-api-cowork-and-claude-code) with consolidated transcripts.
+-   **@karpathy (Anthropic):** Weighed in after Claude Opus generated a [procedural 3D Lord of the Rings world from a single prompt](https://www.benzinga.com/markets/tech/26/08/60861644/andrej-karpathy-says-ai-has-moved-beyond-simple-prompts-after-claude-opus-builds-3d-lord-of-the-rings-world), arguing models have moved past the prompt-a-snippet era into sustained creative construction. It is the same thesis as his loop-engineering post, just with a demo attached rather than a rulebook.
+-   **@leerob & @ericzakariasson (Cursor):** Cursor shipped [Builds on August 13](https://cursor.com/changelog) — pre-warmed copies of your dev environment kept ready in the background, so a Cloud Agent boots into a working setup instead of provisioning one per session. Cursor claims 10× faster environment boot and 3× faster time-to-first-token, and it is included with Cloud Agents at no extra cost. Environment setup was the single biggest tax on cloud agents; this is the right thing to have fixed.
+-   **@mntruell (Cursor):** SpaceX [finalized regulatory procedures on August 12 to close the $60B all-stock acquisition of Anysphere](https://satnews.com/2026/08/12/spacex-finalizes-regulatory-procedures-to-close-60-billion-acquisition-of-ai-platform-cursor/), keeping the Q3 timeline. The joint SpaceX/xAI/Cursor model intended to ship inside both Cursor and Grok is the thing to watch — it would make Cursor and Grok Build siblings rather than competitors, which reshapes module 4 and module 5 of this course at the same time.
+-   **@milichab & @skcd42 (xAI):** With 4.6 out, attention moved to [Grok 4.7 — now roughly 3–4 weeks out as of August 12](https://www.orcarouter.ai/blog/grok-4-7-release-date). Musk says initial training is done and xAI is running a supplemental pass on "a massive amount" of SpaceX engineering data, and frames 4.7 as better than 4.6 in every way except slightly slower to serve, with better token efficiency. Training on proprietary aerospace engineering data is a genuinely new kind of moat, not just more scale.
+-   **@OfficialLoganK (Google AI):** The August 12 rumor for Gemini 3.5 Pro [passed with another delay](https://nokiapoweruser.com/gemini-3-5-pro-delayed-again-deployment-issues/), this time attributed to deployment issues rather than quality bars. That is now five missed windows since May. At some point the interesting question stops being "when does 3.5 Pro ship" and becomes "does Google skip it for Gemini 4."
+-   **@gabriel1 (OpenAI):** Calendar item for anyone still on Sora: the app shut down back in April, and the [Sora 2 API is scheduled for removal on September 24](https://www.mindstudio.ai/blog/openai-shutting-down-sora-what-happened) in favor of Spud. Six weeks left to migrate any video pipeline built on it.
 
 ### Week of August 9, 2026
 
@@ -337,4 +348,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated August 10, 2026.
+Updated weekly by an automated research task. Last updated August 14, 2026.
