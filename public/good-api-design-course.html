@@ -1,0 +1,2424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Good API Design — Interactive Course</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:640px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CODE */
+.code-label{display:inline-block;background:var(--accent-dim);color:var(--text-bright);
+  font-size:11px;font-weight:700;padding:3px 11px;border-radius:5px 5px 0 0;
+  font-family:var(--mono);letter-spacing:0.03em}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:0 8px 8px 8px;
+  padding:1rem 1.1rem;overflow-x:auto;margin-bottom:1.2rem;font-size:0.85rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text);font-size:1em}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.str{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}
+.num{color:#79c0ff}.op{color:#ff7b72}.vr{color:#ffa657}.cl{color:#7ee787}.nm{color:#79c0ff}
+.bad{color:var(--red)}.good{color:var(--green)}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-sean{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-sean .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--red)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ THE CHANGE DESK (SIM) ============ */
+#desk{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.desk-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.desk-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.desk-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.desk-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.desk-body{padding:1.3rem}
+
+.dq{display:flex;gap:0.35rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.dq i{width:26px;height:5px;border-radius:3px;background:var(--border);transition:background 0.3s}
+.dq i.on{background:var(--accent)}
+.dq i.cur{background:var(--accent2)}
+
+.ticket{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--orange);
+  border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.2rem}
+.ticket .from{font-size:0.7rem;font-weight:800;color:var(--orange);text-transform:uppercase;
+  letter-spacing:0.07em;margin-bottom:0.45rem}
+.ticket h4{color:var(--text-bright);font-size:1rem;margin:0 0 0.55rem;font-weight:700}
+.ticket p{font-size:0.9rem;margin-bottom:0.5rem;color:var(--text)}
+.ticket p:last-child{margin-bottom:0}
+.ticket .facts{display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:0.8rem;padding-top:0.7rem;
+  border-top:1px solid var(--border)}
+.ticket .facts div{font-size:0.75rem;color:var(--text-dim)}
+.ticket .facts b{display:block;font-family:var(--mono);font-size:0.95rem;color:var(--text-bright);
+  font-weight:700}
+
+.opts{display:grid;gap:0.5rem;margin-bottom:1rem}
+.opt{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;
+  cursor:pointer;transition:all 0.15s;display:flex;gap:0.7rem;align-items:flex-start;
+  font-size:0.9rem;text-align:left;color:var(--text);font-family:inherit;line-height:1.55;width:100%}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--bg2)}
+.opt .dot{width:15px;height:15px;border:2px solid var(--border-light);border-radius:50%;
+  flex-shrink:0;margin-top:0.2rem;transition:all 0.15s}
+.opt.sel{border-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.opt.sel .dot{border-color:var(--accent2);background:var(--accent2);box-shadow:inset 0 0 0 3px var(--bg3)}
+.opt:disabled{cursor:default;opacity:0.75}
+.opt .ok{margin-left:auto;font-size:0.7rem;font-weight:800;letter-spacing:0.05em;
+  text-transform:uppercase;color:var(--text-dim);white-space:nowrap;flex-shrink:0}
+
+.why-wrap{margin-bottom:1rem}
+.why-wrap label{display:block;font-size:0.78rem;font-weight:700;color:var(--text-dim);
+  margin-bottom:0.4rem}
+#why{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.65rem 0.9rem;color:var(--text);font-family:inherit;font-size:0.88rem;resize:vertical;
+  min-height:54px;line-height:1.55}
+#why:focus{outline:none;border-color:var(--accent)}
+#why:disabled{opacity:0.7}
+
+.desk-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap}
+button.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;
+  padding:0.6rem 1.4rem;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all 0.15s}
+button.act:hover:not(:disabled){filter:brightness(1.15)}
+button.act:disabled{background:var(--bg3);color:var(--text-dim);cursor:not-allowed}
+button.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+button.ghost:hover:not(:disabled){color:var(--text-bright);border-color:var(--border-light);background:var(--bg3)}
+.gate-msg{font-size:0.78rem;color:var(--yellow)}
+
+/* results */
+#result{margin-top:1.3rem;padding-top:1.3rem;border-top:1px solid var(--border)}
+.hid{display:none!important}
+.rhead{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--accent);margin:1.2rem 0 0.6rem}
+.rhead:first-child{margin-top:0}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:0.6rem;margin-bottom:1rem}
+.metric{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.metric .v{font-family:var(--mono);font-size:1.35rem;font-weight:800;line-height:1.15;color:var(--text-bright)}
+.metric .k{font-size:0.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;
+  margin-top:0.25rem;line-height:1.35}
+.metric.warn .v{color:var(--red)}
+.metric.good .v{color:var(--green)}
+.metric.mid .v{color:var(--yellow)}
+
+.spark{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.9rem 1rem;
+  margin-bottom:1rem}
+.spark .st{font-size:0.75rem;color:var(--text-dim);margin-bottom:0.6rem}
+.spark .st b{color:var(--text-bright)}
+.bars{display:flex;align-items:flex-end;gap:2px;height:56px}
+.bars i{flex:1;background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:2px 2px 0 0;
+  min-height:2px;transition:height 0.5s ease}
+.bars i.tail{background:linear-gradient(180deg,var(--red),#8b3a40)}
+.axis{display:flex;justify-content:space-between;font-size:0.65rem;color:var(--text-dim);
+  margin-top:0.35rem;font-family:var(--mono)}
+
+.cmp{display:grid;gap:0.4rem;margin-bottom:1rem}
+.cmp .row{display:grid;grid-template-columns:1fr auto;gap:0.8rem;background:var(--bg3);
+  border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.85rem;font-size:0.84rem;
+  align-items:center}
+.cmp .row.you{border-color:var(--accent2);background:rgba(108,99,255,0.07)}
+.cmp .row .lab{color:var(--text)}
+.cmp .row .lab b{display:block;color:var(--text-bright);font-size:0.86rem;margin-bottom:0.15rem}
+.cmp .row .sc{font-family:var(--mono);font-size:0.78rem;color:var(--text-dim);white-space:nowrap;
+  text-align:right}
+.youtag{display:inline-block;font-size:0.62rem;font-weight:800;background:var(--accent2);color:#fff;
+  padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;vertical-align:middle;letter-spacing:0.05em}
+
+.field{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.22);
+  border-left:3px solid var(--accent);border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:0.7rem}
+.field .lbl{font-size:0.68rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.4rem;display:block}
+.field p{font-size:0.87rem;margin-bottom:0.5rem;line-height:1.6}
+.field p:last-child{margin-bottom:0}
+
+#debtbox{background:rgba(224,108,117,0.06);border:1px solid rgba(224,108,117,0.25);
+  border-radius:9px;padding:0.9rem 1.1rem;margin-bottom:1.2rem}
+#debtbox .lbl{font-size:0.7rem;font-weight:800;color:var(--red);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem}
+#debtbox .lbl span{background:var(--red);color:#fff;border-radius:20px;padding:0.05rem 0.5rem;
+  font-size:0.7rem}
+#debtlist{list-style:none;margin:0}
+#debtlist li{font-size:0.83rem;padding:0.28rem 0;border-bottom:1px dashed rgba(224,108,117,0.2);
+  font-family:var(--mono);color:var(--text)}
+#debtlist li:last-child{border-bottom:none}
+#debtlist li.empty{font-family:inherit;color:var(--text-dim);font-style:italic}
+
+#ledger{margin-top:1.3rem}
+.led{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.85rem;
+  margin-bottom:0.4rem;font-size:0.82rem}
+.led .h{display:flex;gap:0.5rem;align-items:baseline;flex-wrap:wrap}
+.led .n{font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700}
+.led .c{color:var(--text-bright);font-weight:650}
+.led .w{color:var(--text-dim);font-style:italic;margin-top:0.2rem;font-size:0.8rem}
+
+/* transfer */
+#transfer{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:1.4rem;margin:1.5rem 0}
+#transfer h4{color:var(--yellow);margin-top:0}
+.tq{margin-bottom:1.1rem}
+.tq .q{font-size:0.92rem;color:var(--text-bright);font-weight:650;margin-bottom:0.5rem}
+.tq textarea{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:7px;
+  padding:0.55rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.86rem;min-height:46px;
+  resize:vertical}
+.tq textarea:focus{outline:none;border-color:var(--accent)}
+@media(max-width:640px){
+  .desk-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
+  .cmp .row{grid-template-columns:1fr}
+  .cmp .row .sc{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">Good API Design</div>
+    <div class="nav-prog" id="nav-prog">0 / 10</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>Good API Design</h1>
+  <p class="sub">An opinionated course built on Sean Goedecke's essay &mdash; and on the places the
+  field, the standards bodies, and his own employer disagree with him.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>10</span> modules</div>
+    <div class="hero-badge"><span>1</span> decision simulator</div>
+    <div class="hero-badge"><span>~90</span> min</div>
+    <div class="hero-badge"><span>Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Spine text:
+  <a href="https://www.seangoedecke.com/good-api-design/" target="_blank" rel="noopener">Everything I know about good API design</a>
+  &mdash; Sean Goedecke, 24 August 2025</p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>This is not a summary. Goedecke's essay is the <strong>spine</strong> &mdash; his arguments are
+  stated in his own words and clearly attributed. But an essay is one practitioner's cost model, and
+  a course that only restates a blog post teaches you to agree rather than to decide.</p>
+  <p>So every module carries three kinds of block. <strong style="color:var(--accent2)">Goedecke's position</strong>
+  is what he actually argued. <strong style="color:var(--red)">Where the field disagrees</strong> is
+  sourced pushback &mdash; from the HN and Reddit threads, from Fielding, Google, Zalando, Stripe,
+  GitHub, and the RFCs. <strong style="color:var(--green)">Verified</strong> marks facts checked
+  against live primary sources in August 2026, because half of what circulates about API design is
+  stale and some of it is fabricated.</p>
+  <p>Module 4 is a simulator. Do it before you read modules 5&ndash;10 &mdash; it will make you commit
+  to judgments you'd rather defer, which is the entire skill.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">What "good" actually means<span class="tag">Foundations</span></a></li>
+    <li><a href="#m2">Resource modelling &amp; naming<span class="tag">Design</span></a></li>
+    <li><a href="#m3">We do not break userspace<span class="tag">Compatibility</span></a></li>
+    <li><a href="#m4">Versioning &mdash; The Change Desk<span class="tag">Simulator</span></a></li>
+    <li><a href="#m5">Errors<span class="tag">Standards</span></a></li>
+    <li><a href="#m6">Pagination<span class="tag">Scale</span></a></li>
+    <li><a href="#m7">Idempotency &amp; retries<span class="tag">Correctness</span></a></li>
+    <li><a href="#m8">Auth, rate limits &amp; blast radius<span class="tag">Safety</span></a></li>
+    <li><a href="#m9">Deprecation &mdash; the long goodbye<span class="tag">Lifecycle</span></a></li>
+    <li><a href="#m10">GraphQL, DX &amp; what really decides<span class="tag">Synthesis</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>What "good" actually means</h2>
+  <div class="mt">Correct is not the same as good &mdash; and good may not be the thing that matters</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>State the familiarity/flexibility tension that generates almost every API design argument</li>
+  <li>Explain why an API is harder to change than the system behind it</li>
+  <li>Place HATEOAS and "real REST" accurately &mdash; including what Fielding actually conceded</li>
+  <li>Argue both sides of "API quality is a marginal feature"</li>
+</ul></div>
+
+<h3>The tension that generates everything else</h3>
+
+<p>An API has two masters and they want opposite things. The people building it want flexibility,
+because they'll have to live with this interface for years. The people using it want familiarity,
+because the API is not their goal &mdash; it's an obstacle between them and their goal.</p>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"<strong>Good APIs are boring.</strong> An API that's interesting is a bad API (or at
+least it would be a better one if it were less interesting). [&hellip;] From their perspective, an
+ideal API should be so familiar that they will more or less know how to use it before they read any
+documentation."</blockquote>
+<p>This is continuous with his systems writing. In <em>Everything I know about good system design</em>
+he puts it more bluntly: "<strong>Paradoxically, good design is self-effacing: bad design is often
+more impressive than good. I'm always suspicious of impressive-looking systems.</strong>" His stated
+enemy is advice optimised for social engagement &mdash; "the LinkedIn-optimized 'bet you never heard
+of <em>queues</em>' style of post."</p>
+</div>
+
+<p>The second half of the tension is the one that makes APIs a distinct discipline: <strong>APIs are
+hard to change.</strong> You can rewrite the service behind an endpoint on a Tuesday. You cannot
+rename a field in its response without breaking every consumer who reads that field. That asymmetry
+&mdash; cheap internals, expensive interface &mdash; is why API design deserves care that most
+internal code does not.</p>
+
+<h3>Where "real REST" fits</h3>
+
+<p>Goedecke is dismissive of the REST purity debate: "People get wrapped up in what 'real' REST is,
+or whether HATEOAS is a good idea." He's largely right, but the reason is more interesting than the
+dismissal.</p>
+
+<p>Roy Fielding coined REST in his dissertation and has been unambiguous that most things called REST
+are not:</p>
+
+<blockquote>"I am getting frustrated by the number of people calling any HTTP-based interface a REST
+API. [&hellip;] <strong>That is RPC. It screams RPC.</strong> There is so much coupling on display
+that it should be given an X rating." [&hellip;] "if the engine of application state (and hence the
+API) is not being driven by hypertext, then <strong>it cannot be RESTful and cannot be a REST API.
+Period.</strong>"
+<span class="attrib">Roy Fielding, <a href="https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven" target="_blank" rel="noopener">REST APIs must be hypertext-driven</a>, 20 October 2008</span></blockquote>
+
+<p>But two days later, in his own comment thread, he conceded the point that dissolves the whole
+argument:</p>
+
+<blockquote>"That doesn't mean that I think everyone should design their own systems according to the
+REST architectural style. REST is intended for long-lived network-based applications that span
+multiple organizations. <strong>If you don't see a need for the constraints, then don't use them.
+That's fine with me as long as you don't call the result a REST API.</strong>"
+<span class="attrib">Roy Fielding, same comment thread, 22 October 2008</span></blockquote>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; the empirical picture</span>
+<p>Bülthoff &amp; Maleshkova manually analysed 45 of the most-used web APIs
+(<a href="https://arxiv.org/abs/1902.10514" target="_blank" rel="noopener">arXiv:1902.10514</a>, 2019):
+"<strong>HATEOAS remains one of the most poorly supported constraints of the REST architecture with
+less than a fifth of the analyzed Web APIs providing links to related resources.</strong>" Self-links
+and pagination links appeared in only <strong>13%</strong>. Their conclusion: "they most commonly
+remain RESTless."</p>
+<p>Kin Lane's framing is the honest epitaph: "<strong>Hypermedia is the most intellectually compelling
+and most commercially frustrating idea in the entire API design world</strong> [&hellip;] the market
+chose simple, RPC-flavored, URL-based REST over the more correct but more demanding hypermedia
+approach."</p>
+</div>
+
+<p>So the dispute is <em>terminological</em>, not architectural. Fielding isn't saying your API is
+broken; he's saying stop calling it REST. Goedecke's practical stance and Fielding's 2008 concession
+are compatible.</p>
+
+<h4>The Richardson Maturity Model, correctly cited</h4>
+
+<p>You will meet the "four levels of REST" ladder — Level 0 (HTTP as an RPC tunnel), Level 1
+(Resources), Level 2 (HTTP Verbs), Level 3 (Hypermedia Controls). It is a <em>teaching heuristic</em>,
+and both its originator and its populariser said so.</p>
+
+<div class="callout c-warn"><span class="lbl">Cite it accurately</span>
+<p>Martin Fowler, who popularised it (<a href="https://martinfowler.com/articles/richardsonMaturityModel.html" target="_blank" rel="noopener">18 March 2010</a>):
+"<strong>I should stress that the RMM, while a good way to think about what the elements of REST, is
+not a definition of levels of REST itself.</strong> [&hellip;] As such I see it as a tool to help us
+learn about the concepts and <strong>not something that should be used in some kind of assessment
+mechanism.</strong>"</p>
+<p>Leonard Richardson, in the original 2008 QCon talk, called it a <em>maturity heuristic</em> and
+noted: "<strong>A lot of people settle for level two because hypermedia is difficult to understand and
+its value in the web service domain isn't as clear.</strong>"</p>
+<p>Two things people get wrong: the phrase "the Swamp of POX" appears only in Fowler's <em>diagram</em>,
+never in his prose; and Fielding's famous "evoke an image" passage is dissertation <strong>Chapter 6
+§6.1</strong>, not Chapter 5.</p>
+</div>
+
+<h3>The uncomfortable claim: API quality is marginal</h3>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"Nobody uses an API because the API itself is so elegantly designed. They use it to
+<em>interact with your product</em>. <strong>If your product is valuable enough, users will flock to
+even a terrible API.</strong> [&hellip;] Facebook and Jira are famous for having appalling APIs, but
+it doesn't matter."</blockquote>
+<p>He draws a sharp corollary: "API quality is a marginal feature: it only matters when a consumer is
+choosing between two basically-equivalent products." But the <em>presence</em> of an API is different
+&mdash; having none at all is a real problem.</p>
+</div>
+
+<p>This drew <strong>zero pushback</strong> across 160 Hacker News comments and 55 Reddit comments.
+Nobody defended Jira's or Facebook's API. It is the least controversial claim in the essay, which is
+itself notable given how much effort the industry spends on API polish.</p>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees</span>
+<p>The claim is true and also load-bearing in a way that should worry you. If API quality only matters
+at the margin, then the marginal case is <em>every case where you are not a monopoly</em> &mdash;
+which is most companies most of the time. "Facebook gets away with it" is an argument available to
+almost nobody reading this.</p>
+<p>There is also a measurable proxy the essay misses, and it was the single most-agreed-with
+<em>addition</em> in the HN thread:</p>
+<blockquote>"<strong>The quality of the API is inversely correlated to how difficult it is to obtain
+API documentation.</strong> If you are only going to get the API documentation after signing a
+contract, just assume it's dismally bad."<span class="attrib">HN commenter <code>JimDabell</code></span></blockquote>
+</div>
+
+<details class="reveal"><summary>Before you continue — commit to an answer</summary>
+<p>You maintain an internal service that three teams call. Someone proposes publishing it as a public
+partner API next quarter. What single property of the current design should you check <em>first</em>,
+and why that one before any other?</p>
+<p style="margin-top:0.7rem;color:var(--text-dim)"><strong style="color:var(--yellow)">A defensible
+answer:</strong> whether the resources you expose are <em>your domain's</em> nouns or <em>your
+database's</em> nouns. Everything else on this list &mdash; errors, pagination, versioning, auth
+&mdash; is a bolt-on you can add later without a redesign. Resource shape is the one thing you cannot
+change afterwards without breaking every consumer, and it is what Module 2 is about. If you answered
+"authentication," that is a reasonable second: it's changeable, but changing it is a migration.</p>
+</details>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>API design is a search for the point where familiarity and flexibility hurt least. Boring wins because familiarity is worth more to your users than elegance is to you.</li>
+  <li>Internals are cheap to change; interfaces are not. That asymmetry is the whole discipline.</li>
+  <li>Fielding conceded in 2008 that not using REST's constraints is fine &mdash; just don't call it REST. Under a fifth of top APIs implement HATEOAS.</li>
+  <li>The Richardson ladder is a heuristic its own authors declined to use as an assessment tool.</li>
+  <li>"API quality is marginal" is empirically strong and strategically dangerous: the margin is where most companies live.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>Resource modelling &amp; naming</h2>
+  <div class="mt">The one decision you cannot walk back</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Recognise when an API is leaking internal structure instead of modelling a domain</li>
+  <li>Apply the "model the transaction as a resource" move to operations that don't fit CRUD</li>
+  <li>Use a defensible naming convention and know why the convention matters more than the choice</li>
+  <li>Judge the strongest criticism of the essay: that "fix the product" is an abdication</li>
+</ul></div>
+
+<h3>Bad products make bad APIs</h3>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"<strong>A technically-poor product can make it nearly impossible to build an elegant
+API.</strong> That's because API design usually tracks the 'basic resources' of a product [&hellip;]
+When those resources are set up awkwardly, that makes the API awkward as well."</blockquote>
+<p>His example: a blog that stores comments as an in-memory linked list. The naive REST mapping leaks
+the list structure straight into the wire format &mdash;</p>
+</div>
+
+<div class="code-label">The leak, in three stages</div>
+<pre><code><span class="cm"># Stage 1 — the internal pointer becomes public API</span>
+GET /comments/1
+<span class="op">→</span> { <span class="vr">"id"</span>: <span class="num">1</span>, <span class="vr">"body"</span>: <span class="str">"..."</span>, <span class="vr">"next_comment_id"</span>: <span class="num">2</span> }
+
+<span class="cm"># Stage 2 — worse: the whole structure, nested</span>
+GET /comments
+<span class="op">→</span> { <span class="vr">"body"</span>: <span class="str">"..."</span>, <span class="vr">"next_comment"</span>: { <span class="vr">"body"</span>: <span class="str">"..."</span>, <span class="vr">"next_comment"</span>: {...} } }
+
+<span class="cm"># Stage 3 — the traversal cost surfaces as an async job the caller must orchestrate</span>
+POST /comments/fetch_job/1   <span class="op">→</span> { <span class="vr">"job_id"</span>: <span class="num">589</span> }
+GET  /comments_job/<span class="num">589</span>      <span class="op">→</span> { <span class="vr">"status"</span>: <span class="str">"complete"</span>, <span class="vr">"comments"</span>: [...] }</code></pre>
+
+<p>His diagnosis is exactly right: "<strong>Technical constraints that can be cleverly hidden in the UI
+are laid bare in the API</strong>, forcing API consumers to understand far more of the system design
+than they should reasonably have to."</p>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; the sharpest critique of the whole essay</span>
+<blockquote>"Yeah, almost like <strong>you have to <em>design</em> an API, not just make it a proxy for
+gory technical details.</strong> Strangely, the article recommends fixing technical details (which is
+not always possible within a reasonable timeframe), instead of spending time on figuring out good
+APIs."<span class="attrib">Reddit <code>u/katafrakt</code>, 64 upvotes &mdash; the highest-voted
+criticism in either thread</span></blockquote>
+<p>This is the accusation that the claim is an <em>abdication</em>. If a bad internal model
+unavoidably produces a bad API, the API designer has no job. But the API layer's entire purpose is to
+be a translation &mdash; a published contract about your domain, not a window onto your schema. In the
+comment example you do not need to fix the linked list. You need to decide that the public resource is
+a <strong>thread</strong> with a paginated collection of comments, and then do whatever internal work
+that costs.</p>
+<p><strong>The synthesis:</strong> he's describing a real gravitational pull and calling it a law.
+Treat it as a warning about what happens by default, not as permission.</p>
+</div>
+
+<h3>The move that unblocks awkward operations</h3>
+
+<p>The most useful idea in the discourse wasn't in the essay. A long Reddit sub-thread argued that
+resource-oriented design fundamentally cannot express transactions &mdash; that you inevitably end up
+with "a billion endpoints for every imaginable usecase."</p>
+
+<p>Two replies reframed it: "you're missing an axiom&hellip; (REST) APIs should be <em>atomic</em>. If
+you're doing complex transactional stuff, it's probably the wrong paradigm" (<code>u/XtremeGoose</code>),
+and more bluntly, "<strong>You gotta stop thinking the API is a database, man</strong>"
+(<code>u/utdconsq</code>). The resolution the original poster accepted:</p>
+
+<div class="callout c-fact"><span class="lbl">The pattern: model the operation itself as a resource</span>
+<p>Instead of a verb endpoint that does several things at once, <code>POST</code> a
+<strong>request entity</strong> that is itself listable, gettable, and has a lifecycle.</p>
+</div>
+
+<div class="code-label">Verb endpoint vs. operation-as-resource</div>
+<pre><code><span class="cm">// Awkward: an RPC verb wearing a REST costume. No handle, no status,</span>
+<span class="cm">// no retry story, no audit trail.</span>
+POST /accounts/<span class="num">42</span>/close_and_refund_and_notify
+
+<span class="cm">// Better: the operation is a thing that exists, and can be inspected.</span>
+POST /account-closures
+  { <span class="vr">"account"</span>: <span class="str">"42"</span>, <span class="vr">"refund"</span>: <span class="kw">true</span>, <span class="vr">"notify"</span>: <span class="kw">true</span> }
+<span class="op">→</span> <span class="num">202</span> { <span class="vr">"id"</span>: <span class="str">"clo_9f2"</span>, <span class="vr">"state"</span>: <span class="str">"pending"</span>, <span class="vr">"account"</span>: <span class="str">"42"</span> }
+
+GET  /account-closures/clo_9f2   <span class="cm">// status, failure reason, partial progress</span>
+GET  /account-closures?state=failed
+</code></pre>
+
+<p>Fielding got there in 2008 from the opposite direction: "<strong>If you find yourself in need of a
+batch operation, then most likely you just haven't defined enough resources.</strong>" A Reddit
+thread in 2025 reinvented it independently. That convergence is a good sign you should trust the
+pattern.</p>
+
+<h3>Naming: pick a convention, then stop thinking about it</h3>
+
+<p>Goedecke says nothing about naming, which is consistent with his thesis &mdash; naming is exactly
+the kind of thing that generates enormous discussion and very little value, <em>as long as you are
+consistent.</em> Inconsistency is the actual defect. Zalando's guidelines, one of the two most complete
+public style guides, fix all three casings so nobody has to argue:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Where</th><th>Casing</th><th>Example</th><th>Rule</th></tr></thead>
+<tbody>
+<tr><td>URL path segments</td><td><code>kebab-case</code></td><td><code>/shipment-orders/{id}</code></td><td>#129</td></tr>
+<tr><td>JSON properties</td><td><code>snake_case</code></td><td><code>customer_number</code></td><td>#118</td></tr>
+<tr><td>Query parameters</td><td><code>snake_case</code></td><td><code>?created_after=</code></td><td>#130</td></tr>
+<tr><td>HTTP headers</td><td><code>Kebab-Case-Uppercase</code></td><td><code>X-Flow-Id</code></td><td>#132</td></tr>
+<tr><td>Resource names</td><td>plural nouns</td><td><code>/orders</code>, not <code>/order</code></td><td>#134</td></tr>
+</tbody></table></div>
+
+<p>Their stated reason for <code>snake_case</code> is pure familiarity, which is Goedecke's own
+argument: "many popular Internet companies prefer snake_case: e.g. <strong>GitHub, Stack Exchange,
+Twitter</strong>." Google's AIPs choose differently (<code>lowerCamelCase</code> in JSON). Both are
+fine. Picking neither is not.</p>
+
+<div class="callout c-warn"><span class="lbl">The one naming rule that is not arbitrary</span>
+<p>Google AIP-180: "<strong>A resource MUST NOT change its name. Unlike most breaking changes, this
+affects major versions as well.</strong>" Casing is taste. The identity of a resource is a contract
+that survives even your version boundaries &mdash; a <code>/v2</code> that renames
+<code>/customers</code> to <code>/clients</code> is not a new version, it's a new API.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>APIs default to leaking internal structure. Noticing the leak is the job; "the product is bad" is a description, not an excuse.</li>
+  <li>When an operation doesn't fit CRUD, make the operation a resource with an id, a state, and a history. You get status, retries, and audit for free.</li>
+  <li>Fielding's rule of thumb: needing a batch endpoint usually means you haven't defined enough resources.</li>
+  <li>Naming conventions are arbitrary; consistency is not. Resource <em>identity</em> is a contract that outlives versions.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>We do not break userspace</h2>
+  <div class="mt">The strongest norm in API design, and the half of it everyone forgets</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Classify changes as additive, breaking, or "technically additive but actually breaking"</li>
+  <li>State the missing half of Torvalds' rule and why it makes the norm usable</li>
+  <li>Apply the tolerant-reader discipline and the asymmetric enum rule</li>
+  <li>Write down a stability contract instead of assuming one</li>
+</ul></div>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"As a maintainer of an API, you have something like <strong>a sacred duty to avoid harming
+your downstream consumers.</strong> [&hellip;] You should never make a change to an API just because
+it'd be neater, or because it's a little awkward. The 'referer' header in the HTTP specification is
+famously a misspelling of the word 'referrer', but they haven't changed it, <em>because we do not
+break userspace</em>."</blockquote>
+<p>He also stakes out a position on tolerance: consumers that break when they receive
+<em>extra</em> fields are, in his word, "irresponsible." "You should expect API consumers to ignore
+unexpected fields."</p>
+</div>
+
+<h3>The missing half</h3>
+
+<p>The top-voted comment in the entire Hacker News thread does not disagree with him. It completes
+him, and it's the most useful sentence in the discourse:</p>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; the essential correction</span>
+<blockquote>"The reminder to 'never break userspace' is good, but people never bring up the other half
+of that statement: <strong>'we can and will break kernel APIs without warning'.</strong> It
+illustrates that the reminder isn't 'never change an API in a way that breaks someone', it's the more
+nuanced <strong>'declare what's stable, and never break those'.</strong>"
+<span class="attrib">HN <code>dwattttt</code> &mdash; top comment in the thread</span></blockquote>
+<p>Supporting evidence from the same thread: glibc breaks ABI "all the time"; Linux famously has no
+stable in-kernel driver API, which several commenters noted was a motivation for Google's Fuchsia.</p>
+<p><strong>Why this matters practically:</strong> "never break anything" is unimplementable, so people
+either violate it and feel bad, or freeze and ship nothing. "Publish a stability contract, then honour
+it absolutely" is implementable. It converts a moral stance into an engineering artifact &mdash; and
+it tells you which parts of your surface you are still allowed to move.</p>
+</div>
+
+<h3>The change classification you should steal</h3>
+
+<p>GitHub publishes the clearest list, and it is worth internalising because roughly half of these
+surprise people:</p>
+
+<div class="split">
+<div class="l"><div class="h">Additive — safe in all versions</div>
+<p>Adding an operation &middot; adding an optional parameter &middot; adding an optional request header
+&middot; adding a response field &middot; adding a response header &middot; adding enum values</p>
+<p style="color:var(--text-dim);font-size:0.84rem">GitHub ships these to <em>every</em> supported
+version without a version bump.</p></div>
+<div class="r"><div class="h">Breaking — requires a version</div>
+<p>Removing an operation &middot; removing or renaming a parameter &middot; removing or renaming a
+response field &middot; adding a required parameter &middot; making an optional parameter required
+&middot; changing a parameter or field's type &middot; removing enum values &middot;
+<strong>adding a new validation rule to an existing parameter</strong> &middot; changing auth
+requirements</p></div>
+</div>
+
+<div class="callout c-warn"><span class="lbl">The traps in that list</span>
+<p><strong>Adding a validation rule is breaking.</strong> Requests that used to succeed now 4xx. This
+is the single most commonly shipped accidental break, because it doesn't change the schema and
+therefore doesn't feel like a change.</p>
+<p><strong>Enums are asymmetric</strong> &mdash; and Zalando's rule #107 is the sharpest formulation
+anywhere: "For schemas used in <strong>input only</strong>: <code>enum</code> ranges <em>can</em> be
+extended. For schemas used in <strong>output only</strong>: <code>enum</code> ranges <em>cannot</em>
+be extended &mdash; <strong>clients may not be prepared to handle it.</strong>" Adding
+<code>status: "partially_refunded"</code> to a response is additive on paper and a production
+incident in a client's <code>switch</code> statement.</p>
+<p>Google AIP-180 goes further still, and these will catch you: <strong>ceasing to populate</strong> a
+field you used to populate is breaking; changing a <strong>default value</strong> is breaking;
+changing a field's <em>format or algorithm</em> is breaking "even if the field is
+<code>OUTPUT_ONLY</code>"; and as of October 2025, <strong>increasing a string length limit</strong>
+is breaking.</p>
+</div>
+
+<h3>Tolerant reader — the discipline that makes additive changes safe</h3>
+
+<p>Goedecke's "consumers should ignore unexpected fields" is Postel's Law, and Zalando operationalises
+it into rules you can put in a code review checklist:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Rule</th><th>What it requires</th></tr></thead>
+<tbody>
+<tr><td>#108 &mdash; Tolerant reader</td><td>"Be tolerant with unknown fields in the payload&hellip; <strong>ignore new fields but do not eliminate them from payload if needed for subsequent <code>PUT</code> requests.</strong>"</td></tr>
+<tr><td>#108 &mdash; Unknown status codes</td><td>"Be prepared to handle HTTP status codes not explicitly specified&hellip; <strong>Default handling is how you would treat the corresponding <code>2xx</code> code.</strong>" (per RFC 9110)</td></tr>
+<tr><td>#111 &mdash; Keep schemas open</td><td>"<strong>API formats must not declare <code>additionalProperties</code> to be false</strong>, as this prevents objects being extended in the future."</td></tr>
+<tr><td>#106 &mdash; The contract</td><td>"<strong>APIs are contracts between service providers and service consumers that cannot be broken via unilateral decisions.</strong>"</td></tr>
+</tbody></table></div>
+
+<p>The <code>PUT</code> clause in #108 is the subtle one. A client that strips unknown fields on read
+and then <code>PUT</code>s the object back will silently <em>delete</em> data it never understood.
+That's a data-loss bug caused by an additive change &mdash; the API owner did nothing wrong and the
+customer is still down.</p>
+
+<div class="callout c-fact"><span class="lbl">Verified — the compatibility axes you're actually promising</span>
+<p>Google AIP-180 names three: <strong>source</strong>, <strong>wire</strong>, and
+<strong>semantic</strong> compatibility, and covers all three. Zalando explicitly covers only the wire
+format: "the compatibility guarantees are for the 'on the wire' format. <strong>Binary or source
+compatibility of code generated from an API specification is not covered.</strong>"</p>
+<p>If you ship SDKs, you are on the hook for source compatibility whether you said so or not. Decide
+which of the three you promise, and write it down. That is <code>dwattttt</code>'s point made concrete.</p>
+</div>
+
+<details class="reveal"><summary>Commit before revealing — is this change breaking?</summary>
+<p>Your <code>GET /orders/{id}</code> response includes <code>"total": "42.00"</code>. Finance asks
+you to return more precision: <code>"total": "42.0000"</code>. The type is unchanged (still a string),
+no field is added or removed, no validation changes. Ship it?</p>
+<p style="margin-top:0.7rem;color:var(--text-dim)"><strong style="color:var(--yellow)">No — this is
+breaking, on two of the three axes.</strong> Google AIP-180 classifies changing "the format or
+algorithm of an existing field's value" as breaking, and explicitly says "Doing so requires a new API
+version." Concretely: clients doing string comparison against a stored value now mismatch on every
+record; clients with a <code>DECIMAL(10,2)</code> column now truncate or error; and any client that
+displays the raw string now shows customers <code>$42.0000</code>. Nothing in your schema changed and
+you have broken your users. This is why "is the schema the same?" is the wrong question &mdash; the
+right one is "could a reasonable client have depended on what I just changed?"</p></details>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The norm is not "never change anything." It's <strong>declare what's stable, then never break that</strong> — Torvalds' rule has a second half.</li>
+  <li>Additive means additive <em>for the client</em>: new validation rules, new response enum values, and format changes all break people while looking safe.</li>
+  <li>Tolerant readers make additive evolution possible. Closed schemas (<code>additionalProperties: false</code>) foreclose it.</li>
+  <li>A client that strips unknown fields and <code>PUT</code>s the object back causes data loss from a change you were entitled to make. Document round-trip expectations.</li>
+  <li>Pick your compatibility axes — wire, source, semantic — and publish which you guarantee.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>Versioning &mdash; The Change Desk</h2>
+  <div class="mt">The most contested claim in the essay, run forward 24 months</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Make a versioning call under uncertainty and defend it before seeing the outcome</li>
+  <li>Recognise that deferring a breaking change does not delete it &mdash; it queues it</li>
+  <li>Compare URL, header, media-type and per-change versioning against real published schemes</li>
+  <li>Judge why Google mandates <code>/v1</code> in the path and Zalando forbids it</li>
+</ul></div>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"<strong>I don't like API versioning.</strong> I think at best it's a necessary evil, but
+it's still evil. It's confusing to users&hellip; And it's a <em>nightmare</em> for maintainers. If you
+have thirty API endpoints, every new version you add introduces thirty new endpoints to maintain.
+[&hellip;] In short, <strong>you should only use API versioning as a last resort.</strong>"</blockquote>
+<p>He acknowledges Stripe's translation-layer approach and notes, correctly, that such abstractions
+leak &mdash; citing a 2017 HN comment from a Stripe employee saying some version changes need
+conditional logic in core code.</p>
+</div>
+
+<p>This attracted roughly <strong>60% of all comments</strong> across both threads, and the critics did
+not agree with each other &mdash; which is the best evidence that this is a genuine tradeoff and not a
+solved problem.</p>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; three incompatible attacks</span>
+<p><strong>1. The cost math assumes the wrong unit.</strong></p>
+<blockquote>"This means he's literally versioning every single one when he changes a single endpoint.
+What should be done is <strong>you only create a new version for the endpoint that has
+changed</strong>&hellip; Overall, I wouldn't trust API designs from someone who just bumps the version
+number for everything every time they change a single endpoint."
+<span class="attrib">Reddit <code>u/Sir_KnowItAll</code>, 99 upvotes &mdash; top comment on Reddit</span></blockquote>
+<p><strong>2. No &mdash; per-endpoint versioning is worse.</strong> The same thread split hard:</p>
+<blockquote>"Absolutely not. <strong>That's version hell.</strong> I want clients using specific
+versions of the api. New api version for all endpoints. If many of them have no changes, great."
+<span class="attrib">Reddit <code>u/mpanase</code>, 58 upvotes</span></blockquote>
+<blockquote>"versioning every API endpoint independently can [be] maddening in it's own ways.
+<strong>you can't talk about the version of the 'system' very cohesively</strong>"
+<span class="attrib">Reddit <code>u/bzbub2</code>, 68 upvotes</span></blockquote>
+<p><strong>3. The URL is the wrong place entirely</strong> &mdash; the most technically substantive
+objection:</p>
+<blockquote>"In a REST API, the URL is the primary key. If Client A holds a copy of
+<code>/v1/foo/1</code> and Client B holds a copy of <code>/v2/foo/1</code> then as far as HTTP and
+REST are concerned, <strong>those are two different resources and the clients cannot
+interoperate.</strong>"<span class="attrib">HN <code>JimDabell</code></span></blockquote>
+</div>
+
+<h3>Now make the calls yourself</h3>
+
+<p>Reading about a versioning tradeoff is not the same as making one. Below is a simulator. It gives
+you five change requests of the kind that actually land on an API owner's desk, and it will not let
+you see any consequence until you have committed to a decision <em>and written down why</em>.</p>
+
+<p>It is not a quiz &mdash; several options are defensible and the reveal shows you what
+<em>every</em> option would have done, not just yours. But it keeps a <strong>debt ledger</strong>.
+Choices that avoid a break by carrying something forever accumulate there, and in the fifth scenario
+the bill comes due, scaled to what you actually accrued. That second-order effect is the part the
+essay leaves out.</p>
+
+<div id="desk">
+  <div class="desk-top">
+    <span class="desk-pill">Simulator</span>
+    <h3>The Change Desk</h3>
+    <span class="desk-step" id="d-step">Scenario 1 of 5</span>
+  </div>
+  <div class="desk-body">
+
+    <div class="dq" id="d-dq"></div>
+
+    <div id="debtbox">
+      <div class="lbl">Deprecation debt carried <span id="d-debtn">0</span></div>
+      <ul id="debtlist"><li class="empty">Nothing carried yet. Anything you defer instead of resolving lands here.</li></ul>
+    </div>
+
+    <div class="ticket" id="d-ticket">
+      <div class="from" id="d-from"></div>
+      <h4 id="d-title"></h4>
+      <div id="d-brief"></div>
+      <div class="facts" id="d-facts"></div>
+    </div>
+
+    <div class="opts" id="d-opts"></div>
+
+    <div class="why-wrap">
+      <label for="why">Your reasoning &mdash; one line, required before you can run it forward</label>
+      <textarea id="why" placeholder="Why this call, and what are you accepting in exchange?"></textarea>
+    </div>
+
+    <div class="desk-btns">
+      <button class="act" id="d-run" disabled>Run 24 months forward</button>
+      <button class="act ghost hid" id="d-next">Next scenario &rarr;</button>
+      <button class="act ghost" id="d-reset">Reset</button>
+      <span class="gate-msg" id="d-gate">Pick an option and write one line of reasoning to unlock.</span>
+    </div>
+
+    <div id="result" class="hid"></div>
+
+    <div id="ledger" class="hid">
+      <div class="rhead">Your decision ledger</div>
+      <div id="ledlist"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="transfer" class="hid">
+  <h4>Transfer check &mdash; a case the simulator never ran</h4>
+  <p style="font-size:0.9rem">This one is deliberately outside everything above: it is not a versioning
+  decision, and none of the five scenarios showed you the mechanism involved. Answer from the
+  principles, not from pattern-matching. Write your answers first &mdash; the reveal is below them.</p>
+
+  <div class="tq"><div class="q">1. You consume a partner's <code>/payouts</code> API. You
+  <code>switch</code> on <code>payout.status</code>, which has always been one of
+  <code>pending | paid | failed</code>. This morning they added <code>reversed</code> and your
+  reconciliation job crashed on 1,400 records. They say the change was additive and therefore
+  non-breaking. Who is right?</div>
+  <textarea placeholder="Your answer..."></textarea></div>
+
+  <div class="tq"><div class="q">2. Name the single documented rule that would have prevented this,
+  and say which side of the contract it binds.</div>
+  <textarea placeholder="Your answer..."></textarea></div>
+
+  <div class="tq"><div class="q">3. You now own that partner API. Product needs a sixth status next
+  quarter. What do you change about the API &mdash; not the process &mdash; so this cannot recur?</div>
+  <textarea placeholder="Your answer..."></textarea></div>
+
+  <details class="reveal"><summary>Reveal &mdash; and where reasonable people still split</summary>
+  <p><strong>1. Both are partly right, and the asymmetry is the answer.</strong> Adding an enum value
+  to a field that appears in a <em>request</em> is genuinely additive. Adding one to a field that
+  appears in a <em>response</em> is not, because the client already shipped an exhaustive
+  <code>switch</code>. GitHub lists "removing enum values" as breaking but treats adding them as
+  additive &mdash; which is why GitHub's own classification is insufficient here. Google AIP-180 is
+  more careful: enum values "MAY be freely added to enums which are <strong>only used in request
+  messages</strong>&hellip; Enums used in response messages&hellip; MAY still be added; however,
+  <strong>appropriate caution SHOULD be used.</strong>"</p>
+  <p><strong>2. Zalando rule #107</strong> &mdash; "For schemas used in <em>input only</em>:
+  <code>enum</code> ranges can be extended. For schemas used in <em>output only</em>: <code>enum</code>
+  ranges cannot be extended &mdash; clients may not be prepared to handle it." It binds
+  <em>the provider</em>. Its companion #108 (tolerant reader) binds <em>the consumer</em>: "Be prepared
+  to handle HTTP status codes not explicitly specified&hellip; Default handling is how you would treat
+  the corresponding <code>2xx</code> code." A robust client has a <code>default:</code> arm. Both
+  sides owed something here, which is exactly why "who broke whom" is the wrong first question.</p>
+  <p><strong>3. Change the type, not the values.</strong> The design defect is that a closed enum was
+  published for a field whose value set was always going to grow. The fix is to document
+  <code>status</code> as an <strong>open string with a known-values list</strong> and state in the
+  contract that clients must tolerate unknown values &mdash; then adding a sixth is genuinely
+  additive. Two other defensible answers: return a <em>coarse</em> stable enum
+  (<code>terminal | in_flight</code>) alongside a fine-grained detail string, so clients switch on the
+  stable one; or version the field's type once, now, and never again.</p>
+  <p><strong>Where this is still argued:</strong> open enums push the cost onto every consumer,
+  including the non-engineers Goedecke spends the essay defending, and they make code generation
+  weaker &mdash; a generated client can no longer give you an exhaustiveness check, which is one of the
+  real benefits of a typed API. There is no free option. That is the point.</p>
+  </details>
+</div>
+
+<h3>What the published schemes actually do</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Scheme</th><th>Mechanism</th><th>Status, Aug 2026</th></tr></thead>
+<tbody>
+<tr><td><strong>Stripe</strong></td><td>Date + plant-name release trains, per-account pinning, version-change modules replayed backwards</td><td><code>2026-07-29.dahlia</code>. Major (breaking) twice a year; monthly additive releases. <strong>~100 backwards-incompatible upgrades since 2011 &mdash; and zero versions ever retired.</strong></td></tr>
+<tr><td><strong>GitHub</strong></td><td>Date in an <code>X-GitHub-Api-Version</code> header</td><td>Two versions: <code>2022-11-28</code> and <code>2026-03-10</code>. Previous supported "at least 24 more months"; unsupported returns <strong><code>410 Gone</code></strong>.</td></tr>
+<tr><td><strong>Twilio</strong></td><td>Date in the URL, frozen</td><td><code>api.twilio.com/2010-04-01/</code> &mdash; unchanged for ~16 years. But every product launched since has its own <code>v1</code>/<code>v2</code>.</td></tr>
+<tr><td><strong>Google AIP-185</strong></td><td>Major version in the path</td><td>"All Google API interfaces <strong>MUST provide a major version number</strong>&hellip; included as the first part of the URI path for REST APIs." Minor/patch numbers MUST NOT be exposed.</td></tr>
+<tr><td><strong>Zalando #113/#115</strong></td><td>Media-type versioning with content negotiation</td><td>"<strong>MUST NOT use URL versioning.</strong>" And: "As we discourage versioning by all means because of the manifold disadvantages&hellip;"</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">The fact that should end the argument</span>
+<p><strong>The two most respected published API style guides flatly contradict each other.</strong>
+Google mandates the version in the URL path. Zalando forbids the version in the URL path. Both are
+maintained, current, and used at scale. Goedecke's dislike of versioning is therefore a legitimate
+contested position, not an error &mdash; and anyone who tells you there is one correct answer here has
+read one of these documents and not the other.</p>
+</div>
+
+<h3>Where Goedecke's cost model actually breaks down</h3>
+
+<p>"Thirty endpoints × N versions" is the strongest-sounding part of his argument and the weakest part
+under inspection, because <strong>nobody serious versions that way.</strong> Stripe's model is neither
+per-endpoint nor per-API &mdash; it is <em>per-change, composed.</em> A "version" is just a date that
+selects how many transformation modules to replay:</p>
+
+<div class="code-label">Stripe's mechanism, in shape</div>
+<pre><code><span class="cm">// One module per breaking change, ever. Not per endpoint, not per version.</span>
+<span class="kw">const</span> <span class="fn">changes</span> = [
+  { since: <span class="str">"2024-09-30"</span>, <span class="fn">downgrade</span>(res) { res.amount_cents = res.amount * <span class="num">100</span> } },
+  { since: <span class="str">"2025-03-31"</span>, <span class="fn">downgrade</span>(res) { res.customer = res.customer.id } },
+  <span class="cm">// ...~100 of these, accumulated since 2011</span>
+];
+
+<span class="cm">// Serving an old client = replay the modules newer than their pinned date, backwards.</span>
+<span class="kw">function</span> <span class="fn">serialize</span>(res, clientVersion) {
+  <span class="kw">return</span> changes
+    .<span class="fn">filter</span>(c <span class="op">=&gt;</span> c.since <span class="op">&gt;</span> clientVersion)
+    .<span class="fn">reverse</span>()
+    .<span class="fn">reduce</span>((r, c) <span class="op">=&gt;</span> (c.<span class="fn">downgrade</span>(r), r), res);
+}</code></pre>
+
+<p>Cost scales with <strong>the number of breaking changes you have ever made</strong>, not with
+endpoints × versions. That dissolves his arithmetic &mdash; but it does not dissolve his conclusion,
+because that machinery is expensive to build, and Brandur Leach's own account concedes the leak
+Goedecke cites. His cost claim is validated. His inference from it is not the one Stripe drew.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Versioning is genuinely contested: Google mandates URL versions, Zalando forbids them, both are current and serious.</li>
+  <li>"Endpoints × versions" is the wrong cost model. Per-change composition scales with breaking changes made, not surface area.</li>
+  <li><strong>Not versioning does not avoid the cost &mdash; it defers it.</strong> GitHub's 2026 version exists because a decade of deprecations had nowhere else to go.</li>
+  <li>Version in a header or media type rather than the path if you want clients holding different versions to still be talking about the same resource.</li>
+  <li>If you version, the hard part isn't the mechanism. It's committing to a support window and honouring it.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>Errors</h2>
+  <div class="mt">The module the essay doesn't have &mdash; and the boring standard it should have wanted</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Use RFC 9457 problem details correctly, including what it does <em>not</em> standardise</li>
+  <li>Design a stable machine-readable error taxonomy separate from human-readable messages</li>
+  <li>Know when your error <em>strings</em> become part of your API contract</li>
+</ul></div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; by omission</span>
+<p>Goedecke's essay never discusses error formats. This is the clearest gap in it, and the odd thing
+is that filling it would have <em>strengthened</em> his thesis. A Standards-Track RFC that obsoleted
+its predecessor and ships an IANA registry is precisely the "boring, well-known thing" his own
+philosophy demands. It is a free win he didn't take.</p>
+</div>
+
+<h3>RFC 9457, Problem Details for HTTP APIs</h3>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; status as of August 2026</span>
+<p><a href="https://www.rfc-editor.org/rfc/rfc9457.html" target="_blank" rel="noopener">RFC 9457</a>
+&mdash; Nottingham, Wilde, Dalal. <strong>July 2023. Standards Track (Proposed Standard). Obsoletes
+RFC 7807.</strong> Media type <code>application/problem+json</code>. If your notes say 7807, they are
+three years stale.</p>
+</div>
+
+<div class="code-label">application/problem+json</div>
+<pre><code>HTTP/1.1 <span class="num">403</span> Forbidden
+Content-Type: application/problem+json
+
+{
+  <span class="vr">"type"</span>:     <span class="str">"https://example.com/probs/insufficient-funds"</span>,
+  <span class="vr">"title"</span>:    <span class="str">"You do not have enough credit."</span>,
+  <span class="vr">"status"</span>:   <span class="num">403</span>,
+  <span class="vr">"detail"</span>:   <span class="str">"Your balance is 30, but the transfer costs 50."</span>,
+  <span class="vr">"instance"</span>: <span class="str">"/account/12345/transactions/msg-abc"</span>,
+
+  <span class="cm">// extension members are allowed and encouraged</span>
+  <span class="vr">"balance"</span>:  <span class="num">30</span>,
+  <span class="vr">"accounts"</span>: [<span class="str">"/account/12345"</span>]
+}</code></pre>
+
+<div class="tw"><table>
+<thead><tr><th>Member</th><th>What the RFC actually says</th></tr></thead>
+<tbody>
+<tr><td><code>type</code></td><td>"<strong>Consumers MUST use the 'type' URI&hellip; as the problem type's primary identifier.</strong>" Absent &rArr; assumed <code>about:blank</code>. But: "consumers <strong>SHOULD NOT</strong> automatically dereference the type URI."</td></tr>
+<tr><td><code>status</code></td><td>"is only advisory&hellip; <strong>Generators MUST use the same status code in the actual HTTP response.</strong>"</td></tr>
+<tr><td><code>title</code></td><td>"<strong>SHOULD NOT change from occurrence to occurrence</strong> of the problem, except for localization."</td></tr>
+<tr><td><code>detail</code></td><td>"ought to focus on helping the client <em>correct</em> the problem, rather than giving debugging information. <strong>Consumers SHOULD NOT parse the 'detail' member.</strong>"</td></tr>
+<tr><td>Type mismatch</td><td>"<strong>If a member's value type does not match the specified type, the member MUST be ignored.</strong>"</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">Two things people get wrong about 9457</span>
+<p><strong>1. There is no standard <code>errors</code> array.</strong> The multi-error array you have
+seen in a hundred blog posts appears in 9457 only inside a 422 example the RFC itself labels "the
+<em>fictional</em> problem type here." Ship one if you want &mdash; just don't tell your team it's
+standard.</p>
+<p><strong>2. On multiple problems, the RFC recommends the opposite of what most APIs do:</strong>
+"When an API encounters multiple problems that do not share the same type, it is RECOMMENDED that
+<strong>the most relevant or urgent problem be represented in the response.</strong> While it is
+possible to create generic 'batch' problem types&hellip; they do not map well into HTTP semantics."</p>
+<p>New in 9457 over 7807: an <a href="https://www.iana.org/assignments/http-problem-types" target="_blank" rel="noopener">IANA HTTP Problem Types registry</a>
+(policy: Specification Required). Note that "vendor-specific, application-specific, and
+deployment-specific values are <strong>unable to be registered</strong>" &mdash; the registry is for
+genuinely cross-cutting problems, not your business errors.</p>
+</div>
+
+<h3>The stable-taxonomy pattern</h3>
+
+<p>Twilio is the model, and it's the most Goedecke-compatible thing in this course: four fields, a
+numeric code that has meant the same thing for a decade, and a documentation URL per code.</p>
+
+<div class="code-label">Twilio error &mdash; boring, and unchanged for years</div>
+<pre><code>{
+  <span class="vr">"status"</span>:    <span class="num">400</span>,
+  <span class="vr">"message"</span>:   <span class="str">"No to number is specified"</span>,
+  <span class="vr">"code"</span>:      <span class="num">21201</span>,
+  <span class="vr">"more_info"</span>: <span class="str">"http://www.twilio.com/docs/errors/21201"</span>
+}</code></pre>
+
+<p>The full numeric dictionary is published and downloadable as JSON, with a page per code. That is
+what "boring" looks like when someone actually does it.</p>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; Google AIP-193, and the trap inside it</span>
+<p>"<strong>All error responses MUST include an <code>ErrorInfo</code> within <code>details</code></strong>&hellip;
+This provides machine-readable identifiers so that users can write code against specific aspects of
+the error." The <code>reason</code> field "MUST be at most 63 characters and match
+<code>[A-Z][A-Z0-9_]+[A-Z0-9]</code>" &mdash; good: <code>CPU_AVAILABILITY</code>, <code>NO_STOCK</code>;
+bad: <code>ERROR</code>, <code>THE_BOOK_YOU_WANT_IS_NOT_AVAILABLE</code>.</p>
+<p><strong>The trap:</strong> "If the RPC has <em>always</em> returned <code>ErrorInfo</code> with
+machine-readable information, the content of <code>Status.message</code> MAY change over time&hellip;
+<strong>Otherwise, the content of <code>Status.message</code> MUST be stable.</strong>" Read that
+again. If you never shipped a machine-readable error code, <strong>your human-readable error strings
+became your API contract</strong>, because clients had nothing else to match on &mdash; and they are
+matching on them right now. Shipping structured error codes is how you buy back the freedom to reword
+your own error messages.</p>
+<p>One more ordering rule worth stealing: "<strong>Permission MUST be checked prior to checking if the
+resource or parent exists</strong>" &mdash; 403 before 404, so your error responses don't become an
+existence oracle.</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; with the RFC</span>
+<p>Zalando mandates RFC 9457 (rule #176) and then deliberately breaks one of its recommendations:
+"<strong>Problem <code>type</code> and <code>instance</code> identifiers in our APIs are not meant to
+be resolved.</strong> RFC 9457 encourages that problem types are URI references that point to
+human-readable documentation, but <strong>we deliberately decided against that</strong>, as all
+important parts of the API must be documented using OpenAPI anyway. In addition, <strong>URLs tend to
+be fragile and not very stable</strong> over longer periods." They use relative refs like
+<code>/problems/out-of-stock</code>.</p>
+<p>They're right, and it's a nice illustration of adopting a standard's <em>shape</em> without
+inheriting a commitment you can't keep for twenty years.</p>
+<p>Practical gotcha from the same document: "<strong>The media type <code>application/problem+json</code>
+is often not implemented as a subset of <code>application/json</code> by libraries!</strong> Thus
+clients need to include <code>application/problem+json</code> in the <code>Accept</code> header."</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Use RFC 9457 (July 2023, Standards Track, obsoletes 7807). Don't cite 7807.</li>
+  <li>The <code>errors</code> array is not standardised. The RFC recommends returning the single most urgent problem.</li>
+  <li>Ship a stable machine-readable code alongside the prose. Without one, your prose <em>is</em> the contract.</li>
+  <li>Type URIs need not resolve &mdash; Zalando deliberately doesn't resolve theirs, because URLs rot.</li>
+  <li>Check permission before existence, or your 404s leak which resources exist.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Pagination</h2>
+  <div class="mt">He's right about the mechanism and wrong about the word "always"</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Explain why offset pagination degrades and cite the actual numbers</li>
+  <li>Name three things cursor pagination cannot do</li>
+  <li>Identify the cursor failure mode that is worse than offset's, because it is silent</li>
+</ul></div>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position &mdash; quoted in full, because the paraphrase is a strawman</span>
+<blockquote>"<strong>You should always use cursor-based pagination for datasets that might end up being
+large.</strong> Even though it's harder for consumers to grasp, when you run into scaling problems you
+might <em>have</em> to change to cursor-based pagination anyway, and the cost of making that change is
+often very high. <strong>However, I think it's fine to use page or offset-based pagination
+otherwise.</strong>"</blockquote>
+<p>Note the second sentence. He already concedes the offset case. The internet argued with a position
+he didn't take.</p>
+</div>
+
+<h3>The performance claim, verified</h3>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; two primary sources</span>
+<p><strong>Citus / Microsoft</strong> (<a href="https://www.citusdata.com/blog/2016/03/30/five-ways-to-paginate/" target="_blank" rel="noopener">Five ways to paginate in Postgres</a>),
+10M rows, <code>LIMIT 100</code>:</p>
+<div class="tw"><table><thead><tr><th>Query</th><th>Time</th></tr></thead><tbody>
+<tr><td><code>OFFSET 0</code></td><td>0.059 ms</td></tr>
+<tr><td><code>OFFSET 1,000</code></td><td>0.609 ms</td></tr>
+<tr><td><code>OFFSET 5,000,000</code></td><td><strong style="color:var(--red)">758.484 ms</strong></td></tr>
+<tr><td><code>WHERE n &gt; 5000000</code> (keyset)</td><td><strong style="color:var(--green)">0.119 ms</strong></td></tr>
+</tbody></table></div>
+<p>That is roughly <strong>6,300&times;</strong> at depth. And the objection people raise &mdash; "but
+my sort column is indexed" &mdash; is settled by <a href="https://blog.sequinstream.com/keyset-cursors-not-offsets-for-postgres-pagination/" target="_blank" rel="noopener">Sequin</a>:
+"<strong>It doesn't matter if you have an index on your sort column</strong>&hellip; it still needs to
+walk through the index to count off the offset rows. <strong>The operation is still O(n).</strong>"</p>
+</div>
+
+<div class="code-label">The two shapes</div>
+<pre><code><span class="cm">-- Offset: the database counts past every skipped row, every time.</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> tickets <span class="kw">ORDER BY</span> id <span class="kw">OFFSET</span> <span class="num">5000000</span> <span class="kw">LIMIT</span> <span class="num">10</span>;
+
+<span class="cm">-- Keyset: the index seeks straight to the position. Cost is flat.</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> tickets <span class="kw">WHERE</span> id <span class="op">&gt;</span> :cursor <span class="kw">ORDER BY</span> id <span class="kw">LIMIT</span> <span class="num">10</span>;
+
+<span class="cm">-- Real cursors need a tie-breaker, or rows with equal sort keys are</span>
+<span class="cm">-- skipped or duplicated. This is the part people get wrong.</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> tickets
+ <span class="kw">WHERE</span> (created_at, id) <span class="op">&gt;</span> (:c_ts, :c_id)   <span class="cm">-- row-value comparison</span>
+ <span class="kw">ORDER BY</span> created_at, id <span class="kw">LIMIT</span> <span class="num">10</span>;</code></pre>
+
+<div class="callout c-warn"><span class="lbl">That last query does not work on most databases</span>
+<p>Markus Winand, the person who has campaigned hardest <em>for</em> keyset pagination, documents the
+portability problem: "<strong>SQL Server 2017 does not support row values at all.</strong> The Oracle
+database supports row values in principle, but cannot apply range operators on them (ORA-01796).
+<strong>MySQL evaluates row value expressions correctly but cannot use them as access predicate during
+an index access.</strong>" Only <strong>PostgreSQL and Db2 LUW</strong> handle multi-column cursors
+properly. On MySQL you must hand-expand the comparison into an OR-chain and verify the plan.</p>
+</div>
+
+<h3>What cursors cost you &mdash; from cursor advocates</h3>
+
+<div class="split">
+<div class="l"><div class="h">The case for &mdash; conceded by everyone</div>
+<p>Flat cost at any depth. Handles concurrent inserts and deletes without duplicating or skipping
+rows. Google AIP-158: pagination "<strong>MUST</strong> [be provided] <em>at the outset</em>, as it is
+a backwards-incompatible change to add pagination to an existing method."</p></div>
+<div class="r"><div class="h">The case against &mdash; also from advocates</div>
+<p>Winand: "<strong>you also cannot fetch arbitrary pages</strong>&hellip; you need to reverse all
+comparison and sort operations to change the browsing direction." And: "<strong>The main reason to
+prefer offset over keyset pagination is the lack of tool support.</strong>"</p>
+<p>Citus: "no way to jump directly to a given page&hellip; The server will likely need to provide an
+endpoint with <strong>fixed order</strong> rather than allowing the client to customize the ordering."</p></div>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; the failure mode nobody mentions</span>
+<p>Everyone knows offset's anomaly: insert a row while someone is paging and they see a duplicate or
+miss one. Cursor pagination has a worse one, and it comes from the same post that argues <em>for</em>
+cursors:</p>
+<blockquote>"Keyset pagination handles deletions gracefully. <strong>However, if a row's sort key
+changes, the row might appear twice or be skipped.</strong>&hellip; <strong>This problem has plagued
+almost every HTTP API I've ever worked with.</strong>"<span class="attrib">Sequin, December 2024</span></blockquote>
+<p>Offset's anomaly produces a visible duplicate. Cursor's produces a <strong>silently missing
+record</strong> that the client cannot detect &mdash; if you paginate by <code>updated_at</code> and a
+row is updated mid-scan, it moves behind your cursor and is simply never returned. Every "our nightly
+sync misses a few records and we can't reproduce it" incident is this.</p>
+<p>The structural proof that cursors give something up: <a href="https://relay.dev/graphql/connections.htm" target="_blank" rel="noopener">Relay's Cursor Connections spec</a>
+defines <code>PageInfo</code> as exactly <code>hasPreviousPage</code>, <code>hasNextPage</code>,
+<code>startCursor</code>, <code>endCursor</code>. <strong>There is no total count and no page number
+anywhere in the spec.</strong> The industry-standard cursor format structurally cannot express "page
+51 of 100" or "1,204 results."</p>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; who says "offer both"</span>
+<p>Both major style guides do. <strong>Google AIP-158</strong> requires opaque tokens
+("<strong>MUST be opaque&hellip; and MUST NOT be user-parseable. This is because if users are able to
+deconstruct these, <em>they will do so</em></strong>") but permits <code>skip</code> and
+<code>total_size</code>, which "MAY be an estimate." <strong>Zalando #160</strong> is only a
+<em>SHOULD</em> prefer cursor, and it publishes a four-item trade-off list including: "If jumping to a
+particular page in a range (e.g., 51 of 100) is really a required use case, <strong>cursor-based
+navigation may not be feasible.</strong>"</p>
+<p><strong>Stripe is cursor-only</strong> &mdash; <code>limit</code> (default 10, max 100),
+<code>starting_after</code>, <code>ending_before</code>, <code>has_more</code>. No offset, no page
+number, no total.</p>
+<p>Two design rules worth stealing regardless: make the token opaque (AIP-158 warns that "<strong>Base-64
+encoding an otherwise-transparent page token is <em>not</em> a sufficient obfuscation mechanism</strong>"),
+and ensure "page tokens <strong>MUST NOT</strong> provide any form of authorization" &mdash; a leaked
+cursor must not be a leaked capability.</p>
+</div>
+
+<div class="callout c-warn"><span class="lbl">And the user's side of it</span>
+<blockquote>"Pagination: <strong>do not force me to drink from a paginated coffee stir.</strong> I do
+not want 640 B of data in a response, and then have to send another response for the next 640 B. And
+often, pagination means the calls are serialized, so I'm just doing nothing but waiting for round trip
+latency after round trip latency."<span class="attrib">HN <code>deathanatos</code></span></blockquote>
+<p>Page-size defaults are a DX decision, not just a database one. A correct cursor implementation with
+a default page size of 10 and a max of 25 is still a bad API.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The performance case is overwhelming and the objection about indexes is wrong: offset is O(n) regardless.</li>
+  <li>His actual text already concedes offset for small collections. Argue with what he wrote.</li>
+  <li>"Always" is the error: cursors cannot jump to a page, cannot easily browse backwards, cannot express a total, and constrain the sort order.</li>
+  <li>Cursor's silent-skip on sort-key mutation is worse than offset's visible duplicate. Anchor on an immutable key plus a tie-breaker.</li>
+  <li>Add pagination on day one. Adding it later is a breaking change.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>Idempotency &amp; retries</h2>
+  <div class="mt">Where the author published two corrections &mdash; and both make the chapter better</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Use the HTTP methods that are already idempotent before reaching for a key</li>
+  <li>Explain why an idempotency key in a side cache is not sufficient</li>
+  <li>Design the three-state machine: first request, retry, concurrent duplicate</li>
+</ul></div>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"The solution is <em>idempotency</em>, which is a fancy word for '<strong>the request should
+be safely retriable without creating duplicates</strong>.' [&hellip;] The easiest way is to put them
+in Redis or some similar key/value store&hellip; <strong>For most cases, idempotency should be
+optional.</strong> [&hellip;] getting more people on your API is more important than the occasional
+duplicated comment from users who didn't read the documentation."</blockquote>
+<p>His framing of why it matters is the best thing in the essay: "What if you're transferring some
+amount of money? What if you're dispensing medication?"</p>
+</div>
+
+<h3>Correction one: PUT and DELETE are already idempotent</h3>
+
+<p>He published a correction acknowledging he should have mentioned PUT. The implication is bigger
+than the correction.</p>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; RFC 9110 §9.2.2 (June 2022, Internet Standard, STD 97)</span>
+<blockquote>"A request method is considered '<strong>idempotent</strong>' if the intended effect on the
+server of multiple identical requests with that method is the same as the effect for a single such
+request. Of the request methods defined by this specification, <strong>PUT, DELETE, and safe request
+methods are idempotent.</strong>"</blockquote>
+<p>Idempotent: <strong>GET, HEAD, OPTIONS, TRACE, PUT, DELETE</strong>. Not idempotent:
+<strong>POST, PATCH, CONNECT</strong>.</p>
+<p>Also from 9110, and worth putting in your client library: "<strong>A client SHOULD NOT
+automatically retry a request with a non-idempotent method</strong> unless it has some means to know
+that the request semantics are actually idempotent," and "<strong>A proxy MUST NOT automatically retry
+non-idempotent requests.</strong>"</p>
+</div>
+
+<p><strong>Why this reframes the whole chapter:</strong> if PUT is idempotent for free, then the entire
+<code>Idempotency-Key</code> apparatus is only needed for POST and PATCH. A client-generated resource
+id plus <code>PUT /transfers/{client_uuid}</code> gets you safe retries with no extra machinery at
+all. Reach for the header when you genuinely need POST semantics &mdash; not by default.</p>
+
+<div class="callout c-warn"><span class="lbl">And a detail he got slightly wrong</span>
+<p>The essay says three repeated <code>DELETE comments/32</code> calls will 404 after the first. A
+commenter pushed back: "<strong>Many implementations return HTTP 204 for any DELETE that succeeds in
+the sense that the element is gone regardless if it had been there before.</strong>" RFC 9110 backs
+the commenter &mdash; the definition is about "the intended effect <em>on the server</em>," and the
+spec explicitly notes the <em>response</em> may differ. Returning 204 for a repeat DELETE is fully
+conformant, and arguably kinder.</p>
+</div>
+
+<h3>Correction two: Redis is not enough</h3>
+
+<p>He also published a correction on storage, prompted by the sharpest technical comment in the
+thread:</p>
+
+<blockquote>"I'm not sure how storing a key in Redis achieves idempotency in all failure cases&hellip;
+<strong>Can't assume that the comment had been created before, since the process could have been
+killed in-between storing the key in Redis and actually creating the comment in the database.</strong>
+An attempt to store idempotency key needs to be atomically committed&hellip; <em>together</em> with the
+operation payload&hellip; For all intents and purposes, <strong>the idempotency key <em>is</em> the ID
+of the operation being executed.</strong>"<span class="attrib">HN <code>achernik</code></span></blockquote>
+
+<div class="code-label">The rule, in one diagram</div>
+<pre><code><span class="cm">// BROKEN — two systems, no shared transaction. Crash anywhere between</span>
+<span class="cm">// them and you cannot tell "already done" from "never started".</span>
+<span class="kw">if</span> (<span class="kw">await</span> redis.<span class="fn">set</span>(key, <span class="num">1</span>, <span class="str">"NX"</span>)) {   <span class="cm">// &lt;-- crash here...</span>
+  <span class="kw">await</span> db.comments.<span class="fn">insert</span>(payload);   <span class="cm">// ...and this never runs, forever</span>
+}
+
+<span class="cm">// CORRECT — the key and the effect commit together, or neither does.</span>
+<span class="kw">await</span> db.<span class="fn">transaction</span>(<span class="kw">async</span> (tx) <span class="op">=&gt;</span> {
+  <span class="kw">const</span> claimed = <span class="kw">await</span> tx.idempotency_keys
+    .<span class="fn">insert</span>({ key, request_hash })
+    .<span class="fn">onConflictDoNothing</span>();
+  <span class="kw">if</span> (!claimed) <span class="kw">return</span> tx.idempotency_keys.<span class="fn">get</span>(key).response;
+  <span class="kw">const</span> comment = <span class="kw">await</span> tx.comments.<span class="fn">insert</span>(payload);
+  <span class="kw">await</span> tx.idempotency_keys.<span class="fn">setResponse</span>(key, comment);
+  <span class="kw">return</span> comment;
+});</code></pre>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; the reference design, and its own escape hatch</span>
+<p>The "atomic phases" design is <a href="https://brandur.org/idempotency-keys" target="_blank" rel="noopener">Brandur Leach's</a>
+&mdash; note the title says "Implementing <strong>Stripe-like</strong> Idempotency Keys in Postgres."
+It is a reference design, not a description of Stripe's internals. Its key rules:</p>
+<blockquote>"<strong>Atomic phases should be safely committed before initiating any foreign state
+mutation.</strong>" And, importantly: "<strong>even foreign calls within your own infrastructure
+count!</strong> It's tempting to treat emitting records to Kafka as part of atomic operations because
+they have such a high success rate that they feel like they are. They're not."</blockquote>
+<p>And the exit he offers, which most teams should take: "For endpoints that get away with only
+mutating local state in an ACID database, it's possible to get a robust and simple idempotency
+implementation by <strong>mapping requests to transactions</strong>&hellip; This approach is far easier
+and less complicated than what's described here, and I'd suggest that anyone who can get away with it
+take that path."</p>
+</div>
+
+<h3>The three-state machine, and the status codes</h3>
+
+<div class="tw"><table>
+<thead><tr><th>State</th><th>Behaviour</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>First time</td><td>Process normally, persist key + response in the same transaction</td><td>2xx as usual</td></tr>
+<tr><td><strong>Retry</strong> (original finished)</td><td>"respond with the result of the previously completed operation, <strong>success or an error</strong>"</td><td>replay the original</td></tr>
+<tr><td><strong>Concurrent</strong> (original in flight)</td><td>"respond with a resource conflict error"</td><td><strong>409</strong></td></tr>
+<tr><td>Key reused, <em>different</em> payload</td><td>Reject &mdash; this is a client bug, not a retry</td><td><strong>422</strong></td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">The most instructive fact in this module</span>
+<p>The <code>Idempotency-Key</code> header &mdash; implemented by Stripe, Adyen, Square, Shopify and
+hundreds of others &mdash; is an <strong>expired IETF draft that has never been an RFC.</strong>
+Revision -07, expired 18 April 2026; IESG state: "The IESG has not started processing this draft."
+It is also internally stale, still citing RFC 8941 (superseded by 9651) and RFC 7807 (obsoleted by
+9457).</p>
+<p>This cuts both ways, which is why it's worth teaching. It <em>proves</em> Goedecke's thesis:
+familiarity beat standardisation, and Stripe's example became the convention without a committee. It
+also shows the limit of "just use the boring standard" &mdash; sometimes there isn't one, and the
+boring thing is whatever Stripe did.</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; "optional" is ambiguous</span>
+<blockquote>"I definitely disagree about idempotency: <strong>it's NOT optional.</strong> You don't have
+to require idempotency tokens for each request, but <strong>there should be an option to specify
+them.</strong>"<span class="attrib">HN <code>cyberax</code></span></blockquote>
+<p>Goedecke's phrasing conflates two different things: <em>the client may omit the key</em> (fine, and
+Google AIP-155 agrees explicitly &mdash; "Request IDs SHOULD be optional") versus <em>the server may
+not offer one</em> (not fine). Stripe resolves it: "<strong>All POST requests accept idempotency
+keys.</strong> Don't send idempotency keys in GET and DELETE requests because it has no effect. These
+requests are idempotent by definition." The capability is always there; using it is the caller's
+choice.</p>
+<p>Three things <code>cyberax</code> notes the essay omits entirely, all worth a look:
+<strong>deadlines</strong> (request expiry so the server can stop doing work nobody is waiting for),
+<strong>backpressure</strong> (retries must not become the outage), and <strong>static
+stability</strong> (keep serving reads when writes are failing).</p>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; Stripe's operational details worth copying</span>
+<p>Results are saved "<strong>regardless of whether it succeeds or fails</strong>&hellip; Subsequent
+requests with the same key return the same result, <strong>including 500 errors.</strong>" Parameters
+are compared against the original and mismatches error. Keys are retained <strong>24 hours</strong>.
+Replays are flagged with <code>Idempotent-Replayed: true</code>; concurrent same-key requests get
+<strong>409 <code>idempotency_key_in_use</code></strong>.</p>
+<p>Two operational traps: "a request that's rate limited with a <code>429</code> can produce a
+different result with the same idempotency key <strong>because rate limiters run before the API's
+idempotency layer</strong>," and their blunt rule for clients &mdash; "<strong>Treat requests that
+return 500 errors as indeterminate.</strong>" Also note SDKs auto-generate keys and retry, but
+<em>must be configured to</em>; the default retry count is not always what you'd want.</p>
+<p>Finally, Google AIP-194: exactly <strong>one</strong> gRPC code is safe to retry automatically
+&mdash; <code>UNAVAILABLE</code>. Never auto-retry <code>INVALID_ARGUMENT</code>,
+<code>DATA_LOSS</code>, <code>DEADLINE_EXCEEDED</code>, or <code>CANCELLED</code>.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>PUT and DELETE are idempotent by specification. Use a client-supplied id and PUT before inventing a key mechanism.</li>
+  <li>The idempotency record must commit in the same transaction as the effect. A side cache cannot distinguish "done" from "never started."</li>
+  <li>If you only mutate one ACID database, map the request to a transaction and skip the whole apparatus.</li>
+  <li>Always <em>accept</em> a key; never <em>require</em> one. 409 for concurrent, 422 for key reuse with a different payload.</li>
+  <li>The header is a de facto standard set by Stripe, not an RFC. Sometimes there is no boring standard to reach for.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>Auth, rate limits &amp; blast radius</h2>
+  <div class="mt">The leak data is damning and the industry still ships long-lived keys. Both facts are load-bearing.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Separate credential <em>lifetime</em> from credential <em>blast radius</em> and argue which matters</li>
+  <li>Design rate limits that let a well-behaved client behave well</li>
+  <li>Justify a killswitch as a product requirement, not an ops afterthought</li>
+</ul></div>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"<strong>You should let people use your APIs with a long-lived API key.</strong> Yes, API
+keys are not as secure as various forms of short-lived credentials, like OAuth (which you should
+probably also support). <strong>It doesn't matter.</strong> Every integration with your API begins life
+as a simple script."</blockquote>
+<p>His premise is the strongest argument in the essay and the one most engineers resist:
+"<strong>many of your users will not be professional engineers.</strong> They may be salespeople,
+product managers, students, hobbyists&hellip; When you're an engineer at a tech company building an
+API, it's easy to imagine that you're building it for other people like yourself&hellip; <strong>But
+you're not.</strong>"</p>
+</div>
+
+<h3>The data that should settle it &mdash; and doesn't</h3>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; GitGuardian, State of Secrets Sprawl 2026 (March 2026)</span>
+<blockquote>"<strong>28.65 million new hardcoded secrets were added to public GitHub commits in 2025
+alone, a 34% increase year over year</strong> and the largest single-year jump we've recorded."</blockquote>
+<blockquote>"In the 2025 report, we found that nearly 70% of credentials confirmed as valid in 2022
+were still valid in January 2025&hellip; <strong>When we retested that same dataset in January 2026,
+the validity rate was still above 64%.</strong>"</blockquote>
+<p>Trend: 12.8M (2023) &rarr; 23.8M (2024) &rarr; 28.65M (2025). Also from that report: AI service
+secrets reached 1,275,105 (up 81% YoY), including 113,000 leaked DeepSeek keys; and 24,008 unique
+secrets found in MCP config files. <strong>Internal repos are ~6&times; more likely than public ones
+to contain hardcoded secrets</strong> &mdash; keep that for Module 10.</p>
+<p>GitHub's own framing: "<strong>Long-lived credentials are some of the most common and dangerous
+types of secrets to leak, as they often persist unnoticed for months&mdash;or years&mdash;and give bad
+actors extended access.</strong>" And on time-to-exploit, the canonical honeypot study (Comparitech,
+2020) found planted AWS credentials were found and abused in <strong>about one minute</strong> on
+average.</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; with the obvious conclusion</span>
+<p>Read that data and the answer looks like "kill long-lived keys." Now look at what the most
+security-mature API companies actually ship in August 2026:</p>
+<div class="tw"><table><thead><tr><th>Provider</th><th>Default credential</th><th>Expiry</th></tr></thead><tbody>
+<tr><td>Stripe</td><td>Long-lived bearer key; <strong>restricted keys (<code>rk_</code>) recommended</strong></td><td>None by default; manual rotation with a 7-day dual-validity window</td></tr>
+<tr><td>GitHub</td><td>Fine-grained PAT, scoped to repos + permissions, org approval on by default</td><td>"<strong>Infinite lifetimes are allowed</strong> but may be blocked by a&hellip; policy"</td></tr>
+<tr><td>Anthropic</td><td>Workspace-scoped key, expiry presets 3h&ndash;30d</td><td>"Never" is selectable</td></tr>
+<tr><td>OpenAI</td><td>Project-scoped key, service accounts, permission tiers</td><td>Long-lived by default</td></tr>
+</tbody></table></div>
+<p><strong>Every one of them chose scoping over mandatory expiry.</strong> Stripe is explicit: "we
+don't recommend using secret keys for new use cases, and for existing integrations, we recommend
+migrating secret key usage to RAKs." Not "to short-lived tokens." To <em>restricted</em> keys.</p>
+<p>RFC 9700 (BCP 240, January 2025) says the same thing, and it is not the sentence people quote:
+"<strong>The privileges associated with an access token SHOULD be restricted to the minimum
+required</strong>&hellip; access tokens <strong>SHOULD be audience-restricted</strong> to a specific
+resource server." Its thrust is privilege restriction, audience restriction, and preferring
+sender-constrained credentials over plain bearer tokens &mdash; not "make it shorter."</p>
+<p><strong>So teach claim 6 in its corrected form:</strong> support long-lived API keys, and make them
+<em>restricted, revocable, attributable, and scanned-for.</em> The lifetime is not the vulnerability.
+The unlimited blast radius is. A 90-day key that leaks on day one is live for 90 days; a scoped
+read-only key that leaks forever can't move money.</p>
+<p>The two genuine cracks in this: Google Cloud now disables service-account key creation by default
+for organisations created on or after 3 May 2024, and npm fully revoked classic tokens in December
+2025 in favour of 2-hour session tokens. Both are extreme-blast-radius domains &mdash; cloud IAM and
+the software supply chain &mdash; not the salesperson-writing-a-script domain Goedecke is defending.</p>
+</div>
+
+<details class="reveal"><summary>Someone in the thread went further than he did &mdash; is he wrong?</summary>
+<blockquote>"This is an extremely unpopular opinion, but I would go even further. <strong>I think you
+should let people use your API with just a username and a password.</strong>&hellip; For one-off
+scripts, APIs that let you do this are a breath of fresh air&hellip; They're certainly not picking a
+purpose they need this API for from a list of five, not if it doesn't include 'completing a classroom
+assignment I don't really care about and want to finish as quickly as possible.'"
+<span class="attrib">HN <code>miki123211</code></span></blockquote>
+<p style="margin-top:0.7rem;color:var(--text-dim)"><strong style="color:var(--yellow)">The steelman
+and the break.</strong> He is right about the population &mdash; that student exists and every friction
+step loses some of them. He is wrong about the mechanism, and the reason is precise: a password is a
+credential the user cannot scope, cannot rotate independently, cannot revoke without locking
+themselves out, and which is very likely reused on other services. An API key is already the
+minimum-viable improvement on this idea: it is a password with the properties that make it safe to
+paste. The correct response to his complaint is not passwords &mdash; it is a <em>one-click default
+key</em> with sensible read-only scope and a visible revoke button, so the easy path and the safe path
+are the same path. That is Goedecke's own argument taken one step further than he took it.</p></details>
+
+<h3>Rate limits: an API is a UI with no hands</h3>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position &mdash; this one drew zero dissent anywhere</span>
+<blockquote>"Users who are interacting with your UI are limited by the speed of their hands&hellip;
+<strong>Any operation you expose via an API can be called at the speed of code.</strong>"</blockquote>
+<p>His Zendesk story is the best illustration in the essay: an API that fanned out notifications to
+all users of an app was used by a third-party developer to build an in-app chat system, where every
+message notified every other user. "For accounts with more than a handful of active users, this
+reliably killed the Apps backend server." Nobody anticipated it. Once it was out there, people did
+what they wanted with it.</p>
+<p>His prescriptions: tighter limits on expensive operations, the ability to disable the API for
+specific customers, and <code>X-Limit-Remaining</code> / <code>Retry-After</code> headers &mdash;
+because "[they] allow you to set stricter rate limits than you would otherwise be able to."</p>
+</div>
+
+<p>That last clause is the non-obvious one and it's correct: <strong>telling clients their budget lets
+you give them a smaller budget.</strong> A client that can see it has 12 calls left will back off. A
+client flying blind will hammer you and then complain.</p>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; two published models worth copying</span>
+<p><strong>GitHub GraphQL</strong> prices by estimated work: 5,000 points/hour, where points are
+computed from connection sizes &mdash; "Assume every request will reach the <code>first</code> or
+<code>last</code> argument limits&hellip; Divide the number by 100." A query touching 100 repos &times;
+50 issues &times; 60 labels is 5,101 underlying requests and costs <strong>51 points</strong>. Note
+that exceeding the primary limit returns <strong>HTTP 200 with an error body</strong>, and a query
+that times out at 10 seconds still <em>deducts</em> points.</p>
+<p><strong>Shopify</strong> runs a leaky bucket with a refund: "The <strong>requested</strong> cost is
+based on the composition of fields selected. The <strong>actual</strong> cost is based on the query
+results&hellip; <strong>the bucket is refunded the difference.</strong>" Their published field costs:
+scalar 0, object 1, <strong>mutation 10</strong>; single-query ceiling 1,000 points regardless of
+plan. Their legacy REST limit was 2 requests/second &mdash; GraphQL gets far more headroom
+<em>because it is priced by work rather than by call.</em></p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Support long-lived keys &mdash; and scope them. The industry's answer to the leak data was restriction, not expiry.</li>
+  <li>Publish remaining-quota and <code>Retry-After</code> headers: transparency buys you the right to be stricter.</li>
+  <li>Price limits by work, not by call count, wherever operations differ in cost by orders of magnitude.</li>
+  <li>A per-customer killswitch is a product requirement. You will need it, and you will need it during an incident.</li>
+  <li>Somebody will build something you never imagined on top of your endpoint. Design as if they already have.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>Deprecation &mdash; the long goodbye</h2>
+  <div class="mt">"Never break userspace" is only tenable if you also never remove. Nobody never removes.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Emit the two standard deprecation headers with the correct (different) date formats</li>
+  <li>Design a deprecation process with monitoring and consent, not just an announcement</li>
+  <li>Explain what deferring removals costs, using a real example</li>
+</ul></div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; the biggest gap in the essay</span>
+<p>Goedecke has <strong>no deprecation vocabulary at all</strong>. No sunset dates, no usage
+monitoring, no migration windows, no headers. He describes telling users to upgrade — "This takes a
+<em>long</em> time: months or even years" — and then stops.</p>
+<p>That's a real gap, because "never break userspace" without a removal process isn't a policy, it's
+an accumulation strategy. And there are two standards-track-adjacent answers he never mentions, which
+are exactly the kind of boring, well-known machinery his own philosophy calls for.</p>
+</div>
+
+<h3>The two headers</h3>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; and easy to state backwards</span>
+<div class="tw"><table><thead><tr><th>RFC</th><th>Header</th><th>Status</th><th>Date format</th></tr></thead><tbody>
+<tr><td><a href="https://www.rfc-editor.org/rfc/rfc9745.html" target="_blank" rel="noopener">RFC 9745</a> (March 2025)</td><td><code>Deprecation</code></td><td><strong>Standards Track</strong></td><td>Structured-Fields Date: <code>@1688169599</code></td></tr>
+<tr><td><a href="https://www.rfc-editor.org/rfc/rfc8594.html" target="_blank" rel="noopener">RFC 8594</a> (May 2019)</td><td><code>Sunset</code></td><td><strong>Informational</strong></td><td>HTTP-date: <code>Sat, 31 Dec 2025 23:59:59 GMT</code></td></tr>
+</tbody></table></div>
+<p>Yes, the two headers use different date formats. RFC 9745 says so in as many words: "<strong>Please
+note that for historical reasons the Sunset HTTP header field uses a different data format for
+date.</strong>" It also constrains ordering: "The timestamp given in the Sunset HTTP header field
+<strong>MUST NOT be earlier than</strong> the one given in the Deprecation header field."</p>
+<p><strong>The trap:</strong> the <code>Deprecation</code> syntax <em>changed</em> in March 2025 from
+HTTP-date to <code>@epoch</code>. Any tutorial, library, or internal wiki written before then shows
+the wrong format.</p>
+</div>
+
+<div class="code-label">What a deprecated endpoint should return</div>
+<pre><code>HTTP/1.1 <span class="num">200</span> OK
+Deprecation: @<span class="num">1688169599</span>
+Sunset: Sun, <span class="num">30</span> Jun <span class="num">2024</span> <span class="num">23</span>:<span class="num">59</span>:<span class="num">59</span> UTC
+Link: &lt;https://api.example.com/docs/migrating-to-v2&gt;; rel=<span class="str">"deprecation"</span>; type=<span class="str">"text/html"</span></code></pre>
+
+<p>Both RFCs are careful to say these are hints, not contracts: "<strong>Clients SHOULD treat Sunset
+timestamps as hints</strong>," and "<strong>The act of deprecation does not change any behavior of the
+resource.</strong>" A header is not a migration plan &mdash; it is a machine-readable channel for one.</p>
+
+<h3>Deprecation as a process, not an announcement</h3>
+
+<p>Zalando publishes the most complete public deprecation regime, and the striking thing is how much
+of it is about <em>consent and observation</em> rather than notification:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Rule</th><th>Requirement</th></tr></thead>
+<tbody>
+<tr><td>#185</td><td><strong>MUST obtain approval of clients before API shut down</strong> &mdash; "all clients have given their consent on a sunset date."</td></tr>
+<tr><td>#186</td><td>MUST collect external partner consent on the deprecation time span &mdash; "<em>before</em> they are allowed to use the API."</td></tr>
+<tr><td>#187</td><td>MUST reflect deprecation in API specifications (<code>deprecated: true</code>)</td></tr>
+<tr><td>#188</td><td><strong>MUST monitor usage of deprecated APIs scheduled for sunset</strong></td></tr>
+<tr><td>#189</td><td>SHOULD add <code>Deprecation</code> and <code>Sunset</code> headers</td></tr>
+<tr><td>#191</td><td>MUST NOT start using deprecated APIs (the entire rule, one sentence)</td></tr>
+</tbody></table></div>
+
+<p>#186 is the clever one: partners agree to the after-deprecation lifespan <em>as a condition of
+access</em>, before they've written a line of code. That converts an eventual argument into a
+precondition. #188 is the operationally essential one &mdash; if you cannot see who is still calling
+the old thing, your sunset date is a guess.</p>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; GitHub's published clock</span>
+<p>REST: "When a new REST API version is released, <strong>the previous API version will be supported
+for at least 24 more months.</strong>" Calling an unsupported version returns <strong>410 Gone</strong>
+&mdash; a clean, unambiguous failure rather than mysterious behaviour. <code>2022-11-28</code> is
+supported until <strong>10 March 2028</strong>.</p>
+<p>GraphQL: "We'll announce upcoming breaking changes <strong>at least three months</strong> before
+making changes to the GraphQL schema&hellip; Changes go into effect on the <strong>first day of a
+quarter.</strong>" Their published schedule currently runs through 1 January 2027. Predictable dates
+are themselves a feature &mdash; a partner can plan around a quarter boundary.</p>
+</div>
+
+<h3>What deferral actually costs</h3>
+
+<div class="callout c-warn"><span class="lbl">The example that should change your mind</span>
+<p>GitHub went 3.5 years without a new REST version &mdash; strong evidence for "version as a last
+resort." Then in March 2026 they shipped <code>2026-03-10</code>. Look at what was in it:</p>
+<ul>
+  <li>Removing <code>rate</code> from <code>/rate_limit</code> &mdash; "deprecated since 2021"</li>
+  <li>Removing <code>has_downloads</code> &mdash; "deprecated for <strong>10+ years</strong>"</li>
+  <li>Deprecating the <code>beta</code> media type &mdash; "officially deprecated in <strong>2014</strong>"</li>
+  <li>Removing the singular <code>assignee</code> from Issues and PRs</li>
+  <li>Removing <code>merge_commit_sha</code> from pull request payloads</li>
+</ul>
+<p>That version's payload is <strong>twelve years of deferred removals</strong>, shipped all at once,
+to every consumer, with a 24-month clock and a 410 at the end.</p>
+<p><strong>The lesson the essay misses:</strong> the alternative to versioning is not zero cost. It is
+a <em>queue</em> &mdash; and a queue that empties on a schedule you no longer control, in a single
+disruptive batch, at whatever moment the accumulated weight finally forces it. If you did the
+simulator in Module 4, this is precisely the mechanic you were playing against.</p>
+</div>
+
+<p>The counter-example is real and worth respecting: <strong>Twilio has served
+<code>api.twilio.com/2010-04-01/</code> for about sixteen years.</strong> Its one predecessor,
+<code>2008-04-01</code>, was deprecated in May 2022 and hard-404'd on 15 December 2023 &mdash; roughly
+twenty months of notice, two versions in eighteen years. It can be done. Note, though, that they
+enforce it by blog post: no evidence was found that Twilio emits <code>Sunset</code> or
+<code>Deprecation</code> headers at all.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Emit <code>Deprecation</code> (RFC 9745, Standards Track, <code>@epoch</code>) and <code>Sunset</code> (RFC 8594, Informational, HTTP-date). Different formats, on purpose.</li>
+  <li>Deprecation is a process: specification flag, usage monitoring, client consent, published date, hard failure.</li>
+  <li>410 Gone beats undefined behaviour. Tell clients the thing is gone, not that something odd happened.</li>
+  <li>Deferring a removal doesn't cancel it. GitHub's 2026 version carried a deprecation from 2014.</li>
+  <li>You cannot sunset what you cannot measure. Instrument the old path before you announce anything.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 10 ============================ -->
+<section class="module" id="m10">
+<div class="module-header"><div class="num">10</div><div>
+  <h2>GraphQL, DX &amp; what really decides</h2>
+  <div class="mt">The argument that ties it together &mdash; and the counterexample from his own employer</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>State the GraphQL tradeoff honestly in both directions</li>
+  <li>Decide what actually changes for internal APIs, and what doesn't</li>
+  <li>Assemble the developer-experience argument that connects every previous module</li>
+</ul></div>
+
+<h3>Optional fields first</h3>
+
+<p>Before GraphQL, Goedecke offers the cheap version of the same idea, and it's good advice:
+"<strong>If parts of your API response are expensive to serve, make them optional.</strong>&hellip;
+you could have an <code>includes</code> array parameter with all your optional fields."</p>
+
+<div class="code-label">The 80% of GraphQL you can have for nothing</div>
+<pre><code>GET /users/<span class="num">42</span>
+GET /users/<span class="num">42</span>?include=subscription,posts
+<span class="cm">// Default response stays small and fast. Expensive joins are opt-in.</span>
+<span class="cm">// Still one cacheable URL per resource. Still readable in a browser bar.</span></code></pre>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"<strong>I don't like GraphQL very much</strong>, for three reasons. First, it's completely
+impenetrable to non-engineers (and to many engineers)&hellip; Second, I don't like giving users the
+freedom to craft arbitrary queries. It makes caching more complicated and increases the number of edge
+cases you have to think about. Third, in my experience <strong>the backend implementation is so much
+more fiddly</strong> than your standard REST API."</blockquote>
+<p>To his credit he flags his own uncertainty: "I don't feel <em>that</em> strongly&hellip; I've spent
+maybe six months working with it in various contexts and am far from an expert."</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; two of the three objections have published answers</span>
+<p><strong>Caching.</strong> graphql.org concedes the premise &mdash; "In GraphQL, there's no URL-like
+primitive that provides this globally unique identifier for a given object" &mdash; and then answers
+it three ways: <em>automatic persisted queries</em> with <code>GET</code>, which lets a CDN cache
+GraphQL responses; <em>trusted documents</em>, an allowlist where the client sends a document ID
+instead of a query; and <em>normalized client caches</em> like Apollo's <code>InMemoryCache</code>,
+which stores "a flat lookup table of objects that can reference each other." That last one is the real
+steelman: GraphQL trades HTTP-level caching for <em>object-level</em> caching, which is strictly
+finer-grained.</p>
+<p><strong>Arbitrary queries and rate limiting.</strong> Answered by the cost models in Module 8 &mdash;
+GitHub's points, Shopify's leaky bucket with refunds, Apollo's demand control with
+<code>max_depth</code> / <code>max_aliases</code> limits. Arguably these are <em>more</em> honest than
+REST's per-endpoint limits, because they price the work actually done. Trusted documents eliminate the
+arbitrary-query problem entirely.</p>
+<p><strong>The market moved the other way, hard.</strong> Shopify: "The REST Admin API is a legacy API
+as of October 1, 2024. <strong>Starting April 1, 2025, all new public apps must be built exclusively
+with the GraphQL Admin API.</strong>" Shopify has one of the largest populations of non-expert
+third-party developers in software, and they made GraphQL <em>mandatory</em>. That is directly fatal
+to "impenetrable to non-engineers" as a market claim.</p>
+</div>
+
+<div class="callout c-warn"><span class="lbl">The steelman he never engages &mdash; and it's his own thesis</span>
+<p>From the original 2015 GraphQL announcement, under the heading <strong>"Version free"</strong>:</p>
+<blockquote>"When you're adding new product features, additional fields can be added to the server,
+<strong>leaving existing clients unaffected</strong>&hellip; <strong>We still support three years of
+released Facebook applications on the same version of our GraphQL API.</strong>"</blockquote>
+<p>Read that against Modules 3 and 4. Additive-only schema evolution as an alternative to versioning
+is <em>exactly</em> "we do not break userspace," achieved structurally rather than by discipline.
+GraphQL is arguably the most successful implementation of Goedecke's own central claim ever shipped
+&mdash; and he rejects it. That tension is unresolved in the essay, and it is the single best question
+to bring to an API design review.</p>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; the honest state of play, August 2026</span>
+<p><strong>No named company has publicly reverted from GraphQL to REST.</strong> This was searched
+specifically; the "GraphQL retreat" narrative rests on individual engineers' blog posts, not company
+postmortems. Meta still runs it (Relay released May 2026); Netflix's Studio Edge has 150 subgraphs and
+2,800 queries and mutations powering 50&ndash;60 internal apps.</p>
+<p><strong>But GraphQL is not winning either.</strong> Postman's 2025 State of the API report: REST
+93%, webhooks 50%, WebSockets 35%, <strong>GraphQL 33%</strong>, SOAP 25%, gRPC 14%. It settled at
+about a third, and REST stayed near-universal.</p>
+<p><strong>The market-size signal:</strong> Stellate, the dedicated GraphQL CDN company, had
+"near-zero churn," served "over 100 billion GraphQL requests," and still sold for parts in September
+2024 &mdash; "our growth stalled &amp; the market didn't expand fast enough." The Guild took the
+product; Shopify hired the team. (Note: Shopify did <em>not</em> acquire Stellate, despite what you'll
+read.)</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">The objection that survives</span>
+<p>The best critical essay is Matt Bessey's, and its strongest argument is one Goedecke didn't make:</p>
+<blockquote>"<strong>if you expose a fully self documenting query API to all clients, you better be
+damn sure that every field is authorised against the current user appropriately to the context in
+which that field is being fetched</strong>&hellip; One wonders how much GraphQL holds responsibility
+for Broken Access Control climbing to the OWASP Top 10's #1 spot."</blockquote>
+<p>And on the shape of the risk: "since it is a query language, <strong>this can become a problem with
+no backend changes when a client modifies a query.</strong>" That is a genuinely different security
+posture from REST, where the set of things a client can ask for is fixed by the endpoints you shipped.</p>
+<p>Goedecke's own employer supplies mixed evidence too: GitHub built one of the most prominent public
+GraphQL APIs, and in November 2025 retired its GraphQL Explorer, noting "<strong>Although its overall
+usage was limited</strong>&hellip;" &mdash; while continuing to publish a GraphQL breaking-change
+calendar into 2027. Read that as ambivalence, not retreat; GitHub has made no statement putting
+GraphQL in maintenance.</p>
+</div>
+
+<h3>Internal APIs: less different than he says</h3>
+
+<div class="callout c-sean"><span class="lbl">Goedecke's position</span>
+<blockquote>"It's also possible to safely make breaking changes [to internal APIs], because (a) you
+often have an order of magnitude fewer users, and (b) you have the ability to go in and ship new code
+for all of those users."</blockquote>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; endorsed by the strictest compatibility document in the industry</span>
+<p>Google AIP-180, which otherwise forbids nearly everything, carves out exactly his case: "This
+guidance assumes that APIs are intended to be called from a range of consumers&hellip; with no control
+over how and when consumers update. <strong>Any API which has a more limited scope (for example, an
+API which is only called by client code written by the same team as the API producer, or deployed in a
+way which can enforce updates) should carefully consider its own compatibility requirements.</strong>"</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">Where the field disagrees &mdash; the cleanest single objection in the thread</span>
+<blockquote>"I think the only thing here that I don't agree with is that internal users are just users.
+Yes, they may be more technical &mdash; or likely other programmers, but <strong>they're busy
+too.</strong> Often they're building their own thing and don't have the time or ability to deal with
+your API churning. If at all possible, <strong>take your time and dog-food your API before opening it
+up to others. Once it's opened, you're stuck.</strong>"<span class="attrib">HN <code>runroader</code></span></blockquote>
+<p>The condition that makes his claim true is narrower than "internal": it is <em>you can atomically
+deploy every consumer.</em> The moment there is a mobile client with users on old versions, a
+partner's staging environment, a data pipeline someone forgot about, or a team on a different release
+train, the internal API is a public API wearing a badge. And recall from Module 8: internal repos are
+about <strong>6&times; more likely</strong> than public ones to contain hardcoded secrets. Internal
+does not mean safer &mdash; it means less observed.</p>
+</div>
+
+<h3>The synthesis: developer experience is the through-line</h3>
+
+<p>Everything in this course is one argument in different clothes. <strong>The cost of your API is
+paid by people who are not thinking about your API.</strong></p>
+
+<div class="tw"><table>
+<thead><tr><th>Module</th><th>The decision</th><th>Who pays if you get it wrong</th></tr></thead>
+<tbody>
+<tr><td>1 &mdash; Boring</td><td>Familiarity over cleverness</td><td>Every reader of your docs, forever</td></tr>
+<tr><td>2 &mdash; Resources</td><td>Domain nouns, not schema nouns</td><td>Everyone, permanently &mdash; this is the unrecoverable one</td></tr>
+<tr><td>3 &mdash; Compatibility</td><td>Declare what's stable</td><td>Whoever shipped against the part you didn't declare</td></tr>
+<tr><td>4 &mdash; Versioning</td><td>Break now, or queue it</td><td>Your successor, all at once, in twelve years</td></tr>
+<tr><td>5 &mdash; Errors</td><td>Machine-readable codes</td><td>The on-call engineer parsing your prose at 3am</td></tr>
+<tr><td>6 &mdash; Pagination</td><td>Cursors, day one</td><td>Your largest customer, at exactly the wrong moment</td></tr>
+<tr><td>7 &mdash; Idempotency</td><td>Same transaction as the effect</td><td>The person charged twice</td></tr>
+<tr><td>8 &mdash; Auth &amp; limits</td><td>Scope, don't expire; publish quota</td><td>Everyone, when one integration takes you down</td></tr>
+<tr><td>9 &mdash; Deprecation</td><td>Measure, consent, announce, 410</td><td>The integration nobody knew existed</td></tr>
+<tr><td>10 &mdash; Shape</td><td>REST vs GraphQL vs both</td><td>Whoever has to authorise every field</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">Where this course deliberately departs from its source</span>
+<p>Five places, stated plainly so you can disagree with <em>us</em>:</p>
+<ol>
+<li><strong>"Never version" understates the cost of not versioning.</strong> Deferral is a queue with a
+due date you don't control. GitHub's 2026 release is the receipt.</li>
+<li><strong>"Bad products make bad APIs" is a gravitational pull, not a law.</strong> The API layer is
+a translation. Treating it as a passthrough is how you get the linked list on the wire.</li>
+<li><strong>"Always cursor" is too strong, and cursors have a worse failure mode than offset</strong>
+&mdash; silent row skips on sort-key mutation &mdash; which the essay doesn't mention and neither do
+most of its critics.</li>
+<li><strong>"Long-lived keys are fine" is right for the wrong reason.</strong> The industry's answer to
+28 million leaked secrets a year was scoping, not expiry. Say <em>restricted</em>, and the advice
+survives the data.</li>
+<li><strong>The silences matter as much as the claims.</strong> No error format, no deprecation
+vocabulary, no spec-first &mdash; three boring, well-documented answers that his own "boring beats
+clever" philosophy actively demands.</li>
+</ol>
+<p>None of these make the essay wrong. It is the best short piece on the subject, and everything in
+this course is downstream of it. But an essay is one practitioner's cost model, tested against one
+career. Your costs are different, and the point of learning the tradeoff space is to be able to tell
+when.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Optional <code>include</code> parameters get you most of GraphQL's benefit for none of its cost. Start there.</li>
+  <li>The caching and rate-limiting objections to GraphQL have published answers. The authorization objection does not.</li>
+  <li>GraphQL's "version free" additive evolution is Goedecke's own thesis, implemented in the technology he rejects.</li>
+  <li>"Internal" means "I can deploy every consumer atomically." If you can't, it's public.</li>
+  <li>The through-line: your API's cost is paid by people who aren't thinking about your API. Design for their attention, not yours.</li>
+</ul></div>
+
+</div></section>
+
+<div class="callout c-fact" style="margin-top:2.5rem">
+<span class="lbl">Sourcing note</span>
+<p>Every quotation in this course is from a primary source that was fetched and checked in
+<strong>August 2026</strong>. Reddit vote counts come from a Redlib mirror because reddit.com blocks
+automated access; Hacker News shows no per-comment scores, so no HN quote carries a vote count.
+Several widely-circulated claims about API design were checked and <em>excluded</em> as unverifiable
+or fabricated &mdash; including a widely-circulated but untraceable GitHub engineering statement about hypermedia's
+effect on server load, and a set of company names said to have migrated from GraphQL back to REST.</p>
+<p>Two things to re-check before you rely on them: Stripe's current version was
+<code>2026-07-29.dahlia</code> at time of writing and the next major train was unannounced; and the
+<code>Idempotency-Key</code> draft was expired, which could change.</p>
+</div>
+
+<footer class="footer">
+  <div>
+    <a href="https://www.seangoedecke.com/good-api-design/" target="_blank" rel="noopener">The source essay</a>
+    <a href="https://news.ycombinator.com/item?id=45006801" target="_blank" rel="noopener">HN discussion</a>
+    <a href="https://opensource.zalando.com/restful-api-guidelines/" target="_blank" rel="noopener">Zalando guidelines</a>
+    <a href="https://google.aip.dev/" target="_blank" rel="noopener">Google AIPs</a>
+    <a href="https://www.rfc-editor.org/rfc/rfc9457.html" target="_blank" rel="noopener">RFC 9457</a>
+  </div>
+  <p style="margin-top:1rem">Built as an interactive course. Opinions attributed to Sean Goedecke are
+  his; dissent is sourced and linked. Verify anything time-sensitive before you cite it.</p>
+</footer>
+
+</div><!-- /container -->
+
+<script>
+(function(){
+'use strict';
+
+/* ─────────────────────────── nav, progress, completion ─────────────────────────── */
+var N = 10;
+var links = document.getElementById('nav-links');
+var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a);
+  secs.push(document.getElementById('m' + i));
+}
+
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  var pct = Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100)));
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) {
+    if (!secs[i]) continue;
+    if (secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  }
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) {
+    var el = document.getElementById('nl' + i);
+    if (el) el.className = (i === active) ? 'done' : '';
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href'));
+    if (!t) return;
+    e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+
+/* ─────────────────────────── The Change Desk ─────────────────────────── */
+
+// curve helper: 24 monthly points from a to b, k<1 = fast early movement
+function cv(a, b, k){
+  var o = [], i, t;
+  for (i = 0; i < 24; i++) { t = i / 23; o.push(Math.round(a + (b - a) * Math.pow(t, k || 1))); }
+  return o;
+}
+function flat(v){ return cv(v, v, 1); }
+
+var SC = [
+
+/* ───── 1 ───── */
+{
+  from: 'Engineering &mdash; pull request #4412',
+  title: 'A new hire opened a PR fixing a typo in a response field',
+  brief: '<p>Your shipping API returns <code>recipient_adress</code> &mdash; misspelled since 2019. '
+       + 'It is correct nowhere in your documentation, your SDKs, or your own internal code, because '
+       + 'they all copy the field name from the API. The PR renames it to <code>recipient_address</code> '
+       + 'and is, on the merits, correct.</p>'
+       + '<p>Your staff engineer approved it. It is one line. It ships Thursday unless you say otherwise.</p>',
+  facts: [
+    { v: '40,214', k: 'integrations reading this field' },
+    { v: '7 yrs', k: 'field has existed' },
+    { v: '1 line', k: 'size of the change' }
+  ],
+  curveLabel: 'Share of traffic still reading the old field name',
+  opts: [
+    { id:'a', label:'Merge the rename. It is correct, it is one line, and the spelling is embarrassing.',
+      m:[{v:'40,214',k:'integrations broken on Thursday',t:'warn'},{v:'~2,400',k:'support tickets, peak month',t:'warn'},{v:'0',k:'added to debt queue',t:'good'},{v:'1',k:'field names to maintain',t:'good'}],
+      curve: cv(100, 0, 0.12), tailFrom: 1,
+      v:'<b>You broke 40,214 integrations to fix a spelling mistake.</b> The queue drains fast because it has to &mdash; every consumer is down and fixing it is their emergency, not yours. You have spent a large amount of goodwill on zero user-visible value, and you have taught every integrator that your field names are not stable, which will cost you the next time you need them to trust a migration.',
+      debt: [] },
+    { id:'b', label:'Add <code>recipient_address</code> alongside. Populate both, forever.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~15',k:'support tickets / month',t:'good'},{v:'+1',k:'added to debt queue',t:'mid'},{v:'2',k:'field names to maintain',t:'mid'}],
+      curve: cv(100, 61, 0.5),
+      v:'Nobody breaks. But look at the curve: <b>61% of traffic still reads the misspelled field after two years</b>, because there is no reason for anyone to change. You now maintain two names for one value in perpetuity, and every new reader of your docs has to be told which one to use. This is how APIs end up with six fields that mean the same thing.',
+      debt: ['Duplicate field: recipient_adress mirrors recipient_address'] },
+    { id:'c', label:'Close the PR. Document the spelling prominently and move on.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~5',k:'support tickets / month',t:'good'},{v:'0',k:'added to debt queue',t:'good'},{v:'1',k:'field names to maintain',t:'good'}],
+      curve: flat(100),
+      v:'Nothing happens, which is the correct outcome. The cost is a permanent, visible, slightly embarrassing wart and a recurring trickle of people asking about it. <b>That is the cheapest option on the board by every measure.</b> The discipline being practised here is not spelling &mdash; it is refusing to spend your users’ time on your aesthetics.',
+      debt: [] },
+    { id:'d', label:'Fix it properly in a new API version.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~40',k:'support tickets / month',t:'mid'},{v:'0',k:'added to debt queue',t:'good'},{v:'2',k:'full API versions to maintain',t:'warn'}],
+      curve: cv(100, 92, 0.7),
+      v:'You have spent an entire version boundary &mdash; the most expensive tool you own, and one you can only credibly use every few years &mdash; on a typo. Adoption is 8% after two years because nobody migrates a working integration for a spelling fix. <b>You now maintain two APIs and still serve the misspelling to almost everyone.</b> This is the trap: versioning feels like the responsible choice because it avoids a break, but it converts a trivial problem into a permanent structural one.',
+      debt: [] }
+  ],
+  ok: ['b','c'],
+  field: '<span class="lbl">In the field</span>'
+    + '<p>This is Goedecke’s own example, and he is right about it: <b>the HTTP <code>referer</code> header has been a misspelling of "referrer" since RFC 1945 in 1996</b> and has never been fixed, <em>because we do not break userspace.</em> Thirty years of every web request on earth carrying a typo, because correcting it would be worth less than it cost.</p>'
+    + '<p>Option (b) is what most APIs actually do, and it is defensible &mdash; but notice it is not free, it is <em>deferred</em>. The duplicate field is now in your queue. Option (d) is the interesting failure: it looks like the cautious choice and it is the most expensive one on the board.</p>'
+},
+
+/* ───── 2 ───── */
+{
+  from: 'Product &mdash; profile redesign, Q3',
+  title: 'Product wants to nest an existing field under a new object',
+  brief: '<p>The redesign groups profile data under a <code>details</code> object. That means '
+       + '<code>user.address</code> becomes <code>user.details.address</code>, along with four other '
+       + 'fields. Product’s argument is that the flat response is now 31 fields and unreadable, '
+       + 'and that this is what the new UI models.</p>'
+       + '<p>They are not wrong about the readability. The mobile team has already shipped a client '
+       + 'that expects the nested shape behind a feature flag.</p>',
+  facts: [
+    { v: '4,109', k: 'integrations reading user.address' },
+    { v: '5', k: 'fields being moved' },
+    { v: '31', k: 'fields in the flat response today' }
+  ],
+  curveLabel: 'Share of traffic still reading the flat shape',
+  opts: [
+    { id:'a', label:'Move the fields. The new shape is genuinely better and the old one is a mess.',
+      m:[{v:'4,109',k:'integrations broken',t:'warn'},{v:'~780',k:'support tickets, peak month',t:'warn'},{v:'0',k:'added to debt queue',t:'good'},{v:'1',k:'response shapes',t:'good'}],
+      curve: cv(100, 0, 0.12), tailFrom: 1,
+      v:'This is the specific change Goedecke names as the thing you must never do, and the reason is not aesthetic. <b>Every consumer reading <code>user.address</code> now gets <code>undefined</code>, silently, in a field they were not error-handling.</b> Nobody gets a 4xx. Addresses quietly become blank in downstream systems for as long as it takes each integrator to notice. The support curve understates this because most of the damage is invisible for weeks.',
+      debt: [] },
+    { id:'b', label:'Add <code>user.details.*</code>, keep the flat fields mirrored.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~30',k:'support tickets / month',t:'good'},{v:'+1',k:'added to debt queue',t:'mid'},{v:'2',k:'response shapes to keep in sync',t:'mid'}],
+      curve: cv(100, 48, 0.55),
+      v:'Correct and unglamorous. Nobody breaks, the mobile team ships, and the cost is a <b>permanent consistency obligation</b>: two representations of the same five values that must never diverge. The failure mode to watch is a future engineer writing to one and not the other &mdash; which is a data bug that will present as "the API is inconsistent" months later. Write a test that asserts the mirror, today.',
+      debt: ['Mirrored shape: user.address <-> user.details.address (x5 fields)'] },
+    { id:'c', label:'Refuse. The response is not the UI’s data model.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~5',k:'support tickets / month',t:'good'},{v:'0',k:'added to debt queue',t:'good'},{v:'1',k:'response shapes',t:'good'}],
+      curve: flat(100),
+      v:'Defensible, and cheapest. The API is not obliged to track the UI, and 31 flat fields is not actually a problem for a machine consumer &mdash; readability is a docs problem, not a schema problem. <b>The risk you have accepted is organisational, not technical:</b> the mobile team now writes a mapping layer, and you have spent capital saying no. Say it clearly and with the reason, or you will be asked again next quarter.',
+      debt: [] },
+    { id:'d', label:'New API version with a translation layer that serves both shapes.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~60',k:'support tickets / month',t:'mid'},{v:'0',k:'added to debt queue',t:'good'},{v:'2',k:'full API versions to maintain',t:'warn'}],
+      curve: cv(100, 74, 0.65),
+      v:'This is the Stripe answer, and it is technically the most correct one on the board &mdash; the translation is computed rather than stored, so the two shapes cannot drift. <b>But you have to build the machinery first</b>, and you are building it to relocate five fields. If you were going to build version transforms eventually, this is a fine excuse. If you were not, you have just committed to maintaining a version system for a nesting preference.',
+      debt: [] }
+  ],
+  ok: ['b','c'],
+  field: '<span class="lbl">In the field</span>'
+    + '<p>Goedecke: "You can’t change the structure of existing fields (for instance, moving <code>user.address</code> to <code>user.details.address</code> in the JSON response). If you do, every single piece of code that relies on those fields will immediately break."</p>'
+    + '<p>GitHub classifies "removing or renaming a response field" as breaking. Zalando #106: "<b>APIs are contracts between service providers and service consumers that cannot be broken via unilateral decisions.</b>"</p>'
+    + '<p>The thing the essay doesn’t say, and that option (b) teaches: <b>mirroring is not free either.</b> It converts a one-time break into a permanent invariant you must defend in code review forever. Stripe’s version-change modules exist precisely so the mirror is <em>derived</em> rather than <em>maintained</em>.</p>'
+},
+
+/* ───── 3 ───── */
+{
+  from: 'On-call &mdash; SEV-2 postmortem action item',
+  title: 'Your largest customer has outgrown offset pagination',
+  brief: '<p><code>GET /tickets?page=N</code> has used offset pagination since day one. Your biggest '
+       + 'account now has 4.1M tickets and runs a nightly export that walks every page. Last night '
+       + 'their deep pages took <b>758ms at p99</b> and saturated a read replica; two unrelated '
+       + 'services timed out behind it.</p>'
+       + '<p>Cursor pagination fixes it. Every client currently sends <code>?page=</code>.</p>',
+  facts: [
+    { v: '758 ms', k: 'p99 at offset 5,000,000' },
+    { v: '2,918', k: 'integrations sending ?page=' },
+    { v: '4.1 M', k: 'rows in the largest collection' }
+  ],
+  curveLabel: 'Share of list traffic still on offset pagination',
+  opts: [
+    { id:'a', label:'Switch to cursor-only. Deprecate <code>?page=</code> immediately.',
+      m:[{v:'2,918',k:'integrations broken',t:'warn'},{v:'0.12 ms',k:'p99 after change',t:'good'},{v:'0',k:'added to debt queue',t:'good'},{v:'1',k:'pagination schemes',t:'good'}],
+      curve: cv(100, 0, 0.14), tailFrom: 1,
+      v:'The performance problem is comprehensively solved &mdash; 758ms to 0.12ms &mdash; and you broke every list consumer you have to get it. Worse, some of them cannot follow you: <b>anyone with a "jump to page 51" UI or a "1,204 results" counter now has no way to build it</b>, because cursors structurally cannot express either. You did not just change a parameter; you removed capabilities, and for a subset of clients there is no migration path at all.',
+      debt: [] },
+    { id:'b', label:'Add cursor pagination alongside. Keep <code>?page=</code> working.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'0.12 ms',k:'p99 for adopters',t:'good'},{v:'+1',k:'added to debt queue',t:'mid'},{v:'2',k:'pagination schemes forever',t:'mid'}],
+      curve: cv(100, 38, 0.45),
+      v:'The right call, and the curve is the lesson. <b>Two years on, 38% of list traffic is still on offset</b> &mdash; and it never reaches zero, because a client paginating 200 rows has no reason to move and no way to notice they should. Your incident risk is reduced but not eliminated, and you now test, document and support two schemes indefinitely. Pair this with a depth cap or you have bought less protection than you think.',
+      debt: ['Two pagination schemes on /tickets (offset + cursor)'] },
+    { id:'c', label:'Ship cursor pagination, and cap offset depth at 10,000 rows &mdash; beyond that, 400 with a pointer to cursors.',
+      m:[{v:'~140',k:'integrations broken',t:'mid'},{v:'0.6 ms',k:'worst-case p99',t:'good'},{v:'0',k:'added to debt queue',t:'good'},{v:'2',k:'schemes, one bounded',t:'mid'}],
+      curve: cv(100, 44, 0.5),
+      v:'The smallest break that actually closes the incident &mdash; only deep paginators are affected, and they are exactly the clients causing it. <b>Be honest that it is a break:</b> adding a validation rule to an existing parameter is on GitHub’s breaking-change list, and requests that succeeded yesterday now 400. But note why nothing lands in your queue: the cap makes the offset path <b>bounded</b>. Option (b) leaves an unbounded liability you have to keep watching forever; this one converts it into a documented, finite guarantee. <b>Bounded surface is resolved. Unbounded surface is debt.</b>',
+      debt: [] },
+    { id:'d', label:'Leave pagination alone. Add read replicas and scale the database.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'758 ms',k:'p99 after change',t:'warn'},{v:'+1',k:'added to debt queue',t:'warn'},{v:'1',k:'pagination schemes',t:'good'}],
+      curve: flat(100),
+      v:'<b>This does not work, and the reason is the most commonly held wrong belief about pagination.</b> Offset is O(n) in the offset regardless of indexing &mdash; the database must still count past every skipped row. More replicas spread the load; they do not make the query cheaper. You have spent infrastructure budget, kept the p99 at 758ms, and the account is still growing. The problem is now in your queue with a larger customer attached to it.',
+      debt: ['Unresolved: offset pagination on /tickets at 4.1M rows'] }
+  ],
+  ok: ['b','c'],
+  field: '<span class="lbl">In the field</span>'
+    + '<p><b>Citus/Microsoft, 10M rows:</b> <code>OFFSET 5,000,000 LIMIT 100</code> took <b>758.484 ms</b>; the keyset equivalent took <b>0.119 ms</b> &mdash; about 6,300&times;. <b>Sequin</b> settles the indexing objection: "It doesn’t matter if you have an index on your sort column&hellip; <b>The operation is still O(n).</b>" That is what makes option (d) wrong rather than merely slow.</p>'
+    + '<p><b>Google AIP-158:</b> collections "MUST provide pagination <em>at the outset</em>, as it is a backwards-incompatible change to add pagination to an existing method." The best time to make this decision was before you shipped.</p>'
+    + '<p>And the counterweight the essay omits: <b>Zalando #160 is only a SHOULD</b>, with four documented trade-offs including "If jumping to a particular page&hellip; is really a required use case, cursor-based navigation may not be feasible." Relay’s <code>PageInfo</code> has no total count and no page number anywhere in the spec. Cursors are not strictly better &mdash; they are better at one thing and incapable of two others.</p>'
+},
+
+/* ───── 4 ───── */
+{
+  from: 'Security &mdash; incident SEC-2291, remediation plan',
+  title: 'A partner leaked their API key. It was live for eight months.',
+  brief: '<p>An integration partner committed a production key to a public repository. It was valid '
+       + 'for 243 days before your scanner caught it. In that window it served <b>2.1M requests from '
+       + 'three ASNs you do not recognise</b>, including full customer exports.</p>'
+       + '<p>The key had no scope. It could do everything the partner’s account could do. Security '
+       + 'has written a remediation plan whose first line is "eliminate long-lived API keys." They want '
+       + 'your sign-off this week.</p>',
+  facts: [
+    { v: '243 days', k: 'key valid after leaking' },
+    { v: '2.1 M', k: 'requests from unrecognised ASNs' },
+    { v: '0', k: 'scopes on the leaked key' }
+  ],
+  curveLabel: 'Exposure if a key leaks on day one of each month',
+  opts: [
+    { id:'a', label:'Force 90-day expiry on every API key. No exceptions.',
+      m:[{v:'~9,400',k:'integrations broken per rotation',t:'warn'},{v:'4&times;/yr',k:'this cost recurs',t:'warn'},{v:'90 d',k:'exposure window if leaked',t:'mid'},{v:'0',k:'reduction in blast radius',t:'warn'}],
+      curve: [100,100,100,0,100,100,100,0,100,100,100,0,100,100,100,0,100,100,100,0,100,100,100,0],
+      v:'Look at the sawtooth. <b>The exposure window is capped at 90 days &mdash; and the cost never stops recurring.</b> Four times a year, every non-engineer integration in your base breaks until someone notices and pastes a new key. The salesperson running a weekly report does not have a rotation process; they have a calendar reminder they will ignore. And the blast radius is unchanged: a key that leaks on day one still does everything for ninety days. You have added enormous recurring pain and capped, rather than reduced, the damage.',
+      debt: [] },
+    { id:'b', label:'Ship scoped, restricted keys. Keep them long-lived. Add secret scanning with auto-revoke.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~1 min',k:'time to auto-revoke on leak',t:'good'},{v:'read-only',k:'default new-key scope',t:'good'},{v:'0',k:'added to debt queue',t:'good'}],
+      curve: cv(100, 4, 0.25),
+      v:'This is what the entire industry actually did, and it is the correct answer for the reason Goedecke gives in a different section. <b>You attacked blast radius instead of lifetime.</b> Existing integrations keep working; new keys default to the narrowest useful scope; a leaked key is detected and revoked in minutes rather than months; and the leaked key that does get through can read one collection instead of exporting your customer base. The exposure curve collapses without a single broken integration.',
+      debt: [] },
+    { id:'c', label:'Deprecate keys entirely. OAuth client-credentials only.',
+      m:[{v:'~9,400',k:'integrations broken',t:'warn'},{v:'~60%',k:'projected non-engineer churn',t:'warn'},{v:'strong',k:'credential properties',t:'good'},{v:'2',k:'auth systems during migration',t:'mid'}],
+      curve: cv(100, 8, 0.3), tailFrom: 0,
+      v:'Cryptographically this is the strongest option and organisationally it is the most dangerous. <b>You have optimised for the users you imagine and against the users you have.</b> The salesperson, the analyst, the student &mdash; the population Goedecke spends a third of the essay defending &mdash; cannot complete a client-credentials handshake in a spreadsheet macro. Some of them will not migrate; they will stop using the API. This is the right call only if your users really are all professional engineers, and you should check rather than assume.',
+      debt: [] },
+    { id:'d', label:'Add secret scanning. Change nothing about the credentials themselves.',
+      m:[{v:'0',k:'integrations broken',t:'good'},{v:'~1 min',k:'time to detect on public repos',t:'good'},{v:'unlimited',k:'blast radius if leaked',t:'warn'},{v:'+1',k:'added to debt queue',t:'warn'}],
+      curve: cv(100, 62, 0.6),
+      v:'Scanning is genuinely valuable and you should do it regardless &mdash; but it only catches the leaks it can see. <b>It does nothing about the key committed to a private repo, pasted into a support ticket, or sitting in a contractor’s <code>.env</code> backup</b>, and the credential it protects can still do everything. You have bought detection without reducing consequence. Unscoped bearer keys stay in your queue.',
+      debt: ['Unscoped bearer API keys with unlimited blast radius'] }
+  ],
+  ok: ['b'],
+  field: '<span class="lbl">In the field &mdash; this is the one where the obvious answer is wrong</span>'
+    + '<p>The data is genuinely alarming. <b>GitGuardian, March 2026:</b> "28.65 million new hardcoded secrets were added to public GitHub commits in 2025 alone, a 34% increase year over year." And: of credentials confirmed valid in 2022, <b>over 64% were still valid in January 2026.</b> GitHub’s own security team: "Long-lived credentials are some of the most common and dangerous types of secrets to leak."</p>'
+    + '<p>Now read what those same companies ship. <b>Stripe:</b> "we don’t recommend using secret keys for new use cases&hellip; we recommend migrating secret key usage to RAKs" &mdash; <em>restricted</em> keys, not short-lived ones. <b>GitHub’s own fine-grained PATs:</b> "Infinite lifetimes are allowed." <b>Anthropic and OpenAI:</b> scoped keys, "Never" expiry selectable. Every one of them chose scoping over mandatory expiry.</p>'
+    + '<p><b>RFC 9700 (BCP 240, January 2025)</b> agrees, and it is not the sentence people quote: "The privileges associated with an access token SHOULD be restricted to the minimum required&hellip; access tokens SHOULD be audience-restricted." The axis is <em>unscoped versus scoped</em>, not <em>long versus short</em>.</p>'
+    + '<p>So the corrected form of Goedecke’s claim: support long-lived API keys &mdash; and make them <b>restricted, revocable, attributable, and scanned-for. The lifetime is not the vulnerability. The unlimited blast radius is.</b></p>'
+}
+];
+
+/* the fifth scenario is generated from the debt the learner actually accrued */
+function finalSC(debt){
+  var d = debt.length;
+  var many = d >= 3, some = d > 0;
+  var months = 12 + 5 * d;
+
+  return {
+    from: 'Office of the CTO &mdash; engineering priorities, next fiscal year',
+    title: some ? 'The bill comes due' : 'The bill that never came',
+    brief: '<p>New CTO, second week. She has read the API surface review and wants a plan. '
+         + (some
+            ? '<b>Your deprecation queue currently holds ' + d + ' item' + (d===1?'':'s') + '</b>, '
+              + 'every one of them something you chose to carry rather than resolve. Each was the '
+              + 'right call in isolation. They are now a list on a slide with your name on it.</p>'
+            : '<b>Your deprecation queue is empty.</b> Across four decisions you resolved every '
+              + 'change rather than deferring it, which is rare and worth noticing.</p>')
+         + '<p>The ask: "clean up the API." No further constraints. Eleven thousand integrations '
+         + 'depend on it and none of them asked for this.</p>',
+    facts: [
+      { v: String(d), k: 'items in your deprecation queue' },
+      { v: '11,840', k: 'active integrations' },
+      { v: '0', k: 'breaking changes you have shipped' }
+    ],
+    curveLabel: 'Share of traffic still on the old surface',
+    opts: [
+      { id:'a', label:'Ship a <code>/v2</code> that clears everything at once. Twelve-month migration window.',
+        m:[{v:'0',k:'broken at launch',t:'good'},{v:String(months)+' mo',k:'to reach 90% migrated',t: many?'warn':'mid'},{v:'2',k:'full APIs served meanwhile',t:'warn'},{v:'-'+d,k:'items cleared',t:'good'}],
+        curve: cv(100, many ? 34 : 12, 0.75), tailFrom: 21,
+        v: (some
+            ? 'The queue clears &mdash; eventually. With ' + d + ' item' + (d===1?'':'s') + ' bundled into one release, migration takes roughly ' + months + ' months to reach 90%, because <b>the size of the payload is what makes it slow.</b> Nobody migrates a working integration for one field; they migrate when they are forced, and forcing means a sunset date. Your twelve-month window will slip. Note the tail on the curve: at the deadline you are still serving a meaningful share of traffic on v1 and you must decide whether you meant it.'
+            : 'There is very little to put in it. With an empty queue, a v2 would be a version boundary in search of a reason &mdash; which Module 4 scenario 1 should have taught you is the most expensive kind. <b>The correct answer to "clean up the API" here is to show her the empty queue.</b>'),
+        debt: [] },
+      { id:'b', label:'Ship nothing. The API works. Keep carrying it.',
+        m:[{v:'0',k:'broken',t:'good'},{v:'0 mo',k:'migration effort',t:'good'},{v:String(8+d),k:'permanent surface items',t: many?'warn':'mid'},{v:'+0',k:'items cleared',t: some?'warn':'good'}],
+        curve: flat(100),
+        v: (some
+            ? 'Entirely defensible today and slightly worse every quarter. The ' + d + ' item' + (d===1?'':'s') + ' stay, the surface keeps growing by whatever the next four scenarios add, and <b>the decision does not disappear &mdash; it transfers to whoever holds this job in five years, with interest.</b> The honest version of this choice is to say so out loud: write the queue down, put an owner on it, and review it annually. The dishonest version is calling it "we do not break userspace."'
+            : 'With nothing in the queue this is not avoidance &mdash; it is the correct answer. The API works, there is no accumulated debt, and the most valuable thing you can do is not create any.'),
+        debt: [] },
+      { id:'c', label:'Date-versioned release behind a header. Old version supported 24 months, <code>Deprecation</code> + <code>Sunset</code>, then <code>410 Gone</code>.',
+        m:[{v:'0',k:'broken at launch',t:'good'},{v:'24 mo',k:'published support window',t:'good'},{v:'2',k:'versions, then 1',t:'mid'},{v:'-'+d,k:'items cleared',t:'good'}],
+        curve: cv(100, 26, 0.8), tailFrom: 23,
+        v: (some
+            ? 'This is GitHub’s model and it is the strongest option on the board, for a reason that is about <b>credibility rather than mechanism</b>. The header keeps <code>/orders/1</code> the same resource for every client, so consumers on different versions still interoperate. But the load-bearing part is the published, honoured 24-month clock ending in an unambiguous 410 &mdash; not a mysterious change in behaviour. Clients migrate when they believe the date. You only get to establish that belief once.'
+            : 'A well-designed release process with almost nothing to release. Worth building the machinery now if you expect to need it &mdash; but with an empty queue you are paying for the mechanism before you have the problem.'),
+        debt: [] },
+      { id:'d', label:'Version individual endpoints. Only the ones that actually changed.',
+        m:[{v:'0',k:'broken at launch',t:'good'},{v:String(Math.max(1,d))+'',k:'distinct version numbers in one API',t: many?'warn':'mid'},{v:'?',k:'"what version am I on"',t:'warn'},{v:'-'+d,k:'items cleared',t:'good'}],
+        curve: cv(100, 40, 0.7),
+        v:'The most-upvoted suggestion on Reddit and the second-most-upvoted objection to it, which should tell you something. It genuinely minimises churn &mdash; you touch only what changed. <b>The cost is that "which version of your API are you on?" stops having an answer</b>, for you and for your customers’ config files, and every support conversation now begins with an inventory. It works well with generated SDKs that hide the per-endpoint detail, and badly without them.',
+        debt: [] }
+    ],
+    ok: some ? ['c'] : ['b','c'],
+    field: '<span class="lbl">In the field &mdash; this actually happened, in March 2026</span>'
+      + '<p>GitHub went <b>three and a half years</b> without a new REST API version. Strong evidence for "version as a last resort" &mdash; exactly Goedecke’s advice, followed successfully. Then they shipped <code>2026-03-10</code>. Here is what was in it:</p>'
+      + '<ul style="margin:0.6rem 0 0.6rem 1.2rem;font-size:0.86rem">'
+      + '<li>Removing <code>rate</code> from <code>/rate_limit</code> &mdash; "deprecated since 2021"</li>'
+      + '<li>Removing <code>has_downloads</code> &mdash; "deprecated for <b>10+ years</b>"</li>'
+      + '<li>Deprecating the <code>beta</code> media type &mdash; "officially deprecated in <b>2014</b>"</li>'
+      + '<li>Removing the singular <code>assignee</code> from Issues and PRs</li></ul>'
+      + '<p><b>That release is twelve years of deferred removals, shipped in one batch</b>, with a 24-month clock and a <code>410 Gone</code> at the end. Every one of those deferrals was individually correct. Collectively they became a queue that emptied on a schedule nobody chose.</p>'
+      + '<p>That is the second-order effect this simulator exists to show, and it is the thing the essay leaves out. <b>Not versioning does not avoid the cost. It converts a series of small, scheduled, individually-negotiable breaks into one large, unscheduled, non-negotiable one</b> &mdash; handed to whoever is holding the pager when the weight finally forces it.</p>'
+      + '<p>The counterweight, in fairness: <b>Stripe has shipped roughly 100 backwards-incompatible upgrades since 2011 and retired exactly zero versions.</b> That is the other way to run it &mdash; version constantly, never remove &mdash; and it costs an enormous, permanent machinery investment. And <b>Twilio has served <code>/2010-04-01/</code> for sixteen years</b>, proving it can be done, while quietly giving every product launched since its own <code>v1</code>.</p>'
+      + '<p>Three companies, three defensible answers, no consensus. That is the actual state of the art, and it is why this is a judgment and not a rule.</p>'
+  };
+}
+
+/* ─────── runtime ─────── */
+var st = { i:0, sel:null, ran:false, debt:[], led:[], scs: SC.slice() };
+var $ = function(id){ return document.getElementById(id); };
+var TOTAL = 5;
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function cur(){
+  if (st.i === 4) { if (!st.scs[4]) st.scs[4] = finalSC(st.debt); return st.scs[4]; }
+  return st.scs[st.i];
+}
+
+function renderDebt(){
+  $('d-debtn').textContent = st.debt.length;
+  var ul = $('debtlist');
+  if (!st.debt.length) {
+    ul.innerHTML = '<li class="empty">Nothing carried yet. Anything you defer instead of resolving lands here.</li>';
+  } else {
+    ul.innerHTML = st.debt.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('');
+  }
+}
+
+function renderDots(){
+  var h = '';
+  for (var i = 0; i < TOTAL; i++) {
+    h += '<i class="' + (i < st.i ? 'on' : (i === st.i ? 'cur' : '')) + '"></i>';
+  }
+  $('d-dq').innerHTML = h;
+}
+
+function render(){
+  var s = cur();
+  $('d-step').textContent = 'Scenario ' + (st.i + 1) + ' of ' + TOTAL;
+  renderDots();
+  renderDebt();
+  $('d-from').innerHTML = s.from;
+  $('d-title').innerHTML = s.title;
+  $('d-brief').innerHTML = s.brief;
+  $('d-facts').innerHTML = s.facts.map(function(f){
+    return '<div><b>' + f.v + '</b>' + f.k + '</div>';
+  }).join('');
+
+  $('d-opts').innerHTML = s.opts.map(function(o){
+    return '<button class="opt" data-o="' + o.id + '" type="button">'
+         + '<span class="dot"></span><span>' + o.label + '</span></button>';
+  }).join('');
+  Array.prototype.forEach.call($('d-opts').querySelectorAll('.opt'), function(b){
+    b.addEventListener('click', function(){ pick(b.getAttribute('data-o')); });
+  });
+
+  $('why').value = '';
+  $('why').disabled = false;
+  st.sel = null; st.ran = false;
+  $('result').className = 'hid';
+  $('result').innerHTML = '';
+  $('d-run').className = 'act';
+  $('d-run').disabled = true;
+  $('d-next').className = 'act ghost hid';
+  $('d-gate').textContent = 'Pick an option and write one line of reasoning to unlock.';
+  $('d-gate').style.display = '';
+  document.getElementById('transfer').className = 'hid';
+}
+
+function pick(id){
+  if (st.ran) return;
+  st.sel = id;
+  Array.prototype.forEach.call($('d-opts').querySelectorAll('.opt'), function(b){
+    b.classList.toggle('sel', b.getAttribute('data-o') === id);
+  });
+  gate();
+}
+
+function gate(){
+  var okWhy = $('why').value.trim().length >= 10;
+  var ready = !!st.sel && okWhy;
+  $('d-run').disabled = !ready;
+  if (ready) { $('d-gate').textContent = ''; }
+  else if (!st.sel) { $('d-gate').textContent = 'Pick an option and write one line of reasoning to unlock.'; }
+  else { $('d-gate').textContent = 'Write one line of reasoning to unlock (' + $('why').value.trim().length + '/10).'; }
+}
+$('why').addEventListener('input', gate);
+
+function bars(curve, tailFrom){
+  var h = '<div class="bars">';
+  for (var i = 0; i < curve.length; i++) {
+    var isTail = (typeof tailFrom === 'number') && i >= tailFrom;
+    h += '<i class="' + (isTail ? 'tail' : '') + '" style="height:' + Math.max(2, curve[i]) + '%"></i>';
+  }
+  h += '</div><div class="axis"><span>now</span><span>12 mo</span><span>24 mo</span></div>';
+  return h;
+}
+
+function run(){
+  if (st.ran || !st.sel) return;
+  var s = cur();
+  var chosen = null, i;
+  for (i = 0; i < s.opts.length; i++) if (s.opts[i].id === st.sel) chosen = s.opts[i];
+  if (!chosen) return;
+  st.ran = true;
+
+  var why = $('why').value.trim();
+  st.led.push({ n: st.i + 1, t: s.title, c: chosen.label, w: why });
+  for (i = 0; i < chosen.debt.length; i++) st.debt.push(chosen.debt[i]);
+
+  Array.prototype.forEach.call($('d-opts').querySelectorAll('.opt'), function(b){
+    b.disabled = true;
+    var oid = b.getAttribute('data-o');
+    var o = null, j;
+    for (j = 0; j < s.opts.length; j++) if (s.opts[j].id === oid) o = s.opts[j];
+    var tag = '';
+    if (oid === st.sel) tag = 'your call';
+    else if (s.ok.indexOf(oid) >= 0) tag = 'also defensible';
+    if (tag) b.insertAdjacentHTML('beforeend', '<span class="ok">' + tag + '</span>');
+  });
+  $('why').disabled = true;
+  $('d-run').className = 'act hid';
+  $('d-gate').style.display = 'none';
+
+  var h = '';
+  h += '<div class="rhead">24 months later &mdash; what your call did</div>';
+  h += '<div class="mgrid">' + chosen.m.map(function(m){
+    return '<div class="metric ' + (m.t || '') + '"><div class="v">' + m.v + '</div><div class="k">' + m.k + '</div></div>';
+  }).join('') + '</div>';
+  h += '<div class="spark"><div class="st"><b>' + (chosen.curveLabel || s.curveLabel) + '</b> &mdash; month by month</div>'
+     + bars(chosen.curve, chosen.tailFrom) + '</div>';
+  h += '<div class="field" style="border-left-color:var(--accent2);background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.25)">'
+     + '<span class="lbl" style="color:var(--accent2)">The consequence</span><p>' + chosen.v + '</p></div>';
+
+  h += '<div class="rhead">Every option, side by side</div><div class="cmp">';
+  for (i = 0; i < s.opts.length; i++) {
+    var o = s.opts[i];
+    var mine = o.id === st.sel;
+    h += '<div class="row' + (mine ? ' you' : '') + '"><div class="lab"><b>' + o.label
+       + (mine ? '<span class="youtag">you</span>' : '') + '</b>'
+       + o.m.map(function(m){ return m.k + ': ' + m.v; }).join(' &middot; ')
+       + '</div><div class="sc">' + (s.ok.indexOf(o.id) >= 0 ? '<span style="color:var(--green)">defensible</span>'
+       : '<span style="color:var(--red)">costly</span>') + '</div></div>';
+  }
+  h += '</div>';
+
+  h += '<div class="field">' + s.field + '</div>';
+
+  $('result').innerHTML = h;
+  $('result').className = '';
+  renderDebt();
+  renderLedger();
+
+  if (st.i < TOTAL - 1) {
+    $('d-next').className = 'act';
+    $('d-next').textContent = 'Next scenario →';
+  } else {
+    $('d-next').className = 'act ghost hid';
+    document.getElementById('transfer').className = '';
+    $('result').insertAdjacentHTML('beforeend',
+      '<div class="field" style="border-left-color:var(--yellow);background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25)">'
+      + '<span class="lbl" style="color:var(--yellow)">You are done &mdash; now the part that counts</span>'
+      + '<p>Your five decisions and your reasoning are in the ledger below. Read your own rationales back: '
+      + 'the useful question is not whether you picked the "right" options, it is whether the reason you '
+      + 'wrote down at the time survived contact with the consequence.</p>'
+      + '<p><b>A transfer exercise has appeared below the simulator.</b> It is deliberately not a versioning '
+      + 'problem and the mechanism involved was never shown to you here. That is the only part of this '
+      + 'that measures anything.</p></div>');
+  }
+}
+
+function renderLedger(){
+  if (!st.led.length) { $('ledger').className = 'hid'; return; }
+  $('ledger').className = '';
+  $('ledlist').innerHTML = st.led.map(function(l){
+    return '<div class="led"><div class="h"><span class="n">S' + l.n + '</span>'
+         + '<span class="c">' + l.c + '</span></div>'
+         + '<div class="w">&ldquo;' + esc(l.w) + '&rdquo;</div></div>';
+  }).join('');
+}
+
+$('d-run').addEventListener('click', run);
+$('d-next').addEventListener('click', function(){
+  if (st.i < TOTAL - 1) {
+    st.i++; render();
+    var dk = document.getElementById('desk');
+    if (dk && dk.scrollIntoView) { try { dk.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){} }
+  }
+});
+$('d-reset').addEventListener('click', function(){
+  st = { i:0, sel:null, ran:false, debt:[], led:[], scs: SC.slice() };
+  $('ledger').className = 'hid';
+  $('ledlist').innerHTML = '';
+  render();
+});
+
+render();
+
+/* expose for headless verification */
+window.__desk = { state: function(){ return st; }, pick: pick, run: run,
+  next: function(){ $('d-next').click(); }, cur: cur, SC: SC, finalSC: finalSC };
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>

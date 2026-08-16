@@ -1,0 +1,1702 @@
+GOOD API DESIGN — INTERACTIVE COURSE
+====================================
+
+===============
+GOOD API DESIGN
+===============
+
+
+  An opinionated course built on Sean Goedecke's essay — and on the places the
+  field, the standards bodies, and his own employer disagree with him.
+
+    10 modules
+    1 decision simulator
+    ~90 min
+    Aug 2026 verified
+
+  Spine text:
+  Everything I know about good API design
+  — Sean Goedecke, 24 August 2025
+
+
+  How to read this course
+  This is not a summary. Goedecke's essay is the spine — his arguments are
+  stated in his own words and clearly attributed. But an essay is one practitioner's cost model, and
+  a course that only restates a blog post teaches you to agree rather than to decide.
+  So every module carries three kinds of block. Goedecke's position
+  is what he actually argued. Where the field disagrees is
+  sourced pushback — from the HN and Reddit threads, from Fielding, Google, Zalando, Stripe,
+  GitHub, and the RFCs. Verified marks facts checked
+  against live primary sources in August 2026, because half of what circulates about API design is
+  stale and some of it is fabricated.
+  Module 4 is a simulator. Do it before you read modules 5–10 — it will make you commit
+  to judgments you'd rather defer, which is the entire skill.
+
+
+
+--------------
+Course Modules
+--------------
+
+
+
+      1. What "good" actually meansFoundations
+
+      2. Resource modelling & namingDesign
+
+      3. We do not break userspaceCompatibility
+
+      4. Versioning — The Change DeskSimulator
+
+      5. ErrorsStandards
+
+      6. PaginationScale
+
+      7. Idempotency & retriesCorrectness
+
+      8. Auth, rate limits & blast radiusSafety
+
+      9. Deprecation — the long goodbyeLifecycle
+
+      10. GraphQL, DX & what really decidesSynthesis
+
+
+
+
+------------------------------------
+Module 1: What "good" actually means
+------------------------------------
+
+
+Learning objectives
+    * State the familiarity/flexibility tension that generates almost every API design argument
+
+    * Explain why an API is harder to change than the system behind it
+
+    * Place HATEOAS and "real REST" accurately — including what Fielding actually conceded
+
+    * Argue both sides of "API quality is a marginal feature"
+
+
+The tension that generates everything else
+----------------------------------------
+
+
+An API has two masters and they want opposite things. The people building it want flexibility,
+because they'll have to live with this interface for years. The people using it want familiarity,
+because the API is not their goal — it's an obstacle between them and their goal.
+
+Goedecke's position
+"Good APIs are boring. An API that's interesting is a bad API (or at
+least it would be a better one if it were less interesting). […] From their perspective, an
+ideal API should be so familiar that they will more or less know how to use it before they read any
+documentation."
+This is continuous with his systems writing. In Everything I know about good system design
+he puts it more bluntly: "Paradoxically, good design is self-effacing: bad design is often
+more impressive than good. I'm always suspicious of impressive-looking systems." His stated
+enemy is advice optimised for social engagement — "the LinkedIn-optimized 'bet you never heard
+of queues' style of post."
+
+
+The second half of the tension is the one that makes APIs a distinct discipline: APIs are
+hard to change. You can rewrite the service behind an endpoint on a Tuesday. You cannot
+rename a field in its response without breaking every consumer who reads that field. That asymmetry
+— cheap internals, expensive interface — is why API design deserves care that most
+internal code does not.
+
+
+Where "real REST" fits
+----------------------
+
+
+Goedecke is dismissive of the REST purity debate: "People get wrapped up in what 'real' REST is,
+or whether HATEOAS is a good idea." He's largely right, but the reason is more interesting than the
+dismissal.
+
+Roy Fielding coined REST in his dissertation and has been unambiguous that most things called REST
+are not:
+
+"I am getting frustrated by the number of people calling any HTTP-based interface a REST
+API. […] That is RPC. It screams RPC. There is so much coupling on display
+that it should be given an X rating." […] "if the engine of application state (and hence the
+API) is not being driven by hypertext, then it cannot be RESTful and cannot be a REST API.
+Period."
+Roy Fielding, REST APIs must be hypertext-driven, 20 October 2008
+
+But two days later, in his own comment thread, he conceded the point that dissolves the whole
+argument:
+
+"That doesn't mean that I think everyone should design their own systems according to the
+REST architectural style. REST is intended for long-lived network-based applications that span
+multiple organizations. If you don't see a need for the constraints, then don't use them.
+That's fine with me as long as you don't call the result a REST API."
+Roy Fielding, same comment thread, 22 October 2008
+
+Verified — the empirical picture
+Bülthoff & Maleshkova manually analysed 45 of the most-used web APIs
+(arXiv:1902.10514, 2019):
+"HATEOAS remains one of the most poorly supported constraints of the REST architecture with
+less than a fifth of the analyzed Web APIs providing links to related resources." Self-links
+and pagination links appeared in only 13%. Their conclusion: "they most commonly
+remain RESTless."
+Kin Lane's framing is the honest epitaph: "Hypermedia is the most intellectually compelling
+and most commercially frustrating idea in the entire API design world […] the market
+chose simple, RPC-flavored, URL-based REST over the more correct but more demanding hypermedia
+approach."
+
+
+So the dispute is terminological, not architectural. Fielding isn't saying your API is
+broken; he's saying stop calling it REST. Goedecke's practical stance and Fielding's 2008 concession
+are compatible.
+
+
+The Richardson Maturity Model, correctly cited
+
+
+You will meet the "four levels of REST" ladder — Level 0 (HTTP as an RPC tunnel), Level 1
+(Resources), Level 2 (HTTP Verbs), Level 3 (Hypermedia Controls). It is a teaching heuristic,
+and both its originator and its populariser said so.
+
+Cite it accurately
+Martin Fowler, who popularised it (18 March 2010):
+"I should stress that the RMM, while a good way to think about what the elements of REST, is
+not a definition of levels of REST itself. […] As such I see it as a tool to help us
+learn about the concepts and not something that should be used in some kind of assessment
+mechanism."
+Leonard Richardson, in the original 2008 QCon talk, called it a maturity heuristic and
+noted: "A lot of people settle for level two because hypermedia is difficult to understand and
+its value in the web service domain isn't as clear."
+Two things people get wrong: the phrase "the Swamp of POX" appears only in Fowler's diagram,
+never in his prose; and Fielding's famous "evoke an image" passage is dissertation Chapter 6
+§6.1, not Chapter 5.
+
+
+The uncomfortable claim: API quality is marginal
+----------------------------------------
+
+
+Goedecke's position
+"Nobody uses an API because the API itself is so elegantly designed. They use it to
+interact with your product. If your product is valuable enough, users will flock to
+even a terrible API. […] Facebook and Jira are famous for having appalling APIs, but
+it doesn't matter."
+He draws a sharp corollary: "API quality is a marginal feature: it only matters when a consumer is
+choosing between two basically-equivalent products." But the presence of an API is different
+— having none at all is a real problem.
+
+
+This drew zero pushback across 160 Hacker News comments and 55 Reddit comments.
+Nobody defended Jira's or Facebook's API. It is the least controversial claim in the essay, which is
+itself notable given how much effort the industry spends on API polish.
+
+Where the field disagrees
+The claim is true and also load-bearing in a way that should worry you. If API quality only matters
+at the margin, then the marginal case is every case where you are not a monopoly —
+which is most companies most of the time. "Facebook gets away with it" is an argument available to
+almost nobody reading this.
+There is also a measurable proxy the essay misses, and it was the single most-agreed-with
+addition in the HN thread:
+"The quality of the API is inversely correlated to how difficult it is to obtain
+API documentation. If you are only going to get the API documentation after signing a
+contract, just assume it's dismally bad."HN commenter JimDabell
+
+
+Before you continue — commit to an answer
+You maintain an internal service that three teams call. Someone proposes publishing it as a public
+partner API next quarter. What single property of the current design should you check first,
+and why that one before any other?
+A defensible
+answer: whether the resources you expose are your domain's nouns or your
+database's nouns. Everything else on this list — errors, pagination, versioning, auth
+— is a bolt-on you can add later without a redesign. Resource shape is the one thing you cannot
+change afterwards without breaking every consumer, and it is what Module 2 is about. If you answered
+"authentication," that is a reasonable second: it's changeable, but changing it is a migration.
+
+
+Takeaways
+    * API design is a search for the point where familiarity and flexibility hurt least. Boring wins because familiarity is worth more to your users than elegance is to you.
+
+    * Internals are cheap to change; interfaces are not. That asymmetry is the whole discipline.
+
+    * Fielding conceded in 2008 that not using REST's constraints is fine — just don't call it REST. Under a fifth of top APIs implement HATEOAS.
+
+    * The Richardson ladder is a heuristic its own authors declined to use as an assessment tool.
+
+    * "API quality is marginal" is empirically strong and strategically dangerous: the margin is where most companies live.
+
+
+-------------------------------------
+Module 2: Resource modelling & naming
+-------------------------------------
+
+
+Learning objectives
+    * Recognise when an API is leaking internal structure instead of modelling a domain
+
+    * Apply the "model the transaction as a resource" move to operations that don't fit CRUD
+
+    * Use a defensible naming convention and know why the convention matters more than the choice
+
+    * Judge the strongest criticism of the essay: that "fix the product" is an abdication
+
+
+Bad products make bad APIs
+--------------------------
+
+
+Goedecke's position
+"A technically-poor product can make it nearly impossible to build an elegant
+API. That's because API design usually tracks the 'basic resources' of a product […]
+When those resources are set up awkwardly, that makes the API awkward as well."
+His example: a blog that stores comments as an in-memory linked list. The naive REST mapping leaks
+the list structure straight into the wire format —
+
+
+The leak, in three stages
+
+---code---
+# Stage 1 — the internal pointer becomes public API
+GET /comments/1
+→ { "id": 1, "body": "...", "next_comment_id": 2 }
+
+# Stage 2 — worse: the whole structure, nested
+GET /comments
+→ { "body": "...", "next_comment": { "body": "...", "next_comment": {...} } }
+
+# Stage 3 — the traversal cost surfaces as an async job the caller must orchestrate
+POST /comments/fetch_job/1   → { "job_id": 589 }
+GET  /comments_job/589      → { "status": "complete", "comments": [...] }
+---/code---
+
+
+His diagnosis is exactly right: "Technical constraints that can be cleverly hidden in the UI
+are laid bare in the API, forcing API consumers to understand far more of the system design
+than they should reasonably have to."
+
+Where the field disagrees — the sharpest critique of the whole essay
+"Yeah, almost like you have to design an API, not just make it a proxy for
+gory technical details. Strangely, the article recommends fixing technical details (which is
+not always possible within a reasonable timeframe), instead of spending time on figuring out good
+APIs."Reddit u/katafrakt, 64 upvotes — the highest-voted
+criticism in either thread
+This is the accusation that the claim is an abdication. If a bad internal model
+unavoidably produces a bad API, the API designer has no job. But the API layer's entire purpose is to
+be a translation — a published contract about your domain, not a window onto your schema. In the
+comment example you do not need to fix the linked list. You need to decide that the public resource is
+a thread with a paginated collection of comments, and then do whatever internal work
+that costs.
+The synthesis: he's describing a real gravitational pull and calling it a law.
+Treat it as a warning about what happens by default, not as permission.
+
+
+The move that unblocks awkward operations
+----------------------------------------
+
+
+The most useful idea in the discourse wasn't in the essay. A long Reddit sub-thread argued that
+resource-oriented design fundamentally cannot express transactions — that you inevitably end up
+with "a billion endpoints for every imaginable usecase."
+
+Two replies reframed it: "you're missing an axiom… (REST) APIs should be atomic. If
+you're doing complex transactional stuff, it's probably the wrong paradigm" (u/XtremeGoose),
+and more bluntly, "You gotta stop thinking the API is a database, man"
+(u/utdconsq). The resolution the original poster accepted:
+
+The pattern: model the operation itself as a resource
+Instead of a verb endpoint that does several things at once, POST a
+request entity that is itself listable, gettable, and has a lifecycle.
+
+
+Verb endpoint vs. operation-as-resource
+
+---code---
+// Awkward: an RPC verb wearing a REST costume. No handle, no status,
+// no retry story, no audit trail.
+POST /accounts/42/close_and_refund_and_notify
+
+// Better: the operation is a thing that exists, and can be inspected.
+POST /account-closures
+  { "account": "42", "refund": true, "notify": true }
+→ 202 { "id": "clo_9f2", "state": "pending", "account": "42" }
+
+GET  /account-closures/clo_9f2   // status, failure reason, partial progress
+GET  /account-closures?state=failed
+---/code---
+
+
+Fielding got there in 2008 from the opposite direction: "If you find yourself in need of a
+batch operation, then most likely you just haven't defined enough resources." A Reddit
+thread in 2025 reinvented it independently. That convergence is a good sign you should trust the
+pattern.
+
+
+Naming: pick a convention, then stop thinking about it
+----------------------------------------
+
+
+Goedecke says nothing about naming, which is consistent with his thesis — naming is exactly
+the kind of thing that generates enormous discussion and very little value, as long as you are
+consistent. Inconsistency is the actual defect. Zalando's guidelines, one of the two most complete
+public style guides, fix all three casings so nobody has to argue:
+
+
+Where	|	Casing	|	Example	|	Rule
+URL path segments	|	kebab-case	|	/shipment-orders/{id}	|	#129
+JSON properties	|	snake_case	|	customer_number	|	#118
+Query parameters	|	snake_case	|	?created_after=	|	#130
+HTTP headers	|	Kebab-Case-Uppercase	|	X-Flow-Id	|	#132
+Resource names	|	plural nouns	|	/orders, not /order	|	#134
+
+
+Their stated reason for snake_case is pure familiarity, which is Goedecke's own
+argument: "many popular Internet companies prefer snake_case: e.g. GitHub, Stack Exchange,
+Twitter." Google's AIPs choose differently (lowerCamelCase in JSON). Both are
+fine. Picking neither is not.
+
+The one naming rule that is not arbitrary
+Google AIP-180: "A resource MUST NOT change its name. Unlike most breaking changes, this
+affects major versions as well." Casing is taste. The identity of a resource is a contract
+that survives even your version boundaries — a /v2 that renames
+/customers to /clients is not a new version, it's a new API.
+
+
+Takeaways
+    * APIs default to leaking internal structure. Noticing the leak is the job; "the product is bad" is a description, not an excuse.
+
+    * When an operation doesn't fit CRUD, make the operation a resource with an id, a state, and a history. You get status, retries, and audit for free.
+
+    * Fielding's rule of thumb: needing a batch endpoint usually means you haven't defined enough resources.
+
+    * Naming conventions are arbitrary; consistency is not. Resource identity is a contract that outlives versions.
+
+
+-----------------------------------
+Module 3: We do not break userspace
+-----------------------------------
+
+
+Learning objectives
+    * Classify changes as additive, breaking, or "technically additive but actually breaking"
+
+    * State the missing half of Torvalds' rule and why it makes the norm usable
+
+    * Apply the tolerant-reader discipline and the asymmetric enum rule
+
+    * Write down a stability contract instead of assuming one
+
+
+Goedecke's position
+"As a maintainer of an API, you have something like a sacred duty to avoid harming
+your downstream consumers. […] You should never make a change to an API just because
+it'd be neater, or because it's a little awkward. The 'referer' header in the HTTP specification is
+famously a misspelling of the word 'referrer', but they haven't changed it, because we do not
+break userspace."
+He also stakes out a position on tolerance: consumers that break when they receive
+extra fields are, in his word, "irresponsible." "You should expect API consumers to ignore
+unexpected fields."
+
+
+The missing half
+----------------
+
+
+The top-voted comment in the entire Hacker News thread does not disagree with him. It completes
+him, and it's the most useful sentence in the discourse:
+
+Where the field disagrees — the essential correction
+"The reminder to 'never break userspace' is good, but people never bring up the other half
+of that statement: 'we can and will break kernel APIs without warning'. It
+illustrates that the reminder isn't 'never change an API in a way that breaks someone', it's the more
+nuanced 'declare what's stable, and never break those'."
+HN dwattttt — top comment in the thread
+Supporting evidence from the same thread: glibc breaks ABI "all the time"; Linux famously has no
+stable in-kernel driver API, which several commenters noted was a motivation for Google's Fuchsia.
+Why this matters practically: "never break anything" is unimplementable, so people
+either violate it and feel bad, or freeze and ship nothing. "Publish a stability contract, then honour
+it absolutely" is implementable. It converts a moral stance into an engineering artifact — and
+it tells you which parts of your surface you are still allowed to move.
+
+
+The change classification you should steal
+----------------------------------------
+
+
+GitHub publishes the clearest list, and it is worth internalising because roughly half of these
+surprise people:
+
+
+Additive — safe in all versions
+Adding an operation · adding an optional parameter · adding an optional request header
+· adding a response field · adding a response header · adding enum values
+GitHub ships these to every supported
+version without a version bump.
+Breaking — requires a version
+Removing an operation · removing or renaming a parameter · removing or renaming a
+response field · adding a required parameter · making an optional parameter required
+· changing a parameter or field's type · removing enum values ·
+adding a new validation rule to an existing parameter · changing auth
+requirements
+
+
+The traps in that list
+Adding a validation rule is breaking. Requests that used to succeed now 4xx. This
+is the single most commonly shipped accidental break, because it doesn't change the schema and
+therefore doesn't feel like a change.
+Enums are asymmetric — and Zalando's rule #107 is the sharpest formulation
+anywhere: "For schemas used in input only: enum ranges can be
+extended. For schemas used in output only: enum ranges cannot
+be extended — clients may not be prepared to handle it." Adding
+status: "partially_refunded" to a response is additive on paper and a production
+incident in a client's switch statement.
+Google AIP-180 goes further still, and these will catch you: ceasing to populate a
+field you used to populate is breaking; changing a default value is breaking;
+changing a field's format or algorithm is breaking "even if the field is
+OUTPUT_ONLY"; and as of October 2025, increasing a string length limit
+is breaking.
+
+
+Tolerant reader — the discipline that makes additive changes safe
+----------------------------------------
+
+
+Goedecke's "consumers should ignore unexpected fields" is Postel's Law, and Zalando operationalises
+it into rules you can put in a code review checklist:
+
+
+Rule	|	What it requires
+#108 — Tolerant reader	|	"Be tolerant with unknown fields in the payload… ignore new fields but do not eliminate them from payload if needed for subsequent PUT requests."
+#108 — Unknown status codes	|	"Be prepared to handle HTTP status codes not explicitly specified… Default handling is how you would treat the corresponding 2xx code." (per RFC 9110)
+#111 — Keep schemas open	|	"API formats must not declare additionalProperties to be false, as this prevents objects being extended in the future."
+#106 — The contract	|	"APIs are contracts between service providers and service consumers that cannot be broken via unilateral decisions."
+
+
+The PUT clause in #108 is the subtle one. A client that strips unknown fields on read
+and then PUTs the object back will silently delete data it never understood.
+That's a data-loss bug caused by an additive change — the API owner did nothing wrong and the
+customer is still down.
+
+Verified — the compatibility axes you're actually promising
+Google AIP-180 names three: source, wire, and
+semantic compatibility, and covers all three. Zalando explicitly covers only the wire
+format: "the compatibility guarantees are for the 'on the wire' format. Binary or source
+compatibility of code generated from an API specification is not covered."
+If you ship SDKs, you are on the hook for source compatibility whether you said so or not. Decide
+which of the three you promise, and write it down. That is dwattttt's point made concrete.
+
+
+Commit before revealing — is this change breaking?
+Your GET /orders/{id} response includes "total": "42.00". Finance asks
+you to return more precision: "total": "42.0000". The type is unchanged (still a string),
+no field is added or removed, no validation changes. Ship it?
+No — this is
+breaking, on two of the three axes. Google AIP-180 classifies changing "the format or
+algorithm of an existing field's value" as breaking, and explicitly says "Doing so requires a new API
+version." Concretely: clients doing string comparison against a stored value now mismatch on every
+record; clients with a DECIMAL(10,2) column now truncate or error; and any client that
+displays the raw string now shows customers $42.0000. Nothing in your schema changed and
+you have broken your users. This is why "is the schema the same?" is the wrong question — the
+right one is "could a reasonable client have depended on what I just changed?"
+
+Takeaways
+    * The norm is not "never change anything." It's declare what's stable, then never break that — Torvalds' rule has a second half.
+
+    * Additive means additive for the client: new validation rules, new response enum values, and format changes all break people while looking safe.
+
+    * Tolerant readers make additive evolution possible. Closed schemas (additionalProperties: false) foreclose it.
+
+    * A client that strips unknown fields and PUTs the object back causes data loss from a change you were entitled to make. Document round-trip expectations.
+
+    * Pick your compatibility axes — wire, source, semantic — and publish which you guarantee.
+
+
+--------------------------------------
+Module 4: Versioning — The Change Desk
+--------------------------------------
+
+
+Learning objectives
+    * Make a versioning call under uncertainty and defend it before seeing the outcome
+
+    * Recognise that deferring a breaking change does not delete it — it queues it
+
+    * Compare URL, header, media-type and per-change versioning against real published schemes
+
+    * Judge why Google mandates /v1 in the path and Zalando forbids it
+
+
+Goedecke's position
+"I don't like API versioning. I think at best it's a necessary evil, but
+it's still evil. It's confusing to users… And it's a nightmare for maintainers. If you
+have thirty API endpoints, every new version you add introduces thirty new endpoints to maintain.
+[…] In short, you should only use API versioning as a last resort."
+He acknowledges Stripe's translation-layer approach and notes, correctly, that such abstractions
+leak — citing a 2017 HN comment from a Stripe employee saying some version changes need
+conditional logic in core code.
+
+
+This attracted roughly 60% of all comments across both threads, and the critics did
+not agree with each other — which is the best evidence that this is a genuine tradeoff and not a
+solved problem.
+
+Where the field disagrees — three incompatible attacks
+1. The cost math assumes the wrong unit.
+"This means he's literally versioning every single one when he changes a single endpoint.
+What should be done is you only create a new version for the endpoint that has
+changed… Overall, I wouldn't trust API designs from someone who just bumps the version
+number for everything every time they change a single endpoint."
+Reddit u/Sir_KnowItAll, 99 upvotes — top comment on Reddit
+2. No — per-endpoint versioning is worse. The same thread split hard:
+"Absolutely not. That's version hell. I want clients using specific
+versions of the api. New api version for all endpoints. If many of them have no changes, great."
+Reddit u/mpanase, 58 upvotes
+"versioning every API endpoint independently can [be] maddening in it's own ways.
+you can't talk about the version of the 'system' very cohesively"
+Reddit u/bzbub2, 68 upvotes
+3. The URL is the wrong place entirely — the most technically substantive
+objection:
+"In a REST API, the URL is the primary key. If Client A holds a copy of
+/v1/foo/1 and Client B holds a copy of /v2/foo/1 then as far as HTTP and
+REST are concerned, those are two different resources and the clients cannot
+interoperate."HN JimDabell
+
+
+Now make the calls yourself
+---------------------------
+
+
+Reading about a versioning tradeoff is not the same as making one. Below is a simulator. It gives
+you five change requests of the kind that actually land on an API owner's desk, and it will not let
+you see any consequence until you have committed to a decision and written down why.
+
+It is not a quiz — several options are defensible and the reveal shows you what
+every option would have done, not just yours. But it keeps a debt ledger.
+Choices that avoid a break by carrying something forever accumulate there, and in the fifth scenario
+the bill comes due, scaled to what you actually accrued. That second-order effect is the part the
+essay leaves out.
+
+
+
+    Simulator
+
+The Change Desk
+---------------
+
+
+    Scenario 1 of 5
+
+
+
+
+
+
+      Deprecation debt carried 0
+        * Nothing carried yet. Anything you defer instead of resolving lands here.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      Your reasoning — one line, required before you can run it forward
+
+
+
+
+
+
+
+      Pick an option and write one line of reasoning to unlock.
+
+
+
+
+
+      Your decision ledger
+
+
+
+
+
+
+
+Transfer check — a case the simulator never ran
+
+
+  This one is deliberately outside everything above: it is not a versioning
+  decision, and none of the five scenarios showed you the mechanism involved. Answer from the
+  principles, not from pattern-matching. Write your answers first — the reveal is below them.
+
+  1. You consume a partner's /payouts API. You
+  switch on payout.status, which has always been one of
+  pending | paid | failed. This morning they added reversed and your
+  reconciliation job crashed on 1,400 records. They say the change was additive and therefore
+  non-breaking. Who is right?
+
+
+  2. Name the single documented rule that would have prevented this,
+  and say which side of the contract it binds.
+
+
+  3. You now own that partner API. Product needs a sixth status next
+  quarter. What do you change about the API — not the process — so this cannot recur?
+
+
+  Reveal — and where reasonable people still split
+  1. Both are partly right, and the asymmetry is the answer. Adding an enum value
+  to a field that appears in a request is genuinely additive. Adding one to a field that
+  appears in a response is not, because the client already shipped an exhaustive
+  switch. GitHub lists "removing enum values" as breaking but treats adding them as
+  additive — which is why GitHub's own classification is insufficient here. Google AIP-180 is
+  more careful: enum values "MAY be freely added to enums which are only used in request
+  messages… Enums used in response messages… MAY still be added; however,
+  appropriate caution SHOULD be used."
+  2. Zalando rule #107 — "For schemas used in input only:
+  enum ranges can be extended. For schemas used in output only: enum
+  ranges cannot be extended — clients may not be prepared to handle it." It binds
+  the provider. Its companion #108 (tolerant reader) binds the consumer: "Be prepared
+  to handle HTTP status codes not explicitly specified… Default handling is how you would treat
+  the corresponding 2xx code." A robust client has a default: arm. Both
+  sides owed something here, which is exactly why "who broke whom" is the wrong first question.
+  3. Change the type, not the values. The design defect is that a closed enum was
+  published for a field whose value set was always going to grow. The fix is to document
+  status as an open string with a known-values list and state in the
+  contract that clients must tolerate unknown values — then adding a sixth is genuinely
+  additive. Two other defensible answers: return a coarse stable enum
+  (terminal | in_flight) alongside a fine-grained detail string, so clients switch on the
+  stable one; or version the field's type once, now, and never again.
+  Where this is still argued: open enums push the cost onto every consumer,
+  including the non-engineers Goedecke spends the essay defending, and they make code generation
+  weaker — a generated client can no longer give you an exhaustiveness check, which is one of the
+  real benefits of a typed API. There is no free option. That is the point.
+
+
+
+What the published schemes actually do
+--------------------------------------
+
+
+Scheme	|	Mechanism	|	Status, Aug 2026
+Stripe	|	Date + plant-name release trains, per-account pinning, version-change modules replayed backwards	|	2026-07-29.dahlia. Major (breaking) twice a year; monthly additive releases. ~100 backwards-incompatible upgrades since 2011 — and zero versions ever retired.
+GitHub	|	Date in an X-GitHub-Api-Version header	|	Two versions: 2022-11-28 and 2026-03-10. Previous supported "at least 24 more months"; unsupported returns 410 Gone.
+Twilio	|	Date in the URL, frozen	|	api.twilio.com/2010-04-01/ — unchanged for ~16 years. But every product launched since has its own v1/v2.
+Google AIP-185	|	Major version in the path	|	"All Google API interfaces MUST provide a major version number… included as the first part of the URI path for REST APIs." Minor/patch numbers MUST NOT be exposed.
+Zalando #113/#115	|	Media-type versioning with content negotiation	|	"MUST NOT use URL versioning." And: "As we discourage versioning by all means because of the manifold disadvantages…"
+
+
+The fact that should end the argument
+The two most respected published API style guides flatly contradict each other.
+Google mandates the version in the URL path. Zalando forbids the version in the URL path. Both are
+maintained, current, and used at scale. Goedecke's dislike of versioning is therefore a legitimate
+contested position, not an error — and anyone who tells you there is one correct answer here has
+read one of these documents and not the other.
+
+
+Where Goedecke's cost model actually breaks down
+----------------------------------------
+
+
+"Thirty endpoints × N versions" is the strongest-sounding part of his argument and the weakest part
+under inspection, because nobody serious versions that way. Stripe's model is neither
+per-endpoint nor per-API — it is per-change, composed. A "version" is just a date that
+selects how many transformation modules to replay:
+
+Stripe's mechanism, in shape
+
+---code---
+// One module per breaking change, ever. Not per endpoint, not per version.
+const changes = [
+  { since: "2024-09-30", downgrade(res) { res.amount_cents = res.amount * 100 } },
+  { since: "2025-03-31", downgrade(res) { res.customer = res.customer.id } },
+  // ...~100 of these, accumulated since 2011
+];
+
+// Serving an old client = replay the modules newer than their pinned date, backwards.
+function serialize(res, clientVersion) {
+  return changes
+    .filter(c => c.since > clientVersion)
+    .reverse()
+    .reduce((r, c) => (c.downgrade(r), r), res);
+}
+---/code---
+
+
+Cost scales with the number of breaking changes you have ever made, not with
+endpoints × versions. That dissolves his arithmetic — but it does not dissolve his conclusion,
+because that machinery is expensive to build, and Brandur Leach's own account concedes the leak
+Goedecke cites. His cost claim is validated. His inference from it is not the one Stripe drew.
+
+Takeaways
+    * Versioning is genuinely contested: Google mandates URL versions, Zalando forbids them, both are current and serious.
+
+    * "Endpoints × versions" is the wrong cost model. Per-change composition scales with breaking changes made, not surface area.
+
+    * Not versioning does not avoid the cost — it defers it. GitHub's 2026 version exists because a decade of deprecations had nowhere else to go.
+
+    * Version in a header or media type rather than the path if you want clients holding different versions to still be talking about the same resource.
+
+    * If you version, the hard part isn't the mechanism. It's committing to a support window and honouring it.
+
+
+----------------
+Module 5: Errors
+----------------
+
+
+Learning objectives
+    * Use RFC 9457 problem details correctly, including what it does not standardise
+
+    * Design a stable machine-readable error taxonomy separate from human-readable messages
+
+    * Know when your error strings become part of your API contract
+
+
+Where the field disagrees — by omission
+Goedecke's essay never discusses error formats. This is the clearest gap in it, and the odd thing
+is that filling it would have strengthened his thesis. A Standards-Track RFC that obsoleted
+its predecessor and ships an IANA registry is precisely the "boring, well-known thing" his own
+philosophy demands. It is a free win he didn't take.
+
+
+RFC 9457, Problem Details for HTTP APIs
+---------------------------------------
+
+
+Verified — status as of August 2026
+RFC 9457
+— Nottingham, Wilde, Dalal. July 2023. Standards Track (Proposed Standard). Obsoletes
+RFC 7807. Media type application/problem+json. If your notes say 7807, they are
+three years stale.
+
+
+application/problem+json
+
+---code---
+HTTP/1.1 403 Forbidden
+Content-Type: application/problem+json
+
+{
+  "type":     "https://example.com/probs/insufficient-funds",
+  "title":    "You do not have enough credit.",
+  "status":   403,
+  "detail":   "Your balance is 30, but the transfer costs 50.",
+  "instance": "/account/12345/transactions/msg-abc",
+
+  // extension members are allowed and encouraged
+  "balance":  30,
+  "accounts": ["/account/12345"]
+}
+---/code---
+
+
+Member	|	What the RFC actually says
+type	|	"Consumers MUST use the 'type' URI… as the problem type's primary identifier." Absent ⇒ assumed about:blank. But: "consumers SHOULD NOT automatically dereference the type URI."
+status	|	"is only advisory… Generators MUST use the same status code in the actual HTTP response."
+title	|	"SHOULD NOT change from occurrence to occurrence of the problem, except for localization."
+detail	|	"ought to focus on helping the client correct the problem, rather than giving debugging information. Consumers SHOULD NOT parse the 'detail' member."
+Type mismatch	|	"If a member's value type does not match the specified type, the member MUST be ignored."
+
+
+Two things people get wrong about 9457
+1. There is no standard errors array. The multi-error array you have
+seen in a hundred blog posts appears in 9457 only inside a 422 example the RFC itself labels "the
+fictional problem type here." Ship one if you want — just don't tell your team it's
+standard.
+2. On multiple problems, the RFC recommends the opposite of what most APIs do:
+"When an API encounters multiple problems that do not share the same type, it is RECOMMENDED that
+the most relevant or urgent problem be represented in the response. While it is
+possible to create generic 'batch' problem types… they do not map well into HTTP semantics."
+New in 9457 over 7807: an IANA HTTP Problem Types registry
+(policy: Specification Required). Note that "vendor-specific, application-specific, and
+deployment-specific values are unable to be registered" — the registry is for
+genuinely cross-cutting problems, not your business errors.
+
+
+The stable-taxonomy pattern
+---------------------------
+
+
+Twilio is the model, and it's the most Goedecke-compatible thing in this course: four fields, a
+numeric code that has meant the same thing for a decade, and a documentation URL per code.
+
+Twilio error — boring, and unchanged for years
+
+---code---
+{
+  "status":    400,
+  "message":   "No to number is specified",
+  "code":      21201,
+  "more_info": "http://www.twilio.com/docs/errors/21201"
+}
+---/code---
+
+
+The full numeric dictionary is published and downloadable as JSON, with a page per code. That is
+what "boring" looks like when someone actually does it.
+
+Verified — Google AIP-193, and the trap inside it
+"All error responses MUST include an ErrorInfo within details…
+This provides machine-readable identifiers so that users can write code against specific aspects of
+the error." The reason field "MUST be at most 63 characters and match
+[A-Z][A-Z0-9_]+[A-Z0-9]" — good: CPU_AVAILABILITY, NO_STOCK;
+bad: ERROR, THE_BOOK_YOU_WANT_IS_NOT_AVAILABLE.
+The trap: "If the RPC has always returned ErrorInfo with
+machine-readable information, the content of Status.message MAY change over time…
+Otherwise, the content of Status.message MUST be stable." Read that
+again. If you never shipped a machine-readable error code, your human-readable error strings
+became your API contract, because clients had nothing else to match on — and they are
+matching on them right now. Shipping structured error codes is how you buy back the freedom to reword
+your own error messages.
+One more ordering rule worth stealing: "Permission MUST be checked prior to checking if the
+resource or parent exists" — 403 before 404, so your error responses don't become an
+existence oracle.
+
+
+Where the field disagrees — with the RFC
+Zalando mandates RFC 9457 (rule #176) and then deliberately breaks one of its recommendations:
+"Problem type and instance identifiers in our APIs are not meant to
+be resolved. RFC 9457 encourages that problem types are URI references that point to
+human-readable documentation, but we deliberately decided against that, as all
+important parts of the API must be documented using OpenAPI anyway. In addition, URLs tend to
+be fragile and not very stable over longer periods." They use relative refs like
+/problems/out-of-stock.
+They're right, and it's a nice illustration of adopting a standard's shape without
+inheriting a commitment you can't keep for twenty years.
+Practical gotcha from the same document: "The media type application/problem+json
+is often not implemented as a subset of application/json by libraries! Thus
+clients need to include application/problem+json in the Accept header."
+
+
+Takeaways
+    * Use RFC 9457 (July 2023, Standards Track, obsoletes 7807). Don't cite 7807.
+
+    * The errors array is not standardised. The RFC recommends returning the single most urgent problem.
+
+    * Ship a stable machine-readable code alongside the prose. Without one, your prose is the contract.
+
+    * Type URIs need not resolve — Zalando deliberately doesn't resolve theirs, because URLs rot.
+
+    * Check permission before existence, or your 404s leak which resources exist.
+
+
+--------------------
+Module 6: Pagination
+--------------------
+
+
+Learning objectives
+    * Explain why offset pagination degrades and cite the actual numbers
+
+    * Name three things cursor pagination cannot do
+
+    * Identify the cursor failure mode that is worse than offset's, because it is silent
+
+
+Goedecke's position — quoted in full, because the paraphrase is a strawman
+"You should always use cursor-based pagination for datasets that might end up being
+large. Even though it's harder for consumers to grasp, when you run into scaling problems you
+might have to change to cursor-based pagination anyway, and the cost of making that change is
+often very high. However, I think it's fine to use page or offset-based pagination
+otherwise."
+Note the second sentence. He already concedes the offset case. The internet argued with a position
+he didn't take.
+
+
+The performance claim, verified
+-------------------------------
+
+
+Verified — two primary sources
+Citus / Microsoft (Five ways to paginate in Postgres),
+10M rows, LIMIT 100:
+
+Query	|	Time
+OFFSET 0	|	0.059 ms
+OFFSET 1,000	|	0.609 ms
+OFFSET 5,000,000	|	758.484 ms
+WHERE n > 5000000 (keyset)	|	0.119 ms
+
+
+That is roughly 6,300× at depth. And the objection people raise — "but
+my sort column is indexed" — is settled by Sequin:
+"It doesn't matter if you have an index on your sort column… it still needs to
+walk through the index to count off the offset rows. The operation is still O(n)."
+
+
+The two shapes
+
+---code---
+-- Offset: the database counts past every skipped row, every time.
+SELECT * FROM tickets ORDER BY id OFFSET 5000000 LIMIT 10;
+
+-- Keyset: the index seeks straight to the position. Cost is flat.
+SELECT * FROM tickets WHERE id > :cursor ORDER BY id LIMIT 10;
+
+-- Real cursors need a tie-breaker, or rows with equal sort keys are
+-- skipped or duplicated. This is the part people get wrong.
+SELECT * FROM tickets
+ WHERE (created_at, id) > (:c_ts, :c_id)   -- row-value comparison
+ ORDER BY created_at, id LIMIT 10;
+---/code---
+
+
+That last query does not work on most databases
+Markus Winand, the person who has campaigned hardest for keyset pagination, documents the
+portability problem: "SQL Server 2017 does not support row values at all. The Oracle
+database supports row values in principle, but cannot apply range operators on them (ORA-01796).
+MySQL evaluates row value expressions correctly but cannot use them as access predicate during
+an index access." Only PostgreSQL and Db2 LUW handle multi-column cursors
+properly. On MySQL you must hand-expand the comparison into an OR-chain and verify the plan.
+
+
+What cursors cost you — from cursor advocates
+----------------------------------------
+
+
+The case for — conceded by everyone
+Flat cost at any depth. Handles concurrent inserts and deletes without duplicating or skipping
+rows. Google AIP-158: pagination "MUST [be provided] at the outset, as it is
+a backwards-incompatible change to add pagination to an existing method."
+The case against — also from advocates
+Winand: "you also cannot fetch arbitrary pages… you need to reverse all
+comparison and sort operations to change the browsing direction." And: "The main reason to
+prefer offset over keyset pagination is the lack of tool support."
+Citus: "no way to jump directly to a given page… The server will likely need to provide an
+endpoint with fixed order rather than allowing the client to customize the ordering."
+
+
+Where the field disagrees — the failure mode nobody mentions
+Everyone knows offset's anomaly: insert a row while someone is paging and they see a duplicate or
+miss one. Cursor pagination has a worse one, and it comes from the same post that argues for
+cursors:
+"Keyset pagination handles deletions gracefully. However, if a row's sort key
+changes, the row might appear twice or be skipped.… This problem has plagued
+almost every HTTP API I've ever worked with."Sequin, December 2024
+Offset's anomaly produces a visible duplicate. Cursor's produces a silently missing
+record that the client cannot detect — if you paginate by updated_at and a
+row is updated mid-scan, it moves behind your cursor and is simply never returned. Every "our nightly
+sync misses a few records and we can't reproduce it" incident is this.
+The structural proof that cursors give something up: Relay's Cursor Connections spec
+defines PageInfo as exactly hasPreviousPage, hasNextPage,
+startCursor, endCursor. There is no total count and no page number
+anywhere in the spec. The industry-standard cursor format structurally cannot express "page
+51 of 100" or "1,204 results."
+
+
+Verified — who says "offer both"
+Both major style guides do. Google AIP-158 requires opaque tokens
+("MUST be opaque… and MUST NOT be user-parseable. This is because if users are able to
+deconstruct these, they will do so") but permits skip and
+total_size, which "MAY be an estimate." Zalando #160 is only a
+SHOULD prefer cursor, and it publishes a four-item trade-off list including: "If jumping to a
+particular page in a range (e.g., 51 of 100) is really a required use case, cursor-based
+navigation may not be feasible."
+Stripe is cursor-only — limit (default 10, max 100),
+starting_after, ending_before, has_more. No offset, no page
+number, no total.
+Two design rules worth stealing regardless: make the token opaque (AIP-158 warns that "Base-64
+encoding an otherwise-transparent page token is not a sufficient obfuscation mechanism"),
+and ensure "page tokens MUST NOT provide any form of authorization" — a leaked
+cursor must not be a leaked capability.
+
+
+And the user's side of it
+"Pagination: do not force me to drink from a paginated coffee stir. I do
+not want 640 B of data in a response, and then have to send another response for the next 640 B. And
+often, pagination means the calls are serialized, so I'm just doing nothing but waiting for round trip
+latency after round trip latency."HN deathanatos
+Page-size defaults are a DX decision, not just a database one. A correct cursor implementation with
+a default page size of 10 and a max of 25 is still a bad API.
+
+
+Takeaways
+    * The performance case is overwhelming and the objection about indexes is wrong: offset is O(n) regardless.
+
+    * His actual text already concedes offset for small collections. Argue with what he wrote.
+
+    * "Always" is the error: cursors cannot jump to a page, cannot easily browse backwards, cannot express a total, and constrain the sort order.
+
+    * Cursor's silent-skip on sort-key mutation is worse than offset's visible duplicate. Anchor on an immutable key plus a tie-breaker.
+
+    * Add pagination on day one. Adding it later is a breaking change.
+
+
+-------------------------------
+Module 7: Idempotency & retries
+-------------------------------
+
+
+Learning objectives
+    * Use the HTTP methods that are already idempotent before reaching for a key
+
+    * Explain why an idempotency key in a side cache is not sufficient
+
+    * Design the three-state machine: first request, retry, concurrent duplicate
+
+
+Goedecke's position
+"The solution is idempotency, which is a fancy word for 'the request should
+be safely retriable without creating duplicates.' […] The easiest way is to put them
+in Redis or some similar key/value store… For most cases, idempotency should be
+optional. […] getting more people on your API is more important than the occasional
+duplicated comment from users who didn't read the documentation."
+His framing of why it matters is the best thing in the essay: "What if you're transferring some
+amount of money? What if you're dispensing medication?"
+
+
+Correction one: PUT and DELETE are already idempotent
+----------------------------------------
+
+
+He published a correction acknowledging he should have mentioned PUT. The implication is bigger
+than the correction.
+
+Verified — RFC 9110 §9.2.2 (June 2022, Internet Standard, STD 97)
+"A request method is considered 'idempotent' if the intended effect on the
+server of multiple identical requests with that method is the same as the effect for a single such
+request. Of the request methods defined by this specification, PUT, DELETE, and safe request
+methods are idempotent."
+Idempotent: GET, HEAD, OPTIONS, TRACE, PUT, DELETE. Not idempotent:
+POST, PATCH, CONNECT.
+Also from 9110, and worth putting in your client library: "A client SHOULD NOT
+automatically retry a request with a non-idempotent method unless it has some means to know
+that the request semantics are actually idempotent," and "A proxy MUST NOT automatically retry
+non-idempotent requests."
+
+
+Why this reframes the whole chapter: if PUT is idempotent for free, then the entire
+Idempotency-Key apparatus is only needed for POST and PATCH. A client-generated resource
+id plus PUT /transfers/{client_uuid} gets you safe retries with no extra machinery at
+all. Reach for the header when you genuinely need POST semantics — not by default.
+
+And a detail he got slightly wrong
+The essay says three repeated DELETE comments/32 calls will 404 after the first. A
+commenter pushed back: "Many implementations return HTTP 204 for any DELETE that succeeds in
+the sense that the element is gone regardless if it had been there before." RFC 9110 backs
+the commenter — the definition is about "the intended effect on the server," and the
+spec explicitly notes the response may differ. Returning 204 for a repeat DELETE is fully
+conformant, and arguably kinder.
+
+
+Correction two: Redis is not enough
+-----------------------------------
+
+
+He also published a correction on storage, prompted by the sharpest technical comment in the
+thread:
+
+"I'm not sure how storing a key in Redis achieves idempotency in all failure cases…
+Can't assume that the comment had been created before, since the process could have been
+killed in-between storing the key in Redis and actually creating the comment in the database.
+An attempt to store idempotency key needs to be atomically committed… together with the
+operation payload… For all intents and purposes, the idempotency key is the ID
+of the operation being executed."HN achernik
+
+The rule, in one diagram
+
+---code---
+// BROKEN — two systems, no shared transaction. Crash anywhere between
+// them and you cannot tell "already done" from "never started".
+if (await redis.set(key, 1, "NX")) {   // <-- crash here...
+  await db.comments.insert(payload);   // ...and this never runs, forever
+}
+
+// CORRECT — the key and the effect commit together, or neither does.
+await db.transaction(async (tx) => {
+  const claimed = await tx.idempotency_keys
+    .insert({ key, request_hash })
+    .onConflictDoNothing();
+  if (!claimed) return tx.idempotency_keys.get(key).response;
+  const comment = await tx.comments.insert(payload);
+  await tx.idempotency_keys.setResponse(key, comment);
+  return comment;
+});
+---/code---
+
+
+Verified — the reference design, and its own escape hatch
+The "atomic phases" design is Brandur Leach's
+— note the title says "Implementing Stripe-like Idempotency Keys in Postgres."
+It is a reference design, not a description of Stripe's internals. Its key rules:
+"Atomic phases should be safely committed before initiating any foreign state
+mutation." And, importantly: "even foreign calls within your own infrastructure
+count! It's tempting to treat emitting records to Kafka as part of atomic operations because
+they have such a high success rate that they feel like they are. They're not."
+And the exit he offers, which most teams should take: "For endpoints that get away with only
+mutating local state in an ACID database, it's possible to get a robust and simple idempotency
+implementation by mapping requests to transactions… This approach is far easier
+and less complicated than what's described here, and I'd suggest that anyone who can get away with it
+take that path."
+
+
+The three-state machine, and the status codes
+----------------------------------------
+
+
+State	|	Behaviour	|	Status
+First time	|	Process normally, persist key + response in the same transaction	|	2xx as usual
+Retry (original finished)	|	"respond with the result of the previously completed operation, success or an error"	|	replay the original
+Concurrent (original in flight)	|	"respond with a resource conflict error"	|	409
+Key reused, different payload	|	Reject — this is a client bug, not a retry	|	422
+
+
+The most instructive fact in this module
+The Idempotency-Key header — implemented by Stripe, Adyen, Square, Shopify and
+hundreds of others — is an expired IETF draft that has never been an RFC.
+Revision -07, expired 18 April 2026; IESG state: "The IESG has not started processing this draft."
+It is also internally stale, still citing RFC 8941 (superseded by 9651) and RFC 7807 (obsoleted by
+9457).
+This cuts both ways, which is why it's worth teaching. It proves Goedecke's thesis:
+familiarity beat standardisation, and Stripe's example became the convention without a committee. It
+also shows the limit of "just use the boring standard" — sometimes there isn't one, and the
+boring thing is whatever Stripe did.
+
+
+Where the field disagrees — "optional" is ambiguous
+"I definitely disagree about idempotency: it's NOT optional. You don't have
+to require idempotency tokens for each request, but there should be an option to specify
+them."HN cyberax
+Goedecke's phrasing conflates two different things: the client may omit the key (fine, and
+Google AIP-155 agrees explicitly — "Request IDs SHOULD be optional") versus the server may
+not offer one (not fine). Stripe resolves it: "All POST requests accept idempotency
+keys. Don't send idempotency keys in GET and DELETE requests because it has no effect. These
+requests are idempotent by definition." The capability is always there; using it is the caller's
+choice.
+Three things cyberax notes the essay omits entirely, all worth a look:
+deadlines (request expiry so the server can stop doing work nobody is waiting for),
+backpressure (retries must not become the outage), and static
+stability (keep serving reads when writes are failing).
+
+
+Verified — Stripe's operational details worth copying
+Results are saved "regardless of whether it succeeds or fails… Subsequent
+requests with the same key return the same result, including 500 errors." Parameters
+are compared against the original and mismatches error. Keys are retained 24 hours.
+Replays are flagged with Idempotent-Replayed: true; concurrent same-key requests get
+409 idempotency_key_in_use.
+Two operational traps: "a request that's rate limited with a 429 can produce a
+different result with the same idempotency key because rate limiters run before the API's
+idempotency layer," and their blunt rule for clients — "Treat requests that
+return 500 errors as indeterminate." Also note SDKs auto-generate keys and retry, but
+must be configured to; the default retry count is not always what you'd want.
+Finally, Google AIP-194: exactly one gRPC code is safe to retry automatically
+— UNAVAILABLE. Never auto-retry INVALID_ARGUMENT,
+DATA_LOSS, DEADLINE_EXCEEDED, or CANCELLED.
+
+
+Takeaways
+    * PUT and DELETE are idempotent by specification. Use a client-supplied id and PUT before inventing a key mechanism.
+
+    * The idempotency record must commit in the same transaction as the effect. A side cache cannot distinguish "done" from "never started."
+
+    * If you only mutate one ACID database, map the request to a transaction and skip the whole apparatus.
+
+    * Always accept a key; never require one. 409 for concurrent, 422 for key reuse with a different payload.
+
+    * The header is a de facto standard set by Stripe, not an RFC. Sometimes there is no boring standard to reach for.
+
+
+------------------------------------------
+Module 8: Auth, rate limits & blast radius
+------------------------------------------
+
+
+Learning objectives
+    * Separate credential lifetime from credential blast radius and argue which matters
+
+    * Design rate limits that let a well-behaved client behave well
+
+    * Justify a killswitch as a product requirement, not an ops afterthought
+
+
+Goedecke's position
+"You should let people use your APIs with a long-lived API key. Yes, API
+keys are not as secure as various forms of short-lived credentials, like OAuth (which you should
+probably also support). It doesn't matter. Every integration with your API begins life
+as a simple script."
+His premise is the strongest argument in the essay and the one most engineers resist:
+"many of your users will not be professional engineers. They may be salespeople,
+product managers, students, hobbyists… When you're an engineer at a tech company building an
+API, it's easy to imagine that you're building it for other people like yourself… But
+you're not."
+
+
+The data that should settle it — and doesn't
+----------------------------------------
+
+
+Verified — GitGuardian, State of Secrets Sprawl 2026 (March 2026)
+"28.65 million new hardcoded secrets were added to public GitHub commits in 2025
+alone, a 34% increase year over year and the largest single-year jump we've recorded."
+"In the 2025 report, we found that nearly 70% of credentials confirmed as valid in 2022
+were still valid in January 2025… When we retested that same dataset in January 2026,
+the validity rate was still above 64%."
+Trend: 12.8M (2023) → 23.8M (2024) → 28.65M (2025). Also from that report: AI service
+secrets reached 1,275,105 (up 81% YoY), including 113,000 leaked DeepSeek keys; and 24,008 unique
+secrets found in MCP config files. Internal repos are ~6× more likely than public ones
+to contain hardcoded secrets — keep that for Module 10.
+GitHub's own framing: "Long-lived credentials are some of the most common and dangerous
+types of secrets to leak, as they often persist unnoticed for months—or years—and give bad
+actors extended access." And on time-to-exploit, the canonical honeypot study (Comparitech,
+2020) found planted AWS credentials were found and abused in about one minute on
+average.
+
+
+Where the field disagrees — with the obvious conclusion
+Read that data and the answer looks like "kill long-lived keys." Now look at what the most
+security-mature API companies actually ship in August 2026:
+
+Provider	|	Default credential	|	Expiry
+Stripe	|	Long-lived bearer key; restricted keys (rk_) recommended	|	None by default; manual rotation with a 7-day dual-validity window
+GitHub	|	Fine-grained PAT, scoped to repos + permissions, org approval on by default	|	"Infinite lifetimes are allowed but may be blocked by a… policy"
+Anthropic	|	Workspace-scoped key, expiry presets 3h–30d	|	"Never" is selectable
+OpenAI	|	Project-scoped key, service accounts, permission tiers	|	Long-lived by default
+
+
+Every one of them chose scoping over mandatory expiry. Stripe is explicit: "we
+don't recommend using secret keys for new use cases, and for existing integrations, we recommend
+migrating secret key usage to RAKs." Not "to short-lived tokens." To restricted keys.
+RFC 9700 (BCP 240, January 2025) says the same thing, and it is not the sentence people quote:
+"The privileges associated with an access token SHOULD be restricted to the minimum
+required… access tokens SHOULD be audience-restricted to a specific
+resource server." Its thrust is privilege restriction, audience restriction, and preferring
+sender-constrained credentials over plain bearer tokens — not "make it shorter."
+So teach claim 6 in its corrected form: support long-lived API keys, and make them
+restricted, revocable, attributable, and scanned-for. The lifetime is not the vulnerability.
+The unlimited blast radius is. A 90-day key that leaks on day one is live for 90 days; a scoped
+read-only key that leaks forever can't move money.
+The two genuine cracks in this: Google Cloud now disables service-account key creation by default
+for organisations created on or after 3 May 2024, and npm fully revoked classic tokens in December
+2025 in favour of 2-hour session tokens. Both are extreme-blast-radius domains — cloud IAM and
+the software supply chain — not the salesperson-writing-a-script domain Goedecke is defending.
+
+
+Someone in the thread went further than he did — is he wrong?
+"This is an extremely unpopular opinion, but I would go even further. I think you
+should let people use your API with just a username and a password.… For one-off
+scripts, APIs that let you do this are a breath of fresh air… They're certainly not picking a
+purpose they need this API for from a list of five, not if it doesn't include 'completing a classroom
+assignment I don't really care about and want to finish as quickly as possible.'"
+HN miki123211
+The steelman
+and the break. He is right about the population — that student exists and every friction
+step loses some of them. He is wrong about the mechanism, and the reason is precise: a password is a
+credential the user cannot scope, cannot rotate independently, cannot revoke without locking
+themselves out, and which is very likely reused on other services. An API key is already the
+minimum-viable improvement on this idea: it is a password with the properties that make it safe to
+paste. The correct response to his complaint is not passwords — it is a one-click default
+key with sensible read-only scope and a visible revoke button, so the easy path and the safe path
+are the same path. That is Goedecke's own argument taken one step further than he took it.
+
+
+Rate limits: an API is a UI with no hands
+----------------------------------------
+
+
+Goedecke's position — this one drew zero dissent anywhere
+"Users who are interacting with your UI are limited by the speed of their hands…
+Any operation you expose via an API can be called at the speed of code."
+His Zendesk story is the best illustration in the essay: an API that fanned out notifications to
+all users of an app was used by a third-party developer to build an in-app chat system, where every
+message notified every other user. "For accounts with more than a handful of active users, this
+reliably killed the Apps backend server." Nobody anticipated it. Once it was out there, people did
+what they wanted with it.
+His prescriptions: tighter limits on expensive operations, the ability to disable the API for
+specific customers, and X-Limit-Remaining / Retry-After headers —
+because "[they] allow you to set stricter rate limits than you would otherwise be able to."
+
+
+That last clause is the non-obvious one and it's correct: telling clients their budget lets
+you give them a smaller budget. A client that can see it has 12 calls left will back off. A
+client flying blind will hammer you and then complain.
+
+Verified — two published models worth copying
+GitHub GraphQL prices by estimated work: 5,000 points/hour, where points are
+computed from connection sizes — "Assume every request will reach the first or
+last argument limits… Divide the number by 100." A query touching 100 repos ×
+50 issues × 60 labels is 5,101 underlying requests and costs 51 points. Note
+that exceeding the primary limit returns HTTP 200 with an error body, and a query
+that times out at 10 seconds still deducts points.
+Shopify runs a leaky bucket with a refund: "The requested cost is
+based on the composition of fields selected. The actual cost is based on the query
+results… the bucket is refunded the difference." Their published field costs:
+scalar 0, object 1, mutation 10; single-query ceiling 1,000 points regardless of
+plan. Their legacy REST limit was 2 requests/second — GraphQL gets far more headroom
+because it is priced by work rather than by call.
+
+
+Takeaways
+    * Support long-lived keys — and scope them. The industry's answer to the leak data was restriction, not expiry.
+
+    * Publish remaining-quota and Retry-After headers: transparency buys you the right to be stricter.
+
+    * Price limits by work, not by call count, wherever operations differ in cost by orders of magnitude.
+
+    * A per-customer killswitch is a product requirement. You will need it, and you will need it during an incident.
+
+    * Somebody will build something you never imagined on top of your endpoint. Design as if they already have.
+
+
+----------------------------------------
+Module 9: Deprecation — the long goodbye
+----------------------------------------
+
+
+Learning objectives
+    * Emit the two standard deprecation headers with the correct (different) date formats
+
+    * Design a deprecation process with monitoring and consent, not just an announcement
+
+    * Explain what deferring removals costs, using a real example
+
+
+Where the field disagrees — the biggest gap in the essay
+Goedecke has no deprecation vocabulary at all. No sunset dates, no usage
+monitoring, no migration windows, no headers. He describes telling users to upgrade — "This takes a
+long time: months or even years" — and then stops.
+That's a real gap, because "never break userspace" without a removal process isn't a policy, it's
+an accumulation strategy. And there are two standards-track-adjacent answers he never mentions, which
+are exactly the kind of boring, well-known machinery his own philosophy calls for.
+
+
+The two headers
+---------------
+
+
+Verified — and easy to state backwards
+
+RFC	|	Header	|	Status	|	Date format
+RFC 9745 (March 2025)	|	Deprecation	|	Standards Track	|	Structured-Fields Date: @1688169599
+RFC 8594 (May 2019)	|	Sunset	|	Informational	|	HTTP-date: Sat, 31 Dec 2025 23:59:59 GMT
+
+
+Yes, the two headers use different date formats. RFC 9745 says so in as many words: "Please
+note that for historical reasons the Sunset HTTP header field uses a different data format for
+date." It also constrains ordering: "The timestamp given in the Sunset HTTP header field
+MUST NOT be earlier than the one given in the Deprecation header field."
+The trap: the Deprecation syntax changed in March 2025 from
+HTTP-date to @epoch. Any tutorial, library, or internal wiki written before then shows
+the wrong format.
+
+
+What a deprecated endpoint should return
+
+---code---
+HTTP/1.1 200 OK
+Deprecation: @1688169599
+Sunset: Sun, 30 Jun 2024 23:59:59 UTC
+Link: ; rel="deprecation"; type="text/html"
+---/code---
+
+
+Both RFCs are careful to say these are hints, not contracts: "Clients SHOULD treat Sunset
+timestamps as hints," and "The act of deprecation does not change any behavior of the
+resource." A header is not a migration plan — it is a machine-readable channel for one.
+
+
+Deprecation as a process, not an announcement
+----------------------------------------
+
+
+Zalando publishes the most complete public deprecation regime, and the striking thing is how much
+of it is about consent and observation rather than notification:
+
+
+Rule	|	Requirement
+#185	|	MUST obtain approval of clients before API shut down — "all clients have given their consent on a sunset date."
+#186	|	MUST collect external partner consent on the deprecation time span — "before they are allowed to use the API."
+#187	|	MUST reflect deprecation in API specifications (deprecated: true)
+#188	|	MUST monitor usage of deprecated APIs scheduled for sunset
+#189	|	SHOULD add Deprecation and Sunset headers
+#191	|	MUST NOT start using deprecated APIs (the entire rule, one sentence)
+
+
+#186 is the clever one: partners agree to the after-deprecation lifespan as a condition of
+access, before they've written a line of code. That converts an eventual argument into a
+precondition. #188 is the operationally essential one — if you cannot see who is still calling
+the old thing, your sunset date is a guess.
+
+Verified — GitHub's published clock
+REST: "When a new REST API version is released, the previous API version will be supported
+for at least 24 more months." Calling an unsupported version returns 410 Gone
+— a clean, unambiguous failure rather than mysterious behaviour. 2022-11-28 is
+supported until 10 March 2028.
+GraphQL: "We'll announce upcoming breaking changes at least three months before
+making changes to the GraphQL schema… Changes go into effect on the first day of a
+quarter." Their published schedule currently runs through 1 January 2027. Predictable dates
+are themselves a feature — a partner can plan around a quarter boundary.
+
+
+What deferral actually costs
+----------------------------
+
+
+The example that should change your mind
+GitHub went 3.5 years without a new REST version — strong evidence for "version as a last
+resort." Then in March 2026 they shipped 2026-03-10. Look at what was in it:
+
+    * Removing rate from /rate_limit — "deprecated since 2021"
+
+    * Removing has_downloads — "deprecated for 10+ years"
+
+    * Deprecating the beta media type — "officially deprecated in 2014"
+
+    * Removing the singular assignee from Issues and PRs
+
+    * Removing merge_commit_sha from pull request payloads
+
+
+That version's payload is twelve years of deferred removals, shipped all at once,
+to every consumer, with a 24-month clock and a 410 at the end.
+The lesson the essay misses: the alternative to versioning is not zero cost. It is
+a queue — and a queue that empties on a schedule you no longer control, in a single
+disruptive batch, at whatever moment the accumulated weight finally forces it. If you did the
+simulator in Module 4, this is precisely the mechanic you were playing against.
+
+
+The counter-example is real and worth respecting: Twilio has served
+api.twilio.com/2010-04-01/ for about sixteen years. Its one predecessor,
+2008-04-01, was deprecated in May 2022 and hard-404'd on 15 December 2023 — roughly
+twenty months of notice, two versions in eighteen years. It can be done. Note, though, that they
+enforce it by blog post: no evidence was found that Twilio emits Sunset or
+Deprecation headers at all.
+
+Takeaways
+    * Emit Deprecation (RFC 9745, Standards Track, @epoch) and Sunset (RFC 8594, Informational, HTTP-date). Different formats, on purpose.
+
+    * Deprecation is a process: specification flag, usage monitoring, client consent, published date, hard failure.
+
+    * 410 Gone beats undefined behaviour. Tell clients the thing is gone, not that something odd happened.
+
+    * Deferring a removal doesn't cancel it. GitHub's 2026 version carried a deprecation from 2014.
+
+    * You cannot sunset what you cannot measure. Instrument the old path before you announce anything.
+
+
+--------------------------------------------
+Module 10: GraphQL, DX & what really decides
+--------------------------------------------
+
+
+Learning objectives
+    * State the GraphQL tradeoff honestly in both directions
+
+    * Decide what actually changes for internal APIs, and what doesn't
+
+    * Assemble the developer-experience argument that connects every previous module
+
+
+Optional fields first
+---------------------
+
+
+Before GraphQL, Goedecke offers the cheap version of the same idea, and it's good advice:
+"If parts of your API response are expensive to serve, make them optional.…
+you could have an includes array parameter with all your optional fields."
+
+The 80% of GraphQL you can have for nothing
+
+---code---
+GET /users/42
+GET /users/42?include=subscription,posts
+// Default response stays small and fast. Expensive joins are opt-in.
+// Still one cacheable URL per resource. Still readable in a browser bar.
+---/code---
+
+
+Goedecke's position
+"I don't like GraphQL very much, for three reasons. First, it's completely
+impenetrable to non-engineers (and to many engineers)… Second, I don't like giving users the
+freedom to craft arbitrary queries. It makes caching more complicated and increases the number of edge
+cases you have to think about. Third, in my experience the backend implementation is so much
+more fiddly than your standard REST API."
+To his credit he flags his own uncertainty: "I don't feel that strongly… I've spent
+maybe six months working with it in various contexts and am far from an expert."
+
+
+Where the field disagrees — two of the three objections have published answers
+Caching. graphql.org concedes the premise — "In GraphQL, there's no URL-like
+primitive that provides this globally unique identifier for a given object" — and then answers
+it three ways: automatic persisted queries with GET, which lets a CDN cache
+GraphQL responses; trusted documents, an allowlist where the client sends a document ID
+instead of a query; and normalized client caches like Apollo's InMemoryCache,
+which stores "a flat lookup table of objects that can reference each other." That last one is the real
+steelman: GraphQL trades HTTP-level caching for object-level caching, which is strictly
+finer-grained.
+Arbitrary queries and rate limiting. Answered by the cost models in Module 8 —
+GitHub's points, Shopify's leaky bucket with refunds, Apollo's demand control with
+max_depth / max_aliases limits. Arguably these are more honest than
+REST's per-endpoint limits, because they price the work actually done. Trusted documents eliminate the
+arbitrary-query problem entirely.
+The market moved the other way, hard. Shopify: "The REST Admin API is a legacy API
+as of October 1, 2024. Starting April 1, 2025, all new public apps must be built exclusively
+with the GraphQL Admin API." Shopify has one of the largest populations of non-expert
+third-party developers in software, and they made GraphQL mandatory. That is directly fatal
+to "impenetrable to non-engineers" as a market claim.
+
+
+The steelman he never engages — and it's his own thesis
+From the original 2015 GraphQL announcement, under the heading "Version free":
+"When you're adding new product features, additional fields can be added to the server,
+leaving existing clients unaffected… We still support three years of
+released Facebook applications on the same version of our GraphQL API."
+Read that against Modules 3 and 4. Additive-only schema evolution as an alternative to versioning
+is exactly "we do not break userspace," achieved structurally rather than by discipline.
+GraphQL is arguably the most successful implementation of Goedecke's own central claim ever shipped
+— and he rejects it. That tension is unresolved in the essay, and it is the single best question
+to bring to an API design review.
+
+
+Verified — the honest state of play, August 2026
+No named company has publicly reverted from GraphQL to REST. This was searched
+specifically; the "GraphQL retreat" narrative rests on individual engineers' blog posts, not company
+postmortems. Meta still runs it (Relay released May 2026); Netflix's Studio Edge has 150 subgraphs and
+2,800 queries and mutations powering 50–60 internal apps.
+But GraphQL is not winning either. Postman's 2025 State of the API report: REST
+93%, webhooks 50%, WebSockets 35%, GraphQL 33%, SOAP 25%, gRPC 14%. It settled at
+about a third, and REST stayed near-universal.
+The market-size signal: Stellate, the dedicated GraphQL CDN company, had
+"near-zero churn," served "over 100 billion GraphQL requests," and still sold for parts in September
+2024 — "our growth stalled & the market didn't expand fast enough." The Guild took the
+product; Shopify hired the team. (Note: Shopify did not acquire Stellate, despite what you'll
+read.)
+
+
+The objection that survives
+The best critical essay is Matt Bessey's, and its strongest argument is one Goedecke didn't make:
+"if you expose a fully self documenting query API to all clients, you better be
+damn sure that every field is authorised against the current user appropriately to the context in
+which that field is being fetched… One wonders how much GraphQL holds responsibility
+for Broken Access Control climbing to the OWASP Top 10's #1 spot."
+And on the shape of the risk: "since it is a query language, this can become a problem with
+no backend changes when a client modifies a query." That is a genuinely different security
+posture from REST, where the set of things a client can ask for is fixed by the endpoints you shipped.
+Goedecke's own employer supplies mixed evidence too: GitHub built one of the most prominent public
+GraphQL APIs, and in November 2025 retired its GraphQL Explorer, noting "Although its overall
+usage was limited…" — while continuing to publish a GraphQL breaking-change
+calendar into 2027. Read that as ambivalence, not retreat; GitHub has made no statement putting
+GraphQL in maintenance.
+
+
+Internal APIs: less different than he says
+----------------------------------------
+
+
+Goedecke's position
+"It's also possible to safely make breaking changes [to internal APIs], because (a) you
+often have an order of magnitude fewer users, and (b) you have the ability to go in and ship new code
+for all of those users."
+
+
+Verified — endorsed by the strictest compatibility document in the industry
+Google AIP-180, which otherwise forbids nearly everything, carves out exactly his case: "This
+guidance assumes that APIs are intended to be called from a range of consumers… with no control
+over how and when consumers update. Any API which has a more limited scope (for example, an
+API which is only called by client code written by the same team as the API producer, or deployed in a
+way which can enforce updates) should carefully consider its own compatibility requirements."
+
+
+Where the field disagrees — the cleanest single objection in the thread
+"I think the only thing here that I don't agree with is that internal users are just users.
+Yes, they may be more technical — or likely other programmers, but they're busy
+too. Often they're building their own thing and don't have the time or ability to deal with
+your API churning. If at all possible, take your time and dog-food your API before opening it
+up to others. Once it's opened, you're stuck."HN runroader
+The condition that makes his claim true is narrower than "internal": it is you can atomically
+deploy every consumer. The moment there is a mobile client with users on old versions, a
+partner's staging environment, a data pipeline someone forgot about, or a team on a different release
+train, the internal API is a public API wearing a badge. And recall from Module 8: internal repos are
+about 6× more likely than public ones to contain hardcoded secrets. Internal
+does not mean safer — it means less observed.
+
+
+The synthesis: developer experience is the through-line
+----------------------------------------
+
+
+Everything in this course is one argument in different clothes. The cost of your API is
+paid by people who are not thinking about your API.
+
+
+Module	|	The decision	|	Who pays if you get it wrong
+1 — Boring	|	Familiarity over cleverness	|	Every reader of your docs, forever
+2 — Resources	|	Domain nouns, not schema nouns	|	Everyone, permanently — this is the unrecoverable one
+3 — Compatibility	|	Declare what's stable	|	Whoever shipped against the part you didn't declare
+4 — Versioning	|	Break now, or queue it	|	Your successor, all at once, in twelve years
+5 — Errors	|	Machine-readable codes	|	The on-call engineer parsing your prose at 3am
+6 — Pagination	|	Cursors, day one	|	Your largest customer, at exactly the wrong moment
+7 — Idempotency	|	Same transaction as the effect	|	The person charged twice
+8 — Auth & limits	|	Scope, don't expire; publish quota	|	Everyone, when one integration takes you down
+9 — Deprecation	|	Measure, consent, announce, 410	|	The integration nobody knew existed
+10 — Shape	|	REST vs GraphQL vs both	|	Whoever has to authorise every field
+
+
+Where this course deliberately departs from its source
+Five places, stated plainly so you can disagree with us:
+
+  11. "Never version" understates the cost of not versioning. Deferral is a queue with a
+due date you don't control. GitHub's 2026 release is the receipt.
+
+  12. "Bad products make bad APIs" is a gravitational pull, not a law. The API layer is
+a translation. Treating it as a passthrough is how you get the linked list on the wire.
+
+  13. "Always cursor" is too strong, and cursors have a worse failure mode than offset
+— silent row skips on sort-key mutation — which the essay doesn't mention and neither do
+most of its critics.
+
+  14. "Long-lived keys are fine" is right for the wrong reason. The industry's answer to
+28 million leaked secrets a year was scoping, not expiry. Say restricted, and the advice
+survives the data.
+
+  15. The silences matter as much as the claims. No error format, no deprecation
+vocabulary, no spec-first — three boring, well-documented answers that his own "boring beats
+clever" philosophy actively demands.
+
+
+None of these make the essay wrong. It is the best short piece on the subject, and everything in
+this course is downstream of it. But an essay is one practitioner's cost model, tested against one
+career. Your costs are different, and the point of learning the tradeoff space is to be able to tell
+when.
+
+
+Takeaways
+    * Optional include parameters get you most of GraphQL's benefit for none of its cost. Start there.
+
+    * The caching and rate-limiting objections to GraphQL have published answers. The authorization objection does not.
+
+    * GraphQL's "version free" additive evolution is Goedecke's own thesis, implemented in the technology he rejects.
+
+    * "Internal" means "I can deploy every consumer atomically." If you can't, it's public.
+
+    * The through-line: your API's cost is paid by people who aren't thinking about your API. Design for their attention, not yours.
+
+
+Sourcing note
+Every quotation in this course is from a primary source that was fetched and checked in
+August 2026. Reddit vote counts come from a Redlib mirror because reddit.com blocks
+automated access; Hacker News shows no per-comment scores, so no HN quote carries a vote count.
+Several widely-circulated claims about API design were checked and excluded as unverifiable
+or fabricated — including a widely-circulated but untraceable GitHub engineering statement about hypermedia's
+effect on server load, and a set of company names said to have migrated from GraphQL back to REST.
+Two things to re-check before you rely on them: Stripe's current version was
+2026-07-29.dahlia at time of writing and the next major train was unannounced; and the
+Idempotency-Key draft was expired, which could change.
+
+
+
+    The source essay
+    HN discussion
+    Zalando guidelines
+    Google AIPs
+    RFC 9457
+
+  Built as an interactive course. Opinions attributed to Sean Goedecke are
+  his; dissent is sourced and linked. Verify anything time-sensitive before you cite it.
