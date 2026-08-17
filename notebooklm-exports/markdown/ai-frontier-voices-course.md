@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: August 14, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: August 17, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,15 @@ Last updated: August 14, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of August 17, 2026
+
+-   **@mntruell (Cursor):** It closed. SpaceX [officially completed the $60B all-stock acquisition of Anysphere on August 15](https://techcrunch.com/2026/08/15/spacex-officially-closes-its-cursor-acquisition/), folding Cursor into its SpaceXAI unit with Truell's team moving into SpaceX's internal software engineering division. Cursor's own announcement leaned hard on compute rather than product, describing access to "the largest fleet of GPUs in the world" including Colossus — the same infrastructure SpaceX rents to Anthropic and Google. Module 4 of this course is now a story about a SpaceX subsidiary.
+-   **@OfficialLoganK (Google AI):** Google shipped [Gemini 3.7 Flash on August 14](https://venturebeat.com/technology/googles-gemini-3-7-flash-targets-coding-and-agents-with-a-50-introductory-price-cut) — three weeks after 3.6 Flash — pitched as its "most intelligent workhorse model yet for coding and agents." It jumps to 43.6% on FrontierCode 1.1 Main (3.6 Flash scored 34.4%) and 1588 Elo on Code Arena for web dev, with a 1M context window. Read the pricing carefully: $0.75/$3.75 per Mtok is *introductory through December 31*, then doubles to $1.50/$7.50 on January 1. Kilpatrick attributes the gain to algorithmic improvements rather than compute — which is the only honest explanation available on a three-week cadence.
+-   **Still no 3.5 Pro:** Worth stating plainly, since this is now the sixth straight window to pass. Google has shipped 3.6 Flash, 3.5 Flash-Lite, Flash Cyber and now 3.7 Flash since May while the Pro tier sits in limited preview. The Flash line has quietly become Google's actual frontier offering, and the interesting question is no longer when Pro ships but whether it ever does before Gemini 4.
+-   **@milichab & @skcd42 (xAI):** Grok 4.6's distribution widened fast — it [landed in GitHub Copilot on August 14 across eight surfaces](https://github.blog/changelog/2026-08-14-grok-4-6-is-now-available-in-github-copilot/) (VS Code, Visual Studio, Copilot CLI, cloud agent, the Copilot app, JetBrains, Xcode, Eclipse) on Pro through Enterprise SKUs, alongside OpenRouter, Vercel and Cloudflare. Note the deadline: the doubled-usage promo in Cursor and Grok Build [closes August 19](https://releasebot.io/updates/xai). Meanwhile [Grok 4.7 slipped to early-to-mid September](https://www.orcarouter.ai/blog/grok-4-7-release-date), and the API model list still tops out at grok-4.6.
+-   **Anthropic platform:** The [Claude in Chrome side panel became a full Cowork session on August 12](https://claude.com/blog/cowork-chrome-side-panel) — history, skills and connectors all work inside the browser, and a task started in a tab can be finished on desktop, web or mobile. Max and Team have it now; Pro is rolling out over the coming weeks, and Enterprise is off by default with admin domain allowlisting. This is the first time the browser stopped being a separate surface and became just another place the same session lives.
+-   **Anthropic, provenance:** Coverage caught up this week to the [invisible watermarking of all Claude text output](https://the-decoder.com/anthropic-watermarks-all-claude-outputs-globally-with-marks-that-may-persist-through-some-editing/), live since August 2 and applied worldwide rather than only in the EU, in response to Article 50 of the EU AI Act. It works by statistically biasing word choice against a key Anthropic holds — undetectable per sentence, detectable across enough text — and travels through copy-paste and some editing. Files get C2PA provenance metadata instead, which is strippable by format conversion, re-saving, or a screenshot. If you ship Claude-generated text or assets, this now applies to Claude Code and Cowork output too.
 
 ### Week of August 14, 2026
 
@@ -258,6 +267,7 @@ Cursor's year has been a sprint toward agent-first development:
 -   **Cursor 3 (April 2026):** The headline: "simpler, more powerful, and built for a world where all code is written by agents." Lee Robinson's launch thread told the story of redesigning the interface around directing agents rather than editing files.
 -   **Truell's "Third Era" essay (Feb 2026):** Era 1: manually editing files. Era 2: agents write most code. Era 3: *fleets of agents working autonomously to ship improvements*.
 -   **Cloud ↔ local agent handoff:** Move a running agent session from cloud to desktop and back. Plus the native iOS app (June 29): cloud agents, voice, and PR merges from your phone.
+-   **Acquired by SpaceX (closed August 15, 2026):** The $60B all-stock deal for Anysphere completed, making Cursor part of SpaceX's SpaceXAI unit with access to the Colossus GPU fleet. Cursor keeps shipping as a product; the strategic tension below now runs through a parent that also owns xAI and Grok Build.
 -   **Always-on CI agents:** Agents that monitor GitHub, investigate CI failures, and open PRs with fixes — unattended.
 
 ### Zakariasson's Playbook
@@ -348,4 +358,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated August 14, 2026.
+Updated weekly by an automated research task. Last updated August 17, 2026.
