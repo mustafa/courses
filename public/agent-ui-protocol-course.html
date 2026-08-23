@@ -1,0 +1,2811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Agent&ndash;UI Protocol &mdash; Interactive Course</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CODE */
+.code-label{display:inline-block;background:var(--accent-dim);color:var(--text-bright);
+  font-size:11px;font-weight:700;padding:3px 11px;border-radius:5px 5px 0 0;
+  font-family:var(--mono);letter-spacing:0.03em}
+.code-label.qs{background:rgba(152,195,121,0.16);color:var(--green)}
+.code-label.li{background:rgba(108,99,255,0.18);color:#b9b4ff}
+.code-label.mine{background:rgba(229,192,123,0.14);color:var(--yellow)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:0 8px 8px 8px;
+  padding:1rem 1.1rem;overflow-x:auto;margin-bottom:1.2rem;font-size:0.85rem;line-height:1.6;
+  position:relative}
+pre code{background:none;padding:0;color:var(--text);font-size:1em}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.str{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}
+.num{color:#79c0ff}.op{color:#ff7b72}.vr{color:#ffa657}.cl{color:#7ee787}.nm{color:#79c0ff}
+.bad{color:var(--red)}.good{color:var(--green)}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-sean{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-sean .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+.c-li{background:rgba(97,175,239,0.06);border-color:rgba(97,175,239,0.25);border-left-color:var(--blue)}
+.c-li .lbl{color:var(--blue)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--red)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+td code,th code{font-size:0.85em}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'\25B8 ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'\25BE '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ THE STATE DESK (SIM) ============ */
+#desk{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.desk-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.desk-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.desk-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.desk-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.desk-body{padding:1.3rem}
+
+.dq{display:flex;gap:0.35rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.dq i{width:26px;height:5px;border-radius:3px;background:var(--border);transition:background 0.3s}
+.dq i.on{background:var(--accent)}
+.dq i.cur{background:var(--accent2)}
+
+.ticket{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--orange);
+  border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.2rem}
+.ticket .from{font-size:0.7rem;font-weight:800;color:var(--orange);text-transform:uppercase;
+  letter-spacing:0.07em;margin-bottom:0.45rem}
+.ticket h4{color:var(--text-bright);font-size:1rem;margin:0 0 0.55rem;font-weight:700}
+.ticket p{font-size:0.9rem;margin-bottom:0.5rem;color:var(--text)}
+.ticket p:last-child{margin-bottom:0}
+.ticket .facts{display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:0.8rem;padding-top:0.7rem;
+  border-top:1px solid var(--border)}
+.ticket .facts div{font-size:0.75rem;color:var(--text-dim)}
+.ticket .facts b{display:block;font-family:var(--mono);font-size:0.95rem;color:var(--text-bright);
+  font-weight:700}
+.scene{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.85rem 1rem;margin-bottom:1rem;font-size:0.85rem;line-height:1.65}
+.scene .ln{display:flex;gap:0.6rem;margin-bottom:0.3rem}
+.scene .ln:last-child{margin-bottom:0}
+.scene .who{font-family:var(--mono);font-size:0.72rem;font-weight:700;min-width:64px;
+  flex-shrink:0;padding-top:0.15rem}
+.scene .who.t{color:var(--accent)}
+.scene .who.s{color:var(--green)}
+.scene .who.sys{color:var(--text-dim)}
+.scene .txt{color:var(--text)}
+.scene .txt em{color:var(--text-dim);font-style:italic}
+
+.opts{display:grid;gap:0.5rem;margin-bottom:1rem}
+.opt{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;
+  cursor:pointer;transition:all 0.15s;display:flex;gap:0.7rem;align-items:flex-start;
+  font-size:0.9rem;text-align:left;color:var(--text);font-family:inherit;line-height:1.55;width:100%}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--bg2)}
+.opt .dot{width:15px;height:15px;border:2px solid var(--border-light);border-radius:50%;
+  flex-shrink:0;margin-top:0.2rem;transition:all 0.15s}
+.opt.sel{border-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.opt.sel .dot{border-color:var(--accent2);background:var(--accent2);box-shadow:inset 0 0 0 3px var(--bg3)}
+.opt:disabled{cursor:default;opacity:0.75}
+.opt .layer{font-family:var(--mono);font-size:0.68rem;font-weight:800;letter-spacing:0.06em;
+  text-transform:uppercase;color:var(--accent2);display:block;margin-bottom:0.15rem}
+.opt .ok{margin-left:auto;font-size:0.7rem;font-weight:800;letter-spacing:0.05em;
+  text-transform:uppercase;color:var(--text-dim);white-space:nowrap;flex-shrink:0}
+
+.why-wrap{margin-bottom:1rem}
+.why-wrap label{display:block;font-size:0.78rem;font-weight:700;color:var(--text-dim);
+  margin-bottom:0.4rem}
+#why{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.65rem 0.9rem;color:var(--text);font-family:inherit;font-size:0.88rem;resize:vertical;
+  min-height:54px;line-height:1.55}
+#why:focus{outline:none;border-color:var(--accent)}
+#why:disabled{opacity:0.7}
+
+.desk-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap}
+button.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;
+  padding:0.6rem 1.4rem;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all 0.15s}
+button.act:hover:not(:disabled){filter:brightness(1.15)}
+button.act:disabled{background:var(--bg3);color:var(--text-dim);cursor:not-allowed}
+button.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+button.ghost:hover:not(:disabled){color:var(--text-bright);border-color:var(--border-light);background:var(--bg3)}
+.gate-msg{font-size:0.78rem;color:var(--yellow)}
+
+/* results */
+#result{margin-top:1.3rem;padding-top:1.3rem;border-top:1px solid var(--border)}
+.hid{display:none!important}
+.rhead{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;
+  color:var(--accent);margin:1.2rem 0 0.6rem}
+.rhead:first-child{margin-top:0}
+
+/* the three stress tests */
+.stress{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.6rem;margin-bottom:1rem}
+.st-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.8rem 0.95rem;
+  border-top:3px solid var(--border-light)}
+.st-card.ok{border-top-color:var(--green)}
+.st-card.warn{border-top-color:var(--yellow)}
+.st-card.bad2{border-top-color:var(--red)}
+.st-card .stk{font-size:0.66rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--text-dim);margin-bottom:0.35rem;display:flex;align-items:center;gap:0.35rem}
+.st-card .stv{font-size:0.82rem;line-height:1.55;color:var(--text)}
+.st-card .badge{font-family:var(--mono);font-size:0.62rem;font-weight:800;padding:0.05rem 0.35rem;
+  border-radius:4px;letter-spacing:0.04em}
+.st-card.ok .badge{background:rgba(152,195,121,0.18);color:var(--green)}
+.st-card.warn .badge{background:rgba(229,192,123,0.18);color:var(--yellow)}
+.st-card.bad2 .badge{background:rgba(224,108,117,0.18);color:var(--red)}
+
+.cmp{display:grid;gap:0.4rem;margin-bottom:1rem}
+.cmp .row{display:grid;grid-template-columns:1fr auto;gap:0.8rem;background:var(--bg3);
+  border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.85rem;font-size:0.84rem;
+  align-items:center}
+.cmp .row.you{border-color:var(--accent2);background:rgba(108,99,255,0.07)}
+.cmp .row .lab{color:var(--text)}
+.cmp .row .lab b{display:block;color:var(--text-bright);font-size:0.86rem;margin-bottom:0.15rem}
+.cmp .row .sc{font-family:var(--mono);font-size:0.78rem;color:var(--text-dim);white-space:nowrap;
+  text-align:right}
+.youtag{display:inline-block;font-size:0.62rem;font-weight:800;background:var(--accent2);color:#fff;
+  padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;vertical-align:middle;letter-spacing:0.05em}
+
+.field{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.22);
+  border-left:3px solid var(--accent);border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:0.7rem}
+.field .lbl{font-size:0.68rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.4rem;display:block}
+.field p{font-size:0.87rem;margin-bottom:0.5rem;line-height:1.6}
+.field p:last-child{margin-bottom:0}
+.field code{font-size:0.8rem}
+
+#divbox{background:rgba(224,108,117,0.06);border:1px solid rgba(224,108,117,0.25);
+  border-radius:9px;padding:0.9rem 1.1rem;margin-bottom:1.2rem}
+#divbox .lbl{font-size:0.7rem;font-weight:800;color:var(--red);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem}
+#divbox .lbl span{background:var(--red);color:#fff;border-radius:20px;padding:0.05rem 0.5rem;
+  font-size:0.7rem}
+#divlist{list-style:none;margin:0}
+#divlist li{font-size:0.83rem;padding:0.28rem 0;border-bottom:1px dashed rgba(224,108,117,0.2);
+  font-family:var(--mono);color:var(--text)}
+#divlist li:last-child{border-bottom:none}
+#divlist li.empty{font-family:inherit;color:var(--text-dim);font-style:italic}
+
+#ledger{margin-top:1.3rem}
+.led{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.85rem;
+  margin-bottom:0.4rem;font-size:0.82rem}
+.led .h{display:flex;gap:0.5rem;align-items:baseline;flex-wrap:wrap}
+.led .n{font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700}
+.led .c{color:var(--text-bright);font-weight:650}
+.led .w{color:var(--text-dim);font-style:italic;margin-top:0.2rem;font-size:0.8rem}
+
+/* transfer */
+#transfer{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  padding:1.4rem;margin:1.5rem 0}
+#transfer h4{color:var(--yellow);margin-top:0}
+.tq{margin-bottom:1.1rem}
+.tq .q{font-size:0.92rem;color:var(--text-bright);font-weight:650;margin-bottom:0.5rem}
+.tq textarea{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:7px;
+  padding:0.55rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.86rem;min-height:46px;
+  resize:vertical}
+.tq textarea:focus{outline:none;border-color:var(--accent)}
+
+/* ============ TOKEN METER (deterministic instrument) ============ */
+#meter{background:var(--bg2);border:1px solid var(--border-light);border-radius:12px;
+  padding:1.3rem;margin:1.5rem 0}
+#meter h4{color:var(--accent);margin:0 0 0.3rem;font-size:0.95rem}
+#meter .mnote{font-size:0.8rem;color:var(--text-dim);margin-bottom:1rem}
+.ctrl{margin-bottom:0.85rem}
+.ctrl label{display:flex;justify-content:space-between;font-size:0.8rem;color:var(--text-dim);
+  margin-bottom:0.3rem;gap:1rem}
+.ctrl label b{color:var(--text-bright);font-family:var(--mono);font-weight:700}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent2);height:4px;cursor:pointer}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0.6rem;margin:1rem 0 0.6rem}
+.metric{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.metric .v{font-family:var(--mono);font-size:1.3rem;font-weight:800;line-height:1.15;color:var(--text-bright)}
+.metric .k{font-size:0.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;
+  margin-top:0.25rem;line-height:1.35}
+.metric.warn .v{color:var(--red)}
+.metric.good .v{color:var(--green)}
+.metric.mid .v{color:var(--yellow)}
+.mbar{display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-bottom:0.4rem}
+.mbar i{display:block;transition:width 0.35s ease}
+.mbar i.a{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.mbar i.b{background:var(--bg3)}
+.mlegend{display:flex;gap:1.2rem;font-size:0.72rem;color:var(--text-dim);flex-wrap:wrap}
+.mlegend b{color:var(--text-bright);font-family:var(--mono)}
+
+@media(max-width:640px){
+  .desk-body{padding:1rem}
+  .stress{grid-template-columns:1fr}
+  .cmp .row{grid-template-columns:1fr}
+  .cmp .row .sc{text-align:left}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">The Agent&ndash;UI Protocol</div>
+    <div class="nav-prog" id="nav-prog">0 / 10</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>The Agent&ndash;UI Protocol</h1>
+  <p class="sub">What a standard protocol between an agent and a user interface actually buys you &mdash;
+  built on Anthropic's CopilotKit &times; AG-UI quickstart, and stress-tested against a whiteboard tutor
+  that already reinvented four fifths of it by hand.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>10</span> modules</div>
+    <div class="hero-badge"><span>1</span> decision simulator</div>
+    <div class="hero-badge"><span>1</span> cost instrument</div>
+    <div class="hero-badge"><span>~100</span> min</div>
+    <div class="hero-badge"><span>Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Spine repo:
+  <a href="https://github.com/anthropics/claude-quickstarts/tree/main/managed-agents/copilot-kit-ag-ui" target="_blank" rel="noopener">anthropics/claude-quickstarts &rarr; managed-agents/copilot-kit-ag-ui</a>
+  &mdash; read from source, not from the rendered page</p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>This is not a walkthrough of a README. The quickstart is 400 lines of glue and you could read it
+  yourself in twenty minutes. The question worth a hundred minutes is the one the quickstart doesn't
+  ask: <strong>what does a standard protocol between an agent and a UI actually buy you, and when is
+  it overkill?</strong></p>
+  <p>Three kinds of block recur. <strong style="color:var(--green)">Quickstart code</strong> is real code
+  from the Anthropic repo, unmodified and attributed. <strong style="color:#b9b4ff">Learn Imagine</strong>
+  is real code from your whiteboard tutor at <code>~/projects/learn-imagine-v4</code>.
+  <strong style="color:var(--yellow)">Illustration</strong> is mine &mdash; written to make a point, never
+  run anywhere. Every claim about AG-UI, CopilotKit and Managed Agents was checked against source or
+  primary docs in August 2026, and where the docs contradict the code I say which one I believe.</p>
+  <p><strong>Module 4 is a simulator. Do it before you read modules 5&ndash;10.</strong> It makes you commit
+  to a state-ownership call and write down why, then shows you what your call does on refresh, on
+  interruption, and on a second tab. Committing before the reveal is the entire point; skipping ahead
+  converts the module into agreement, which is worth nothing.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">What the quickstart actually is<span class="tag">Source</span></a></li>
+    <li><a href="#m2">AG-UI, precisely<span class="tag">Protocol</span></a></li>
+    <li><a href="#m3">What breaks when you hand-roll it<span class="tag">The case for</span></a></li>
+    <li><a href="#m4">The State Desk<span class="tag">Simulator</span></a></li>
+    <li><a href="#m5">What the abstraction costs<span class="tag">The case against</span></a></li>
+    <li><a href="#m6">The alternatives, fairly<span class="tag">Comparison</span></a></li>
+    <li><a href="#m7">Learn Imagine: you already built it<span class="tag">Your code</span></a></li>
+    <li><a href="#m8">Learn Imagine: the verdict<span class="tag">Decision</span></a></li>
+    <li><a href="#m9">Coursera, at platform scale<span class="tag">Exec</span></a></li>
+    <li><a href="#m10">Generative UI meets instructional design<span class="tag">Synthesis</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>What the quickstart actually is</h2>
+  <div class="mt">Four moving parts, three of them not written by Anthropic</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Name the four components and say which organisation owns each</li>
+  <li>Explain why the repo contains no bridge code of its own</li>
+  <li>Distinguish Managed Agents from the Agent SDK and from the Messages API</li>
+  <li>Identify the two design notes in the repo that are really bug reports about the ecosystem</li>
+</ul></div>
+
+<h3>The one-sentence version, from the README</h3>
+
+<blockquote>A chat app where a Claude Managed Agent acts as a personal finance assistant. Anthropic hosts
+the agent loop and its container, CopilotKit renders the chat, and replies stream token by token.
+<span class="attrib">&mdash; <code>managed-agents/copilot-kit-ag-ui/README.md</code></span></blockquote>
+
+<p>That is accurate and it hides the interesting thing. Four organisations' code has to agree on a
+wire format for that sentence to be true, and only one of the four pieces is Anthropic's.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Piece</th><th>Who owns it</th><th>What it does here</th></tr></thead>
+<tbody>
+<tr><td><b>Claude Managed Agents</b></td><td>Anthropic</td><td>Hosts the agent loop <em>and</em> the Linux container. One <code>financial-assistant</code> agent on <code>claude-fable-5</code> with the built-in toolset</td></tr>
+<tr><td><b><code>@ag-ui/claude-managed-agents</code></b></td><td>AG-UI project (CopilotKit-led)</td><td>The whole Managed Agents &harr; AG-UI translation. Sessions, token streaming, tool events, interrupts, turn caps</td></tr>
+<tr><td><b>CopilotKit v2 runtime</b></td><td>CopilotKit (Tawkit, Inc.)</td><td>Self-hosted <code>CopilotSseRuntime</code> on Express, serving <code>/api/copilotkit</code></td></tr>
+<tr><td><b>CopilotKit React v2</b></td><td>CopilotKit</td><td>Stock <code>CopilotChat</code>. No custom chat code in the repo</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout c-fact">
+  <span class="lbl">The line that tells you what this repo is</span>
+  <p>From <code>CLAUDE.md</code>, describing the adapter: <em>&ldquo;This repo contains no bridge code of
+  its own.&rdquo;</em></p>
+  <p>That is unusual for a quickstart and it is the strongest single signal about where the ecosystem
+  is. Anthropic did not write a Managed Agents&rarr;UI adapter. They wired up someone else's, published
+  three weeks earlier, at version <code>0.0.1</code>.</p>
+</div>
+
+<h3>The whole server integration, unabridged</h3>
+
+<p>This is the entire runtime wiring. Sixteen lines do the work that a hand-rolled streaming endpoint
+usually spends three hundred on.</p>
+
+<span class="code-label qs">QUICKSTART CODE &mdash; server/src/index.ts</span>
+<pre><code><span class="kw">const</span> runtime = <span class="kw">new</span> <span class="cl">CopilotSseRuntime</span>({
+  agents: {
+    <span class="str">'financial-assistant'</span>: <span class="kw">new</span> <span class="cl">ManagedAgentsAgent</span>({
+      managedAgentId: ids.agentId,
+      agentVersion: ids.agentVersion,
+      environmentId: ids.environmentId,
+      backendTools: vizTools,
+      sessionStore: store,
+      sessionTitle: (threadId) =&gt; <span class="str">`Finance assistant thread ${threadId}`</span>,
+    }),
+  },
+});
+
+<span class="kw">const</span> app = <span class="fn">express</span>();
+app.<span class="fn">use</span>(
+  <span class="fn">createCopilotExpressHandler</span>({
+    runtime,
+    basePath: <span class="str">'/api/copilotkit'</span>,
+    cors: allowedOrigins ? { origin: allowedOrigins } : <span class="kw">true</span>,
+  }),
+);</code></pre>
+
+<p><code>ManagedAgentsAgent</code> is a plain AG-UI <code>AbstractAgent</code>. That is the load-bearing
+fact of the whole architecture: because it implements one interface &mdash;
+<code>run(input): Observable&lt;BaseEvent&gt;</code> &mdash; the CopilotKit runtime doesn't know or care
+that Anthropic is on the other end. Swap in a LangGraph agent, a CrewAI crew, or a Bedrock AgentCore
+endpoint and the frontend does not change.</p>
+
+<h3>Managed Agents is not the Agent SDK</h3>
+
+<p>The quickstart lives in a <code>managed-agents/</code> folder for a reason, and the distinction
+matters because it is where your infrastructure decision actually gets made.</p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>Messages API</th><th>Agent SDK</th><th>Managed Agents</th></tr></thead>
+<tbody>
+<tr><td><b>Where the loop runs</b></td><td>You write it</td><td>A process you operate</td><td>Anthropic's infrastructure</td></tr>
+<tr><td><b>Where the sandbox is</b></td><td>Yours</td><td>Yours</td><td>Anthropic's (Ubuntu 22.04, up to 8&nbsp;GB RAM / 10&nbsp;GB disk)</td></tr>
+<tr><td><b>Conversation state</b></td><td>You resend it all</td><td>You hold it</td><td>Persisted server-side; you send only the newest event</td></tr>
+<tr><td><b>Billing</b></td><td>Tokens</td><td>Tokens</td><td>Tokens <b>+ $0.08 per session-hour</b>, metered while <code>running</code></td></tr>
+</tbody>
+</table></div>
+
+<p>The docs put it plainly: <em>&ldquo;The difference is where they run: the SDK runs in a process you
+operate, while Managed Agents runs in Anthropic's infrastructure.&rdquo;</em> Things you lose moving
+from SDK to Managed Agents and must reimplement client-side: plan mode, output styles, slash commands,
+<code>PreToolUse</code>/<code>PostToolUse</code> hooks, and <code>max_turns</code>.</p>
+
+<div class="callout c-warn">
+  <span class="lbl">Compliance constraint, and it is bigger than the model</span>
+  <p>Two independent blockers, both verified against Anthropic's own docs in August 2026:</p>
+  <ul>
+    <li><code>claude-fable-5</code> requires 30-day data retention and is <b>not available under zero
+    data retention</b>. The README says this.</li>
+    <li>The README does <b>not</b> say this: <b>Managed Agents as a feature is ZDR-ineligible and
+    HIPAA-ineligible regardless of model</b>, because <em>&ldquo;sessions are stateful resources;
+    transcripts persist until you delete them.&rdquo;</em> That applies to <code>/v1/agents</code>,
+    <code>/v1/sessions</code> and <code>/v1/environments</code>, including self-hosted sandboxes.</li>
+  </ul>
+  <p>For a learning platform holding student work, that second one is a procurement conversation, not
+  a config flag. Note it before you prototype, not after.</p>
+</div>
+
+<h3>The security posture is the most instructive file in the repo</h3>
+
+<p>The setup script provisions an environment with no outbound network at all, and turns off exactly
+one built-in tool. The comment explaining why is better security writing than most threat models:</p>
+
+<span class="code-label qs">QUICKSTART CODE &mdash; server/src/setup.ts</span>
+<pre><code><span class="cm">// The chat endpoint that fronts this agent is unauthenticated in the demo, so</span>
+<span class="cm">// keep the blast radius small: the container gets no outbound network (bash</span>
+<span class="cm">// and files still work for calculations), and web_fetch stays off because</span>
+<span class="cm">// arbitrary URL fetches are the classic prompt-injection + exfil channel.</span>
+<span class="cm">// web_search stays on for current rates and limits.</span>
+<span class="kw">const</span> environment = <span class="kw">await</span> client.beta.environments.<span class="fn">create</span>({
+  name: <span class="str">`financial-assistant-demo-${Date.now().toString(36)}`</span>,
+  config: {
+    type: <span class="str">'cloud'</span>,
+    networking: {
+      type: <span class="str">'limited'</span>,
+      allowed_hosts: [],
+      allow_package_managers: <span class="kw">false</span>,
+      allow_mcp_servers: <span class="kw">false</span>,
+    },
+  },
+});</code></pre>
+
+<div class="callout c-dissent">
+  <span class="lbl">The subtlety the comment doesn't mention</span>
+  <p>Anthropic's environments docs state that the <code>networking</code> field
+  <em>&ldquo;does not affect the <code>web_search</code> or <code>web_fetch</code> tools, which run on
+  Anthropic's servers.&rdquo;</em></p>
+  <p>So <code>allowed_hosts: []</code> does not disable web fetching &mdash; it disables the
+  <em>container's</em> egress. Turning off <code>web_fetch</code> in the toolset is what actually
+  closes that door, and the quickstart does both, correctly. But if you copy only the networking block
+  and leave <code>web_fetch</code> on, you have a container with no egress and a model that can still
+  fetch arbitrary URLs through Anthropic. Restricting those two tools is a <em>separate</em> control
+  (<code>allowed_domains</code> per tool, which unlike <code>allowed_hosts</code> rejects wildcards).</p>
+</div>
+
+<h3>Two design notes that are really ecosystem bug reports</h3>
+
+<p>Buried in <code>CLAUDE.md</code> are two notes that tell you more about the maturity of this stack
+than any version number:</p>
+
+<div class="split">
+<div class="l"><div class="h">The rxjs pin</div>
+<p><em>&ldquo;<code>package.json</code> pins one <code>rxjs</code> version via <code>overrides</code>
+so the whole workspace shares a single copy: the AG-UI client and the CopilotKit runtime exchange RxJS
+observables, and two copies in the tree can break <code>instanceof</code> checks.&rdquo;</em></p>
+<p>Two packages exchanging <em>objects</em> rather than <em>bytes</em> is not a protocol boundary. It
+is an in-process API boundary wearing a protocol's clothes.</p></div>
+<div class="r"><div class="h">The repl prompt line</div>
+<p><em>&ldquo;The agent's system prompt tells it to call visual tools directly, never from inside repl
+scripts: a repl-wrapped custom tool call parks the session on the repl call itself, a state the adapter
+(0.0.1) reads as unanswerable and interrupts. Drop that prompt line once the adapter handles repl
+suspension.&rdquo;</em></p>
+<p>An adapter bug, worked around in English, in the model's system prompt. That is a real production
+pattern and nobody enjoys it.</p></div>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The quickstart is glue. The interesting engineering is in a third-party adapter at version <code>0.0.1</code>, first published 30 July 2026.</li>
+  <li><code>ManagedAgentsAgent</code> implements one interface &mdash; that single fact is what makes the frontend vendor-neutral.</li>
+  <li>Managed Agents buys you a hosted loop and a hosted container, and costs you $0.08/session-hour plus ZDR and HIPAA eligibility.</li>
+  <li>Shared RxJS objects across the &ldquo;protocol&rdquo; boundary tell you this integration is tighter than the protocol framing implies.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>AG-UI, precisely</h2>
+  <div class="mt">33 event types, one state model, and one thing it flatly refuses to do</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>State what AG-UI is as an artifact &mdash; and what it is not</li>
+  <li>Enumerate the event categories and explain what each solves</li>
+  <li>Describe the snapshot/delta state model and its reconciliation failure mode</li>
+  <li>Say accurately what &ldquo;transport agnostic&rdquo; means in practice today</li>
+</ul></div>
+
+<h3>What it is, as an artifact</h3>
+
+<div class="tw"><table>
+<tbody>
+<tr><td><b>Full name</b></td><td>Agent&ndash;User Interaction Protocol</td></tr>
+<tr><td><b>Who</b></td><td>CopilotKit. The docs say it was <em>&ldquo;born from CopilotKit's initial partnership with LangChain and CrewAI.&rdquo;</em> It lives in a separate GitHub org, <code>ag-ui-protocol</code>, but is CopilotKit-led in practice</td></tr>
+<tr><td><b>Since</b></td><td>First npm publish 30 April 2025; repo created 7 May 2025</td></tr>
+<tr><td><b>Version</b></td><td><b>0.0.58</b> &mdash; pre-1.0, 73 published versions, MIT</td></tr>
+<tr><td><b>Traction</b></td><td>14,207 GitHub stars, 333 open issues, releases roughly twice a week</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout c-dissent">
+  <span class="lbl">Is it a spec, or a TypeScript package?</span>
+  <p>Closer to the package end, and you should know this before you standardise on it. There is
+  <b>no RFC-style normative document</b> with MUST/SHOULD language, <b>no versioned protocol
+  revision</b>, and <b>no conformance suite</b>. What exists is a prose docs site, Zod schemas in
+  TypeScript, Pydantic models in Python, and a <code>.proto</code> file.</p>
+  <p>The <code>EventType</code> enum in <code>sdks/typescript/packages/core/src/events.ts</code> is the
+  de-facto normative artifact. Everything else &mdash; the Python, .NET, Kotlin, Go, Rust, Ruby, Dart
+  and C++ SDKs &mdash; is ported against it.</p>
+  <p>Practical consequence: &ldquo;we're AG-UI compliant&rdquo; is currently an unfalsifiable claim.
+  Nobody can test it.</p>
+</div>
+
+<h3>The event vocabulary</h3>
+
+<p>The widely repeated figure is &ldquo;16 event types.&rdquo; That was the May 2025 launch set, and
+AG-UI's own architecture page still says it. The current enum has <b>33 members: 28 active and 5
+deprecated</b>. If a blog post tells you 16, it is a year out of date &mdash; and so, on this page, are
+the official docs.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Category</th><th>Events</th><th>The problem it solves</th></tr></thead>
+<tbody>
+<tr><td><b>Lifecycle</b> (5)</td><td><code>RUN_STARTED</code> <code>RUN_FINISHED</code> <code>RUN_ERROR</code> <code>STEP_STARTED</code> <code>STEP_FINISHED</code></td><td>Turn boundaries. <code>RUN_FINISHED</code> carries <code>usage</code> and an <code>outcome</code> of <code>success</code> or <code>interrupt</code></td></tr>
+<tr><td><b>Text message</b> (4)</td><td><code>TEXT_MESSAGE_START</code> <code>_CONTENT</code> <code>_END</code> <code>_CHUNK</code></td><td>Token streaming with explicit framing. <code>_CONTENT</code> carries a <code>delta</code></td></tr>
+<tr><td><b>Tool call</b> (5)</td><td><code>TOOL_CALL_START</code> <code>_ARGS</code> <code>_END</code> <code>_CHUNK</code> <code>_RESULT</code></td><td>Streaming tool arguments as JSON fragments, with an explicit end. This is where generative UI hangs</td></tr>
+<tr><td><b>State</b> (3)</td><td><code>STATE_SNAPSHOT</code> <code>STATE_DELTA</code> <code>MESSAGES_SNAPSHOT</code></td><td>A shared state object between agent and UI. The most consequential category</td></tr>
+<tr><td><b>Activity</b> (2)</td><td><code>ACTIVITY_SNAPSHOT</code> <code>ACTIVITY_DELTA</code></td><td>Structured progress (<code>"PLAN"</code>, <code>"SEARCH"</code>) that is not a message</td></tr>
+<tr><td><b>Reasoning</b> (7)</td><td><code>REASONING_START</code> <code>REASONING_MESSAGE_START</code> <code>_CONTENT</code> <code>_END</code> <code>_CHUNK</code> <code>REASONING_END</code> <code>REASONING_ENCRYPTED_VALUE</code></td><td>Thinking, renderable separately from the answer</td></tr>
+<tr><td><b>Special</b> (2)</td><td><code>RAW</code> <code>CUSTOM</code></td><td>The escape hatches. See below &mdash; they matter more than they look</td></tr>
+<tr><td><b>Deprecated</b> (5)</td><td><code>THINKING_START</code> <code>THINKING_END</code> <code>THINKING_TEXT_MESSAGE_START</code> <code>_CONTENT</code> <code>_END</code></td><td>Superseded by <code>REASONING_*</code>. Removal targeted for 1.0.0 &mdash; a scheduled breaking change</td></tr>
+</tbody>
+</table></div>
+
+<p>Note that the rename was not a clean prefix swap: <code>THINKING_TEXT_MESSAGE_START</code> became
+<code>REASONING_MESSAGE_START</code>, dropping the <code>TEXT_</code> segment. Every event also carries
+<code>type</code>, optional <code>timestamp</code>, <code>rawEvent</code> and <code>metadata</code>, and
+the Zod schemas are <code>.passthrough()</code>, so unknown fields survive.</p>
+
+<h3>Why this is not just streaming tokens</h3>
+
+<p>The difference is not the streaming. It is the <b>framing</b>. Compare:</p>
+
+<div class="split">
+<div class="l"><div class="h">Streaming tokens</div>
+<p>One channel, one meaning. Everything is text. A tool call is text you have to detect. A partial JSON
+argument is text you have to try parsing. The end of a thought is text you have to guess.</p>
+<p>Your client is a parser, and every parser is a place bugs live.</p></div>
+<div class="r"><div class="h">A framed event stream</div>
+<p><code>TOOL_CALL_START</code> tells you a tool call is beginning and names it. <code>TOOL_CALL_ARGS</code>
+gives you fragments you know are incomplete. <code>TOOL_CALL_END</code> tells you it is safe to parse.</p>
+<p>Your client is a dispatcher. There is nothing to guess.</p></div>
+</div>
+
+<p>Module 7 shows what happens when you don't have that framing, using real code from Learn Imagine
+that exists <em>only</em> because a chunk boundary inside a JSON string still parses as valid JSON.</p>
+
+<h3>The state model &mdash; and its soft failure</h3>
+
+<p>This is the part with real intellectual content, and the part with the real hazard.</p>
+
+<ul>
+  <li><b><code>STATE_SNAPSHOT</code></b> carries the complete state object. The docs are emphatic:
+  frontends should <em>&ldquo;replace their existing state model with the contents of this snapshot
+  rather than trying to merge it with previous state.&rdquo;</em></li>
+  <li><b><code>STATE_DELTA</code></b> carries an array of <b>JSON Patch operations (RFC 6902)</b> with
+  JSON Pointer paths (RFC 6901). The reference client applies them with <code>fast-json-patch</code> as
+  <code>applyPatch(state, delta, true, false)</code> &mdash; validate on, mutate off, so patches apply
+  atomically to a new document.</li>
+</ul>
+
+<div class="callout c-dissent">
+  <span class="lbl">Read this before you build on shared state</span>
+  <p>On patch failure the reference client <b><code>console.warn</code>s and calls
+  <code>emitNoUpdate()</code></b> &mdash; it silently drops the patch and continues. The docs say that
+  if a frontend detects inconsistency it <em>&ldquo;may request a fresh <code>STATE_SNAPSHOT</code>&rdquo;</em>,
+  but <b>there is no protocol event for the client to request one</b>.</p>
+  <p>There are no sequence numbers, no version vectors, no checksums. <b>Divergence detection is
+  entirely your application's problem.</b> Stream resumption exists only as a reserved, unimplemented
+  transport flag.</p>
+  <p>If you are building a system where a silently-diverged UI would be worse than a visibly-broken one
+  &mdash; a tutor drawing a diagram, say, or a grader showing a rubric &mdash; you must build your own
+  reconciliation on top. The protocol gives you the transport and hands the correctness back.</p>
+</div>
+
+<h3>&ldquo;Transport agnostic&rdquo; means SSE</h3>
+
+<p>The docs claim support for <em>&ldquo;Server-Sent Events (SSE), webhooks, WebSockets, and
+more.&rdquo;</em> Checked against the repo in August 2026:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Transport</th><th>Reality</th></tr></thead>
+<tbody>
+<tr><td><b>HTTP SSE</b></td><td>The real transport. <code>EventEncoder.encode()</code> unconditionally calls <code>encodeSSE()</code>. The reference <code>HttpAgent</code> <b>hardcodes</b> <code>Accept: text/event-stream</code></td></tr>
+<tr><td><b>Protobuf</b></td><td>TypeScript only, and the <code>.proto</code> enum is <b>frozen at the 16 launch events</b> &mdash; no <code>TOOL_CALL_RESULT</code>, no <code>REASONING_*</code>, no <code>ACTIVITY_*</code>. The binary transport silently carries about half the protocol</td></tr>
+<tr><td><b>WebSockets</b></td><td><b>Not implemented in the core SDKs.</b> Open feature requests. AWS Bedrock AgentCore exposes a <code>/ws</code> endpoint, but that is AWS's own contract, not AG-UI core</td></tr>
+<tr><td><b>Webhooks / resumable</b></td><td>Boolean capability flags with no implementation</td></tr>
+</tbody>
+</table></div>
+
+<p>The honest reading: <em>transport agnostic</em> means the event schema embeds no transport
+assumptions &mdash; they are JSON objects with a <code>type</code> discriminator, so you could put them
+on anything. It does not mean the SDKs give you a choice today. Design as if it is SSE, because it is.</p>
+
+<div class="callout c-warn">
+  <span class="lbl">The sentence most people get wrong</span>
+  <p>Verbatim from AG-UI's own docs: <b>&ldquo;AG-UI is not a generative UI specification.&rdquo;</b></p>
+  <p>It positions itself as the <em>transport</em> that carries generative-UI payloads defined
+  elsewhere &mdash; A2UI (Google), Open-JSON-UI (OpenAI), MCP-UI. The generative UI in the Anthropic
+  quickstart is not an AG-UI feature at all: it is CopilotKit matching a <code>TOOL_CALL_START</code>
+  name against a React component it was told about. The protocol carries the tool call. <b>CopilotKit
+  does the generative UI.</b></p>
+  <p>This distinction decides your lock-in exposure, so it recurs in Module 5.</p>
+</div>
+
+<h3>Where it sits in the protocol landscape</h3>
+
+<p>The three-legged framing &mdash; MCP for agent-to-tool, A2A for agent-to-agent, AG-UI for
+agent-to-user &mdash; is <b>verbatim from AG-UI's own docs</b>, on a page called
+<em>agentic-protocols</em>. Two caveats worth carrying:</p>
+
+<ul>
+  <li>It is <b>self-positioning by the party that benefits from it</b>. Neither Anthropic nor Google has
+  endorsed a three-legged stool. It is a useful mental model and a marketing frame at the same time.</li>
+  <li>The boundary is already blurring: AG-UI declares <code>MultiAgentCapabilities</code> with
+  <code>delegation</code>, <code>handoffs</code> and <code>subAgents</code>, and there is an open issue
+  proposing subagent support in the protocol. That is A2A's layer.</li>
+</ul>
+
+<p>The docs also describe AG-UI, approvingly, as the <em>&ldquo;kitchen sink protocol &mdash; informed
+by bottom-up, real-world needs&rdquo;</em> whose mandate is <em>&ldquo;to support the full set of
+building blocks required by modern agentic applications.&rdquo;</em> Hold that sentence next to
+&ldquo;33 event types and growing&rdquo; and you have a fair prediction of where it goes.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>AG-UI is a pre-1.0 TypeScript-schema-as-spec at 0.0.58, with no conformance suite. Real adoption, immature governance.</li>
+  <li>33 events, not 16. The official architecture page is wrong; the enum is right.</li>
+  <li><code>STATE_DELTA</code> is RFC 6902 JSON Patch. Failure is <b>silent</b> and there is no way to ask for a resync.</li>
+  <li>Transport agnostic means SSE. Protobuf carries half the protocol; WebSockets do not exist.</li>
+  <li>AG-UI explicitly is <b>not</b> a generative UI spec. That is CopilotKit's layer, and it is where lock-in lives.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>What breaks when you hand-roll it</h2>
+  <div class="mt">Five failure modes you will build yourself, in roughly this order</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Name the five recurring failures of hand-rolled agent&rarr;UI streaming</li>
+  <li>Explain why partial-JSON streaming produces a class of bug that framing eliminates</li>
+  <li>Recognise out-of-band signalling as a symptom, not a technique</li>
+  <li>Predict which of the five your own system already has</li>
+</ul></div>
+
+<p>Every team that ships an agent with a non-trivial UI hits the same five walls. The order is
+remarkably consistent, because each one is only visible once you've solved the previous one.</p>
+
+<h3>1. No frame boundary, so you write a parser</h3>
+
+<p>You stream JSON. The client wants to render as it arrives. But a chunk can split anywhere &mdash;
+including inside a string &mdash; and the truncated result is often <em>still valid JSON</em>. So
+<code>{"text": "Hel"}</code> parses cleanly and you render &ldquo;Hel&rdquo; as a finished sentence.</p>
+
+<p>Every team invents the same fix: never trust the last element. Then they invent the second fix:
+repair known model near-misses. Then the third: rescue turns the model double-encoded. Module 7 has all
+three, from your own repo, with dates in the comments.</p>
+
+<p>A framed protocol deletes this category. <code>TOOL_CALL_ARGS</code> deltas are <em>declared</em>
+incomplete; <code>TOOL_CALL_END</code> declares them complete. There is nothing to infer.</p>
+
+<h3>2. State divergence, with no shared source of truth</h3>
+
+<p>The agent believes the UI shows one thing. The UI shows another. Nothing detects it.</p>
+
+<p>This is the expensive one, because it does not fail loudly. It fails as a tutor referring to a
+diagram the student cannot see, or a copilot citing a row that scrolled away. The hand-rolled fix is
+almost always the same: <b>re-send the entire state to the model every turn, serialised as prose</b>.
+It works, and it costs tokens linearly in state size, forever. Module 9 puts a number on that.</p>
+
+<h3>3. Tool-call rendering, and the args-shape problem</h3>
+
+<p>Rendering a tool call as a component sounds trivial until you meet the wire format. The quickstart's
+comment on this is one of the most useful things in the repo:</p>
+
+<span class="code-label qs">QUICKSTART CODE &mdash; web/src/viz/renderers.tsx</span>
+<pre><code><span class="cm">/** Tool args have arrived in several shapes across CopilotKit versions: a</span>
+<span class="cm"> *  typed object, an object with every number stringified, and an object whose</span>
+<span class="cm"> *  nested arrays/objects are JSON strings. Normalize the structure here and</span>
+<span class="cm"> *  let the schemas' z.coerce handle stringified leaf numbers. */</span>
+<span class="kw">const</span> asRecord = (parameters: <span class="cl">unknown</span>): <span class="cl">unknown</span> =&gt; {
+  <span class="kw">let</span> value = parameters;
+  <span class="kw">if</span> (<span class="kw">typeof</span> value === <span class="str">'string'</span>) {
+    <span class="kw">try</span> { value = <span class="cl">JSON</span>.<span class="fn">parse</span>(value); } <span class="kw">catch</span> { <span class="kw">return</span> parameters; }
+  }
+  <span class="kw">if</span> (value &amp;&amp; <span class="kw">typeof</span> value === <span class="str">'object'</span> &amp;&amp; !<span class="cl">Array</span>.<span class="fn">isArray</span>(value)) {
+    <span class="kw">return</span> <span class="cl">Object</span>.<span class="fn">fromEntries</span>(
+      <span class="cl">Object</span>.<span class="fn">entries</span>(value).<span class="fn">map</span>(([key, field]) =&gt; [key, <span class="fn">parseStructured</span>(field)]),
+    );
+  }
+  <span class="kw">return</span> value;
+};</code></pre>
+
+<p>Read the design note that goes with it, from <code>CLAUDE.md</code>: <em>&ldquo;blind-spreading
+<code>props.parameters</code> breaks silently when the wire format shifts.&rdquo;</em></p>
+
+<div class="callout c-dissent">
+  <span class="lbl">Score this honestly against the protocol argument</span>
+  <p>This is a defensive parser <b>inside the protocol-adopting solution</b>. AG-UI standardised the
+  event envelope; it did not standardise the payload shape well enough for CopilotKit to keep it stable
+  across its own versions. The quickstart still has to coerce.</p>
+  <p>So &ldquo;adopt a protocol and stop writing parsers&rdquo; is overclaiming. The accurate claim is
+  narrower and still worth a lot: <b>you stop writing parsers for framing, and you keep writing them
+  for payloads.</b></p>
+</div>
+
+<h3>4. Interruption and resumption</h3>
+
+<p>What happens when the user hits stop, or closes the tab, or the network drops mid-turn?</p>
+
+<p>Hand-rolled systems usually pick one of three unsatisfying answers: lock the input so interruption
+is impossible; let the user interrupt and throw away the partial turn; or let the user interrupt and
+keep a partial turn that nobody can reconstruct. AG-UI's answer is
+<code>RUN_FINISHED</code> with <code>outcome.type === "interrupt"</code> &mdash; a first-class,
+renderable, resumable outcome, which CopilotKit surfaces through <code>useInterrupt</code>.</p>
+
+<p>Worth knowing that the protocol's own record here is imperfect: an open issue reports that a
+user-triggered <code>stopGeneration</code> produces a server <code>ECONNRESET</code> rather than a
+clean abort. The <em>model</em> is right; the implementation is 0.0.58.</p>
+
+<h3>5. Human-in-the-loop approvals</h3>
+
+<p>The moment an agent can do something consequential, someone will ask for an approval step. Hand-rolled,
+this means inventing a pause-and-resume protocol inside your own stream: a message type that means
+&ldquo;I am waiting,&rdquo; a way to carry the user's answer back into the same turn, and a way to not
+lose it on refresh.</p>
+
+<p>CopilotKit v2 gives you two distinct mechanisms, and the distinction is worth learning because
+people conflate them:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Hook</th><th>Who pauses</th><th>Use when</th></tr></thead>
+<tbody>
+<tr><td><code>useHumanInTheLoop</code></td><td>The <b>model</b>, by calling a registered client-side tool</td><td>The agent decides it needs a human. No <code>handler</code> &mdash; the render gets a <code>respond</code> callback, defined only while status is <code>Executing</code></td></tr>
+<tr><td><code>useInterrupt</code></td><td>The <b>graph/runtime</b>, calling <code>interrupt(...)</code></td><td>Your orchestration decides. Render receives <code>{ event, resolve, cancel }</code></td></tr>
+</tbody>
+</table></div>
+
+<div class="callout c-fact">
+  <span class="lbl">API drift worth knowing before you write code</span>
+  <p>CopilotKit v2 renamed most of its surface, and a lot of tutorials on the web are v1:</p>
+  <ul>
+    <li><code>useCopilotAction</code> &rarr; <code>useFrontendTool</code> (Zod schemas now, not parameter arrays)</li>
+    <li><code>useCopilotReadable</code> &rarr; <code>useAgentContext</code></li>
+    <li><code>useCoAgent</code> &rarr; <code>useAgent</code></li>
+    <li><code>useLangGraphInterrupt</code> &rarr; <code>useInterrupt</code></li>
+    <li><code>renderAndWaitForResponse</code> &rarr; <b>gone</b>; it is the <code>respond</code> callback now</li>
+  </ul>
+  <p>And <code>useRenderTool</code> &mdash; the hook the quickstart uses &mdash; is <b>not</b> the
+  successor to <code>useCopilotAction</code>. It is a different, render-only hook with no handler, which
+  is exactly right for a tool that executes server-side in the managed session.</p>
+</div>
+
+<h3>The symptom checklist</h3>
+
+<p>You can diagnose a hand-rolled pipeline without reading its architecture doc. Look for these:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Symptom</th><th>What it means</th></tr></thead>
+<tbody>
+<tr><td>A function called <code>repair</code>, <code>rescue</code>, <code>normalize</code> or <code>coerce</code> on inbound model output</td><td>No frame boundary. You are parsing, not dispatching</td></tr>
+<tr><td>Signals travelling in <b>HTTP response headers</b></td><td>No event channel for anything that isn't the main payload</td></tr>
+<tr><td>The full UI state re-serialised into the prompt every turn</td><td>No shared state. You are paying tokens for reconciliation</td></tr>
+<tr><td>Input disabled while the agent works</td><td>No interrupt outcome. Interruption was made impossible rather than handled</td></tr>
+<tr><td>A bespoke fixture-replay harness for the UI</td><td>You have an event log and no standard way to inspect it</td></tr>
+<tr><td>A <code>no-transform</code> or <code>X-Accel-Buffering</code> header that is load-bearing</td><td>An unframed stream that a CDN can truncate without anything noticing</td></tr>
+</tbody>
+</table></div>
+
+<p>Learn Imagine has <b>all six</b>. That is not a criticism &mdash; it is what a well-built system
+looks like when it solves these problems before a standard existed. Module 7 walks each one with the
+file and line.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The five walls: framing, state divergence, tool rendering, interruption, approvals. In that order, always.</li>
+  <li>Framing is the one a protocol genuinely deletes. The rest it standardises but does not solve for you.</li>
+  <li>The quickstart still needs a defensive args parser &mdash; adopting a protocol reduces parsing, it does not end it.</li>
+  <li>Out-of-band signalling (headers, side channels) is the clearest diagnostic that your stream has no event vocabulary.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>The State Desk</h2>
+  <div class="mt">Simulator &mdash; five pieces of tutoring state, three layers, one call each</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Assign a piece of application state to the layer that should own it, and defend the call</li>
+  <li>Predict the behaviour of each assignment under refresh, interruption, and a second client</li>
+  <li>Recognise that the protocol-maximalist answer is sometimes the impossible one</li>
+  <li>Read your own recorded reasoning back against the consequence</li>
+</ul></div>
+
+<div class="callout c-sean">
+  <span class="lbl">How this works</span>
+  <p>You are the architect on an AI tutor with a whiteboard. Five pieces of state come across your desk.
+  For each one you decide which layer owns it &mdash; <b>the agent</b> (server-side, in the model's
+  session), <b>the protocol</b> (an AG-UI event carries it), or <b>the UI</b> (the client derives or
+  holds it) &mdash; and you write one line saying why.</p>
+  <p>The results stay locked until you have both. Then each call is run through three stress tests:
+  <b>a browser refresh mid-lesson</b>, <b>a student interruption</b>, and <b>a second tab</b>. Every
+  consequence is precomputed and deterministic &mdash; nothing here is generated, and the same call
+  always produces the same result.</p>
+  <p>Two of the five have an answer that will annoy you. One of them is a trap: the layer that looks
+  most principled cannot actually do the job, because the protocol does not implement the thing its
+  own docs advertise.</p>
+</div>
+
+<div id="desk">
+  <div class="desk-top">
+    <span class="desk-pill">Simulator</span>
+    <h3 id="d-title">Loading&hellip;</h3>
+    <span class="desk-step" id="d-step">1 / 5</span>
+  </div>
+  <div class="desk-body">
+    <div class="dq" id="d-dots"></div>
+
+    <div id="divbox">
+      <div class="lbl">Divergence ledger <span id="divn">0</span></div>
+      <ul id="divlist"><li class="empty">Nothing broken yet. Every call you make adds its failure modes here.</li></ul>
+    </div>
+
+    <div class="ticket" id="d-ticket"></div>
+    <div class="scene" id="d-scene"></div>
+
+    <p style="font-size:0.88rem;color:var(--text-bright);font-weight:650;margin-bottom:0.7rem"
+       id="d-question"></p>
+
+    <div class="opts" id="d-opts"></div>
+
+    <div class="why-wrap">
+      <label for="why">One line: why this layer? (You cannot see the results until you write it.)</label>
+      <textarea id="why" placeholder="e.g. positions have to reproduce exactly on replay, and only a pure function does that"></textarea>
+    </div>
+
+    <div class="desk-btns">
+      <button class="act" id="d-run" disabled>Lock in and run the stress tests</button>
+      <button class="act ghost hid" id="d-next">Next &rarr;</button>
+      <button class="act ghost" id="d-reset">Reset</button>
+      <span class="gate-msg" id="d-gate">Pick a layer and write one line of reasoning to unlock.</span>
+    </div>
+
+    <div id="result" class="hid"></div>
+
+    <div id="ledger" class="hid">
+      <div class="rhead">Your decision ledger</div>
+      <div id="ledlist"></div>
+    </div>
+  </div>
+</div>
+
+<div id="transfer" class="hid">
+  <h4>Transfer exercise</h4>
+  <p style="font-size:0.88rem;color:var(--text-dim);margin-bottom:1.1rem">Deliberately not a whiteboard
+  problem, and the mechanism involved was never shown to you above. Nothing is graded &mdash; but if you
+  can't answer these, the simulator taught you a pattern rather than a principle.</p>
+
+  <div class="tq"><div class="q">1. A course-authoring copilot lets an instructor and the agent
+  co-edit a syllabus outline. Two instructors have it open at once. Which layer owns the outline, and
+  what does AG-UI give you and not give you here?</div>
+  <textarea placeholder="Your answer"></textarea></div>
+
+  <div class="tq"><div class="q">2. You adopt <code>STATE_DELTA</code> for the outline. On Tuesday a
+  patch fails to apply on one client. Describe exactly what the learner sees, and what you had to build
+  yourself for anyone to ever find out.</div>
+  <textarea placeholder="Your answer"></textarea></div>
+
+  <div class="tq"><div class="q">3. Give one piece of state in a learning product where the right owner
+  is <em>the agent</em>, and explain why deriving it in the UI would be wrong rather than merely
+  inconvenient.</div>
+  <textarea placeholder="Your answer"></textarea></div>
+</div>
+
+<div class="takeaways"><div class="t">What the desk was actually teaching</div><ul>
+  <li><b>Derived beats stored.</b> Three of the five have a UI answer that wins, and it wins for the same reason each time: a pure function of an append-only log survives refresh, interruption and a second client for free.</li>
+  <li><b>The protocol's job is the turn, not the truth.</b> AG-UI is excellent at carrying pause, resume and tool activity. It is not a store, and treating it as one is how you get silent divergence.</li>
+  <li><b>Check whether the feature exists before you architect on it.</b> Round 4 is a trap because resumable streams are advertised in the capability surface and implemented nowhere.</li>
+  <li><b>Determinism is a load-bearing property.</b> The layout answer only works because the function is pure. One <code>Date.now()</code> and the whole argument collapses.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>What the abstraction costs</h2>
+  <div class="mt">Lock-in, debugging through a layer, latency, and the &ldquo;just use SSE&rdquo; case</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Locate where lock-in actually lives &mdash; it is not the protocol</li>
+  <li>Describe the debugging surface a protocol layer adds</li>
+  <li>State the honest latency and bundle costs</li>
+  <li>Make the &ldquo;just use SSE&rdquo; argument well enough to have to answer it</li>
+</ul></div>
+
+<h3>Lock-in is in the client, not the protocol</h3>
+
+<p>The protocol is MIT, has nine community SDKs, and three hyperscalers ship it. On paper it is the
+least lock-in-shaped thing in your stack. The lock-in is one layer up.</p>
+
+<p>Recall that AG-UI states plainly it <b>is not a generative UI specification</b>. So the thing you
+actually want &mdash; a tool call becoming a React component, sliders that recompute client-side, an
+approval gate that pauses the agent &mdash; is <b>CopilotKit's</b>. Concretely, in the quickstart:
+<code>useRenderTool</code>, <code>CopilotKitProvider</code>, <code>CopilotChat</code>,
+<code>CopilotSseRuntime</code>, <code>createCopilotExpressHandler</code>. Those are the five symbols
+that would have to be rewritten if you left. The AG-UI events would survive; the surface that makes them
+useful would not.</p>
+
+<p>CopilotKit is MIT and self-hostable, which is genuinely more than most of the category offers. But
+the commercial gradient is real and worth reading before you commit:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Capability</th><th>OSS</th><th>Paid platform</th></tr></thead>
+<tbody>
+<tr><td>Chat UI, frontend tools, generative UI, agent state</td><td>&#10003;</td><td></td></tr>
+<tr><td>Any AG-UI integration, self-hosted runtime</td><td>&#10003;</td><td></td></tr>
+<tr><td><b>Conversation history surviving reload or device change</b></td><td></td><td>&#10003;</td></tr>
+<tr><td><b>Thread API, realtime cross-tab / cross-device sync</b></td><td></td><td>&#10003;</td></tr>
+<tr><td>Hosted inspector, admin console, multi-tenancy</td><td></td><td>&#10003;</td></tr>
+</tbody>
+</table></div>
+
+<p>Pricing is Developer free, Pro $39/mo, Team $100/seat/mo, Enterprise custom. Note precisely which
+rows are paid: <b>persistence and multi-client sync</b> &mdash; which is to say, three of the five
+stress tests from Module 4. The protocol does not standardise persistence, and the reference
+implementation sells it. That is a coherent business model and you should still see it clearly.</p>
+
+<div class="callout c-dissent">
+  <span class="lbl">The clearest public criticism</span>
+  <p>From Hacker News, and it is the recurring one: <em>&ldquo;But even with AG-UI, CopilotKit is a paid
+  service. Everyone's trying to do vendor&hellip;&rdquo;</em></p>
+  <p>The docs partly concede the shape of it. Describing their OpenTag product, they note the agent is
+  self-hosted <em>&ldquo;while platform credentials and message delivery are handled by CopilotKit
+  Intelligence &mdash; a hosted service, not part of the protocol.&rdquo;</em> An open protocol that
+  funnels toward a commercial client is a well-worn pattern. It is not disqualifying. It is a thing to
+  price in.</p>
+</div>
+
+<h3>Debugging through a protocol layer</h3>
+
+<p>When your hand-rolled stream misbehaves, there are two places to look: your server and your client.
+With this stack there are five, and the failure can be in any of them:</p>
+
+<ol>
+  <li>The Managed Agents session (Anthropic's infrastructure &mdash; you get the Console trace)</li>
+  <li>The <code>@ag-ui/claude-managed-agents</code> adapter, at 0.0.1</li>
+  <li>The AG-UI event stream itself</li>
+  <li>The CopilotKit runtime's transformation of those events</li>
+  <li>Your React renderers</li>
+</ol>
+
+<p>Two of those five you cannot step through. The quickstart's own troubleshooting list is the evidence:
+<code>instanceof</code> errors mentioning Observable (duplicate rxjs), a repl-parked session the adapter
+interprets as unanswerable, tool args arriving in three different shapes across runtime versions. None
+of those are bugs in the finance assistant. All of them cost the author time.</p>
+
+<p>The mitigation is real, and it is the best thing about the Managed Agents half of this stack: every
+session logs a Console trace URL, and the Console gives you a timeline minimap, a full transcript
+grouped by model request with thinking and tool inputs/results, and an inspector with Session, Events,
+Tools, Resources and Threads tabs, downloadable as JSON. That is genuinely better observability than
+most teams build for themselves.</p>
+
+<h3>Latency and bundle</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Cost</th><th>Honest size</th></tr></thead>
+<tbody>
+<tr><td><b>Per-event overhead</b></td><td>Negligible. SSE framing plus a JSON envelope. Nobody's tutor is slow because of this</td></tr>
+<tr><td><b>Extra hop</b></td><td>One. Browser &rarr; your runtime &rarr; Anthropic. Real but constant, and you were going to proxy anyway to keep the API key off the client</td></tr>
+<tr><td><b>Bundle</b></td><td>Measurable. Protobuf is force-bundled into <code>@ag-ui/client</code> and cannot be tree-shaken &mdash; there is an open issue asking to expose the HTTP client without it. You ship a binary codec that carries half the protocol and that the reference client never even offers in its <code>Accept</code> header</td></tr>
+<tr><td><b>Turn cap</b></td><td>The adapter defaults to a 300s per-turn timeout. Fine for finance, worth checking for anything longer-running</td></tr>
+</tbody>
+</table></div>
+
+<h3>The &ldquo;just use SSE&rdquo; argument, made properly</h3>
+
+<div class="callout c-warn">
+  <span class="lbl">Sourcing note</span>
+  <p>I went looking for this argument in public and could not find anyone making it &mdash; not on HN,
+  not in GitHub issues, not in blog posts. So the version below is mine, not a citation. Treat it as a
+  steelman to argue with, not as evidence of a backlash.</p>
+</div>
+
+<p>The argument runs like this. You already have SSE. You already have JSON. A discriminated union over
+a <code>type</code> field is thirty lines of TypeScript and a Zod schema. What AG-UI adds is not a
+capability &mdash; it is <em>agreement</em>, and agreement is only valuable if you are actually going to
+interoperate with someone.</p>
+
+<p>So the question is not &ldquo;is a protocol good?&rdquo; It is: <b>who is the second party?</b></p>
+
+<div class="tw"><table>
+<thead><tr><th>Your situation</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td>One agent, one frontend, one team, one repo</td><td><b>Roll your own.</b> There is no second party. You are paying interop tax for interop you will never do</td></tr>
+<tr><td>You want CopilotKit's components without rewriting them</td><td><b>Adopt.</b> This is the honest, sufficient reason and most adopters' actual reason</td></tr>
+<tr><td>Multiple agent runtimes behind one UI, or one agent surfaced in several UIs</td><td><b>Adopt.</b> This is what the protocol is for and it earns its keep immediately</td></tr>
+<tr><td>You are a platform and third parties will build agents that appear in your product</td><td><b>Adopt, and go further</b> &mdash; you need a contract you can publish and version</td></tr>
+<tr><td>You need pause/resume, approvals and tool rendering, and you have not built them yet</td><td><b>Adopt.</b> You would be rebuilding a well-specified vocabulary from scratch</td></tr>
+</tbody>
+</table></div>
+
+<p>The counter to the counter: your second party is often <b>future you</b>. The event vocabulary you
+invent this quarter is the one you are stuck with in three years, and it will not have an interrupt
+outcome in it, because you did not need one yet. That is exactly what happened in Learn Imagine, and
+Module 7 shows the line of code where it happened.</p>
+
+<h3>What AG-UI does not standardise</h3>
+
+<p>There is no published non-goals section. I looked. The boundaries below are inferred from absence
+plus one first-party integrator's docs, which means <b>they are not commitments and could change</b>:</p>
+
+<ul>
+  <li><b>Auth.</b> Nothing. Microsoft's integration docs say it plainly: <em>&ldquo;AG-UI does not include
+  a built-in authorization mechanism&rdquo;</em>, adding <em>&ldquo;do not expose AG-UI servers directly
+  to untrusted clients&rdquo;</em> and documenting five injection vectors &mdash; message list, client-side
+  tool, state, context, and forwarded-properties injection. They recommend a trusted-frontend/BFF pattern.</li>
+  <li><b>Persistence.</b> <code>threadId</code> and <code>runId</code> are opaque strings. No store, no
+  history endpoint, no retention semantics. Microsoft again: <em>&ldquo;don't treat a thread ID as proof
+  of identity or ownership.&rdquo;</em></li>
+  <li><b>State shape.</b> <code>snapshot</code> is typed <code>any</code>. AG-UI standardises how state
+  moves, never what is in it.</li>
+  <li><b>Error taxonomy.</b> <code>RunError.code</code> is a free string. AWS had to invent its own
+  <code>UNAUTHORIZED</code>/<code>SESSION_BUSY</code>/<code>AGENT_ERROR</code> codes to make it usable.</li>
+  <li><b>Ordering, delivery guarantees, rate limiting, retry, billing.</b> All yours.</li>
+</ul>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Lock-in lives in CopilotKit's React surface, not in AG-UI. Five symbols is the switching cost.</li>
+  <li>Persistence and multi-client sync &mdash; three of the five Module 4 stress tests &mdash; are the paid tier.</li>
+  <li>Five debugging surfaces, two of which you cannot step through. The Console trace is the real mitigation.</li>
+  <li>&ldquo;Just use SSE&rdquo; is a good argument and the answer is always &ldquo;who is the second party?&rdquo;</li>
+  <li>No auth, no persistence, no state shape, no error taxonomy, no non-goals document. Plan for all five.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>The alternatives, fairly</h2>
+  <div class="mt">Raw SSE, Vercel AI SDK, LangGraph, MCP-UI &mdash; where each one wins</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Place four alternatives on the same axes as AG-UI</li>
+  <li>Explain why the Vercel AI SDK is the real competitor and what it deliberately omits</li>
+  <li>Distinguish MCP-UI from AG-UI &mdash; and A2UI from both</li>
+  <li>Pick the right one for a stated situation without defaulting</li>
+</ul></div>
+
+<div class="tw"><table>
+<thead><tr><th>Option</th><th>Wins when</th><th>Loses when</th></tr></thead>
+<tbody>
+<tr><td><b>Raw SSE + your own event union</b></td><td>One agent, one UI, one team. Total control, zero dependency risk, no version churn, smallest bundle</td><td>You need pause/resume, approvals or shared state &mdash; you will rebuild all of it, worse, later</td></tr>
+<tr><td><b>Vercel AI SDK (<code>useChat</code>, <code>streamObject</code>)</b></td><td>Next.js, chat-shaped, provider-agnostic. Best-in-class DX. Streaming structured output is genuinely excellent &mdash; it is what Learn Imagine runs on</td><td>You need a <b>protocol</b> rather than a library. There is no shared-state channel, no standard interrupt outcome, and the wire format is an implementation detail rather than a contract</td></tr>
+<tr><td><b>LangGraph's own UI bindings</b></td><td>You are already all-in on LangGraph. Interrupts, checkpointing and time travel come from the graph runtime, which is a genuinely stronger resumption story than AG-UI has</td><td>You are not on LangGraph. Note that LangChain is an AG-UI launch partner &mdash; these are complements, and <code>@ag-ui/langgraph</code> is the second most downloaded package in the ecosystem</td></tr>
+<tr><td><b>MCP-UI</b></td><td>A <b>tool</b> wants to return a piece of interface. The unit is a resource returned from a tool call, not a stream of agent events</td><td>You want to render the agent's <em>process</em> &mdash; its thinking, its progress, its pause. MCP-UI has nothing to say about that. Different layer, not a competitor</td></tr>
+<tr><td><b>A2UI (Google) / Open-JSON-UI (OpenAI)</b></td><td>You want a portable declarative description of UI a model can emit</td><td>You want the transport. AG-UI's docs position these as <b>payloads AG-UI carries</b>, not rivals. The name collision with AG-UI is unfortunate and their docs apologise for it</td></tr>
+</tbody>
+</table></div>
+
+<h3>The comparison that actually matters</h3>
+
+<p>For your stack the real fork is <b>Vercel AI SDK versus AG-UI</b>, because you are already on the
+former and it is not obviously worse. The distinction is not quality &mdash; it is category.</p>
+
+<div class="split">
+<div class="l"><div class="h">The AI SDK is a library</div>
+<p>It gives you excellent primitives for getting model output into React. <code>streamObject</code> with
+<code>output: "array"</code> streams a growing typed array; <code>useObject</code> reconstructs partials.
+That is a very good library.</p>
+<p>The wire is <code>text/plain</code> chunked partial JSON. That is fine, because the library owns both
+ends and nobody else is meant to read it.</p></div>
+<div class="r"><div class="h">AG-UI is a contract</div>
+<p>It gives you a named, enumerable, versioned vocabulary that a second party can implement without
+talking to you.</p>
+<p>The cost is that it is pre-1.0 with a scheduled breaking change, has no conformance suite, and its
+best client is commercial above a line. The benefit is that the vocabulary includes concepts &mdash;
+interrupt outcome, state delta, activity, reasoning &mdash; that you would not have invented until you
+needed them.</p></div>
+</div>
+
+<div class="callout c-fact">
+  <span class="lbl">The non-obvious point</span>
+  <p>These are not exclusive, and the cheapest useful move is to steal the <b>vocabulary</b> without
+  adopting the <b>stack</b>.</p>
+  <p>You can keep <code>streamObject</code> and still name your events after AG-UI's, still add an
+  explicit end-of-args frame, still model interruption as a first-class outcome rather than a disabled
+  input. That gets you most of the design benefit at zero dependency cost, and it leaves a real migration
+  path open if the ecosystem consolidates. Module 8 makes this the recommendation.</p>
+</div>
+
+<h3>Adoption signal, read carefully</h3>
+
+<p>The npm numbers look enormous and are partly an artifact. <code>@ag-ui/core</code> shows ~5.9M
+downloads a month, but <code>@ag-ui/proto</code> (4.33M) and <code>@ag-ui/encoder</code> (4.33M) sit
+within 2% of <code>@ag-ui/client</code> (4.27M) &mdash; exactly what you would expect if they are forced
+transitive dependencies, which the open bundle-size issue confirms. So read it as roughly <b>one number
+around 4.3M, counted four times</b>, plus ~1.5M direct <code>core</code> installs. Real, and not
+6M-distinct-adopters real.</p>
+
+<p>The signal that <em>is</em> strong is institutional: <b>AWS</b> documents AG-UI as a Bedrock AgentCore
+Runtime protocol contract alongside A2A, <b>Microsoft</b> publishes dedicated AG-UI security and
+integration docs for Agent Framework, and <b>Google</b> ADK has a supported middleware. Three
+hyperscalers shipping it is meaningfully beyond &ldquo;one startup's protocol.&rdquo;</p>
+
+<p>The counter-signal: the Show HN launch got <b>36 points and 5 comments</b>, two of them from CopilotKit
+staff, and the most substantive outside comment was straightforward confusion about what it was for.
+Later AG-UI stories got 7 and 6 points. Star count and practitioner traction are badly out of step, and
+that gap is worth watching rather than dismissing.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>MCP-UI and A2UI are different layers, not competitors. Only the AI SDK and raw SSE actually compete.</li>
+  <li>The AI SDK is a better library; AG-UI is a contract. Pick by whether you have a second party.</li>
+  <li>You can adopt the vocabulary without the stack. That is the cheapest 80%.</li>
+  <li>Hyperscaler adoption is the strong signal; npm downloads are inflated by forced transitives; HN traction is thin.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>Learn Imagine: you already built four fifths of it</h2>
+  <div class="mt">The whiteboard tutor, mapped onto the protocol, file by file</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Map the board action vocabulary onto AG-UI event types, and identify what has no equivalent</li>
+  <li>Locate the four pieces of scar tissue that framing would have prevented</li>
+  <li>Explain why the layout engine is the strongest part of the design and the hardest to migrate</li>
+  <li>State exactly which files a migration touches</li>
+</ul></div>
+
+<div class="callout c-li">
+  <span class="lbl">What this module is reading</span>
+  <p><code>~/projects/learn-imagine-v4</code> &mdash; a single Next.js 16 app (App Router, React 19,
+  Vercel AI SDK v6, Neon Postgres + Drizzle, zod v4). No Python, no separate model backend. The board
+  pipeline is <b>30 non-test files, 7,176 lines &mdash; about 48% of the codebase</b>. Its own
+  <code>CLAUDE.md</code> and <code>PLAN.md</code> are unusually accurate; I checked their claims against
+  the code and found no drift.</p>
+</div>
+
+<h3>The vocabulary you already have</h3>
+
+<p>The whiteboard's wire format is a zod v4 discriminated union on <code>op</code>. Its header comment
+states the design intent better than most protocol specs do:</p>
+
+<span class="code-label li">LEARN IMAGINE &mdash; lib/board/actions.ts</span>
+<pre><code><span class="cm">// The whiteboard's wire format. The LLM emits a stream of these validated</span>
+<span class="cm">// actions — never markup, never pixels. The shape model IS the wire format</span>
+<span class="cm">// IS the prompt serialization IS the DB row: zero impedance mismatch.</span>
+<span class="cm">//</span>
+<span class="cm">// ONE stable schema forever: the action array is part of the Anthropic</span>
+<span class="cm">// prompt-cache prefix (jsonTool mode) — never mint per-turn variants.</span>
+
+<span class="kw">export const</span> BoardAction = z.<span class="fn">discriminatedUnion</span>(<span class="str">"op"</span>, [
+  SayAction, AddTextAction, AddMathAction, AddArrowAction, AddShapeAction,
+  AddGraphAction, AddTableAction, HighlightAction, AnnotateAction,
+  DeleteAction, MoveViewAction, AskCheckAction, PauseAction,
+]);</code></pre>
+
+<p>Thirteen ops. Plus a separate student vocabulary (<code>student_pen</code>, <code>student_text</code>,
+<code>student_erase</code>, <code>message</code>, <code>check_answer</code>, <code>look_at_work</code>,
+<code>start</code>) and a system vocabulary (<code>turn_end</code>, <code>session_end</code>), wrapped in
+an actor-tagged envelope:</p>
+
+<span class="code-label li">LEARN IMAGINE &mdash; lib/board/actions.ts</span>
+<pre><code><span class="kw">export type</span> BoardEventPayload =
+  | { actor: <span class="str">"ai"</span>; action: BoardActionT }
+  | { actor: <span class="str">"student"</span>; event: StudentEvent }
+  | { actor: <span class="str">"system"</span>; event: { kind: <span class="str">"turn_end"</span>; turnId?: <span class="cl">string</span> }
+                            | { kind: <span class="str">"session_end"</span> } };</code></pre>
+
+<p>Stop and notice what that is. An <b>actor-tagged, append-only event log with a closed vocabulary and
+server-assigned sequence numbers</b>, persisted to <code>board_events</code> with a
+<code>unique(board_session_id, seq)</code> constraint, where <code>fold(events)</code> reconstructs the
+entire board. You did not build a chat app that happens to draw. You built an event-sourced system.</p>
+
+<h3>The mapping</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Learn Imagine</th><th>AG-UI equivalent</th><th>Fit</th></tr></thead>
+<tbody>
+<tr><td><code>say</code></td><td><code>TEXT_MESSAGE_START</code> / <code>_CONTENT</code> / <code>_END</code></td><td><b>Clean.</b> You would gain token-level streaming of speech, which you currently don't have &mdash; a whole <code>say</code> arrives at once</td></tr>
+<tr><td><code>add_text</code> <code>add_math</code> <code>add_arrow</code> <code>add_shape</code> <code>add_graph</code> <code>add_table</code></td><td><code>TOOL_CALL_START</code> / <code>_ARGS</code> / <code>_END</code>, rendered by <code>useRenderTool</code></td><td><b>Clean, and this is the headline.</b> Six of your thirteen ops are precisely the quickstart's <code>show_payoff_timeline</code> pattern &mdash; a named call with typed args that mounts a component</td></tr>
+<tr><td><code>ask_check</code> answer handling</td><td><code>TOOL_CALL_RESULT</code></td><td>Note this event is one of the ones the protobuf transport silently drops. Irrelevant on SSE; a landmine if anyone ever enables binary</td></tr>
+<tr><td><code>highlight</code> <code>annotate</code> <code>delete</code> <code>move_view</code></td><td>Also <code>TOOL_CALL_*</code>, but semantically these are <b>mutations of existing board state</b></td><td><b>Awkward.</b> These are the cleanest argument for <code>STATE_DELTA</code> instead: <code>highlight</code> on shape <code>m2</code> is a JSON Patch <code>replace</code> on <code>/shapes/m2/tone</code>, not a new tool call</td></tr>
+<tr><td><code>ask_check</code></td><td><code>useHumanInTheLoop</code> &mdash; a tool the model calls that pauses until <code>respond</code> fires</td><td><b>Very clean, and an upgrade.</b> Today your check gate is enforced by the client refusing input. Under the protocol the <em>agent</em> is genuinely paused</td></tr>
+<tr><td><code>pause_for_student</code></td><td><code>RUN_FINISHED</code>, or an interrupt outcome</td><td><b>Clean.</b> This is your turn terminator; it maps to the lifecycle layer</td></tr>
+<tr><td><b>The board itself</b> &mdash; <code>fold(board_events)</code></td><td><code>STATE_SNAPSHOT</code> / <code>STATE_DELTA</code></td><td><b>This is the real prize, and the real risk.</b> See below</td></tr>
+<tr><td><b>Layout positions</b></td><td><span class="bad">No equivalent</span></td><td><b>Does not fit, and should not.</b> Positions are derived. Putting them on the wire would be a category error &mdash; you covered this in Module 4, round 1</td></tr>
+<tr><td><code>student_pen</code> ink</td><td><span class="bad">No equivalent</span></td><td><b>Does not fit.</b> AG-UI is agent&rarr;user. There is no standard event for user-generated canvas content flowing the other way; you would use <code>CUSTOM</code>, which is the &ldquo;we didn't standardise this&rdquo; escape hatch</td></tr>
+<tr><td><b>Vision snapshot</b> (board rasterised to PNG, sent as an image content part)</td><td><span class="bad">No equivalent</span></td><td><b>Does not fit.</b> This rides on the model request, not the event stream, and AG-UI has nothing to say about model inputs</td></tr>
+</tbody>
+</table></div>
+
+<h3>What the mapping looks like in code</h3>
+
+<p>Here is the quickstart's tool contract &mdash; the thing the agent sees, which the adapter registers
+on each session and CopilotKit renders as a React component. Compare its shape to your
+<code>AddMathAction</code>:</p>
+
+<span class="code-label qs">QUICKSTART CODE &mdash; server/src/vizTools.ts</span>
+<pre><code><span class="cm">/** ... The rendering IS the result, so the handlers ignore</span>
+<span class="cm"> * their input and just confirm. */</span>
+<span class="kw">const</span> rendered = (name: <span class="cl">string</span>) =&gt; () =&gt;
+  <span class="str">`Rendered "${name}" to the user as an interactive visual.`</span>;
+
+<span class="kw">export const</span> vizTools: BackendCustomTool[] = [
+  {
+    name: <span class="str">'show_payoff_timeline'</span>,
+    description:
+      <span class="str">'Render an interactive debt-payoff chart in the chat: remaining balance by month, '</span> +
+      <span class="str">'payoff date, and total interest, with a payment slider the user can drag ...'</span>,
+    parameters: {
+      type: <span class="str">'object'</span>,
+      properties: {
+        title:          { type: <span class="str">'string'</span>, description: <span class="str">'Short chart title'</span> },
+        principal:      { type: <span class="str">'number'</span>, exclusiveMinimum: <span class="num">0</span> },
+        aprPercent:     { type: <span class="str">'number'</span>, minimum: <span class="num">0</span>, maximum: <span class="num">100</span> },
+        monthlyPayment: { type: <span class="str">'number'</span>, exclusiveMinimum: <span class="num">0</span> },
+      },
+      required: [<span class="str">'title'</span>, <span class="str">'principal'</span>, <span class="str">'aprPercent'</span>, <span class="str">'monthlyPayment'</span>],
+    },
+    handler: <span class="fn">rendered</span>(<span class="str">'show_payoff_timeline'</span>),
+  },
+  <span class="cm">// ... show_growth_projection, show_budget_breakdown, show_comparison</span>
+];</code></pre>
+
+<p>Three things to notice, because all three are already true of your board and none of them is obvious.</p>
+
+<p><b>The handler ignores its input and returns an acknowledgement.</b> The rendering <em>is</em> the
+result; the ack exists only to let the turn keep flowing. That is exactly your <code>add_math</code>
+&mdash; the model does not need a return value, it needs the shape to appear.</p>
+
+<p><b>The visual tools are deliberately not registered on the agent.</b> Per <code>CLAUDE.md</code>:
+<em>&ldquo;setup does not put them on the agent. The adapter registers them on each session as tool
+overrides&hellip; so changing a tool contract never requires re-provisioning.&rdquo;</em> This is the
+architectural inverse of your cache law and worth sitting with: the quickstart optimises for
+<em>changing the vocabulary cheaply</em>; Learn Imagine optimises for <em>never changing it</em>, because
+the vocabulary is the cache prefix. Neither is wrong. They are different bets about how settled your
+vocabulary is.</p>
+
+<p><b>Sliders recompute client-side without another agent turn.</b> Also from <code>CLAUDE.md</code>:
+<em>&ldquo;The agent supplies starting numbers, and the sliders recompute everything client-side without
+another agent turn.&rdquo;</em> That is the single most transferable idea in the quickstart for a tutoring
+product. A student dragging a parameter on a graph should not cost a model call &mdash; and today, in
+Learn Imagine, exploring a graph means asking the tutor.</p>
+
+<p>For contrast, the same contract expressed as an AG-UI event sequence rather than a tool definition.
+This one is mine, written to show the framing &mdash; it is not from either repo:</p>
+
+<span class="code-label mine">ILLUSTRATION &mdash; not from either repo</span>
+<pre><code><span class="cm">// what the browser would actually receive, one SSE frame per line</span>
+{ <span class="str">"type"</span>: <span class="str">"TOOL_CALL_START"</span>, <span class="str">"toolCallId"</span>: <span class="str">"tc_7"</span>, <span class="str">"toolCallName"</span>: <span class="str">"add_math"</span> }
+{ <span class="str">"type"</span>: <span class="str">"TOOL_CALL_ARGS"</span>,  <span class="str">"toolCallId"</span>: <span class="str">"tc_7"</span>, <span class="str">"delta"</span>: <span class="str">"{\"id\":\"m2\",\"la"</span> }
+{ <span class="str">"type"</span>: <span class="str">"TOOL_CALL_ARGS"</span>,  <span class="str">"toolCallId"</span>: <span class="str">"tc_7"</span>, <span class="str">"delta"</span>: <span class="str">"tex\":\"(x+5)(x-2)=0\""</span> }
+{ <span class="str">"type"</span>: <span class="str">"TOOL_CALL_ARGS"</span>,  <span class="str">"toolCallId"</span>: <span class="str">"tc_7"</span>, <span class="str">"delta"</span>: <span class="str">",\"place\":{\"col\":\"work\",\"below\":\"m1\"}}"</span> }
+{ <span class="str">"type"</span>: <span class="str">"TOOL_CALL_END"</span>,   <span class="str">"toolCallId"</span>: <span class="str">"tc_7"</span> }   <span class="cm">// &lt;- now, and only now, parse</span></code></pre>
+
+<p>The second frame is <code>{"id":"m2","la</code> &mdash; unparseable, and <em>declared</em> unparseable.
+Under your current transport the equivalent moment is a growing array whose tail happens to parse as a
+complete action. That single difference is the whole tail-holding problem, and it is the first piece of
+scar tissue below.</p>
+
+<h3>The four pieces of scar tissue</h3>
+
+<p>Each of these exists because the transport has no frames. Each has a dated comment. This is the
+strongest evidence in the course for what framing buys, because it is evidence from your own repo.</p>
+
+<h4>1. The tail element is never trusted</h4>
+
+<span class="code-label li">LEARN IMAGINE &mdash; components/board/useActionPlayer.ts</span>
+<pre><code><span class="cm">/** Feed the streaming partial array. The TAIL element is never applied —</span>
+<span class="cm"> *  a chunk boundary inside a string still parses ({"text":"Hel"} is a</span>
+<span class="cm"> *  valid say), so the tail only commits via finish() or once the stream</span>
+<span class="cm"> *  grows past it. */</span></code></pre>
+
+<p>That comment is the entire case for <code>TOOL_CALL_END</code> in three lines. Under a framed
+protocol there is no tail problem, because incompleteness is <em>declared</em> rather than inferred.</p>
+
+<h4>2. A whole repair layer</h4>
+
+<p><code>lib/board/guard.ts</code> contains <code>repairRawAction</code> (fixes <code>add_math</code>
+arriving with <code>text</code> instead of <code>latex</code>, missing <code>color</code>, leaked
+top-level <code>col</code>, legacy <code>x</code>/<code>y</code>), <code>rescueTurnArray</code> (unwraps
+a turn the model double-encoded as a JSON string inside <code>{"text": "..."}</code>),
+<code>normalizeAction</code> and <code>clampTurn</code>. One comment reads <em>&ldquo;observed live
+2026-08-02.&rdquo;</em></p>
+
+<p>Be precise about what a protocol fixes here: <b>roughly half.</b> The double-encoding rescue is a
+framing problem and would go away. The field-name repairs are the model getting the schema slightly
+wrong &mdash; that happens under any protocol, and the quickstart's own coercing zod layer is the same
+thing. Module 3 made this point; here is the receipt.</p>
+
+<h4>3. Signals travelling in HTTP headers</h4>
+
+<span class="code-label li">LEARN IMAGINE &mdash; app/api/board/turn/route.ts</span>
+<pre><code><span class="kw">return</span> result.<span class="fn">toTextStreamResponse</span>({
+  headers: {
+    <span class="str">"Cache-Control"</span>: <span class="str">"no-cache, no-transform"</span>,
+    <span class="str">"X-Accel-Buffering"</span>: <span class="str">"no"</span>,
+    ...(verdict ? { <span class="str">"x-board-verdict"</span>: verdict } : {}),
+    ...(verdictCheckId ? { <span class="str">"x-board-check"</span>: <span class="fn">encodeURIComponent</span>(verdictCheckId) } : {}),
+  },
+});</code></pre>
+
+<p>The judge's verdict on a student's short answer rides in a response header, because there is no event
+channel to put it on. That is textbook out-of-band signalling &mdash; the Module 3 symptom. Under AG-UI
+it is a <code>CUSTOM</code> event, or better, a <code>STATE_DELTA</code> on the check's status.</p>
+
+<p>And note <code>no-transform</code> is load-bearing: per <code>CLAUDE.md</code>, <em>&ldquo;the CDN's
+brotli otherwise truncates slow token streams in browsers (curl hides the bug).&rdquo;</em> A
+<code>text/plain</code> stream can be silently truncated by infrastructure and nothing notices, because
+there is no frame whose absence would be detectable. SSE has a media type that intermediaries know not to
+touch. That is a real, unglamorous operational benefit.</p>
+
+<h4>4. Interruption made impossible rather than handled</h4>
+
+<span class="code-label li">LEARN IMAGINE &mdash; components/board/useActionPlayer.ts</span>
+<pre><code><span class="cm">/** Fast-forward the rest of the current turn (caller cancels voice). */</span>
+<span class="kw">const</span> skip = <span class="fn">useCallback</span>(() =&gt; {
+  fastRef.current = <span class="kw">true</span>;
+  <span class="fn">flushSleeps</span>();
+}, [flushSleeps]);</code></pre>
+
+<p><code>skip()</code> fast-forwards <em>playback</em>. It does not cancel generation. While
+<code>busy</code>, the text input, Send, &ldquo;Look at my work&rdquo; and &ldquo;I'm stuck&rdquo; are all
+disabled, with the placeholder <em>&ldquo;The tutor is drawing&hellip;&rdquo;</em>. <code>PLAN.md</code>
+records this as deliberate: <em>&ldquo;input stays locked &mdash; no mid-stream race.&rdquo;</em></p>
+
+<p>That was the correct engineering call given the transport. It is a bad pedagogical outcome, and
+Module 8 argues it is the single strongest reason to change something.</p>
+
+<h3>The layout engine &mdash; the best thing in the codebase</h3>
+
+<p>The model emits <b>no coordinates</b>. It says where a thing belongs semantically:</p>
+
+<span class="code-label li">LEARN IMAGINE &mdash; lib/board/actions.ts</span>
+<pre><code><span class="kw">export const</span> Placement = z.<span class="fn">object</span>({
+  col: z.<span class="fn">enum</span>([<span class="str">"work"</span>, <span class="str">"visuals"</span>])
+    .<span class="fn">describe</span>(<span class="str">"work = derivations/steps/checks; visuals = graphs/tables/diagrams"</span>),
+  below: z.<span class="fn">string</span>().<span class="fn">optional</span>()
+    .<span class="fn">describe</span>(<span class="str">"existing shape id: stack aligned under it (its column wins)"</span>),
+  beside: z.<span class="fn">string</span>().<span class="fn">optional</span>()
+    .<span class="fn">describe</span>(<span class="str">"existing shape id: sit to its right when it fits, else below"</span>),
+});</code></pre>
+
+<p>And pixels are decided inside the fold &mdash; the one code path shared by client render, server
+prompt serialisation, and replay:</p>
+
+<span class="code-label li">LEARN IMAGINE &mdash; lib/board/state.ts</span>
+<pre><code><span class="cm">// Layout happens inside the fold — the only code path shared by client</span>
+<span class="cm">// render, server prompt serialization, and replay — so a position can never</span>
+<span class="cm">// desync between what the student watched and what the server persisted.</span>
+<span class="cm">// The engine (lib/board/layout.ts) owns every pixel; the model's actions</span>
+<span class="cm">// carry only semantic placement.</span></code></pre>
+
+<p><code>lib/board/layout.ts</code> guarantees no-overlap <em>by construction</em> rather than by
+mitigation: disjoint regions, monotone column cursors, <code>beside</code> admitted only after an
+explicit intersection test, and a new section opened below when one fills. 384 lines with 606 lines of
+tests. There is no persisted layout state at all &mdash; <code>LayoutState</code> is created fresh inside
+every <code>foldEvents()</code> call.</p>
+
+<div class="callout c-warn">
+  <span class="lbl">Would shared state fix or complicate this? It would complicate it.</span>
+  <p>The temptation is obvious: put the board in <code>STATE_SNAPSHOT</code>, patch it with
+  <code>STATE_DELTA</code>, drop the 1&ndash;2k tokens per turn you currently spend re-serialising the
+  whole board in prose. Real saving, and Module 9 prices it.</p>
+  <p>But look at what you would be giving up. <b>Right now, layout cannot desync, because it is not
+  synced &mdash; it is recomputed.</b> A patch stream is synchronisation, and synchronisation can fail.
+  AG-UI's failure mode for a bad patch is <code>console.warn</code> plus <code>emitNoUpdate()</code>,
+  with no sequence numbers, no checksums, and no protocol event to request a fresh snapshot. You would
+  be trading a class of bug you have provably eliminated for a class of bug that fails silently, in a
+  product where the failure looks like a tutor pointing at a diagram the student cannot see.</p>
+  <p><b>The right shape, if you do this:</b> patch the <em>semantic</em> board &mdash; shapes, ids,
+  relationships, check statuses &mdash; and keep layout as a pure function on top. Never put a pixel in
+  a <code>STATE_DELTA</code>. That keeps the token saving and keeps the determinism guarantee.</p>
+</div>
+
+<h3>/board-lab is the tell</h3>
+
+<p>The fixture harness at <code>app/board-lab/page.tsx</code> exists, per its own header, to prove
+<em>&ldquo;the canvas + animation player with ZERO AI cost&hellip; if a scripted turn plays smoothly
+here, the live path only adds transport.&rdquo;</em> Its playback loop deliberately simulates ragged
+chunking:</p>
+
+<span class="code-label li">LEARN IMAGINE &mdash; app/board-lab/page.tsx</span>
+<pre><code><span class="kw">const</span> tick = () =&gt; {
+  i = <span class="cl">Math</span>.<span class="fn">min</span>(fixture.length, i + <span class="cl">Math</span>.<span class="fn">ceil</span>(<span class="cl">Math</span>.<span class="fn">random</span>() * <span class="num">3</span>));
+  <span class="kw">if</span> (i &lt; fixture.length) {
+    <span class="fn">feedPartial</span>(fixture.<span class="fn">slice</span>(<span class="num">0</span>, i));
+    <span class="fn">setTimeout</span>(tick, <span class="num">250</span> + <span class="cl">Math</span>.<span class="fn">random</span>() * <span class="num">900</span>);
+  } <span class="kw">else</span> {
+    <span class="cm">// Mirror the live client: feedPartial holds the tail element</span>
+    <span class="cm">// back; stream end flushes it via finish().</span>
+    <span class="fn">finish</span>(fixture);</code></pre>
+
+<p>You built a bespoke event-log replay harness because you have an event log and no standard tooling
+for it. That is not a flaw &mdash; the sims memo would call this the highest-ROI artifact in the repo
+(flavour F3, replay &amp; fork: real, faithful, never drifts). It is also the clearest possible signal
+that you converged on the protocol's model independently.</p>
+
+<div class="callout c-fact">
+  <span class="lbl">The scorecard</span>
+  <p><b>You already have:</b> actor-tagged events &middot; a closed op vocabulary &middot; an append-only
+  log with server-assigned sequence &middot; a pure fold &middot; idempotency keys &middot; a replay
+  harness. That is four fifths of AG-UI's model, arrived at independently.</p>
+  <p><b>You do not have:</b> event framing &middot; an out-of-band signal channel &middot; an interrupt
+  outcome &middot; incremental state. Those four absences are exactly the four pieces of scar tissue
+  above, one for one.</p>
+</div>
+
+<h3>Where the mobile story actually stands</h3>
+
+<p>One correction to the brief: <b>there is a mobile layout</b>, and it is more considered than
+&ldquo;none.&rdquo; <code>PLAN.md</code> records a verified 390px pass, the desktop transcript rail is
+<code>hidden md:block</code> with a 70vh bottom sheet below <code>md</code>, the check overlay switches
+from centred modal to bottom sheet, and the input bar has icon-only fallbacks.</p>
+
+<p><b>What is desktop-bound is the board itself:</b> a fixed 1600&times;900 logical viewBox squeezed into
+390px; <code>COLUMNS</code> in <code>layout.ts</code> hardcoded as a two-column 1600px partition with
+112px annotation gutters and no responsive branch anywhere (it can't have one &mdash; it runs
+server-side too); <code>serializeBoard</code> hardcoding <code>x &lt; 800</code> as the column boundary;
+and zoom that is <b>wheel-only</b> with no pinch handler. The chrome is responsive; the canvas is not.</p>
+
+<p>This matters to the protocol question in one specific way: a responsive board means <b>layout becomes
+viewport-dependent</b>, which means the isomorphic-pure-function guarantee breaks. If you ever ship a
+phone layout, you will be forced to choose between server-side layout for the prompt and client-side
+layout for the render &mdash; which is precisely the moment shared state stops being optional. Worth
+knowing that the mobile decision and the protocol decision are coupled.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Six of thirteen ops map cleanly to <code>TOOL_CALL_*</code>. Four are really state mutations and argue for <code>STATE_DELTA</code>. Three have no equivalent at all.</li>
+  <li>The four pieces of scar tissue &mdash; tail-holding, the repair layer, header signalling, locked input &mdash; are one-for-one what framing would have prevented.</li>
+  <li>The layout engine is the best-designed thing here and shared state would <b>weaken</b> it unless you patch semantics and derive pixels.</li>
+  <li>Ink, vision snapshots and student events have no AG-UI equivalent. The protocol is agent&rarr;user; half your traffic isn't.</li>
+  <li>Going responsive breaks the isomorphic-layout guarantee, which is what makes not-migrating cheap today.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>Learn Imagine: the verdict</h2>
+  <div class="mt">What migration costs, what it buys, and the case for not doing it</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Size the migration in files, lines and non-code cost</li>
+  <li>State the three constraints in the codebase that would fight it</li>
+  <li>Design a human-in-the-loop tutoring flow that is pedagogically motivated, not technically motivated</li>
+  <li>Reach a defensible verdict and name what would change it</li>
+</ul></div>
+
+<h3>The code cost is small. That is the surprise.</h3>
+
+<p>The board is 48% of the codebase, but the <b>transport</b> touches only four files, because the
+original author enforced the separation:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Transport-coupled &mdash; would change</th><th>Lines</th></tr></thead>
+<tbody>
+<tr><td><code>app/api/board/turn/route.ts</code> &mdash; <code>streamObject</code> + <code>toTextStreamResponse</code> + verdict headers</td><td>478</td></tr>
+<tr><td><code>app/api/board/record/route.ts</code> &mdash; exists <em>only</em> because of the transport</td><td>77</td></tr>
+<tr><td><code>components/board/BoardSurface.tsx</code> &mdash; the stream plumbing portion</td><td>~150 of 1,158</td></tr>
+<tr><td><code>components/board/useActionPlayer.ts</code> &mdash; the ingestion half</td><td>~90 of 298</td></tr>
+</tbody>
+</table></div>
+
+<p><b>Transport-independent and untouched:</b> <code>actions.ts</code> (the schema is already a valid
+event vocabulary), <code>state.ts</code>, <code>layout.ts</code>, <code>bounds.ts</code>, all 13 render
+components, <code>lib/db/repo/boards.ts</code>, and <b>2,681 lines of tests</b> &mdash; which test the
+fold, the layout and the guard, not the wire. <b>Six to eight files, roughly 800&ndash;1,000 lines.</b></p>
+
+<h3>The non-code cost is the real one</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Constraint</th><th>Why it fights you</th></tr></thead>
+<tbody>
+<tr><td><b>The cache law</b><br><em>&ldquo;ONE stable action-array schema&hellip; every change is a cache invalidation&rdquo;</em></td><td>The action array is the Anthropic prompt-cache prefix in <code>jsonTool</code> mode. Wrapping actions in AG-UI tool-call envelopes changes the tool schema and goes cold. The team has done this <b>once</b>, deliberately, and treats it as expensive. <b>This is the single largest cost of migration and it is not a code cost.</b></td></tr>
+<tr><td><b>&ldquo;No in-memory session state, ever&rdquo;</b></td><td>Serverless. Every request rehydrates from Postgres. AG-UI's shared-state model assumes a mutable state object living somewhere between agent and UI. Not incompatible &mdash; but it is a genuine architectural change, and arguably a <em>simplifying</em> one, since it would replace the full-board reserialisation every turn</td></tr>
+<tr><td><b>Client-driven persistence</b></td><td><code>/api/board/record</code> exists because <em>&ldquo;server post-stream writes are unreliable in dev.&rdquo;</em> A framed protocol with a server-authored <code>RUN_FINISHED</code> would let the server commit its own turn and delete this route, the <code>turnId</code> idempotency machinery, and the double retry. <b>This is a cost that turns into a saving</b></td></tr>
+<tr><td><b>The adapter is 0.0.1</b></td><td>One published version, 30 July 2026, three weeks old at time of writing. The quickstart already documents a bug it works around in a system prompt. AG-UI itself is 0.0.58 with a scheduled breaking change at 1.0.0</td></tr>
+</tbody>
+</table></div>
+
+<h3>What human-in-the-loop should mean in tutoring</h3>
+
+<p>The generic framing &mdash; &ldquo;approve this action before the agent does it&rdquo; &mdash; is the
+wrong shape for a tutor. Nobody wants to approve a rectangle. The tutoring version of HITL is
+<b>interruption as a pedagogical event</b>, and there are three distinct kinds:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Kind</th><th>What the student does</th><th>What should happen</th><th>Mechanism</th></tr></thead>
+<tbody>
+<tr><td><b>Interject</b></td><td>&ldquo;Wait &mdash; why is it minus five?&rdquo; at second 12 of a 40-second explanation</td><td>Tutor stops <b>where it is</b>. The half-drawn board is kept, because it is the context for the question. Next turn anchors to what is actually on the board</td><td><code>user.interrupt</code> + <code>user.message</code> in one POST (Managed Agents' canonical pattern); <code>RUN_FINISHED</code> with <code>outcome: interrupt</code></td></tr>
+<tr><td><b>Correct</b></td><td>&ldquo;That's wrong, it should be x+2&rdquo;</td><td>Tutor accepts the correction as a first-class event, not a chat message. The board mutates &mdash; the wrong step gets struck, not silently replaced</td><td>A frontend tool the student triggers; <code>STATE_DELTA</code> on the shape. Today this would be <code>student_text</code> ink, which the model sees as <em>&ldquo;uninterpreted ink&rdquo;</em></td></tr>
+<tr><td><b>Redirect</b></td><td>&ldquo;Skip the factoring, just show me the graph&rdquo;</td><td>Abandon the current plan, keep the board, replan from here</td><td>Interrupt + a directive. This is the one your <code>pending_directive</code> mechanism already half-implements, at turn boundaries only</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout c-sean">
+  <span class="lbl">The pedagogical argument, stated plainly</span>
+  <p>Your current design disables input for the duration of a turn. Turns run up to 12 actions with
+  intrinsic durations of 200&ndash;900ms each plus speech, so a rich turn is <b>tens of seconds during
+  which the student cannot speak</b>.</p>
+  <p>The moment a student says &ldquo;wait, why?&rdquo; is the highest-value moment in the entire lesson.
+  It is unprompted, specific, and located exactly at the boundary of their understanding. Your system's
+  response to it is a greyed-out input box reading <em>&ldquo;The tutor is drawing&hellip;&rdquo;</em>,
+  and by the time it clears, the moment has passed and the student has either forgotten the question or
+  decided not to ask it.</p>
+  <p>Everything else in this course is an engineering trade. This one is not. <b>This is the feature.</b>
+  If migration is the cheapest way to get it, migrate. If it isn't, build it anyway.</p>
+</div>
+
+<h3>Where CopilotKit's components would help, and where they would fight</h3>
+
+<div class="split">
+<div class="l"><div class="h">Would help</div>
+<p><code>useRenderTool</code> matching a tool name to a component is <em>exactly</em> your
+<code>op</code>&rarr;<code>ShapeView</code> dispatch. The wildcard <code>"*"</code> registration for
+unrecognised tools is a pattern you should copy regardless.</p>
+<p><code>useHumanInTheLoop</code>'s <code>respond</code> callback is a cleaner <code>ask_check</code> gate
+than deriving one from the fold, because it pauses the agent rather than the input box.</p>
+<p><code>useInterrupt</code> is the thing you don't have.</p></div>
+<div class="r"><div class="h">Would fight</div>
+<p><code>CopilotChat</code> is a <b>transcript</b>. Your transcript is a secondary rail; the primary
+surface is a single persistent 1600&times;900 SVG that accumulates. Mounting shapes inline in a scrolling
+message list is the wrong geometry, and you would end up using CopilotKit headless
+(<code>@copilotkit/react-core/v2/headless</code>) &mdash; which means you take the runtime and events and
+throw away the components, i.e. most of what you were adopting it for.</p>
+<p>Your animation queue &mdash; sequential playback with intrinsic per-op durations, so a burst of tokens
+still <em>draws</em> at tutor pace &mdash; has no equivalent and no hook to hang it on. It is the thing
+that makes the product feel like teaching rather than a JSON dump, and you would be reimplementing it
+inside a foreign render lifecycle.</p></div>
+</div>
+
+<h3>The verdict</h3>
+
+<div class="callout c-dissent">
+  <span class="lbl">Recommendation: do not migrate. Steal the vocabulary instead.</span>
+  <p><b>Do not adopt AG-UI + CopilotKit for the Learn Imagine board.</b> Four reasons, in order of
+  weight:</p>
+  <ol>
+    <li><b>The component layer is what you'd be paying for and it is the part that fits worst.</b> A
+    scrolling chat transcript is the wrong geometry for a persistent canvas. Going headless means paying
+    the dependency cost for the events alone.</li>
+    <li><b>The prompt-cache invalidation is a real, recurring cost</b> against a benefit that is mostly
+    hygiene. Your own <code>CLAUDE.md</code> treats schema changes as expensive, and it is right to.</li>
+    <li><b>Adapter 0.0.1, protocol 0.0.58, breaking change scheduled at 1.0.0.</b> You would be taking a
+    dependency at its most volatile on the 48% of your codebase that is the product.</li>
+    <li><b>There is no second party.</b> One agent, one frontend, one repo, one author. The interop you
+    would be buying has no counterparty today.</li>
+  </ol>
+  <p><b>Do these five things instead</b>, in this order. Together they are perhaps 400 lines and they
+  capture most of the benefit:</p>
+  <ol>
+    <li><b>Ship interruption.</b> Thread a real abort through <code>skip()</code>, persist the partial
+    turn server-side, and let the student type mid-turn. Model it as an explicit outcome &mdash;
+    literally borrow the name, <code>outcome: "interrupt"</code> &mdash; so the vocabulary is already
+    right if you ever migrate. This is the pedagogy fix and it is worth more than everything else here
+    combined.</li>
+    <li><b>Move persistence server-side.</b> Emit and commit events as the turn streams rather than
+    POSTing from <code>onFinish</code>. Deletes <code>/api/board/record</code>, the <code>turnId</code>
+    idempotency dance and the double retry, and fixes the mid-stream-refresh data loss you found in
+    Module 4 round 4.</li>
+    <li><b>Add a real event frame.</b> You do not need SSE to stop guessing at tails: emit one
+    newline-delimited JSON object per action (NDJSON) instead of a growing array. That single change
+    deletes the tail-holding logic and half of <code>rescueTurnArray</code>, and costs you one prompt-cache
+    invalidation you are going to spend anyway.</li>
+    <li><b>Get the verdict out of the headers.</b> Once you have frames, the judge verdict is just another
+    frame. Headers are a dead end the moment you need two of them.</li>
+    <li><b>Then, and only then, consider incremental state</b> &mdash; patching the semantic board rather
+    than re-serialising 1&ndash;2k tokens of prose every turn. Patch semantics, derive pixels, never put a
+    coordinate on the wire.</li>
+  </ol>
+</div>
+
+<div class="callout c-fact">
+  <span class="lbl">What would change this verdict</span>
+  <p>Name the triggers now, while you are not under pressure:</p>
+  <ul>
+    <li><b>A second surface.</b> A native app, an LMS embed, a Coursera-hosted player. The moment two
+    clients render the same tutor, you have a second party and the calculus inverts.</li>
+    <li><b>A second agent runtime.</b> If the board should also be drivable by something that isn't your
+    <code>streamObject</code> call.</li>
+    <li><b>AG-UI reaching 1.0</b> with the <code>THINKING_*</code> removal done, a conformance suite, and
+    a resumable-stream design that is implemented rather than reserved.</li>
+    <li><b>A responsive board.</b> As Module 7 notes, viewport-dependent layout breaks the isomorphic
+    guarantee and shared state stops being optional.</li>
+    <li><b>Someone other than you working on it.</b> A published contract is worth far more with three
+    engineers than with one.</li>
+  </ul>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The migration is 6&ndash;8 files and ~800&ndash;1,000 lines. The code is not the cost; the prompt cache is.</li>
+  <li>Verdict: <b>don't migrate.</b> Steal the vocabulary, ship interruption, move persistence server-side, add NDJSON frames.</li>
+  <li>Interruption is a pedagogy feature wearing an engineering costume. Build it regardless of the protocol decision.</li>
+  <li>CopilotKit's chat transcript is the wrong geometry for a persistent canvas; headless mode means paying for what you throw away.</li>
+  <li>Five named triggers would flip the verdict. Write them down now.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>Coursera, at platform scale</h2>
+  <div class="mt">Build vs adopt, vendor risk, and the token bill nobody models</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Identify the four platform surfaces where an agent&ndash;UI protocol changes the economics</li>
+  <li>Apply a build-vs-adopt test that survives a procurement review</li>
+  <li>Quantify why richer agent UIs make the token bill go up, not down</li>
+  <li>List what you would need to see before standardising a platform on a 0.0.x protocol</li>
+</ul></div>
+
+<h3>Four surfaces where it matters</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Surface</th><th>Why a protocol changes the economics</th><th>Priority</th></tr></thead>
+<tbody>
+<tr><td><b>Tutoring</b></td><td>The richest generative UI in the product and the one with real interruption semantics. Also the one most likely to need a second client (web, mobile, embedded in a partner LMS)</td><td>Highest &mdash; and the hardest, per Modules 7&ndash;8</td></tr>
+<tr><td><b>Grading feedback loops</b></td><td>The strongest human-in-the-loop case in the whole company. A grader that proposes a rubric application and <b>waits</b> is <code>useHumanInTheLoop</code>, exactly. And the approval must be auditable, which means the pause has to be an event you can log, not a UI state</td><td>High, and underrated</td></tr>
+<tr><td><b>Course-authoring copilots</b></td><td>Multi-user shared state is the canonical <code>STATE_SNAPSHOT</code>/<code>STATE_DELTA</code> use case &mdash; and the canonical place its <b>silent-failure mode</b> bites. Two instructors, one outline, one dropped patch, no detection</td><td>High risk, high reward</td></tr>
+<tr><td><b>Learner support</b></td><td>Mostly chat. Genuinely well served by an off-the-shelf runtime, and the least differentiated surface you own</td><td>Adopt something; don't build</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout c-warn">
+  <span class="lbl">The platform-scale asymmetry</span>
+  <p>The single biggest difference between your side project and Coursera is <b>the number of second
+  parties</b>. Module 5's test &mdash; &ldquo;who is the second party?&rdquo; &mdash; answers itself at
+  platform scale: partner institutions, a mobile client, an enterprise LMS integration, an internal
+  team in another org, and a vendor you will replace in three years.</p>
+  <p>The verdict that was &ldquo;don't migrate&rdquo; for a one-author repo becomes
+  &ldquo;you need <em>a</em> contract&rdquo; for a platform. What is <b>not</b> settled is whether that
+  contract should be AG-UI at 0.0.58.</p>
+</div>
+
+<h3>The token bill: richer UI means more tokens, not fewer</h3>
+
+<p>There is a comforting story that model prices fall roughly 50% a year, so agent products get cheaper.
+The story is wrong in a specific way: <b>price per token falls while tokens per task rise</b>, and in
+agentic products the second effect is at least as fast as the first. A 50% price decline is exactly
+cancelled by a doubling of tokens per interaction, and richer agent UIs are a machine for doubling
+tokens per interaction.</p>
+
+<p>Three mechanisms, all visible in the systems in this course:</p>
+
+<ul>
+  <li><b>State reconciliation.</b> With no shared-state channel, you re-send the UI state to the model
+  every turn. Learn Imagine spends <b>1&ndash;2k tokens per turn</b> re-serialising the board in prose.
+  This grows with the board, every turn, forever.</li>
+  <li><b>It is uncacheable by construction.</b> This is the sharp bit. That serialisation sits in the
+  <em>user</em> message specifically so the system prefix stays cache-hot &mdash; and it changes every
+  turn, so it can never be cached itself. Prompt caching does not rescue you here; the architecture
+  guarantees a cache miss on exactly the tokens that grow.</li>
+  <li><b>Generative UI invites more turns.</b> A tutor that draws gets asked more questions than a tutor
+  that types. That is the product working. It is also the bill going up.</li>
+</ul>
+
+<div id="meter">
+  <h4>Reconciliation cost instrument</h4>
+  <p class="mnote">Deterministic. Pure arithmetic on the numbers you set &mdash; no model calls, nothing
+  fetched, no hidden assumptions. Compares re-sending full UI state every turn against sending a snapshot
+  once plus deltas. Everything here is <em>input tokens for state reconciliation only</em> &mdash; it
+  excludes the conversation, the system prompt and all output tokens, so treat it as a floor, not a
+  forecast.</p>
+
+  <div class="ctrl">
+    <label for="mk-learn"><span>Active learners per month</span><b id="mk-learn-v">50,000</b></label>
+    <input type="range" id="mk-learn" min="1000" max="500000" step="1000" value="50000">
+  </div>
+  <div class="ctrl">
+    <label for="mk-sess"><span>Tutoring sessions per learner per month</span><b id="mk-sess-v">4</b></label>
+    <input type="range" id="mk-sess" min="1" max="20" step="1" value="4">
+  </div>
+  <div class="ctrl">
+    <label for="mk-turn"><span>Agent turns per session</span><b id="mk-turn-v">12</b></label>
+    <input type="range" id="mk-turn" min="3" max="40" step="1" value="12">
+  </div>
+  <div class="ctrl">
+    <label for="mk-state"><span>UI state re-serialised per turn (tokens)</span><b id="mk-state-v">1,500</b></label>
+    <input type="range" id="mk-state" min="200" max="4000" step="50" value="1500">
+  </div>
+  <div class="ctrl">
+    <label for="mk-delta"><span>What actually changed per turn (tokens)</span><b id="mk-delta-v">80</b></label>
+    <input type="range" id="mk-delta" min="10" max="600" step="10" value="80">
+  </div>
+  <div class="ctrl">
+    <label for="mk-price"><span>Input price, $ per million tokens</span><b id="mk-price-v">$10.00</b></label>
+    <input type="range" id="mk-price" min="50" max="2500" step="25" value="1000">
+  </div>
+
+  <div class="mgrid">
+    <div class="metric warn"><div class="v" id="mk-full">&mdash;</div><div class="k">Full re-send / yr</div></div>
+    <div class="metric good"><div class="v" id="mk-inc">&mdash;</div><div class="k">Snapshot + delta / yr</div></div>
+    <div class="metric mid"><div class="v" id="mk-save">&mdash;</div><div class="k">Difference / yr</div></div>
+    <div class="metric"><div class="v" id="mk-tok">&mdash;</div><div class="k">Reconciliation tokens / yr</div></div>
+  </div>
+
+  <div class="mbar"><i class="a" id="mk-bar-a" style="width:50%"></i><i class="b" id="mk-bar-b" style="width:50%"></i></div>
+  <div class="mlegend">
+    <span>Incremental as a share of full re-send: <b id="mk-pct">&mdash;</b></span>
+    <span>Per learner per year: <b id="mk-per">&mdash;</b></span>
+  </div>
+
+  <div class="field" style="margin-top:1.1rem">
+    <span class="lbl">The half-price trap</span>
+    <p id="mk-trap">&mdash;</p>
+  </div>
+</div>
+
+<div class="callout c-dissent">
+  <span class="lbl">Argue with this instrument</span>
+  <p>It is deliberately narrow and you should know its limits. It counts <b>only</b> state
+  reconciliation input tokens. It ignores output tokens (more expensive), the conversation history,
+  the system prompt, and &mdash; for Managed Agents specifically &mdash; the <b>$0.08 per session-hour</b>
+  runtime charge, which at platform scale is a line item of its own and is not a token cost at all.</p>
+  <p>It also assumes the delta is small, which is true for a board that accumulates and false for one
+  that is frequently rewritten. And it assumes you would <em>otherwise</em> have re-sent everything;
+  a smarter prompt that sends a windowed summary sits somewhere in between. <b>The instrument's job is
+  to show you the shape of the curve, not to produce a number you put in a budget.</b></p>
+</div>
+
+<h3>Build vs adopt, at platform scale</h3>
+
+<p>The question is not &ldquo;is AG-UI good.&rdquo; It is &ldquo;what layer are we standardising, and
+what is the exit.&rdquo; Three separable decisions that people wrongly bundle into one:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Decision</th><th>Recommendation</th><th>Reasoning</th></tr></thead>
+<tbody>
+<tr><td><b>The event vocabulary</b></td><td><b>Adopt AG-UI's names</b>, even if you implement them yourself</td><td>Nearly free, reversible, and it means your internal contract is already legible to anyone you hire or acquire. The vocabulary is the durable part &mdash; the concepts have a half-life measured in years, unlike the packages</td></tr>
+<tr><td><b>The transport and runtime</b></td><td><b>Adopt per surface, not platform-wide</b></td><td>Learner support: adopt now, low risk. Grading: adopt for the HITL semantics. Authoring: pilot, because shared state is where the silent-failure risk lives. Tutoring: last, because the component layer fits worst</td></tr>
+<tr><td><b>The React component library</b></td><td><b>Do not standardise</b></td><td>This is where lock-in and the paid tier both live, and it is the layer with the shortest half-life. Use it where it fits; never let it become the platform's UI contract</td></tr>
+</tbody>
+</table></div>
+
+<h3>Vendor risk, itemised</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Risk</th><th>Status, August 2026</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td><b>Protocol immaturity</b></td><td>0.0.58, no conformance suite, breaking change scheduled at 1.0.0, docs demonstrably out of sync with the enum</td><td>Pin versions. Own an internal adapter so a protocol change is one file, not fifty</td></tr>
+<tr><td><b>Single-vendor governance</b></td><td>Separate GitHub org, but CopilotKit-led, CopilotKit-authored, CopilotKit-funded ($27M Series A, May 2026)</td><td>Watch for a genuine multi-vendor governance move. Three hyperscalers shipping it is a partial hedge, since none would accept unilateral breakage quietly</td></tr>
+<tr><td><b>Commercial gradient</b></td><td>Persistence, thread APIs and cross-device sync are the paid tier. Self-hostable via Helm, which is better than most</td><td>Assume you will pay or build those. Never architect as if OSS persistence exists</td></tr>
+<tr><td><b>Adapter risk</b></td><td><code>@ag-ui/claude-managed-agents</code> is at <b>0.0.1</b>, one published version, one maintainer</td><td>For anything production, vendor the adapter into your repo. It is a few hundred lines and you will need to patch it</td></tr>
+<tr><td><b>Compliance</b></td><td>Managed Agents is ZDR- and HIPAA-ineligible as a feature; AG-UI has no auth story and Microsoft explicitly warns against exposing servers to untrusted clients</td><td>Trusted-frontend/BFF pattern, mandatory. Get legal in the room before the pilot, not after</td></tr>
+</tbody>
+</table></div>
+
+<h3>What you would need to see before standardising</h3>
+
+<ol>
+  <li><b>1.0 with a conformance suite.</b> Today &ldquo;AG-UI compliant&rdquo; is untestable. A platform
+  cannot make an untestable claim a requirement of its partners.</li>
+  <li><b>Multi-vendor governance</b> in something more than name. A foundation, or a spec editor who
+  does not work for the reference client's vendor.</li>
+  <li><b>A resumable-stream design that exists.</b> It is currently a reserved capability flag. For a
+  learning session on a phone on a train, resumption is not optional.</li>
+  <li><b>An auth and multi-tenancy story</b> in the protocol or an authoritative pattern from it. Not a
+  third party's security page.</li>
+  <li><b>A second reference client.</b> One protocol, one usable client, one company is a library with
+  extra steps.</li>
+</ol>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Grading is the strongest HITL case in the company and the most auditable. Start there, not with tutoring.</li>
+  <li>Adopt the vocabulary platform-wide; adopt the runtime per surface; never standardise the component library.</li>
+  <li>Reconciliation tokens are uncacheable by construction. Richer UI raises the bill; falling prices don't rescue you.</li>
+  <li>Managed Agents' $0.08/session-hour is a non-token line item that platform models routinely omit.</li>
+  <li>Five gates before standardisation. None of them is met today.</li>
+</ul></div>
+
+</div></section>
+
+<!-- ============================ MODULE 10 ============================ -->
+<section class="module" id="m10">
+<div class="module-header"><div class="num">10</div><div>
+  <h2>Generative UI meets instructional design</h2>
+  <div class="mt">Accessibility, cognitive load, and the thing agent UI is worst at</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>State the accessibility obligations that generative UI creates and that no protocol addresses</li>
+  <li>Apply the cognitive-load evidence to a tutor that draws</li>
+  <li>Explain why an agent that decides its own interface is an instructional-design problem, not just an engineering one</li>
+  <li>Name the measurement that would actually tell you if any of this works</li>
+</ul></div>
+
+<h3>Accessibility: a model choosing your DOM is a compliance surface</h3>
+
+<p>Generative UI means a language model decides, at runtime, what interface a learner sees. For a
+learning platform with accessibility obligations that is not a feature detail. It is a category of
+compliance risk that did not exist when interfaces were written by people.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Obligation</th><th>What generative UI breaks</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td><b>Screen reader semantics</b></td><td>An SVG board built by a model has no reliable reading order, no landmarks, and no guarantee a label exists</td><td>Make the <b>semantic event log</b>, not the rendered canvas, the accessible artifact. Learn Imagine is unusually well placed here: <code>serializeBoard()</code> already produces a coordinate-free textual description of the board for the model. That is most of a screen-reader view, already written and already tested</td></tr>
+<tr><td><b>Live-region announcements</b></td><td>Content appearing progressively over 40 seconds either floods a screen reader or is silent</td><td>Announce at <b>op granularity</b>, not token granularity &mdash; another argument for framed events. <code>polite</code>, coalesced, one announcement per completed action</td></tr>
+<tr><td><b>Keyboard operability</b></td><td>Model-generated interactive elements (sliders, checks) may not be reachable or may appear mid-focus</td><td>Renderers must come from a <b>fixed registry</b> of accessible components. The model chooses <em>which</em> component and supplies data; it never authors markup. Both the quickstart and Learn Imagine already work this way &mdash; preserve that property deliberately rather than accidentally</td></tr>
+<tr><td><b>Predictability</b> (WCAG 3.2)</td><td>An interface that reorganises itself mid-task is a violation waiting to happen</td><td>Constrain layout mutation. <code>move_view</code> and section rollover should be announced and, ideally, learner-controllable</td></tr>
+<tr><td><b>Reduced motion</b></td><td>An animation queue that draws at tutor pace is motion</td><td>Honour <code>prefers-reduced-motion</code> by collapsing durations to zero and rendering the completed board. The framework CSS on this very page does exactly that</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout c-warn">
+  <span class="lbl">No protocol will do this for you</span>
+  <p>AG-UI has nothing to say about accessibility. Neither does CopilotKit's component set beyond what
+  its individual components happen to do. If a model can choose the interface, then <b>the registry of
+  what it may choose from is your accessibility control surface</b>, and it is the only one you have.
+  Design it as a control, audit it as a control, and never let the model emit markup.</p>
+</div>
+
+<h3>Cognitive load: a tutor that draws can teach worse</h3>
+
+<p>The instinct that a richer interface teaches better is not supported, and in places is contradicted.
+Four results worth holding when someone proposes adding a panel:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Finding</th><th>Implication for a drawing tutor</th></tr></thead>
+<tbody>
+<tr><td><b>Spatial contiguity</b> &mdash; integrating labels into a visual rather than placing them alongside: <b>g = 0.63</b> (58 comparisons, N = 2,426)</td><td>Labels belong <em>on</em> the shape. Learn Imagine's <code>annotate</code> gutters are adjacent, not integrated &mdash; worth testing against inline labelling</td></tr>
+<tr><td><b>Redundancy</b> &mdash; duplicating narration as on-screen text is a cost, not a bonus</td><td>The tutor speaks a <code>say</code> <em>and</em> writes it to the transcript rail. That is the redundancy effect by construction. Consider making the rail a history, not a live duplicate</td></tr>
+<tr><td><b>Seductive details</b> &mdash; interesting-but-irrelevant material: <b>g &asymp; &minus;0.33</b> (68 effects)</td><td>Every decorative flourish a model adds because it looks good is a tax. Constrain the vocabulary; do not enrich it</td></tr>
+<tr><td><b>Split attention</b> &mdash; splitting one simulation across two screens to lower visual complexity <em>improved</em> comprehension and transfer, especially for low-prior-knowledge learners (N = 257)</td><td>The novice view should be <b>smaller</b> than the expert view. A board that accumulates 14 shapes is an expert view being shown to a novice</td></tr>
+</tbody>
+</table></div>
+
+<p>And the finding that should govern the whole programme: high- versus low-fidelity simulation differs
+by <b>1&ndash;2%</b> across 24 studies. Realism is a cost centre. The best-documented simulation win in
+the physics education literature happened <em>because</em> the simulation was less realistic than the
+real equipment &mdash; it made the invisible visible and deleted irrelevant variables.</p>
+
+<div class="callout c-sean">
+  <span class="lbl">The instructional-design version of the state-ownership question</span>
+  <p>Module 4 asked which layer owns a piece of state. Here is the pedagogical twin: <b>which layer owns
+  the instructional decision?</b></p>
+  <p>When the model chooses whether to draw a graph or a table, it is making an instructional-design
+  decision at inference time, with no learner model, no record of what worked, and no accountability.
+  Generative UI quietly moves pedagogy from a designed artifact into a per-turn model judgment.</p>
+  <p>That can be right &mdash; responsiveness is genuinely valuable. But it should be a decision you made,
+  not one that fell out of the architecture. The healthy pattern is the one both systems in this course
+  already use without naming it: <b>the model picks from a curriculum-designed vocabulary; it does not
+  invent the vocabulary.</b> Thirteen ops chosen by a human is a pedagogy. Arbitrary markup is not.</p>
+</div>
+
+<h3>The measurement that would actually settle it</h3>
+
+<p>The failure mode is measuring engagement and calling it learning. The relevant evidence is
+uncomfortable and specific: a preregistered study of ~1,000 students found that a plain AI tutor produced
+<b>+48% performance while using it and &minus;17% on the unassisted exam</b>; a guardrailed version got
+<b>+127% with the tool and a null result unassisted</b>. The guardrails removed the harm and delivered
+nothing. A separate semester-long study of a RAG chatbot with ~500 undergraduates found
+<em>&ldquo;no statistically significant impact on any measured outcome.&rdquo;</em></p>
+
+<div class="callout c-fact">
+  <span class="lbl">The rule that follows</span>
+  <p><b>Improvement measured while the learner is inside your tool is not evidence of anything.</b>
+  Measure unassisted, measure delayed, measure on novel items the tutor never displayed.</p>
+  <p>Second rule, from the same literature: treat &ldquo;learners found it easy and enjoyable&rdquo; as a
+  <b>negative</b> signal. In the study where students learned more, they reported feeling they had
+  learned less. Time-in-tool and satisfaction are the two metrics an agent UI is best at moving and
+  worst at justifying.</p>
+</div>
+
+<h3>Where this lands</h3>
+
+<p>A protocol between an agent and a UI is a good idea whose value is almost entirely a function of how
+many parties have to agree. For a solo whiteboard tutor, that number is one, and the honest answer is to
+steal the vocabulary and skip the dependency. For a platform, that number is large and rising, and the
+honest answer is that you need a contract &mdash; while the leading candidate is at 0.0.58 with no
+conformance suite and a commercial gradient running through the middle of it.</p>
+
+<p>The part that is not contingent on any of that: <b>a student who says &ldquo;wait, why?&rdquo; should
+be able to say it.</b> Everything else in these ten modules is an engineering trade with a defensible
+answer on both sides. That one isn't.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The renderer registry is your accessibility control surface. The model picks components; it never emits markup.</li>
+  <li>The semantic event log &mdash; not the canvas &mdash; is the accessible artifact. Learn Imagine's <code>serializeBoard()</code> is already 80% of a screen-reader view.</li>
+  <li>Richer is not better: contiguity, redundancy, seductive details and split attention all argue for a narrower vocabulary.</li>
+  <li>Generative UI moves pedagogy into a per-turn model judgment. Constrain the vocabulary so that judgment stays inside a designed space.</li>
+  <li>Measure unassisted, delayed, on novel items. Enjoyment is a negative signal.</li>
+</ul></div>
+
+</div></section>
+
+<div class="callout c-fact">
+  <span class="lbl">Sourcing and method</span>
+  <p>Quickstart code was read from <code>raw.githubusercontent.com</code> at
+  <code>anthropics/claude-quickstarts@main</code> &mdash; <code>README.md</code>, <code>CLAUDE.md</code>,
+  <code>server/src/index.ts</code>, <code>server/src/setup.ts</code>, <code>server/src/vizTools.ts</code>,
+  <code>web/src/App.tsx</code>, <code>web/src/viz/renderers.tsx</code> &mdash; not from the rendered
+  GitHub page. Learn Imagine excerpts are from <code>~/projects/learn-imagine-v4</code> at commit
+  <code>d52c481</code>, with file paths given inline.</p>
+  <p>AG-UI facts are from the <code>ag-ui-protocol/ag-ui</code> source of truth
+  (<code>sdks/typescript/packages/core/src/events.ts</code>) and <code>docs.ag-ui.com</code>, checked
+  August 2026. Where the two disagree &mdash; the architecture page still says 16 event types; the SDK
+  events page publishes an incomplete enum &mdash; the source wins and the disagreement is noted in
+  Module 2. CopilotKit v2 API names are from <code>docs.copilotkit.ai/migrate/v2</code> and the v2 hook
+  exports in <code>packages/react-core/src/v2/hooks/index.ts</code>. Managed Agents facts are from
+  <code>platform.claude.com/docs/en/managed-agents/*</code>.</p>
+  <p><b>Two discrepancies I could not resolve and am flagging rather than smoothing over.</b>
+  (1) CopilotKit's v2 migration guide says <em>&ldquo;keep the <code>&lt;CopilotKit&gt;</code> provider
+  name, but import it from <code>@copilotkit/react-core/v2</code>&rdquo;</em>, and describes
+  <code>CopilotKitProvider</code> as the React Native and Vue name &mdash; yet the Anthropic quickstart's
+  <code>App.tsx</code> imports <code>CopilotKitProvider</code> from <code>@copilotkit/react-core/v2</code>
+  in React and evidently works. Either both are exported or the docs are stale; I did not verify which.
+  (2) The quickstart's <code>CLAUDE.md</code> says session tool overrides are <em>&ldquo;merged with the
+  agent's own toolset&rdquo;</em>, but Anthropic's sessions docs are explicit that
+  <em>&ldquo;overrides never merge&hellip; a <code>tools</code> override must list every tool the session
+  should have.&rdquo;</em> The merge is real but happens <b>client-side in the adapter</b>, which calls
+  <code>agents.retrieve()</code>, drops same-named custom tools, appends its own, and sends the whole
+  list. Accurate in effect, imprecise in mechanism.</p>
+  <p><b>Excluded as unverifiable:</b> a &ldquo;just use SSE&rdquo; public backlash &mdash; I looked on HN,
+  in GitHub issues and in blog posts and could not find anyone making that argument, so the version in
+  Module 5 is labelled as mine. Also excluded: the exact Console sessions URL path, which is undocumented
+  and only empirically confirmed. <b>Corrected against the brief:</b> Learn Imagine <em>does</em> have a
+  mobile layout for the chrome &mdash; it is the 1600&times;900 board that is desktop-bound. And AG-UI has
+  33 event types, not 16.</p>
+  <p><b>Re-check before you rely on them:</b> AG-UI was 0.0.58 and <code>@ag-ui/claude-managed-agents</code>
+  was 0.0.1 with a single published version at time of writing; both move fast. The
+  <code>THINKING_*</code> removal at 1.0.0 is a scheduled breaking change. Managed Agents pricing was
+  $0.08/session-hour plus tokens.</p>
+</div>
+
+<footer class="footer">
+  <div>
+    <a href="https://github.com/anthropics/claude-quickstarts/tree/main/managed-agents/copilot-kit-ag-ui" target="_blank" rel="noopener">The quickstart</a>
+    <a href="https://docs.ag-ui.com/introduction" target="_blank" rel="noopener">AG-UI docs</a>
+    <a href="https://github.com/ag-ui-protocol/ag-ui" target="_blank" rel="noopener">AG-UI source</a>
+    <a href="https://docs.copilotkit.ai/migrate/v2" target="_blank" rel="noopener">CopilotKit v2 migration</a>
+    <a href="https://platform.claude.com/docs/en/managed-agents/overview" target="_blank" rel="noopener">Managed Agents</a>
+  </div>
+  <p style="margin-top:1rem">Built as an interactive course. Quickstart code is Anthropic's and is
+  reproduced unmodified; Learn Imagine excerpts are from the local repo; illustrations are labelled as
+  such. Everything time-sensitive was verified in August 2026 against source &mdash; verify again before
+  you cite it.</p>
+</footer>
+
+</div><!-- /container -->
+<script>
+(function(){
+'use strict';
+
+/* ─────────────────────────── nav, progress, completion ─────────────────────────── */
+var N = 10;
+var links = document.getElementById('nav-links');
+var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a);
+  secs.push(document.getElementById('m' + i));
+}
+
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  var pct = Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100)));
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) {
+    if (!secs[i]) continue;
+    if (secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  }
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) {
+    var el = document.getElementById('nl' + i);
+    if (el) el.className = (i === active) ? 'done' : '';
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href'));
+    if (!t) return;
+    e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+
+/* ─────────────────────────── The State Desk ─────────────────────────── */
+
+var SC = [
+
+/* ───── 1 ───── */
+{
+  from: 'Design review &mdash; whiteboard, sprint 14',
+  title: 'Where does a shape&rsquo;s x/y actually come from?',
+  brief: '<p>The tutor is working through <code>x&sup2; + 3x &minus; 10 = 0</code>. It writes the '
+       + 'equation, then a factored form beneath it, then a hint box to the right. Every one of those '
+       + 'needs a pixel position on a 1600&times;900 board, and nothing may overlap &mdash; including '
+       + 'the student&rsquo;s own pen strokes, which are already there and do not move.</p>'
+       + '<p>Your action schema is about to be frozen. Decide now.</p>',
+  facts: [
+    { v: '1600&times;900', k: 'logical board size' },
+    { v: '13', k: 'op types in the vocabulary' },
+    { v: '0', k: 'coordinates the model emits today' }
+  ],
+  scene: [
+    { who: 'Tutor', cls: 't', txt: 'writes <code>x&sup2; + 3x &minus; 10 = 0</code>' },
+    { who: 'Tutor', cls: 't', txt: 'draws a hint box &mdash; <em>&ldquo;multiply &rarr; &minus;10, add &rarr; +3&rdquo;</em>' },
+    { who: 'Student', cls: 's', txt: '<em>scribbles a pen stroke across the middle of the board</em>' },
+    { who: 'Tutor', cls: 't', txt: 'writes <code>(x + 5)(x &minus; 2) = 0</code>, under the first line' }
+  ],
+  question: 'The next shape needs a position on the board. Which layer decides it?',
+  opts: [
+    { id: 'agent', layer: 'Agent owns it',
+      label: 'The model emits explicit <code>x</code>/<code>y</code> with every shape. It can see the board, so let it place things.',
+      stress: {
+        refresh: { t: 'ok', b: 'EXACT', v: 'Fine. Coordinates are in the event log, so a replay reproduces the board pixel for pixel.' },
+        interrupt: { t: 'warn', b: 'DRIFTS', v: 'A half-drawn turn leaves gaps the model never learns about. Its next turn places shapes relative to a board it misremembers.' },
+        second: { t: 'ok', b: 'IDENTICAL', v: 'Fine, for the same reason as refresh &mdash; the coordinates travelled with the actions.' }
+      },
+      v: 'The stress tests are not where this fails. It fails on turn one. Models are bad at 2D packing. '
+       + 'You get overlaps, so you add a clamp; the clamp pushes shapes back into occupied space, so you '
+       + 'add collision mitigation; and now you have a mitigation layer where a layout engine should be. '
+       + 'You are also paying tokens for arithmetic and spending model attention on geometry instead of pedagogy.',
+      div: ['S1 &middot; agent-owned coordinates &rarr; overlap mitigation layer, geometry tokens every turn'] },
+
+    { id: 'protocol', layer: 'The protocol owns it',
+      label: 'Positions live in AG-UI shared state. The agent emits a <code>STATE_DELTA</code> per shape; the UI applies the JSON Patch and renders.',
+      stress: {
+        refresh: { t: 'warn', b: 'YOU BUILD IT', v: 'Nothing in the protocol persists state. You must send a <code>STATE_SNAPSHOT</code> at <code>RUN_STARTED</code> &mdash; from a store you wrote yourself.' },
+        interrupt: { t: 'bad2', b: 'SILENT DRIFT', v: 'Patches land on a half-state. A patch that fails to apply is dropped with <code>console.warn</code> and <code>emitNoUpdate()</code>. No sequence numbers, no checksums, and no protocol event to request a resync.' },
+        second: { t: 'bad2', b: 'DIVERGES', v: 'The second client has no state and no way to ask for it. Cross-client sync is the paid tier, not the protocol.' }
+      },
+      v: 'This is the answer that sounds most modern and carries the most risk. You have converted a '
+       + '<em>computation</em> into a <em>synchronisation</em>, and synchronisation has failure modes that '
+       + 'computation does not. In a tutoring product that failure looks like the tutor referring to a '
+       + 'diagram the student cannot see &mdash; and the protocol&rsquo;s entire response to it is a console warning.',
+      div: ['S1 &middot; patched coordinates &rarr; silent divergence on a dropped patch, no resync event',
+            'S1 &middot; second client has no state channel of its own'] },
+
+    { id: 'ui', layer: 'The UI owns it',
+      label: 'The model emits semantic placement only &mdash; <code>{col, below, beside}</code>. A deterministic layout engine computes every pixel, and runs identically on server and client.',
+      stress: {
+        refresh: { t: 'ok', b: 'EXACT', v: 'Layout is a pure function of the event log. Replay reproduces it exactly, with nothing stored.' },
+        interrupt: { t: 'ok', b: 'EXACT', v: 'A partial log folds to a valid partial board. There is nothing to reconcile because nothing was synchronised.' },
+        second: { t: 'ok', b: 'IDENTICAL', v: 'Same log, same function, same pixels. Consistency is a property of the maths, not of a channel.' }
+      },
+      v: 'Correct &mdash; and it is what Learn Imagine already does, with the reasoning written in the source: '
+       + '<em>&ldquo;Layout happens inside the fold &mdash; the only code path shared by client render, server '
+       + 'prompt serialization, and replay &mdash; so a position can never desync.&rdquo;</em> '
+       + 'The catch is that determinism is load-bearing. One <code>Math.random()</code>, one '
+       + '<code>Date.now()</code>, one read of <code>window.innerWidth</code> inside that function and all '
+       + 'three guarantees vanish at once, silently. It is also exactly why a responsive board is harder '
+       + 'than it looks: viewport-dependent layout is not a pure function of the log.',
+      div: [] }
+  ],
+  ok: ['ui'],
+  field: '<span class="lbl">Field note</span>'
+       + '<p><b>Anything you can derive, do not transport.</b> Derived state cannot desync, cannot be dropped '
+       + 'in flight, and costs nothing to persist. Every layer you move it up is a layer that can fail.</p>'
+       + '<p>Notice that the correct answer here is the <em>least</em> protocol-shaped one. A protocol&rsquo;s '
+       + 'value is in carrying things that genuinely must be agreed between two parties. Pixel positions are '
+       + 'not one of those things &mdash; they are the output of a function both parties can run.</p>'
+},
+
+/* ───── 2 ───── */
+{
+  from: 'Support ticket #2291 &mdash; escalated',
+  title: 'A student reloads and asks where the conversation went',
+  brief: '<p>A learner spent twenty minutes on a quadratics lesson, closed the laptop, and reopened it '
+       + 'on the train. The board is exactly as they left it &mdash; fourteen shapes, a graph, an answered '
+       + 'check. But the dialogue rail is showing only what the tutor said after the reload.</p>'
+       + '<p>They want to re-read the explanation they half-understood. It is gone.</p>',
+  facts: [
+    { v: '50', k: 'transcript entries kept live' },
+    { v: 'append-only', k: 'board_events table' },
+    { v: 'none', k: 'realtime channel in the app' }
+  ],
+  scene: [
+    { who: 'Student', cls: 's', txt: '&ldquo;so the &minus;5 is because of the <code>+5</code> factor?&rdquo;' },
+    { who: 'Tutor', cls: 't', txt: '&ldquo;Exactly &mdash; zero-product property. If a product is zero, one factor must be.&rdquo;' },
+    { who: 'System', cls: 'sys', txt: '<em>browser reload, 18 minutes in</em>' }
+  ],
+  question: 'Who owns the transcript?',
+  opts: [
+    { id: 'agent', layer: 'Agent owns it',
+      label: 'Server-side session state. The agent&rsquo;s session <em>is</em> the conversation; the client fetches it on load and sends only the newest message.',
+      stress: {
+        refresh: { t: 'ok', b: 'EXACT', v: 'Managed Agents persists event history server-side. Resuming means sending one <code>user.message</code>; nothing is replayed.' },
+        interrupt: { t: 'ok', b: 'CLEAN', v: 'The interrupted turn is still in the session&rsquo;s event history, because the session wrote it.' },
+        second: { t: 'warn', b: 'STALE', v: 'Both tabs load the same history and neither learns about the other&rsquo;s new turns. Correct, just not live.' }
+      },
+      v: 'Right answer, and the one Managed Agents hands you for nothing. The cost is that your transcript '
+       + 'now lives in a vendor&rsquo;s system &mdash; which is a data-residency and retention conversation, '
+       + 'not a technical one. Recall that Managed Agents is ZDR- and HIPAA-ineligible <em>precisely because</em> '
+       + 'sessions persist: &ldquo;transcripts persist until you delete them.&rdquo;',
+      div: ['S2 &middot; agent-owned transcript &rarr; second tab goes stale; transcripts live in the vendor'] },
+
+    { id: 'protocol', layer: 'The protocol owns it',
+      label: '<code>MESSAGES_SNAPSHOT</code> and the <code>TEXT_MESSAGE_*</code> stream rebuild the transcript on the client each session.',
+      stress: {
+        refresh: { t: 'bad2', b: 'GONE', v: '<code>MESSAGES_SNAPSHOT</code> is a wire event, not a store. AG-UI standardises no persistence; <code>threadId</code> is an opaque string with no history endpoint behind it.' },
+        interrupt: { t: 'ok', b: 'CLEAN', v: 'Within a live run this is fine &mdash; the events already arrived.' },
+        second: { t: 'bad2', b: 'DIVERGES', v: 'Nothing to load from. Each client has whatever it happened to receive.' }
+      },
+      v: 'The category error this course keeps circling: <b>a protocol is not a database.</b> '
+       + '<code>MESSAGES_SNAPSHOT</code> describes how state reaches a client, never where it lives. '
+       + 'The tell is in CopilotKit&rsquo;s own pricing page: &ldquo;conversation history surviving reloads '
+       + 'and device changes&rdquo; is a paid-tier line item. That is exactly where the protocol stops and '
+       + 'someone&rsquo;s product begins.',
+      div: ['S2 &middot; protocol-owned transcript &rarr; nothing persists; history is a paid tier'] },
+
+    { id: 'ui', layer: 'The UI owns it',
+      label: 'React state, seeded on mount from the persisted event log &mdash; the <code>say</code>, <code>ask_check</code> and student <code>message</code> events are already in there.',
+      stress: {
+        refresh: { t: 'ok', b: 'EXACT', v: 'Survives, because the log is the store and React state is only a projection of it.' },
+        interrupt: { t: 'warn', b: 'PARTIAL', v: 'Anything mid-stream that was never committed is gone. See round 4 &mdash; this is the same wound.' },
+        second: { t: 'warn', b: 'STALE', v: 'Same board at load, silent divergence after. No channel, no sync.' }
+      },
+      v: 'This is Learn Imagine&rsquo;s answer and it is defensible &mdash; but notice the sleight of hand. '
+       + 'The UI does not own the transcript. <b>The event log does.</b> The UI owns a projection of it. '
+       + 'Every time &ldquo;the UI owns it&rdquo; turns out to be the right answer in this simulator, it is '
+       + 'because there is a durable append-only log underneath doing the actual owning.',
+      div: ['S2 &middot; UI projection &rarr; uncommitted mid-stream turns lost, second tab stale'] }
+  ],
+  ok: ['agent', 'ui'],
+  field: '<span class="lbl">Field note</span>'
+       + '<p>A and C are both defensible and they are the <em>same pattern</em> &mdash; a durable log plus a '
+       + 'projection. They differ only in whose log it is, which is a procurement question rather than an '
+       + 'architecture one.</p>'
+       + '<p>B is not defensible, and it is the single most common misreading of what an agent&ndash;UI protocol '
+       + 'is for. If your persistence plan is an event name, you do not have a persistence plan.</p>'
+},
+
+/* ───── 3 ───── */
+{
+  from: 'Bug report &mdash; QA, reproducible',
+  title: 'The student owes an answer, and then reloads',
+  brief: '<p>The tutor has drawn a multiple-choice check onto the board and stopped. The student is '
+       + 'supposed to answer before anything else happens &mdash; that gate is the whole pedagogical point, '
+       + 'because a check the student can scroll past is not a check.</p>'
+       + '<p>Instead of answering, they reload the page.</p>',
+  facts: [
+    { v: '1', k: 'graded answer allowed per check, ever' },
+    { v: '409', k: 'status the second attempt gets' },
+    { v: 'derived', k: 'how the gate is computed today' }
+  ],
+  scene: [
+    { who: 'Tutor', cls: 't', txt: 'draws a check card &mdash; <em>&ldquo;If (x+5)(x&minus;2)=0, what are the solutions?&rdquo;</em>' },
+    { who: 'Tutor', cls: 't', txt: '<em>stops. waits.</em>' },
+    { who: 'Student', cls: 's', txt: '<em>reloads the page without answering</em>' }
+  ],
+  question: 'Who owns the fact that there is an unanswered check?',
+  opts: [
+    { id: 'agent', layer: 'Agent owns it',
+      label: 'A server-side flag on the session: <code>awaiting_answer = check_id</code>, cleared when the answer lands.',
+      stress: {
+        refresh: { t: 'ok', b: 'RESTORED', v: 'The flag is in the database, so the gate comes back.' },
+        interrupt: { t: 'ok', b: 'HELD', v: 'Fine &mdash; the flag does not care what the stream did.' },
+        second: { t: 'warn', b: 'RACE', v: 'Both tabs see the gate and both can submit. You need a conditional write for one to win, which you would need anyway.' }
+      },
+      v: 'It works, and it duplicates truth. You now hold a flag that can disagree with the event log, '
+       + 'and reconciling a flag against a log is a reliable bug generator. The one real thing it buys: '
+       + 'the <em>agent</em> knows it is waiting &mdash; which is the whole argument for the next option.',
+      div: ['S3 &middot; server flag &rarr; a second source of truth that can disagree with the log'] },
+
+    { id: 'protocol', layer: 'The protocol owns it',
+      label: '<code>RUN_FINISHED</code> with <code>outcome: interrupt</code>, resumed through <code>useHumanInTheLoop</code>&rsquo;s <code>respond</code> callback. The agent genuinely pauses.',
+      stress: {
+        refresh: { t: 'bad2', b: 'LOST', v: 'The pause lives inside a live run. A reload ends the run, and there is no resumption cursor to reattach to &mdash; verbatim from the Managed Agents docs, &ldquo;there is no way to re-request missed deltas.&rdquo;' },
+        interrupt: { t: 'ok', b: 'EXACT', v: 'This is literally what the mechanism is for. The agent stops generating rather than being ignored.' },
+        second: { t: 'warn', b: 'BLIND', v: 'The second tab is not attached to the run and sees no pause at all.' }
+      },
+      v: 'The right mechanism, aimed at the wrong question. This is genuinely the best way to make the '
+       + '<em>agent</em> pause &mdash; it stops rather than being talked over. It is a poor way to remember '
+       + '<em>that</em> it is paused across a page load, because a run is ephemeral and the protocol has no '
+       + 'opinion about what outlives one.',
+      div: ['S3 &middot; protocol-only gate &rarr; the pause dies with the run on reload'] },
+
+    { id: 'ui', layer: 'The UI owns it',
+      label: 'Derived from the fold: an unanswered check shape exists on the board, therefore the gate is up. Nothing is stored.',
+      stress: {
+        refresh: { t: 'ok', b: 'FREE', v: 'The overlay reopens on load with no restoration code at all, because the condition was never stored &mdash; it was computed.' },
+        interrupt: { t: 'ok', b: 'HELD', v: 'A partial log still contains the check, so the gate still derives.' },
+        second: { t: 'ok', b: 'CONSISTENT', v: 'Both tabs derive the same gate from the same log; a conditional insert means only one answer ever counts.' }
+      },
+      v: 'Correct, and Learn Imagine&rsquo;s own comment explains why better than I can: '
+       + '<em>&ldquo;The trigger is DERIVED from the fold (an unanswered check shape exists), never stored '
+       + 'server-side &mdash; resume with an unanswered check reopens the overlay on load for free.&rdquo;</em> '
+       + 'Zero state added; three stress tests passed.',
+      div: [] }
+  ],
+  ok: ['ui'],
+  field: '<span class="lbl">Field note &mdash; and the trap in this round</span>'
+       + '<p>The trap is thinking these are exclusive. <b>The best system does B <em>and</em> C.</b> The '
+       + 'protocol carries the pause, so the agent actually stops generating instead of being ignored by a '
+       + 'disabled input box. The UI derives the gate, so it survives a reload for free.</p>'
+       + '<p>What you must not do is A: a stored flag sitting alongside a log that can already answer the '
+       + 'question. Two sources of truth is not redundancy, it is a scheduled outage.</p>'
+},
+
+/* ───── 4 ───── */
+{
+  from: 'Incident &mdash; reported by three learners in a week',
+  title: 'A turn that never happened',
+  brief: '<p>Twenty-two seconds into a turn, the tutor has drawn six shapes. The student watched every '
+       + 'one of them appear. Then the connection drops &mdash; a tunnel, a laptop lid, a tab crash, it '
+       + 'does not matter which.</p>'
+       + '<p>They reload. The board shows the state from <em>before</em> the turn began. Six shapes they '
+       + 'definitely saw are gone, and they are now reading a follow-up message that refers to them.</p>',
+  facts: [
+    { v: '300s', k: 'max turn duration' },
+    { v: '12', k: 'max actions per turn' },
+    { v: '0', k: 'partial turns persisted today' }
+  ],
+  scene: [
+    { who: 'Tutor', cls: 't', txt: 'draws six shapes over 22 seconds &mdash; equation, factors, arrow, box, graph, label' },
+    { who: 'System', cls: 'sys', txt: '<em>connection drops at second 22</em>' },
+    { who: 'Student', cls: 's', txt: '<em>reloads</em>' },
+    { who: 'System', cls: 'sys', txt: '<em>board renders the state from before the turn started</em>' }
+  ],
+  question: 'Who owns the partial turn?',
+  opts: [
+    { id: 'agent', layer: 'Agent owns it',
+      label: 'The server commits each event as it emits it. The client is a pure view of a log it does not own and cannot lose.',
+      stress: {
+        refresh: { t: 'ok', b: 'EXACT', v: 'Everything drawn was committed as it was drawn. The reload folds to precisely what was on screen at second 22.' },
+        interrupt: { t: 'ok', b: 'CLEAN', v: 'The partial turn is real, persisted, and available as context for whatever comes next.' },
+        second: { t: 'ok', b: 'CONSISTENT', v: 'One log, server-assigned sequence numbers, no client involvement in the truth.' }
+      },
+      v: 'Correct, and thoroughly unglamorous. The server is the only party that knows both what it sent '
+       + 'and that it sent it; the client only ever knows what arrived. A protocol does not give you this &mdash; '
+       + 'but a server-authored <code>RUN_FINISHED</code> makes it the obvious shape rather than an afterthought, '
+       + 'and it lets you delete the client-side commit route entirely.',
+      div: [] },
+
+    { id: 'protocol', layer: 'The protocol owns it',
+      label: 'A resumable stream. The client reconnects with a cursor and the transport replays whatever it missed.',
+      stress: {
+        refresh: { t: 'bad2', b: 'NO SUCH THING', v: 'AG-UI declares <code>resumable</code> in <code>TransportCapabilities</code>. It is a <b>reserved flag with the design still open in an issue</b> &mdash; nothing implements it.' },
+        interrupt: { t: 'bad2', b: 'NO SUCH THING', v: 'Managed Agents&rsquo; own stream endpoint takes no cursor. Its only query parameter is <code>event_deltas[]</code>.' },
+        second: { t: 'bad2', b: 'NO SUCH THING', v: 'The documented recovery procedure is: open a stream, list the full history to seed seen event IDs, then tail live and skip duplicates. That is you rebuilding it.' }
+      },
+      v: '<b>This is the trap in this simulator.</b> It is the most principled-sounding answer and you '
+       + 'cannot build it on this stack. The capability is advertised in a discovery surface that explicitly '
+       + 'says &ldquo;discovery only &mdash; there is no negotiation,&rdquo; and implemented nowhere. '
+       + 'Verbatim from Anthropic&rsquo;s docs: <em>&ldquo;There is no way to re-request missed deltas.&rdquo;</em> '
+       + '<b>Capability surfaces advertise intent. Check the implementation before you architect on it.</b>',
+      div: ['S4 &middot; resumable stream &rarr; advertised in the capability surface, implemented nowhere'] },
+
+    { id: 'ui', layer: 'The UI owns it',
+      label: 'The client POSTs the finished turn when the stream completes. It is the party that knows the turn ended.',
+      stress: {
+        refresh: { t: 'bad2', b: 'EVAPORATES', v: 'The entire turn is lost &mdash; including the six shapes the student watched appear. The commit never fired because the stream never finished.' },
+        interrupt: { t: 'bad2', b: 'LOST', v: 'Same wound. An aborted turn skips the completion callback, so nothing is written and nothing records that anything happened.' },
+        second: { t: 'warn', b: 'RACE', v: 'Guarded, not solved &mdash; an idempotency key on the turn stops a duplicate, which tells you the design expected trouble here.' }
+      },
+      v: 'This is Learn Imagine today, and it is where a serverless constraint pushes you: '
+       + '<em>&ldquo;server post-stream writes are unreliable in dev.&rdquo;</em> The code knows the cost. '
+       + 'It retries once and then tells the student <em>&ldquo;This turn couldn&rsquo;t be saved &mdash; it '
+       + 'may look different after a reload.&rdquo;</em> A warning is not a fix; it is a well-written apology '
+       + 'for an architecture.',
+      div: ['S4 &middot; client-driven commit &rarr; the whole turn is lost on a mid-stream reload'] }
+  ],
+  ok: ['agent'],
+  field: '<span class="lbl">Field note &mdash; read this one twice</span>'
+       + '<p>Three-way lesson. <b>The correct answer is the least fashionable</b> (commit server-side as you '
+       + 'go). <b>The fashionable answer does not exist</b> (resumable streams are a reserved flag in one '
+       + 'system and an explicit &ldquo;no&rdquo; in the other). <b>And the one you shipped was chosen for '
+       + 'you by a platform constraint</b>, not by a design decision.</p>'
+       + '<p>The general rule is worth more than the specific finding: a capability surface is a statement '
+       + 'of ambition. Before you build on any advertised capability in a 0.0.x protocol, find the code that '
+       + 'implements it. Twice in this stack the answer was that there isn&rsquo;t any.</p>'
+},
+
+/* ───── 5 ───── */
+{
+  from: 'Session recording &mdash; learner 4471, watched end to end',
+  title: '&ldquo;Wait &mdash; why is it minus five?&rdquo;',
+  brief: '<p>Twelve seconds into a forty-second explanation, the student types a question. The input is '
+       + 'disabled, with the placeholder <em>&ldquo;The tutor is drawing&hellip;&rdquo;</em>. They wait. '
+       + 'The tutor finishes, the box unlocks, and they delete what they wrote.</p>'
+       + '<p>This is on the recording. It happens a lot.</p>',
+  facts: [
+    { v: '200&ndash;900ms', k: 'per drawn action' },
+    { v: '12', k: 'actions in a rich turn' },
+    { v: 'disabled', k: 'input, for the whole turn' }
+  ],
+  scene: [
+    { who: 'Tutor', cls: 't', txt: '&ldquo;&hellip;so we look for two numbers that multiply to &minus;10&hellip;&rdquo;' },
+    { who: 'Tutor', cls: 't', txt: '<em>drawing &mdash; 28 seconds remaining</em>' },
+    { who: 'Student', cls: 's', txt: 'types <em>&ldquo;wait why is it minus 5&rdquo;</em> &mdash; the box is greyed out' },
+    { who: 'Student', cls: 's', txt: '<em>waits 28 seconds</em>' },
+    { who: 'Student', cls: 's', txt: '<em>deletes the question</em>' }
+  ],
+  question: 'Who owns a student interruption mid-turn?',
+  opts: [
+    { id: 'agent', layer: 'Agent owns it',
+      label: 'Queue it. Accept the message immediately, hand it to the agent at the turn boundary.',
+      stress: {
+        refresh: { t: 'ok', b: 'QUEUED', v: 'Fine &mdash; the message is persisted the moment it is typed, before anything else happens.' },
+        interrupt: { t: 'warn', b: 'LATE', v: 'The tutor answers at second 40 a question asked at second 12, about a board that has since gained four shapes.' },
+        second: { t: 'ok', b: 'FINE', v: 'No new problem here.' }
+      },
+      v: 'Better than nothing, and it is a two-hour change &mdash; genuinely worth shipping this week '
+       + 'even if you do nothing else. The pedagogical cost is that a question asked at second 12 and '
+       + 'answered at second 40 is a question about a different board. The student has to re-locate their '
+       + 'own confusion, which is precisely the work they were least able to do.',
+      div: ['S5 &middot; queued interjection &rarr; answered against a board that has moved on'] },
+
+    { id: 'protocol', layer: 'The protocol owns it',
+      label: 'A real interrupt. <code>user.interrupt</code> and <code>user.message</code> in one POST; the run ends with <code>outcome: interrupt</code>; the half-drawn board is <b>kept</b>, because it is the context for the question.',
+      stress: {
+        refresh: { t: 'warn', b: 'DEPENDS', v: 'Only as good as your answer to round 4 &mdash; the partial turn has to be committed server-side or there is nothing to come back to.' },
+        interrupt: { t: 'ok', b: 'EXACT', v: 'Both events in one POST is Managed Agents&rsquo; documented canonical pattern. The interrupted turn ends cleanly with <code>stop_reason: end_turn</code>.' },
+        second: { t: 'ok', b: 'FINE', v: 'The interrupt is an event in the log like any other.' }
+      },
+      v: 'Correct, and this is the clearest single thing a protocol buys you anywhere in this course. '
+       + 'Note the dependency though: an interrupt is only useful if the half-drawn board survives, so this '
+       + 'answer is worthless without round 4&rsquo;s. That coupling is real and people miss it &mdash; they '
+       + 'ship the interrupt, discover the board resets, and conclude the protocol did not work.',
+      div: [] },
+
+    { id: 'ui', layer: 'The UI owns it',
+      label: 'Disable the input while the tutor is drawing. No mid-stream race, no partial-turn problem, no ambiguity.',
+      stress: {
+        refresh: { t: 'ok', b: 'N/A', v: 'There is nothing to lose, because there was nothing to capture.' },
+        interrupt: { t: 'bad2', b: 'IMPOSSIBLE', v: 'Not handled &mdash; prevented. The failure mode is invisible in your logs because the event never occurs.' },
+        second: { t: 'ok', b: 'N/A', v: 'Also nothing to lose.' }
+      },
+      v: 'This is Learn Imagine, and <code>PLAN.md</code> records it as deliberate: '
+       + '<em>&ldquo;skip() fast-forward (input stays locked &mdash; no mid-stream race).&rdquo;</em> '
+       + 'As engineering, given an unframed stream and no abort path, that was the right call and I would '
+       + 'have made it too. As pedagogy it is the worst outcome in this entire simulator. The highest-value '
+       + 'moment in a lesson &mdash; an unprompted, specific question located exactly at the edge of a '
+       + 'student&rsquo;s understanding &mdash; is met with a greyed box that says '
+       + '<em>&ldquo;The tutor is drawing&hellip;&rdquo;</em>',
+      div: ['S5 &middot; locked input &rarr; the teachable moment is unreachable for tens of seconds'] }
+  ],
+  ok: ['protocol'],
+  field: '<span class="lbl">Field note</span>'
+       + '<p>The only round where the protocol is unambiguously the right owner. Notice <em>why</em>: '
+       + 'interruption is inherently a negotiation between two parties about a turn already in flight. '
+       + 'Neither side can settle it alone, and neither side can derive it. That is the definition of a '
+       + 'protocol concern &mdash; and it is the test to apply to anything else you are tempted to put on the wire.</p>'
+       + '<p>It is also the one round where the answer is not really an engineering trade. Rounds 1 to 4 have '
+       + 'a defensible case on more than one side. This one has a student deleting their own question.</p>'
+}
+
+];
+
+var TOTAL = SC.length;
+var st = { i: 0, sel: null, ran: false, div: [], led: [] };
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function cur(){ return SC[st.i]; }
+
+function renderDots(){
+  var h = '', i;
+  for (i = 0; i < TOTAL; i++) h += '<i class="' + (i < st.i ? 'on' : (i === st.i ? 'cur' : '')) + '"></i>';
+  $('d-dots').innerHTML = h;
+}
+
+function renderDiv(){
+  $('divn').textContent = st.div.length;
+  if (!st.div.length) {
+    $('divlist').innerHTML = '<li class="empty">Nothing broken yet. Every call you make adds its failure modes here.</li>';
+  } else {
+    $('divlist').innerHTML = st.div.map(function(d){ return '<li>' + d + '</li>'; }).join('');
+  }
+}
+
+function render(){
+  var s = cur();
+  st.sel = null; st.ran = false;
+  $('d-title').innerHTML = s.title;
+  $('d-step').textContent = (st.i + 1) + ' / ' + TOTAL;
+  renderDots();
+  renderDiv();
+
+  $('d-ticket').innerHTML = '<div class="from">' + s.from + '</div><h4>' + s.title + '</h4>' + s.brief
+    + '<div class="facts">' + s.facts.map(function(f){
+        return '<div><b>' + f.v + '</b>' + f.k + '</div>'; }).join('') + '</div>';
+
+  $('d-scene').innerHTML = s.scene.map(function(l){
+    return '<div class="ln"><span class="who ' + l.cls + '">' + l.who + '</span><span class="txt">' + l.txt + '</span></div>';
+  }).join('');
+
+  $('d-question').innerHTML = s.question;
+
+  $('d-opts').innerHTML = s.opts.map(function(o){
+    return '<button class="opt" data-o="' + o.id + '"><span class="dot"></span>'
+      + '<span><span class="layer">' + o.layer + '</span>' + o.label + '</span></button>';
+  }).join('');
+  Array.prototype.forEach.call($('d-opts').querySelectorAll('.opt'), function(b){
+    b.addEventListener('click', function(){ pick(b.getAttribute('data-o')); });
+  });
+
+  $('why').value = ''; $('why').disabled = false;
+  $('result').innerHTML = ''; $('result').className = 'hid';
+  $('d-run').className = 'act';
+  $('d-run').disabled = true;
+  $('d-next').className = 'act ghost hid';
+  $('d-gate').textContent = 'Pick a layer and write one line of reasoning to unlock.';
+  $('d-gate').style.display = '';
+  $('transfer').className = 'hid';
+}
+
+function pick(id){
+  if (st.ran) return;
+  st.sel = id;
+  Array.prototype.forEach.call($('d-opts').querySelectorAll('.opt'), function(b){
+    b.classList.toggle('sel', b.getAttribute('data-o') === id);
+  });
+  gate();
+}
+
+function gate(){
+  var okWhy = $('why').value.trim().length >= 10;
+  var ready = !!st.sel && okWhy;
+  $('d-run').disabled = !ready;
+  if (ready) { $('d-gate').textContent = ''; }
+  else if (!st.sel) { $('d-gate').textContent = 'Pick a layer and write one line of reasoning to unlock.'; }
+  else { $('d-gate').textContent = 'Write one line of reasoning to unlock (' + $('why').value.trim().length + '/10).'; }
+}
+$('why').addEventListener('input', gate);
+
+var STRESS = [
+  { k: 'refresh',   t: 'Browser refresh mid-lesson' },
+  { k: 'interrupt', t: 'Student interrupts / stream dies' },
+  { k: 'second',    t: 'Second tab, same lesson' }
+];
+
+function run(){
+  if (st.ran || !st.sel) return;
+  var s = cur();
+  var chosen = null, i;
+  for (i = 0; i < s.opts.length; i++) if (s.opts[i].id === st.sel) chosen = s.opts[i];
+  if (!chosen) return;
+  st.ran = true;
+
+  var why = $('why').value.trim();
+  st.led.push({ n: st.i + 1, t: s.title, c: chosen.layer, w: why });
+  for (i = 0; i < chosen.div.length; i++) st.div.push(chosen.div[i]);
+
+  Array.prototype.forEach.call($('d-opts').querySelectorAll('.opt'), function(b){
+    b.disabled = true;
+    var oid = b.getAttribute('data-o');
+    var tag = '';
+    if (oid === st.sel) tag = 'your call';
+    else if (s.ok.indexOf(oid) >= 0) tag = 'also defensible';
+    if (tag) b.insertAdjacentHTML('beforeend', '<span class="ok">' + tag + '</span>');
+  });
+  $('why').disabled = true;
+  $('d-run').className = 'act hid';
+  $('d-gate').style.display = 'none';
+
+  var h = '';
+  h += '<div class="rhead">Your call, under three stress tests</div>';
+  h += '<div class="stress">' + STRESS.map(function(x){
+    var r = chosen.stress[x.k];
+    return '<div class="st-card ' + r.t + '"><div class="stk">' + x.t
+         + ' <span class="badge">' + r.b + '</span></div><div class="stv">' + r.v + '</div></div>';
+  }).join('') + '</div>';
+
+  h += '<div class="field" style="border-left-color:var(--accent2);background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.25)">'
+     + '<span class="lbl" style="color:var(--accent2)">The consequence</span><p>' + chosen.v + '</p></div>';
+
+  h += '<div class="rhead">Every layer, side by side</div><div class="cmp">';
+  for (i = 0; i < s.opts.length; i++) {
+    var o = s.opts[i];
+    var mine = o.id === st.sel;
+    var pass = 0, j;
+    for (j = 0; j < STRESS.length; j++) if (o.stress[STRESS[j].k].t === 'ok') pass++;
+    h += '<div class="row' + (mine ? ' you' : '') + '"><div class="lab"><b>' + o.layer
+       + (mine ? '<span class="youtag">you</span>' : '') + '</b>'
+       + STRESS.map(function(x){ return x.t.split(' ')[0].toLowerCase() + ': ' + o.stress[x.k].b; }).join(' &middot; ')
+       + '</div><div class="sc">' + pass + '/3 clean &middot; '
+       + (s.ok.indexOf(o.id) >= 0 ? '<span style="color:var(--green)">defensible</span>'
+          : '<span style="color:var(--red)">costly</span>') + '</div></div>';
+  }
+  h += '</div>';
+
+  h += '<div class="field">' + s.field + '</div>';
+
+  $('result').innerHTML = h;
+  $('result').className = '';
+  renderDiv();
+  renderLedger();
+
+  if (st.i < TOTAL - 1) {
+    $('d-next').className = 'act';
+    $('d-next').textContent = 'Next scenario →';
+  } else {
+    $('d-next').className = 'act ghost hid';
+    $('transfer').className = '';
+    $('result').insertAdjacentHTML('beforeend',
+      '<div class="field" style="border-left-color:var(--yellow);background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25)">'
+      + '<span class="lbl" style="color:var(--yellow)">Done &mdash; now the part that counts</span>'
+      + '<p>Your five calls and your reasoning are in the ledger below. Read your own rationales back. '
+      + 'The useful question is not whether you picked the option marked defensible &mdash; it is whether '
+      + 'the reason you wrote down at the time survived contact with the stress tests.</p>'
+      + '<p>Look at the divergence ledger too. Every line in it is a real failure mode you signed up for, '
+      + 'and in a live system each one arrives as a support ticket that does not mention state ownership.</p>'
+      + '<p><b>A transfer exercise has appeared below the simulator.</b> It is deliberately not a whiteboard '
+      + 'problem and the mechanism involved was never shown to you here. That is the only part of this that '
+      + 'measures anything.</p></div>');
+  }
+}
+
+function renderLedger(){
+  if (!st.led.length) { $('ledger').className = 'hid'; return; }
+  $('ledger').className = '';
+  $('ledlist').innerHTML = st.led.map(function(l){
+    return '<div class="led"><div class="h"><span class="n">S' + l.n + '</span>'
+         + '<span class="c">' + l.c + '</span></div>'
+         + '<div class="w">&ldquo;' + esc(l.w) + '&rdquo;</div></div>';
+  }).join('');
+}
+
+$('d-run').addEventListener('click', run);
+$('d-next').addEventListener('click', function(){
+  if (st.i < TOTAL - 1) {
+    st.i++; render();
+    var dk = $('desk');
+    if (dk && dk.scrollIntoView) { try { dk.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){} }
+  }
+});
+$('d-reset').addEventListener('click', function(){
+  st = { i:0, sel:null, ran:false, div:[], led:[] };
+  $('ledger').className = 'hid';
+  $('ledlist').innerHTML = '';
+  render();
+});
+
+render();
+
+/* ─────────────────────────── Reconciliation cost instrument ─────────────────────────── */
+
+function nfmt(n){
+  if (n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return Math.round(n/1e3) + 'k';
+  return String(Math.round(n));
+}
+function money(n){
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '$' + Math.round(n/1e3) + 'k';
+  return '$' + n.toFixed(0);
+}
+function commas(n){ return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+var MK = ['learn','sess','turn','state','delta','price'];
+
+function meter(){
+  var L = +$('mk-learn').value;
+  var S = +$('mk-sess').value;
+  var T = +$('mk-turn').value;
+  var St = +$('mk-state').value;
+  var D = +$('mk-delta').value;
+  var P = (+$('mk-price').value) / 100;   // dollars per million tokens
+
+  $('mk-learn-v').textContent = commas(L);
+  $('mk-sess-v').textContent = S;
+  $('mk-turn-v').textContent = T;
+  $('mk-state-v').textContent = commas(St);
+  $('mk-delta-v').textContent = commas(D);
+  $('mk-price-v').textContent = '$' + P.toFixed(2);
+
+  var sessionsYr = L * S * 12;
+  var turnsYr = sessionsYr * T;
+
+  var fullTok = turnsYr * St;
+  var incTok  = sessionsYr * St + (turnsYr - sessionsYr) * D;
+
+  var fullCost = fullTok / 1e6 * P;
+  var incCost  = incTok  / 1e6 * P;
+  var save = fullCost - incCost;
+  var pct = fullTok > 0 ? (incTok / fullTok) : 0;
+
+  $('mk-full').textContent = money(fullCost);
+  $('mk-inc').textContent  = money(incCost);
+  $('mk-save').textContent = money(save);
+  $('mk-tok').textContent  = nfmt(fullTok);
+  $('mk-pct').textContent  = (pct * 100).toFixed(1) + '%';
+  $('mk-per').textContent  = '$' + (fullCost / L).toFixed(2);
+
+  var pa = Math.max(2, Math.min(98, Math.round(pct * 100)));
+  $('mk-bar-a').style.width = pa + '%';
+  $('mk-bar-b').style.width = (100 - pa) + '%';
+
+  // The half-price trap: price halves, turns double, board grows 40% longer.
+  var trapCost = (sessionsYr * (T * 2) * (St * 1.4)) / 1e6 * (P / 2);
+  var ratio = fullCost > 0 ? trapCost / fullCost : 0;
+  $('mk-trap').innerHTML =
+    'Full re-send costs <b>' + money(fullCost) + '/yr</b> today. Now take the optimistic industry case &mdash; '
+    + '<b>input price halves</b> &mdash; and pair it with what a tutor that draws actually causes: '
+    + '<b>turns per session double</b>. Those two cancel exactly. Add a board that runs 40% longer over a '
+    + 'longer session and you land at <b>' + money(trapCost) + '/yr</b> &mdash; '
+    + '<b>' + (ratio >= 1 ? (((ratio - 1) * 100).toFixed(0) + '% more') : (((1 - ratio) * 100).toFixed(0) + '% less'))
+    + '</b> than before the price cut. '
+    + 'And none of it is cacheable: the state serialisation sits in the user message, by design, so the system '
+    + 'prefix stays cache-hot &mdash; which means the tokens that grow are exactly the ones that always miss.';
+}
+
+MK.forEach(function(k){
+  var el = $('mk-' + k);
+  if (el) el.addEventListener('input', meter);
+});
+meter();
+
+/* expose for headless verification */
+window.__desk = { state: function(){ return st; }, pick: pick, run: run,
+  next: function(){ $('d-next').click(); }, reset: function(){ $('d-reset').click(); },
+  cur: cur, SC: SC, TOTAL: TOTAL, why: function(v){ $('why').value = v; gate(); },
+  meter: meter };
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>

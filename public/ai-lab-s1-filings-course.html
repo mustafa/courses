@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading the AI Labs' S-1s — Interactive Course</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:640px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CODE */
+.code-label{display:inline-block;background:var(--accent-dim);color:var(--text-bright);
+  font-size:11px;font-weight:700;padding:3px 11px;border-radius:5px 5px 0 0;
+  font-family:var(--mono);letter-spacing:0.03em}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:0 8px 8px 8px;
+  padding:1rem 1.1rem;overflow-x:auto;margin-bottom:1.2rem;font-size:0.85rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text);font-size:1em}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.str{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}
+.num{color:#79c0ff}.op{color:#ff7b72}.vr{color:#ffa657}.cl{color:#7ee787}.nm{color:#79c0ff}
+.bad{color:var(--red)}.good{color:var(--green)}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-filing{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-filing .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* PROVENANCE TIER CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-filed{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-co{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-press{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-inf{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-none{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ THE INFERENCE BUDGET (SIM) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]:disabled::-webkit-slider-thumb{background:var(--border-light);box-shadow:none}
+
+.why-wrap{margin-top:0.9rem}
+.why-wrap label{display:block;font-size:0.8rem;color:var(--text-dim);margin-bottom:0.4rem}
+.why-wrap textarea{width:100%;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:7px;padding:0.55rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.87rem;
+  min-height:52px;resize:vertical}
+.why-wrap textarea:focus{outline:none;border-color:var(--accent)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+/* chart */
+.chart{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;padding:1rem;
+  margin:1rem 0}
+.chart .ch{font-size:0.75rem;color:var(--text-dim);margin-bottom:0.7rem;text-transform:uppercase;
+  letter-spacing:0.05em;font-weight:700}
+.bars{display:flex;align-items:flex-end;gap:0.5rem;height:150px;padding-bottom:1.6rem;position:relative}
+.bars .bcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;
+  height:100%;position:relative}
+.bars .bar{width:100%;max-width:64px;border-radius:5px 5px 0 0;transition:height 0.5s ease;
+  position:relative;min-height:2px}
+.bars .bv{position:absolute;top:-1.25rem;font-family:var(--mono);font-size:0.72rem;
+  color:var(--text-bright);white-space:nowrap;font-weight:700}
+.bars .bx{position:absolute;bottom:-1.4rem;font-size:0.7rem;color:var(--text-dim);
+  font-family:var(--mono)}
+.bars .base{position:absolute;left:0;right:0;bottom:1.6rem;border-top:1px dashed var(--border-light)}
+.bars .baselbl{position:absolute;right:0;bottom:1.7rem;font-size:0.63rem;color:var(--text-dim);
+  font-family:var(--mono)}
+
+/* comparison */
+.cmp{background:var(--bg3);border:1px solid var(--border-light);border-radius:10px;
+  padding:1rem 1.2rem;margin:1.1rem 0}
+.cmp .rh{font-size:0.72rem;font-weight:800;color:var(--accent2);text-transform:uppercase;
+  letter-spacing:0.07em;margin-bottom:0.8rem}
+.cmp .row{display:grid;grid-template-columns:1fr auto;gap:0.6rem;align-items:baseline;
+  padding:0.55rem 0;border-bottom:1px solid var(--border)}
+.cmp .row:last-child{border-bottom:none}
+.cmp .row .lb{font-size:0.86rem;color:var(--text)}
+.cmp .row .sc{font-family:var(--mono);font-weight:800;font-size:1.05rem;color:var(--text-bright);
+  text-align:right;white-space:nowrap}
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+
+/* SORT EXERCISE */
+.sortex{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;
+  margin:1.2rem 0}
+.claimrow{border:1px solid var(--border);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:0.6rem;
+  background:var(--bg2)}
+.claimrow .ct{font-size:0.88rem;margin-bottom:0.55rem;color:var(--text)}
+.chips{display:flex;gap:0.35rem;flex-wrap:wrap}
+.chip{font-size:0.7rem;font-weight:700;padding:0.28rem 0.6rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.chip:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.chip.sel{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.chip:disabled{cursor:default}
+.chip.right{background:rgba(152,195,121,0.18);border-color:var(--green);color:var(--green)}
+.chip.wrong{background:rgba(224,108,117,0.18);border-color:var(--red);color:var(--red)}
+.cans{font-size:0.82rem;color:var(--text-dim);margin-top:0.55rem;padding-top:0.55rem;
+  border-top:1px solid var(--border);line-height:1.6}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+  .cmp .row{grid-template-columns:1fr}
+  .cmp .row .sc{text-align:left}
+}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">The AI Labs' S-1s</div>
+    <div class="nav-prog" id="nav-prog">0 / 8</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>Reading the AI Labs' S-1s</h1>
+  <p class="sub">OpenAI and Anthropic have both moved toward an IPO. Neither has published an S-1.
+  This course is about what that distinction is worth &mdash; and what the knowable numbers do to
+  anyone whose product economics run on model API pricing.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>8</span> modules</div>
+    <div class="hero-badge"><span>1</span> economics simulator</div>
+    <div class="hero-badge"><span>~75</span> min</div>
+    <div class="hero-badge"><span>18 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Primary sources:
+  <a href="https://openai.com/index/openai-submits-confidential-s-1/" target="_blank" rel="noopener">OpenAI Rule&nbsp;135 notice</a> &middot;
+  <a href="https://www.anthropic.com/news/confidential-draft-s1-sec" target="_blank" rel="noopener">Anthropic Rule&nbsp;135 notice</a> &middot;
+  <a href="https://www.sec.gov/Archives/edgar/data/1651562/000165156226000063/cour-20260630.htm" target="_blank" rel="noopener">Coursera 10-Q, Q2&nbsp;2026</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">Read this before anything else</span>
+  <p><strong>Neither company has filed a public S-1.</strong> Both have <em>confidentially submitted a
+  draft registration statement</em>, which is a different legal act with different consequences. There
+  is no public risk-factors section, no audited financial statements, no use-of-proceeds table, no
+  share-structure exhibit, no underwriter list, no ticker. I searched EDGAR full-text, the company
+  index, and the complete CIK lookup file on 18 August 2026: <strong>there is no registrant named
+  OpenAI or Anthropic.</strong></p>
+  <p>That is not a disappointing footnote. It is the most useful thing in this course, because a very
+  large volume of confident commentary is currently citing "the S-1" for numbers that no member of
+  the public has read. Learning to notice that is worth more than any single figure.</p>
+  <p>So every factual claim here carries a provenance chip. <span class="tier t-filed">Filed</span>
+  means it is in a document on EDGAR you can open right now. <span class="tier t-co">Company</span>
+  means the company published it. <span class="tier t-press">Reported</span> means credible
+  journalism or analyst work, unverifiable against a filing.
+  <span class="tier t-inf">Inference</span> is mine. <span class="tier t-none">Unknown</span> means
+  nobody outside the company knows and you should distrust anyone who says otherwise.</p>
+  <p><strong>Module 4 is a simulator.</strong> Do it before you read modules 5&ndash;8. It asks you to
+  commit to a number before it shows you anything.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">What actually happened<span class="tag">Facts</span></a></li>
+    <li><a href="#m2">Provenance discipline<span class="tag">Method</span></a></li>
+    <li><a href="#m3">The economics, as far as they're knowable<span class="tag">Analysis</span></a></li>
+    <li><a href="#m4">The Inference Budget<span class="tag">Simulator</span></a></li>
+    <li><a href="#m5">The commitment asymmetry<span class="tag">Balance sheet</span></a></li>
+    <li><a href="#m6">Governance after the bell<span class="tag">Control</span></a></li>
+    <li><a href="#m7">What neither is saying<span class="tag">Omissions</span></a></li>
+    <li><a href="#m8">What you do about it<span class="tag">Synthesis</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>What actually happened</h2>
+  <div class="mt">A confidential submission is not a filing, and the gap is where the misinformation lives</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>State precisely what each company did, and on what date</li>
+  <li>Explain what a confidential draft registration statement discloses (nothing) and why companies use one</li>
+  <li>Know what Rule 135 permits a company to say, and why both notices are so short</li>
+  <li>Be able to check EDGAR yourself in under a minute</li>
+</ul></div>
+
+<h3>The two announcements, in full</h3>
+
+<p>These are short enough to quote almost completely, which is itself the point. Anthropic, 1 June 2026:</p>
+
+<blockquote>"Today, Anthropic, PBC <strong>confidentially submitted a draft registration statement on
+Form S-1</strong> to the U.S. Securities and Exchange Commission for a proposed initial public
+offering of our common stock. This gives us the option to go public after the SEC completes its
+review. The proposed initial public offering will depend on market conditions and other factors.
+<strong>The number of shares to be offered and the price have not yet been set.</strong>"
+<span class="attrib"><a href="https://www.anthropic.com/news/confidential-draft-s1-sec" target="_blank" rel="noopener">anthropic.com/news/confidential-draft-s1-sec</a> &mdash; <span class="tier t-co">Company</span></span></blockquote>
+
+<p>OpenAI, 8 June 2026, in a notice with a markedly different register:</p>
+
+<blockquote>"We recently submitted a confidential S-1. <strong>We expect it to leak so we're just
+announcing it.</strong> We have not decided on timing yet; it may be a while because there are things
+we want to do that are likely easier as a private company. But it's a complicated set of tradeoffs
+and this gives us the option to go public sooner if that ends up being best."
+<span class="attrib"><a href="https://openai.com/index/openai-submits-confidential-s-1/" target="_blank" rel="noopener">openai.com/index/openai-submits-confidential-s-1</a> &mdash; <span class="tier t-co">Company</span></span></blockquote>
+
+<div class="callout c-fact"><span class="lbl">Verified on EDGAR, 18 August 2026</span>
+<p>I checked three independent ways. EDGAR company search for <code>company=openai</code> returns
+<em>"No matching companies."</em> The complete <code>cik-lookup-data.txt</code> master file (40&nbsp;MB,
+every registrant that has ever filed) contains entries like <code>OPENAI STARTUP FUND I, L.P.</code>
+and dozens of SPV feeder funds with "Anthropic" in the name &mdash; but <strong>no operating company
+registrant for either lab.</strong> EDGAR full-text search for "OpenAI" restricted to S-1 forms
+returns 45&ndash;146 hits, all of them <em>other companies' filings that mention OpenAI</em> &mdash;
+Cerebras, SpaceX, Pershing Square Holdco, Entrata, Ambiq Micro.</p>
+<p>Try it yourself: <code>https://www.sec.gov/cgi-bin/browse-edgar?company=anthropic&amp;action=getcompany</code></p>
+</div>
+
+<h3>What a confidential submission actually is</h3>
+
+<p>The mechanism comes from the JOBS Act of 2012, extended by the SEC to all issuers in 2017. A
+company hands the SEC a complete draft registration statement &mdash; financials, risk factors, the
+lot &mdash; and the staff reviews it privately over several rounds of comment letters. The company
+fixes what the staff objects to before anyone outside sees a word.</p>
+
+<p>The public filing happens later, and the rule is that the issuer must publicly file the
+registration statement <strong>at least 15 days before the roadshow.</strong> When that happens, the
+previously confidential drafts and all SEC comment correspondence get published too. So the document
+everyone wants to read does exist. It is simply not available, and the date on which it becomes
+available is not yet set.</p>
+
+<div class="split">
+  <div class="l"><div class="h">What a confidential submission tells you</div>
+  <p>That the company wants the <em>option</em> to list, and is willing to spend real money and
+  management attention to hold it open.</p>
+  <p>That auditors have signed something. You cannot submit a DRS without financial statements.</p>
+  <p>That the SEC review clock has started &mdash; typically 3&ndash;6 months of comment rounds before
+  a public flip is possible.</p></div>
+  <div class="r"><div class="h">What it does not tell you</div>
+  <p>Any number whatsoever. Not revenue, not margin, not burn, not commitments.</p>
+  <p>Whether they will actually list. OpenAI explicitly says timing is undecided and "it may be a
+  while."</p>
+  <p>Valuation, ticker, exchange, underwriters, share count, or the structure of the offering.</p></div>
+</div>
+
+<h3>Why both notices are so short: Rule 135</h3>
+
+<p>Both announcements carry an identical legal footer, and it is not boilerplate you should skip.
+Rule 135 under the Securities Act creates a narrow safe harbour: an issuer may announce a proposed
+offering <em>without</em> that announcement counting as an illegal offer to sell, provided it sticks
+to a short permitted list &mdash; the fact of the offering, its purpose, the amount and type of
+security, and the anticipated timing. Anything more is "gun jumping."</p>
+
+<p>This is why Anthropic's notice reads like it was written by counsel: it was, and the sentence
+"the number of shares to be offered and the price have not yet been set" is there because Rule 135
+requires that kind of restraint. OpenAI's is the more interesting document precisely because it
+strains against the form &mdash; "we expect it to leak so we're just announcing it" is a candid
+sentence in a genre that almost never contains one.</p>
+
+<div class="callout c-dissent"><span class="lbl">The inference worth drawing</span>
+<p><span class="tier t-inf">Inference</span> OpenAI's notice contains a genuine strategic tell that
+Anthropic's does not: <em>"there are things we want to do that are likely easier as a private
+company."</em> A company that is enthusiastic about listing does not write that sentence. Read
+alongside the scale of its reported compute obligations, the most natural reading is that OpenAI
+wants the financing optionality a public listing provides while delaying the disclosure and
+quarterly-guidance regime that comes with it. Anthropic's notice makes no such reservation.</p>
+<p>That is my reading, not a fact. A defensible alternative: it is simply expectation management, so
+that a 2027 listing does not read as a failure.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 1 takeaways</div>
+<ul>
+  <li>Anthropic submitted 1 June 2026; OpenAI announced 8 June 2026. Both confidential drafts, both Rule 135 notices.</li>
+  <li>No public S-1 exists for either as of 18 August 2026. This is checkable in one minute on EDGAR.</li>
+  <li>A public filing must precede any roadshow by 15 days &mdash; that is your early-warning signal.</li>
+  <li>Anyone quoting "the S-1" for a specific number is quoting something they have not read.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>Provenance discipline</h2>
+  <div class="mt">The skill this episode actually teaches, and it is not about AI</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Sort claims by evidence tier rather than by plausibility</li>
+  <li>Recognise the specific failure mode of "annualised run-rate" and similar constructions</li>
+  <li>Have a default policy for how much weight to put on unverifiable numbers in your own planning</li>
+</ul></div>
+
+<p>There is a large and confident body of writing about these two filings. Much of it contains
+precise figures &mdash; gross margins to the percentage point, loss projections by year, cash-flow
+break-even dates. None of it can be checked against a filing, because there is no filing. The
+numbers are some combination of investor-deck leaks, analyst modelling, and repetition.</p>
+
+<p>This is not an argument for ignoring them. Reported numbers from good outlets are often roughly
+right. It is an argument for <strong>never letting a reported number and a filed number sit in the
+same sentence at the same weight</strong>, which is exactly what most commentary does.</p>
+
+<h3>The five tiers</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Tier</th><th>Means</th><th>How much weight</th></tr></thead>
+<tbody>
+<tr><td><span class="tier t-filed">Filed</span></td><td>In a document on EDGAR. Signed, audited or officer-certified, legally actionable if false.</td><td>Plan on it.</td></tr>
+<tr><td><span class="tier t-co">Company</span></td><td>Published by the company, not filed. A press release or blog post.</td><td>True but curated. Note what is omitted.</td></tr>
+<tr><td><span class="tier t-press">Reported</span></td><td>Credible journalism or analyst estimate, sourced to people or documents you cannot see.</td><td>Directionally useful. Never load-bearing.</td></tr>
+<tr><td><span class="tier t-inf">Inference</span></td><td>Someone's derivation from the above, including mine.</td><td>Only as good as its stated assumptions.</td></tr>
+<tr><td><span class="tier t-none">Unknown</span></td><td>Not knowable outside the company.</td><td>Treat confident claims here as a signal about the speaker.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">The construction to watch: "annualised run-rate"</span>
+<p>Anthropic's own Series H announcement says <em>"our run-rate revenue crossed $47 billion earlier
+this month"</em> <span class="tier t-co">Company</span>. That is a real number the company chose to
+publish, and there is no reason to doubt it. But note what it is: <strong>one month's revenue
+multiplied by twelve.</strong> It is not $47&nbsp;billion of revenue. It is not GAAP revenue. It has
+no bearing on whether that month was seasonal, front-loaded by an enterprise contract, or inclusive
+of prepaid commitments.</p>
+<p>Run-rate is the standard private-company metric and using it is not dishonest. But when these
+companies file publicly, they will report trailing GAAP revenue, and <strong>the two numbers will not
+match.</strong> Anyone comparing a private run-rate to a public company's trailing revenue is
+comparing different objects.</p>
+</div>
+
+<h3>Sort these yourself</h3>
+
+<p>Below are six claims currently in circulation about these two companies. Assign each a tier before
+you check. There is no partial credit and two of them are genuinely arguable &mdash; the reveal says
+which.</p>
+
+<div class="sortex" id="sortex"></div>
+
+<div class="lab-btns" style="margin-top:0.9rem">
+  <button class="act" id="sx-check" disabled>Check my sorting</button>
+  <button class="act ghost" id="sx-reset">Reset</button>
+  <span class="gate-msg" id="sx-gate">Assign a tier to all six.</span>
+</div>
+
+<div id="sx-result" class="hid"></div>
+
+<div class="takeaways"><div class="t">Module 2 takeaways</div>
+<ul>
+  <li>Tier every number before you use it. The tier matters more than the magnitude.</li>
+  <li>Run-rate is a legitimate private metric that does not survive translation to GAAP reporting.</li>
+  <li>The confident precision of a claim is uncorrelated with its evidentiary tier &mdash; often inversely so.</li>
+  <li>When these companies do file, expect reported figures to be revised, not confirmed.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>The economics, as far as they're knowable</h2>
+  <div class="mt">Two companies with similar valuations and genuinely different businesses</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Hold the reported financial shape of both companies, correctly tiered</li>
+  <li>Articulate where their business models actually diverge, rather than where the narrative says they do</li>
+  <li>Understand why gross margin is the number to watch and what moves it</li>
+</ul></div>
+
+<h3>What each company has published itself</h3>
+
+<p>Start with the highest-quality material available: what the companies said in their own names.
+This is <span class="tier t-co">Company</span> tier &mdash; curated, but not fabricated.</p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>Anthropic</th><th>OpenAI</th></tr></thead>
+<tbody>
+<tr><td><strong>Last published raise</strong></td>
+  <td>$65B Series H at <strong>$965B post-money</strong>, 28 May 2026 <span class="tier t-co">Company</span></td>
+  <td>Recapitalisation completed Oct 2025; no comparable published round since <span class="tier t-co">Company</span></td></tr>
+<tr><td><strong>Revenue figure company has stated</strong></td>
+  <td>Run-rate "crossed $47 billion" in May 2026 <span class="tier t-co">Company</span></td>
+  <td>None published directly; ~$20&ndash;25B annualised widely reported <span class="tier t-press">Reported</span></td></tr>
+<tr><td><strong>Corporate form</strong></td>
+  <td>Anthropic, PBC (Delaware public benefit corporation) <span class="tier t-co">Company</span></td>
+  <td>OpenAI Group PBC, controlled by the OpenAI Foundation <span class="tier t-co">Company</span></td></tr>
+<tr><td><strong>Disclosed compute partners</strong></td>
+  <td>Amazon (up to 5&nbsp;GW, primary cloud + training partner), Google/Broadcom (5&nbsp;GW TPU), SpaceX (Colossus 1&nbsp;&amp;&nbsp;2); Micron, Samsung, SK hynix as memory partners <span class="tier t-co">Company</span></td>
+  <td>Microsoft, Oracle, Amazon, Stargate consortium <span class="tier t-press">Reported</span></td></tr>
+<tr><td><strong>Distribution</strong></td>
+  <td>First frontier model on all three major clouds &mdash; AWS, Google Cloud, Azure <span class="tier t-co">Company</span></td>
+  <td>Azure-primary historically; ChatGPT as direct consumer channel <span class="tier t-press">Reported</span></td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">The one genuinely striking company-published fact</span>
+<p>Anthropic's Series H names its investor list, and it is not a venture list. Capital Group, Coatue,
+D1, GIC, ICONIQ, XN as co-leads; then Baillie Gifford, Blackstone, Brookfield, Fidelity, Jane Street,
+T.&nbsp;Rowe Price (twice, two separate entities), Temasek. <strong>Those are crossover and
+sovereign-wealth names &mdash; the investors who buy the private round in order to be positioned for
+the public one.</strong> The round composition is itself a pre-IPO signal, published two working days
+before the confidential submission.</p>
+</div>
+
+<h3>The reported financials, clearly marked</h3>
+
+<p>Everything in this table is <span class="tier t-press">Reported</span>. I am including it because
+you need a working model, not because it is verified. Where sources conflict I have given the range
+rather than picking.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Metric</th><th>OpenAI</th><th>Anthropic</th></tr></thead>
+<tbody>
+<tr><td>Revenue, annualised (mid-2026)</td><td>~$20&ndash;25B</td><td>~$47B run-rate (company-stated)</td></tr>
+<tr><td>Gross margin</td><td>~33% (2025), reported recovering toward ~39% in Q1 2026</td><td>Not reliably reported</td></tr>
+<tr><td>Inference cost</td><td>$8.4B (2025) &rarr; ~$14.1B (2026E)</td><td>Not reliably reported</td></tr>
+<tr><td>Cash burn</td><td>~$27B (2026E), ~$63B (2027E)</td><td>Not reliably reported</td></tr>
+<tr><td>Cash-flow positive</td><td>Not before 2030</td><td>Unknown <span class="tier t-none">Unknown</span></td></tr>
+<tr><td>Multi-year compute obligations</td><td>~$665B (Mar 2026) up to ~$1.4T through 2033 depending on source and horizon</td><td>Not disclosed in aggregate <span class="tier t-none">Unknown</span></td></tr>
+</tbody></table></div>
+
+<div class="callout c-dissent"><span class="lbl">The asymmetry in this table is the finding</span>
+<p>Look at the right-hand column. <strong>For Anthropic, most rows are empty.</strong> We have a
+company-stated run-rate and a valuation, and essentially nothing on cost structure, margin, or burn.
+For OpenAI we have detailed &mdash; if unverifiable &mdash; figures on all of it.</p>
+<p><span class="tier t-inf">Inference</span> That asymmetry is probably not about Anthropic being more
+disciplined. It is about OpenAI having far more investors, far more counterparties, and a far larger
+consumer surface, each of which is a leak vector. The volume of available information about a private
+company is a function of how many people have seen the numbers, not of how the company behaves. Do
+not read Anthropic's opacity as either virtue or concealment.</p>
+</div>
+
+<h3>Where the two businesses genuinely diverge</h3>
+
+<p>The lazy framing is "OpenAI is consumer, Anthropic is enterprise." That is roughly true and not
+very useful. Three sharper distinctions:</p>
+
+<h4>1. Channel control versus channel reach</h4>
+<p>OpenAI owns its primary demand channel. ChatGPT is a direct relationship with hundreds of millions
+of users, which means pricing power, first-party data, and no intermediary &mdash; but also the full
+cost of serving a consumer free tier. Anthropic has taken the opposite bet: <span class="tier t-co">Company</span>
+Claude is "the first frontier model available on all three of the world's largest cloud platforms."
+That is reach without ownership. The margin structures those imply are different, and neither is
+obviously better.</p>
+
+<h4>2. Revenue durability</h4>
+<p>Enterprise API and platform revenue is stickier than consumer subscription revenue but concentrates
+risk. <span class="tier t-press">Reported</span> Anthropic counts 8 of the Fortune 10 as customers.
+That is an impressive sentence and also a customer-concentration disclosure waiting to happen: when a
+public S-1 arrives, the revenue-concentration paragraph is one of the first things to read. Consumer
+subscriptions churn but no single cancellation moves the quarter.</p>
+
+<h4>3. How each frames the moat</h4>
+<p>Read the two companies' own language. Anthropic's Series H release talks about Claude becoming
+"increasingly indispensable," about enterprises deploying it "in their core operations," and about
+Claude "learning how businesses actually operate: the context, the processes, the judgment." That is
+a <em>workflow-embedding</em> moat argument. OpenAI's public positioning leans on consumer ubiquity
+and model capability. <span class="tier t-inf">Inference</span> Workflow embedding is the more
+defensible claim if it is true, because it survives a competitor shipping a better model; capability
+leads do not.</p>
+
+<div class="takeaways"><div class="t">Module 3 takeaways</div>
+<ul>
+  <li>Anthropic's published run-rate ($47B) exceeds OpenAI's reported annualised revenue. Note the metrics are not comparable.</li>
+  <li>Anthropic's Series H investor list is a crossover/sovereign list &mdash; a pre-IPO signal in itself.</li>
+  <li>OpenAI's reported gross margin (~33&ndash;39%) is the single most consequential number in this course.</li>
+  <li>We know far less about Anthropic's cost structure than OpenAI's, and that is about leak surface, not conduct.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 4 — SIMULATOR ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>The Inference Budget</h2>
+  <div class="mt">A model you build yourself, that will probably disagree with your intuition</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have committed to a forecast before seeing any model output</li>
+  <li>Understand why falling token prices and rising unit costs are simultaneously true</li>
+  <li>Know the breakeven relationship between price decline and token growth, and be able to derive it</li>
+  <li>Have a defensible planning assumption for AI cost of goods sold</li>
+</ul></div>
+
+<p>The most common planning error in AI product economics right now is a reasonable-sounding syllogism:
+<em>token prices have collapsed roughly 99% in three years; my product consumes tokens; therefore my
+AI cost of goods sold will fall.</em></p>
+
+<p>Both premises are true. The conclusion does not follow, and the reason it does not follow is
+arithmetic rather than opinion. This simulator makes you commit to a number first, then builds the
+model with your own assumptions, then shows you the gap between the two. <strong>The gap is the
+lesson</strong> &mdash; not whether you were right.</p>
+
+<div id="lab">
+  <div class="lab-top">
+    <span class="lab-pill">Simulator</span>
+    <h3>The Inference Budget</h3>
+    <span class="lab-step" id="lab-step">Stage 1 of 3</span>
+  </div>
+  <div class="lab-body">
+
+    <!-- STAGE 1 -->
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">Commit to a forecast</div>
+        <div class="st" id="s1-st">Required</div></div>
+      <p class="hint">Before you see any sliders or any output. A learner interaction &mdash; one
+      tutoring exchange, one graded response, one generated study plan &mdash; costs you some amount
+      in model API spend today. Call that <strong>100</strong>. What will the same interaction cost
+      you in <strong>three years</strong>, in real terms, as an index?</p>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Your forecast: cost per interaction in 2029 (today = 100)</span>
+          <span class="cv" id="v-guess">100</span></div>
+        <input type="range" id="r-guess" min="0" max="300" step="5" value="100">
+        <div class="cd" id="d-guess">Same as today.</div>
+      </div>
+
+      <div class="why-wrap">
+        <label for="w-guess">One line: what is driving your number? &mdash; required</label>
+        <textarea id="w-guess" placeholder="e.g. prices keep falling but we'll use more reasoning..."></textarea>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="b-lock" disabled>Lock in my forecast</button>
+        <span class="gate-msg" id="g-lock">Move the slider and write one line to unlock.</span>
+      </div>
+    </div>
+
+    <!-- STAGE 2 -->
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">Now build the model</div>
+        <div class="st" id="s2-st">Locked</div></div>
+      <p class="hint">Four assumptions. The defaults are deliberately the ones most people reach for
+      &mdash; they are not my recommendation, and one of them is the trap.</p>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Price per million tokens &mdash; annual decline</span>
+          <span class="cv" id="v-d">50%</span></div>
+        <input type="range" id="r-d" min="0" max="80" step="5" value="50">
+        <div class="cd">Observed 2023&ndash;2026 was steep: GPT-4 launched at $30/M input in Mar 2023;
+        budget-tier frontier models were near $0.10/M by 2026. Frontier-to-frontier decline is slower
+        than floor-to-floor.</div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Tokens consumed per interaction &mdash; annual growth</span>
+          <span class="cv" id="v-g">0%</span></div>
+        <input type="range" id="r-g" min="0" max="200" step="10" value="0">
+        <div class="cd">Reasoning models emit long hidden chains. Agentic loops make many calls per
+        user action. Context windows grew and got filled. Set this to 0 only if you believe your
+        product will consume the same tokens per task in 2029 as today.</div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Interaction volume &mdash; annual growth</span>
+          <span class="cv" id="v-a">40%</span></div>
+        <input type="range" id="r-a" min="0" max="150" step="10" value="40">
+        <div class="cd">How fast AI-touched interactions grow across your product surface.</div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Revenue &mdash; annual growth</span>
+          <span class="cv" id="v-r">12%</span></div>
+        <input type="range" id="r-r" min="0" max="40" step="2" value="12">
+        <div class="cd">The denominator. Baseline is $1.23B &mdash; Coursera's FY2026 revenue outlook
+        midpoint, from the Q2 2026 shareholder letter. <span class="tier t-filed">Filed</span></div>
+      </div>
+
+      <div class="lab-btns" style="margin-top:1rem">
+        <button class="act" id="b-run">Run the model forward</button>
+        <button class="act ghost" id="b-reset">Reset everything</button>
+      </div>
+    </div>
+
+    <!-- STAGE 3 -->
+    <div class="stage locked" id="s3">
+      <div class="stage-h"><div class="n">3</div><div class="ttl">What your assumptions imply</div>
+        <div class="st" id="s3-st">Locked</div></div>
+      <div id="out"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="m4after" class="hid">
+
+<h3>The relationship underneath it</h3>
+
+<p>Strip the model to two variables. Let <code>d</code> be the annual fractional decline in price per
+token and <code>g</code> the annual fractional growth in tokens per task. Unit cost is flat when:</p>
+
+<pre><code>(<span class="num">1</span> &minus; d) &times; (<span class="num">1</span> + g) = <span class="num">1</span>
+
+<span class="cm">// which rearranges to the only line worth memorising:</span>
+
+g<sub>breakeven</sub> = <span class="num">1</span>/(<span class="num">1</span> &minus; d) &minus; <span class="num">1</span></code></pre>
+
+<div class="tw"><table>
+<thead><tr><th>Price falls by</th><th>Unit cost is flat if tokens/task grow by</th><th>In plain terms</th></tr></thead>
+<tbody>
+<tr><td>30% / yr</td><td>+43% / yr</td><td>1.4&times; the tokens</td></tr>
+<tr><td><strong>50% / yr</strong></td><td><strong>+100% / yr</strong></td><td><strong>Exactly a doubling</strong></td></tr>
+<tr><td>70% / yr</td><td>+233% / yr</td><td>3.3&times; the tokens</td></tr>
+<tr><td>80% / yr</td><td>+400% / yr</td><td>5&times; the tokens</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">The line to take into planning</span>
+<p><strong>A 50% annual fall in price per token is exactly cancelled by a doubling of tokens per
+task.</strong> Both of those are happening right now. The industry has been reporting the first and
+under-reporting the second, which is why so many 2026 AI budgets assume margin expansion that has not
+arrived.</p>
+<p>This is Jevons' paradox with a compute meter attached: when a resource gets cheaper, consumption of
+it rises, and whether your bill falls depends entirely on which effect is larger. The honest planning
+assumption for a product that is actively adopting reasoning and agentic patterns is <strong>flat to
+modestly rising unit cost</strong>, with total cost rising with volume.</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">Where this argument is weakest</span>
+<p>Three honest objections. <strong>One:</strong> token growth per task is not unbounded &mdash; there
+is a ceiling on how much reasoning a given task benefits from, and once products saturate it,
+<code>g</code> collapses toward zero and the price decline wins outright. <strong>Two:</strong> the
+model treats a blended price as if capability is constant, but a 2029 cheap model is roughly a 2026
+frontier model, so some of the "price decline" is really quality-adjusted and understated.
+<strong>Three:</strong> aggressive caching, distillation, routing to smaller models, and batch
+processing are all real levers that this model folds into <code>d</code> rather than treating as
+separate decisions you control.</p>
+<p>The third objection is the operationally important one, and it cuts <em>for</em> the conclusion
+rather than against it: those levers are things you must actively build. They do not arrive by
+waiting for vendor price cuts.</p>
+</div>
+
+<h3>Transfer check &mdash; a case the simulator never ran</h3>
+
+<p>This is deliberately outside the model. Answer from the principle, not from the sliders.</p>
+
+<div class="sortex">
+  <p style="font-size:0.9rem;margin-bottom:0.8rem"><strong>1.</strong> A vendor announces a 60% price
+  cut on its mid-tier model and simultaneously ships a new reasoning mode that is on by default. Your
+  finance partner books the 60% as a cost saving in next year's plan. What do you tell them, in one
+  sentence, and what single number do you ask for before agreeing?</p>
+  <p style="font-size:0.9rem;margin-bottom:0.8rem"><strong>2.</strong> Your AI unit cost has been flat
+  for four quarters while token prices fell 45%. Your CFO reads this as your team failing to capture
+  vendor savings. Give the two measurements that would distinguish "we failed to optimise" from "we
+  shipped more capability per interaction."</p>
+  <p style="font-size:0.9rem;margin-bottom:0"><strong>3.</strong> You are asked to commit to a
+  three-year AI COGS line for a board plan. You genuinely do not know <code>g</code>. What do you put
+  in the plan, and what do you attach to it?</p>
+
+  <details class="reveal"><summary>Reveal &mdash; including where reasonable people disagree</summary>
+  <p><strong>1.</strong> Tell them the price cut is per token and the reasoning mode changes tokens per
+  task, so the two numbers multiply rather than one of them being the answer. The single number to
+  ask for: <strong>mean tokens per completed task, before and after the new mode</strong> &mdash;
+  measured on your own traffic, not the vendor's benchmark. If that rises more than 2.5&times;, the
+  60% cut is a cost <em>increase</em>.</p>
+  <p><strong>2.</strong> Measure (a) <strong>tokens per completed task</strong> and (b) <strong>task
+  success rate or containment rate</strong>. Flat cost with rising tokens and rising success means you
+  bought capability. Flat cost with flat tokens means you genuinely did not capture the price
+  decline &mdash; check routing, caching, and whether you are still pinned to an old model SKU. The
+  common third case: rising tokens with flat success, which means you shipped a more expensive product
+  that is not better, and that is the one worth catching early.</p>
+  <p><strong>3.</strong> Put in a <strong>range with the breakeven identity attached</strong>, not a
+  point estimate: state the plan at flat unit cost, show the sensitivity at <code>g</code> = 0, 1, and
+  2, and name the tripwire. Attach a monthly instrument for tokens per task so the assumption is
+  falsifiable within a quarter rather than at year end. <em>Where people disagree:</em> plenty of
+  experienced operators would argue you should just plan the optimistic case and manage to it, on the
+  grounds that a range invites the board to pick the bad end and cut your budget. That is a real
+  political argument and not a stupid one &mdash; but it is an argument about how to present a
+  forecast, not about what the forecast is.</p>
+  </details>
+</div>
+
+</div>
+
+<div class="takeaways"><div class="t">Module 4 takeaways</div>
+<ul>
+  <li>Unit cost is flat when <code>(1&minus;d)(1+g) = 1</code>. At a 50% price decline, breakeven is exactly a doubling of tokens per task.</li>
+  <li>Falling token prices and rising AI COGS are simultaneously true and not in tension.</li>
+  <li>Tokens per completed task is the instrument almost nobody measures and everybody should.</li>
+  <li>Cost reduction from caching, routing and distillation is built, not received.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>The commitment asymmetry</h2>
+  <div class="mt">Two real filings, one of them yours, and a ratio that reframes the whole sector</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know where purchase obligations live in a filing and why they matter more than the income statement</li>
+  <li>Be able to compare your own company's compute commitments to a frontier lab's, in the correct units</li>
+  <li>Understand what pre-committed capacity does to a vendor's future pricing behaviour</li>
+</ul></div>
+
+<p>Here is the part where a real filing is available &mdash; just not the one everyone is waiting for.
+<strong>Coursera's Q2 2026 Form 10-Q was filed on 5 August 2026 and you can read every word of it.</strong>
+Note 10, Commitments and Contingencies:</p>
+
+<blockquote>"Our purchase obligations primarily relate to <strong>third-party cloud infrastructure
+agreements</strong>, subscription arrangements, service agreements used to facilitate our operations,
+and paid advertising and sponsorship vendors. As of June 30, 2026, we had approximately
+<strong>$27.5 million</strong> in future minimum payments due under our non-cancelable purchase
+obligations with a remaining term in excess of one year. These are expected to be paid through 2030."
+<span class="attrib"><a href="https://www.sec.gov/Archives/edgar/data/1651562/000165156226000063/cour-20260630.htm" target="_blank" rel="noopener">Coursera, Inc. Form 10-Q, Q2 2026, Note 10</a> &mdash; <span class="tier t-filed">Filed</span></span></blockquote>
+
+<p>Now put that beside OpenAI's reported figure. As of March 2026, roughly <strong>$665 billion</strong>
+in purchase commitments <span class="tier t-press">Reported</span>, with longer-horizon estimates
+running to <strong>$1.4 trillion</strong> through 2033.</p>
+
+<div class="tw"><table>
+<thead><tr><th></th><th>Coursera</th><th>OpenAI (reported)</th><th>Ratio</th></tr></thead>
+<tbody>
+<tr><td>Non-cancelable purchase obligations</td><td>$27.5M <span class="tier t-filed">Filed</span></td><td>~$665B &ndash; $1.4T <span class="tier t-press">Reported</span></td><td><strong>24,000&times; &ndash; 51,000&times;</strong></td></tr>
+<tr><td>Annual revenue</td><td>~$1.23B (FY26 outlook midpoint) <span class="tier t-filed">Filed</span></td><td>~$25B annualised <span class="tier t-press">Reported</span></td><td>~20&times;</td></tr>
+<tr><td><strong>Obligations &divide; annual revenue</strong></td><td><strong>0.022&times;</strong> (2.2%)</td><td><strong>26.6&times; &ndash; 56&times;</strong></td><td><strong>~1,200&times; &ndash; 2,500&times;</strong></td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">The single sharpest number in this course</span>
+<p>Coursera has pre-committed <strong>2.2% of one year's revenue</strong> to non-cancelable purchases,
+spread through 2030. OpenAI has reportedly pre-committed somewhere between <strong>27 and 56 years of
+current revenue.</strong> Adjusted for company size, its commitment intensity is on the order of
+<strong>a thousand times greater.</strong></p>
+<p>Do not read that as "OpenAI is reckless." Read it as: <strong>these are not the same kind of
+company, and the constraint they operate under is not the one you operate under.</strong> Coursera can
+walk away from most of its infrastructure spend in a year. OpenAI cannot walk away from any of it.</p>
+</div>
+
+<h3>What pre-committed capacity does to pricing</h3>
+
+<p><span class="tier t-inf">Inference</span> This is the load-bearing strategic consequence and it is
+worth being precise about, because the intuition most people have is backwards.</p>
+
+<p>The common assumption is that huge commitments mean prices must rise to cover them. The opposite
+is closer to true in the short run. Contracted capacity is a <strong>sunk, take-or-pay
+obligation</strong>: the datacentre is paid for whether or not tokens flow through it. Marginal
+revenue on idle capacity is nearly pure contribution. So a lab with vast pre-committed capacity has a
+powerful incentive to <em>fill</em> it &mdash; which means aggressive pricing, generous free tiers,
+and volume deals.</p>
+
+<p>That is a real subsidy, and it is why current API pricing is probably below long-run sustainable
+levels for the frontier tier. But it is a subsidy with a specific shape and a specific expiry:</p>
+
+<ul>
+  <li><strong>It persists while capacity exceeds demand.</strong> Cheap tokens are how you fill a
+  contracted datacentre.</li>
+  <li><strong>It inverts when demand exceeds capacity.</strong> At that point the scarce resource is
+  serving capacity, and rationing happens by price and by tier &mdash; which shows up first as rate
+  limits and priority tiers, not as a headline price rise.</li>
+  <li><strong>Public markets change the clock.</strong> A private company can run negative gross
+  margin on a strategic tier indefinitely. A public one explains it quarterly.</li>
+</ul>
+
+<div class="callout c-warn"><span class="lbl">The planning consequence</span>
+<p>Do not plan on today's price per token persisting, and do not plan on it falling either. Plan on
+<strong>the terms changing shape</strong>: rate limits, priority tiers, committed-use discounts,
+and enterprise agreements that trade price for volume commitment. The price of a token is a less
+useful planning variable than <strong>the price of guaranteed throughput at a given latency</strong>,
+and that second thing is what gets negotiated once the vendor is public.</p>
+</div>
+
+<h3>Where to look when the filings arrive</h3>
+
+<p>When either company does publicly file, four sections will tell you more than the rest of the
+document combined. In reading order:</p>
+
+<ol>
+  <li><strong>Contractual Obligations table</strong> (in MD&amp;A) and the Commitments note. This is
+  where the take-or-pay compute deals become a legally characterised liability rather than a press
+  release. Check whether they sit on the balance sheet or only in the note &mdash; that distinction
+  is the entire question of how binding they are.</li>
+  <li><strong>Cost of revenue detail.</strong> Whether inference compute is broken out separately, or
+  buried in a single line, is itself a disclosure choice worth noting.</li>
+  <li><strong>Revenue concentration</strong> in the risk factors and the segment note. "8 of the
+  Fortune 10" becomes a percentage.</li>
+  <li><strong>Related-party transactions.</strong> Microsoft is simultaneously OpenAI's largest
+  shareholder, a major compute supplier, and a distribution channel. Amazon and Google occupy
+  overlapping roles for Anthropic. Circular arrangements between an investor, a supplier and a
+  customer are exactly what this section exists to expose.</li>
+</ol>
+
+<div class="takeaways"><div class="t">Module 5 takeaways</div>
+<ul>
+  <li>Coursera: $27.5M non-cancelable obligations, 2.2% of annual revenue &mdash; a readable, filed fact.</li>
+  <li>OpenAI: reportedly 27&ndash;56 years of current revenue pre-committed. ~1,000&times; the intensity.</li>
+  <li>Vast contracted capacity subsidises prices <em>downward</em> while capacity exceeds demand.</li>
+  <li>Watch the shape of terms, not the headline price. Throughput guarantees are the real currency.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Governance after the bell</h2>
+  <div class="mt">Two unusual structures meeting the one constituency that has never tested them</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Describe both governance structures accurately, including what is and is not verified</li>
+  <li>Identify the specific pressure points where mission-control provisions meet public shareholders</li>
+  <li>Know what to look for in the governance section when a filing appears</li>
+</ul></div>
+
+<h3>OpenAI: the Foundation and the PBC</h3>
+
+<p><span class="tier t-co">Company</span> <span class="tier t-press">Reported</span> OpenAI completed
+its recapitalisation in October 2025. The nonprofit, renamed the <strong>OpenAI Foundation</strong>,
+holds roughly a 26% equity stake in <strong>OpenAI Group PBC</strong>, the Delaware public benefit
+corporation that is the operating company. Microsoft holds roughly 27%; employees, former employees
+and investors hold roughly 47%.</p>
+
+<p>The critical provision is not the equity split. It is that the Foundation's board holds
+<strong>special voting and governance rights that let it appoint every member of the OpenAI Group
+board.</strong> Microsoft, despite the largest single stake, reportedly holds no board seat.</p>
+
+<div class="callout c-dissent"><span class="lbl">The question the filing will have to answer</span>
+<p>A public offering introduces shareholders who bought a security, expect a return, and have
+litigation as a remedy. Delaware PBC law requires directors to <em>balance</em> shareholder value
+against the stated public benefit and the interests of those materially affected &mdash; it does not
+subordinate one to the other, and the balancing is largely protected by the business judgment rule.</p>
+<p>So the honest answer is that PBC status gives directors <strong>latitude to deprioritise profit,
+not an obligation to.</strong> Whether that latitude survives a determined activist, a proxy fight,
+or a capability decision that visibly costs money is untested at this scale. <span class="tier t-none">Unknown</span>
+Anyone who tells you confidently how this resolves is speculating.</p>
+</div>
+
+<h3>Anthropic: the Long-Term Benefit Trust</h3>
+
+<p><span class="tier t-co">Company</span> Anthropic is a Delaware PBC governed in part by the
+<strong>Long-Term Benefit Trust</strong> &mdash; an independent body of financially disinterested
+trustees holding a special class of stock with the right to elect a growing portion of the board,
+ultimately a majority.</p>
+
+<p><span class="tier t-press">Reported</span> The mechanism is a <strong>Class T</strong> share class
+with negligible economic value and substantial governance power, and the anticipated IPO structure
+would give public buyers ordinary common stock while the Trust retains its Class T rights. I want to
+be careful here: the existence and general design of the LTBT is well documented by Anthropic itself,
+but <strong>the precise share-class mechanics as they would apply post-IPO are reported, not
+filed.</strong></p>
+
+<div class="split">
+  <div class="l"><div class="h">Why this is genuinely novel</div>
+  <p>Dual-class structures are common &mdash; founders keep super-voting stock. That is concentrated
+  <em>ownership</em> power.</p>
+  <p>The LTBT is different in kind: an <strong>independent body that is not a shareholder in any
+  economic sense</strong> holds escalating authority over board composition. Its trustees do not
+  benefit financially from the company's performance.</p>
+  <p>No company has gone public with that arrangement at scale.</p></div>
+  <div class="r"><div class="h">Why an index investor may object</div>
+  <p>Governance screens at large institutions penalise structures where economic and voting rights
+  diverge. Some indices exclude or underweight multi-class issuers outright.</p>
+  <p>A body accountable to a mission rather than to shareholders is, from a pure stewardship
+  standpoint, an unaccountable one &mdash; that is the objection in its strongest form, and it is not
+  a bad-faith objection.</p>
+  <p>The counter is that this is disclosed in advance and nobody is required to buy.</p></div>
+</div>
+
+<div class="callout c-warn"><span class="lbl">What to actually watch for</span>
+<p>In any governance section that appears, three specific things carry more information than the
+narrative around them:</p>
+<ul>
+  <li><strong>Sunset provisions.</strong> Do the special rights expire on a date, on a shareholding
+  threshold, or on a founder's departure? A structure with a sunset is a temporary arrangement being
+  described as a permanent one.</li>
+  <li><strong>Amendment mechanics.</strong> Who can change the governance provisions, and by what
+  vote? A mission-control provision amendable by a simple majority of common shareholders is
+  decorative.</li>
+  <li><strong>What the trustees or Foundation directors can actually compel.</strong> Appointing
+  directors is weaker than it sounds if the appointed board still owes ordinary fiduciary duties and
+  faces ordinary liability.</li>
+</ul>
+</div>
+
+<div class="takeaways"><div class="t">Module 6 takeaways</div>
+<ul>
+  <li>OpenAI Foundation appoints the entire OpenAI Group PBC board; Microsoft holds ~27% and no seat.</li>
+  <li>Anthropic's LTBT is structurally novel: non-economic trustees with escalating board authority.</li>
+  <li>Delaware PBC status permits deprioritising profit; it does not require it. That is the whole ambiguity.</li>
+  <li>Read sunsets and amendment mechanics before you read the mission language.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>What neither is saying</h2>
+  <div class="mt">Omissions are disclosures too</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a list of specific absences to check against any filing that appears</li>
+  <li>Distinguish "not yet disclosed because confidential" from "conspicuously unaddressed"</li>
+</ul></div>
+
+<p>With no public filings, we cannot analyse risk-factor language. What we <em>can</em> do is inventory
+what neither company has addressed voluntarily, in a period when both were actively communicating
+with the market. That inventory is a genuine analytical object.</p>
+
+<h4>1. Neither has published a gross margin</h4>
+<p>Anthropic published a valuation, a raise size, an investor list and a run-rate. It did not publish
+a margin, a cost figure, or a burn rate. OpenAI has published none of these directly. <span class="tier t-inf">Inference</span>
+For a company whose reported gross margin is in the 33&ndash;39% range against software comparables
+at 70&ndash;80%, this is the number with the most explaining attached, and both are letting others
+estimate it rather than setting the anchor themselves.</p>
+
+<h4>2. Neither has quantified copyright exposure</h4>
+<p><span class="tier t-none">Unknown</span> Both face active litigation over training data. Neither has
+published a reserve, a range of reasonably possible loss, or a contingency estimate. When a filing
+appears, the legal-proceedings note and the loss-contingency language will be the most carefully
+lawyered text in the document &mdash; and the phrase to search for is whether they can "reasonably
+estimate" the loss. A statement that they cannot is itself informative.</p>
+
+<h4>3. Neither has addressed key-person dependence in public</h4>
+<p>Both companies are unusually identified with a small number of individuals. Standard S-1s carry a
+key-person risk factor. Neither company's public communications acknowledge it. This is entirely
+normal pre-filing behaviour &mdash; nobody volunteers a risk factor &mdash; but worth flagging as an
+absence rather than an absence of risk.</p>
+
+<h4>4. Anthropic's compute disclosure is notably specific; its cost disclosure is not</h4>
+<p>The Series H release names gigawatts, partners, and chip suppliers with real precision: up to 5&nbsp;GW
+from Amazon, 5&nbsp;GW of TPU capacity with Google and Broadcom, GPU access via SpaceX, and memory
+relationships with Micron, Samsung and SK hynix. <span class="tier t-inf">Inference</span> That is a
+company demonstrating <em>supply security</em> to an audience worried about compute scarcity &mdash;
+and simultaneously not saying what any of it costs or over what term. The specificity of the first
+half makes the silence in the second half more legible, not less.</p>
+
+<h4>5. Neither has said anything about pricing trajectory</h4>
+<p>This is the omission that matters most to anyone building on these APIs. No published commitment on
+price stability, deprecation windows, or notice periods for enterprise terms. <span class="tier t-inf">Inference</span>
+That silence is rational &mdash; committing to price floors or ceilings before an IPO would be
+strategically foolish &mdash; but it means every downstream business is planning on an input whose
+supplier has made no forward commitment whatsoever.</p>
+
+<div class="callout c-dissent"><span class="lbl">The counter-argument to this whole module</span>
+<p>An honest objection: <strong>companies in a confidential SEC review process are constrained in what
+they can say.</strong> Rule 135 is narrow, gun-jumping rules are real, and reading meaning into
+silence during a quiet period is close to unfalsifiable. Much of what I have listed above is better
+explained by "their lawyers told them not to" than by anything strategic.</p>
+<p>I think that is right for items 2 and 3 and weaker for items 1, 4 and 5 &mdash; because Anthropic
+demonstrably <em>did</em> publish selectively during this window, and selection is a choice even when
+the constraint is real. But you should hold this module more loosely than the others.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 7 takeaways</div>
+<ul>
+  <li>Neither company has anchored its own gross margin. Both are letting others estimate it.</li>
+  <li>Copyright loss contingencies are unquantified in public. Watch for "cannot reasonably estimate."</li>
+  <li>Anthropic disclosed compute supply in detail and compute cost not at all.</li>
+  <li>No forward commitment on pricing exists from either. Every downstream plan rests on that.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>What you do about it</h2>
+  <div class="mt">Five things to change, and the tripwires that tell you when</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have five concrete actions, each with an owner-sized scope</li>
+  <li>Have a small watchlist of observable signals with defined thresholds</li>
+</ul></div>
+
+<h3>What this means for education specifically</h3>
+
+<p>Education has a structural problem that most AI-consuming sectors do not: <strong>the willingness
+to pay per interaction is low and the number of interactions per outcome is high.</strong> A learner
+working through a course may generate hundreds of AI interactions across weeks against a subscription
+price that is fixed. That is the worst possible shape for exposure to a rising per-interaction cost,
+and it is precisely the shape that Module 4's arithmetic threatens.</p>
+
+<p>Two consequences follow, and they point in different directions:</p>
+
+<div class="split">
+  <div class="l"><div class="h">The pressure</div>
+  <p>Consumer education has the thinnest cushion. Coursera's Consumer segment gross margin is
+  <strong>65%</strong>; Enterprise is <strong>79%</strong> <span class="tier t-filed">Filed</span>.
+  A rising AI COGS line lands hardest on the consumer side, where price is fixed and usage is
+  unbounded.</p>
+  <p>Anything priced per-seat with unlimited AI usage is a short position on inference cost.</p></div>
+  <div class="r"><div class="h">The opportunity</div>
+  <p>Education is one of the few sectors where <em>outcome</em> is measurable, which means AI spend can
+  in principle be tied to a demonstrable result &mdash; completion, credential, placement.</p>
+  <p>That makes it possible to price on value rather than on usage, which is the only pricing model
+  that is robust to input-cost volatility.</p></div>
+</div>
+
+<h3>Five things to do differently</h3>
+
+<ol>
+  <li><strong>Instrument tokens per completed task, monthly, and put it in the operating review.</strong>
+  Not tokens, not spend &mdash; tokens per <em>completed task</em>, alongside task success rate. This
+  is the single measurement that distinguishes "we shipped more capability" from "we lost control of
+  the loop," and almost nobody has it. Everything else in this list depends on it existing.</li>
+
+  <li><strong>Re-underwrite any product where AI usage is unbounded and price is fixed.</strong>
+  Identify every SKU where a single user can drive arbitrary inference against a flat fee. Model each
+  at the Module 4 breakeven &mdash; flat unit cost, not falling. If a SKU only works on falling unit
+  cost, it does not work.</li>
+
+  <li><strong>Build the cost levers now, while they are optional.</strong> Prompt caching, model
+  routing to smaller SKUs, distillation of high-volume paths, batch processing for anything not
+  interactive. These are the difference between your effective <code>d</code> and the vendor's
+  headline <code>d</code>. They take two to three quarters to build and you want them before you need
+  them, not after.</li>
+
+  <li><strong>Negotiate for throughput terms, not unit price.</strong> When these vendors are public,
+  the negotiable surface shifts from price per token toward committed-use discounts, priority tiers,
+  and rate-limit guarantees. Ask now for notice periods on deprecation and pricing changes, and get
+  them in writing. A 90-day deprecation notice is worth more than a 10% discount.</li>
+
+  <li><strong>Keep at least two frontier vendors genuinely wired in.</strong> Not as a slide &mdash; as
+  a routing layer that is exercised in production on real traffic. <span class="tier t-co">Company</span>
+  Claude is now available on AWS, Google Cloud and Azure, which makes multi-vendor materially easier
+  than it was. The value of this is not price arbitrage; it is that it converts a supplier
+  relationship into a market.</li>
+</ol>
+
+<h3>The watchlist</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Signal</th><th>Where to see it</th><th>What it would mean</th></tr></thead>
+<tbody>
+<tr><td><strong>A public S-1 appears on EDGAR</strong></td><td>EDGAR full-text search; a roadshow must follow by at least 15 days</td><td>The first verifiable numbers. Read Contractual Obligations and revenue concentration first.</td></tr>
+<tr><td><strong>Rate limits tighten or priority tiers appear</strong></td><td>Your own API dashboards and vendor changelogs</td><td>Demand has caught capacity. This precedes price changes and is the earlier signal.</td></tr>
+<tr><td><strong>Deprecation windows shorten</strong></td><td>Model lifecycle pages</td><td>Cost discipline arriving ahead of public reporting. Directly raises your migration cost.</td></tr>
+<tr><td><strong>Free tiers narrow</strong></td><td>Consumer product pages</td><td>The subsidy is being withdrawn from the least-monetised surface first.</td></tr>
+<tr><td><strong>Enterprise agreements start requiring volume commitments</strong></td><td>Your own renewals</td><td>The vendor is converting to a take-or-pay model, pushing its commitment risk to you.</td></tr>
+<tr><td><strong>Tokens per completed task rises &gt;2&times; year over year</strong></td><td>Your own instrumentation</td><td>You are at or past the Module 4 breakeven. Unit costs are rising regardless of vendor pricing.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">On the Instructure decision specifically</span>
+<p>If you are weighing a CPTO role at an LMS company against a platform role, this analysis has one
+direct implication worth stating plainly. <strong>An LMS sits closer to the institution and further
+from the per-interaction cost than a consumer learning platform does.</strong> Institutional contracts
+are annual, negotiated, and priced per seat with usage patterns that are far more predictable than
+consumer engagement. That is a materially better position from which to absorb input-cost volatility.</p>
+<p>The corresponding weakness is that institutional buyers move slowly, which means less ability to
+reprice quickly if inference costs move against you mid-contract. <span class="tier t-inf">Inference</span>
+The question worth asking in any such process is not "what is your AI strategy" but <strong>"what is
+your AI cost per active user, and what happens to your contribution margin if it triples?"</strong>
+The quality of the answer &mdash; whether they have the number at all &mdash; tells you most of what
+you need to know about the engineering organisation.</p>
+<p>This is analysis, not advice. I am not in a position to weigh a career decision for you and the
+inputs that matter most here are not financial.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 8 takeaways</div>
+<ul>
+  <li>Education's shape &mdash; low willingness to pay, high interactions per outcome &mdash; is maximally exposed to unit-cost rises.</li>
+  <li>Instrument tokens per completed task before anything else. It gates every other decision.</li>
+  <li>Any fixed-price SKU with unbounded AI usage needs re-underwriting at flat unit cost.</li>
+  <li>Negotiate throughput, notice periods and deprecation windows &mdash; not headline price.</li>
+  <li>The earliest observable signal of the subsidy ending is rate limits, not price.</li>
+</ul></div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Built 18 August 2026. All EDGAR checks performed the same day.</p>
+  <p style="margin-top:0.6rem">
+    <a href="https://www.sec.gov/cgi-bin/browse-edgar?company=anthropic&amp;action=getcompany" target="_blank" rel="noopener">Check EDGAR yourself</a>
+    <a href="https://openai.com/index/openai-submits-confidential-s-1/" target="_blank" rel="noopener">OpenAI notice</a>
+    <a href="https://www.anthropic.com/news/confidential-draft-s1-sec" target="_blank" rel="noopener">Anthropic notice</a>
+    <a href="https://www.sec.gov/Archives/edgar/data/1651562/000165156226000063/cour-20260630.htm" target="_blank" rel="noopener">Coursera 10-Q</a>
+  </p>
+  <p style="margin-top:0.8rem;font-size:0.78rem">If a public S-1 has appeared since this was written,
+  this course is out of date and the filing supersedes every reported figure in it.</p>
+</div>
+
+</div>
+
+<script>
+/* ═══════════════════ MODULE 2 — PROVENANCE SORTING ═══════════════════ */
+(function(){
+'use strict';
+var TIERS = [
+  {id:'filed', lb:'Filed',    cls:'t-filed'},
+  {id:'co',    lb:'Company',  cls:'t-co'},
+  {id:'press', lb:'Reported', cls:'t-press'},
+  {id:'inf',   lb:'Inference',cls:'t-inf'},
+  {id:'none',  lb:'Unknown',  cls:'t-none'}
+];
+
+var CLAIMS = [
+  { t:'"Coursera had approximately $27.5 million in future minimum payments due under non-cancelable purchase obligations as of 30 June 2026."',
+    a:'filed',
+    why:'<b>Filed.</b> This is Note 10 of Coursera\'s Form 10-Q, filed with the SEC on 5 August 2026. An officer certified it. You can open the document and read the sentence. This is the only claim on this list you could take to a board meeting without qualification.' },
+
+  { t:'"Anthropic confidentially submitted a draft registration statement on Form S-1 to the SEC on 1 June 2026."',
+    a:'co', arguable:true,
+    why:'<b>Company &mdash; and this one is genuinely arguable.</b> Anthropic announced it in its own name under Rule 135, so it is a company statement of fact and near-certainly true. But it is <em>not</em> Filed: a confidential submission does not appear on EDGAR, so there is no public document to verify it against. If you marked it Filed, you made exactly the error this whole course is about &mdash; conflating "submitted to the SEC" with "publicly filed."' },
+
+  { t:'"Anthropic\'s run-rate revenue crossed $47 billion in May 2026."',
+    a:'co',
+    why:'<b>Company.</b> Stated by Anthropic in the Series H announcement. No reason to doubt it &mdash; and note it is a <em>run-rate</em>, i.e. one month annualised, not GAAP revenue. True, published, and not directly comparable to any public company\'s reported revenue.' },
+
+  { t:'"OpenAI\'s gross margin was approximately 33% in 2025, with inference costs of $8.4 billion."',
+    a:'press',
+    why:'<b>Reported.</b> Widely circulated, plausible, internally consistent, and traceable to no document any member of the public has seen. Use it to build a model; never put it in a plan as a fact. When OpenAI files, expect this number to be revised rather than confirmed.' },
+
+  { t:'"OpenAI will not become cash-flow positive until 2030."',
+    a:'press', arguable:true,
+    why:'<b>Reported &mdash; though Inference is defensible.</b> This traces to reporting on internal projections, which makes it Reported. But it is a <em>forecast</em>, not a fact about the world, and forecasts inherit the tier of their weakest input. If you marked it Inference on the grounds that a projection about 2030 cannot be anyone\'s observed fact, that is a better instinct than the label suggests.' },
+
+  { t:'"Anthropic\'s gross margin is higher than OpenAI\'s."',
+    a:'none',
+    why:'<b>Unknown.</b> Anthropic has never published a gross margin, and no credible leak has established one. This claim is frequently asserted by inferring from Anthropic\'s enterprise mix &mdash; which is reasoning, not evidence. It may well be true. Nobody outside the company knows, and confident assertion here tells you about the speaker rather than the company.' }
+];
+
+var picks = new Array(CLAIMS.length).fill(null);
+var done = false;
+function $(i){ return document.getElementById(i); }
+var box = $('sortex');
+if (box) {
+  render();
+  $('sx-check').addEventListener('click', check);
+  $('sx-reset').addEventListener('click', function(){
+    picks = new Array(CLAIMS.length).fill(null); done = false;
+    $('sx-result').className = 'hid'; $('sx-result').innerHTML = '';
+    render(); gate();
+  });
+}
+
+function render(){
+  box.innerHTML = CLAIMS.map(function(c,i){
+    return '<div class="claimrow"><div class="ct">' + c.t + '</div><div class="chips">'
+      + TIERS.map(function(t){
+          var cls = 'chip';
+          if (picks[i] === t.id) cls += ' sel';
+          if (done) {
+            if (t.id === c.a) cls = 'chip right';
+            else if (picks[i] === t.id) cls = 'chip wrong';
+            else cls = 'chip';
+          }
+          return '<button class="' + cls + '" data-i="' + i + '" data-t="' + t.id + '"'
+               + (done ? ' disabled' : '') + '>' + t.lb + '</button>';
+        }).join('')
+      + '</div>' + (done ? '<div class="cans">' + c.why + '</div>' : '') + '</div>';
+  }).join('');
+  if (!done) {
+    Array.prototype.forEach.call(box.querySelectorAll('.chip'), function(b){
+      b.addEventListener('click', function(){
+        picks[+b.dataset.i] = b.dataset.t; render(); gate();
+      });
+    });
+  }
+}
+
+function gate(){
+  var n = picks.filter(function(p){ return p; }).length;
+  var ready = n === CLAIMS.length;
+  $('sx-check').disabled = !ready || done;
+  $('sx-gate').textContent = done ? ''
+    : (ready ? 'Ready.' : 'Assigned ' + n + ' of ' + CLAIMS.length + '.');
+}
+
+function check(){
+  done = true; render(); gate();
+  var right = 0, arguable = 0;
+  CLAIMS.forEach(function(c,i){
+    if (picks[i] === c.a) right++;
+    else if (c.arguable) arguable++;
+  });
+  var r = $('sx-result');
+  r.className = '';
+  r.innerHTML = '<div class="verdict ' + (right >= 4 ? 'v-hit' : 'v-miss') + '">'
+    + '<span class="vl">' + right + ' of ' + CLAIMS.length + ' matched my labelling</span>'
+    + '<p>The score matters less than which ones you missed. <b>The two that carry the lesson are the'
+    + ' Anthropic submission claim and the gross-margin comparison.</b> If you marked the confidential'
+    + ' submission as <i>Filed</i>, you reproduced the error that most current commentary is making.'
+    + ' If you gave the gross-margin comparison anything other than <i>Unknown</i>, you accepted an'
+    + ' inference as an observation.</p>'
+    + (arguable ? '<p>You picked a defensible alternative on ' + arguable + ' of the two arguable items'
+        + ' &mdash; the reveals explain why they are arguable.</p>' : '')
+    + '<p><b>The habit worth keeping:</b> when a number matters enough to plan on, ask which of these'
+    + ' five tiers it sits in <i>before</i> you ask whether it sounds right. Plausibility is not'
+    + ' evidence, and the most confident-sounding numbers in this sector are mostly tier three.</p>'
+    + '</div>';
+}
+})();
+
+
+/* ═══════════════════ MODULE 4 — THE INFERENCE BUDGET ═══════════════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+
+/* ---- Baseline. All deterministic, no live data. ----
+   R0  : Coursera FY2026 revenue outlook midpoint ($1.220B-$1.245B) — FILED
+   GM0 : Q2 2026 GAAP gross margin 173.4/298.6 = 58.1%              — FILED
+   P0  : illustrative blended price, $/million tokens
+   T0  : illustrative tokens per learner interaction
+   N0  : illustrative AI-touched interactions per year              */
+var R0 = 1.2325e9, GM0 = 0.581, P0 = 3.00, T0 = 8000, N0 = 6.0e8, YEARS = 3;
+var COST0 = P0 * T0 / 1e6;            // $ per interaction today
+var COGS0 = COST0 * N0;               // $ AI COGS today
+var PCT0  = COGS0 / R0 * 100;         // % of revenue today
+
+var st = { guess:100, why:'', locked:false, ran:false, d:0.50, g:0.00, a:0.40, r:0.12 };
+
+/* ---------- pure model ---------- */
+function project(d, g, a, r){
+  var rows = [];
+  for (var t = 0; t <= YEARS; t++){
+    var unit = Math.pow(1 - d, t) * Math.pow(1 + g, t);   // unit-cost multiplier
+    var cost = COST0 * unit;
+    var cogs = cost * N0 * Math.pow(1 + a, t);
+    var rev  = R0 * Math.pow(1 + r, t);
+    rows.push({ y: 2026 + t, unit: unit, idx: unit * 100, cost: cost,
+                cogs: cogs, rev: rev, pct: cogs / rev * 100 });
+  }
+  return rows;
+}
+function breakeven(d){ return d >= 1 ? Infinity : (1 / (1 - d) - 1); }
+
+/* ---------- formatting ---------- */
+function money(v){
+  if (v >= 1e9) return '$' + (v/1e9).toFixed(2) + 'B';
+  if (v >= 1e6) return '$' + (v/1e6).toFixed(1) + 'M';
+  if (v >= 1e3) return '$' + (v/1e3).toFixed(0) + 'K';
+  return '$' + v.toFixed(0);
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+/* ---------- STAGE 1 ---------- */
+function guessDesc(v){
+  if (v === 0)   return 'Free. Inference cost effectively goes to zero.';
+  if (v < 25)    return 'Collapse — roughly ' + (100/v).toFixed(0) + '× cheaper than today.';
+  if (v < 60)    return 'Large decline — a little over ' + (100/v).toFixed(1) + '× cheaper.';
+  if (v < 90)    return 'Meaningful decline, but not a collapse.';
+  if (v <= 110)  return 'Broadly flat in real terms.';
+  if (v <= 160)  return 'Rising — you expect usage to outrun price cuts.';
+  return 'Sharply rising — ' + (v/100).toFixed(1) + '× today\'s cost per interaction.';
+}
+function gateLock(){
+  var ok = st.why.trim().length >= 8;
+  $('b-lock').disabled = !ok || st.locked;
+  $('g-lock').textContent = st.locked ? ''
+    : (ok ? 'Ready — this is recorded before you see anything.'
+          : 'Write one line of reasoning to unlock.');
+}
+$('r-guess').addEventListener('input', function(){
+  st.guess = +this.value;
+  $('v-guess').textContent = st.guess;
+  $('d-guess').textContent = guessDesc(st.guess);
+  gateLock();
+});
+$('w-guess').addEventListener('input', function(){ st.why = this.value; gateLock(); });
+
+$('b-lock').addEventListener('click', function(){
+  st.locked = true;
+  $('b-lock').disabled = true;
+  $('r-guess').disabled = true;
+  $('w-guess').disabled = true;
+  $('s1-st').textContent = 'Locked: ' + st.guess;
+  $('s1-st').className = 'st ok';
+  $('s2').className = 'stage';
+  $('s2-st').textContent = 'Your turn';
+  $('lab-step').textContent = 'Stage 2 of 3';
+  gateLock();
+  try { $('s2').scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
+});
+
+/* ---------- STAGE 2 ---------- */
+function bindPct(id, key, fmt){
+  $(id).addEventListener('input', function(){
+    st[key] = +this.value / 100;
+    $(fmt).textContent = this.value + '%';
+  });
+}
+bindPct('r-d','d','v-d');
+bindPct('r-g','g','v-g');
+bindPct('r-a','a','v-a');
+bindPct('r-r','r','v-r');
+
+$('b-run').addEventListener('click', run);
+$('b-reset').addEventListener('click', function(){
+  st = { guess:100, why:'', locked:false, ran:false, d:0.50, g:0.00, a:0.40, r:0.12 };
+  $('r-guess').disabled = false; $('r-guess').value = 100;
+  $('w-guess').disabled = false; $('w-guess').value = '';
+  $('v-guess').textContent = '100'; $('d-guess').textContent = guessDesc(100);
+  $('r-d').value = 50; $('v-d').textContent = '50%';
+  $('r-g').value = 0;  $('v-g').textContent = '0%';
+  $('r-a').value = 40; $('v-a').textContent = '40%';
+  $('r-r').value = 12; $('v-r').textContent = '12%';
+  $('s1-st').textContent = 'Required'; $('s1-st').className = 'st';
+  $('s2').className = 'stage locked'; $('s2-st').textContent = 'Locked';
+  $('s3').className = 'stage locked'; $('s3-st').textContent = 'Locked';
+  $('out').innerHTML = '';
+  $('m4after').className = 'hid';
+  $('lab-step').textContent = 'Stage 1 of 3';
+  gateLock();
+});
+
+/* ---------- STAGE 3 ---------- */
+function run(){
+  st.ran = true;
+  var rows = project(st.d, st.g, st.a, st.r);
+  var end = rows[YEARS];
+  var idx = end.idx;
+  var be  = breakeven(st.d);
+  var marginPts = end.pct - PCT0;
+
+  /* chart scale */
+  var maxIdx = Math.max(100, Math.max.apply(null, rows.map(function(x){ return x.idx; })));
+  var bars = rows.map(function(x){
+    var h = Math.max(2, x.idx / maxIdx * 100);
+    var col = x.idx > 105 ? 'var(--red)' : (x.idx < 95 ? 'var(--green)' : 'var(--yellow)');
+    return '<div class="bcol"><div class="bar" style="height:' + h.toFixed(1) + '%;background:'
+      + col + '"><span class="bv">' + Math.round(x.idx) + '</span></div>'
+      + '<span class="bx">' + x.y + '</span></div>';
+  }).join('');
+  var baseTop = (100 / maxIdx * 100);
+
+  var h = '';
+
+  h += '<div class="chart"><div class="ch">Cost per learner interaction — index, 2026 = 100</div>'
+     + '<div class="bars">' + bars
+     + '<div class="base" style="bottom:calc(1.6rem + ' + (baseTop / 100 * 124.4).toFixed(1) + 'px)"></div>'
+     + '<span class="baselbl" style="bottom:calc(1.7rem + ' + (baseTop / 100 * 124.4).toFixed(1) + 'px)">today = 100</span>'
+     + '</div></div>';
+
+  h += '<div class="mgrid">'
+     + cell(Math.round(idx), 'index, cost per interaction 2029', idx > 105 ? 'bad' : (idx < 95 ? 'good' : 'warn'))
+     + cell(money(end.cogs), 'AI COGS in 2029', 'warn')
+     + cell(end.pct.toFixed(2) + '%', 'of revenue in 2029', end.pct > PCT0 ? 'bad' : 'good')
+     + cell((marginPts >= 0 ? '−' : '+') + Math.abs(marginPts).toFixed(2) + ' pts',
+            'gross margin impact vs today', marginPts > 0 ? 'bad' : 'good')
+     + '</div>';
+
+  /* the three-way comparison */
+  h += '<div class="cmp"><div class="rh">Your forecast vs your own assumptions</div>'
+     + '<div class="row"><span class="lb">What you predicted before you saw anything</span>'
+     + '<span class="sc">' + st.guess + '</span></div>'
+     + '<div class="row"><span class="lb">What the assumptions you just set actually imply</span>'
+     + '<span class="sc">' + Math.round(idx) + '</span></div>'
+     + '<div class="row"><span class="lb">Gap</span><span class="sc" style="color:'
+     + (Math.abs(idx - st.guess) > 25 ? 'var(--yellow)' : 'var(--green)') + '">'
+     + (idx - st.guess >= 0 ? '+' : '') + Math.round(idx - st.guess) + '</span></div>'
+     + '</div>';
+
+  /* verdict */
+  var gap = Math.abs(idx - st.guess);
+  var vcls = gap <= 25 ? 'v-hit' : 'v-miss';
+  var vl   = gap <= 25 ? 'Your intuition and your model agree' : 'Your intuition and your model disagree';
+  h += '<div class="verdict ' + vcls + '"><span class="vl">' + vl + '</span>';
+
+  if (gap > 25) {
+    h += '<p><b>This is the useful outcome, not the failure case.</b> You predicted ' + st.guess
+       + ' and the assumptions you chose produce ' + Math.round(idx) + '. One of the two is wrong, and'
+       + ' the point of the exercise is that you now have to say which — because in a planning meeting'
+       + ' you will be asked to defend the model while your gut quietly disagrees with it.</p>';
+  } else {
+    h += '<p>Your stated assumptions and your prior are consistent, which means the model is doing'
+       + ' what you expected. That is worth something — but check the sensitivity below before you'
+       + ' treat it as confirmation.</p>';
+  }
+
+  h += '<p>You wrote: <i>&ldquo;' + esc(st.why.trim()) + '&rdquo;</i></p>';
+
+  /* the breakeven teaching moment */
+  h += '<p><b>The identity underneath your result:</b> at a ' + Math.round(st.d*100)
+     + '% annual price decline, unit cost is flat only if tokens per task grow '
+     + (be === Infinity ? 'without limit' : 'by <b>' + Math.round(be*100) + '% per year</b>')
+     + '. You set token growth to <b>' + Math.round(st.g*100) + '%</b>, which is '
+     + (st.g > be + 0.001 ? 'above that line — so your unit costs <b>rise</b>.'
+        : (st.g < be - 0.001 ? 'below that line — so your unit costs <b>fall</b>.'
+           : 'exactly on that line — so your unit costs are <b>flat</b>.'))
+     + '</p>';
+
+  if (st.g === 0) {
+    h += '<p><b>You left token growth at zero, which was the default and is the trap.</b> That is an'
+       + ' assertion that a 2029 learner interaction consumes the same tokens as a 2026 one — no'
+       + ' additional reasoning, no agentic loops, no larger context. Almost no product roadmap in'
+       + ' this sector is compatible with that. Set it to 100% and run again: at a 50% price decline'
+       + ' that is exactly breakeven, and everything above it is margin compression.</p>';
+  }
+  h += '</div>';
+
+  /* empirical anchor */
+  h += '<div class="field"><span class="lbl">Anchoring against what is actually observable</span>'
+     + '<p><b>Price decline</b> <span class="tier t-press">Reported</span> Steep and real. GPT-4 launched'
+     + ' March 2023 at $30 per million input tokens; by 2026 budget-tier frontier-class models were'
+     + ' around $0.10. But that compares a 2023 frontier model to a 2026 <i>economy</i> model.'
+     + ' Frontier-to-frontier decline is considerably slower, and if your product needs the best'
+     + ' available model, that is the curve you are on.</p>'
+     + '<p><b>Token growth per task</b> <span class="tier t-inf">Inference</span> This is the variable'
+     + ' with no good public dataset, which is precisely why it gets left out of plans. Reasoning modes'
+     + ' emit long hidden chains; agentic loops make many model calls per single user action. A range of'
+     + ' 1.5×–3× per year is defensible for a product actively adopting these patterns. <b>You should'
+     + ' measure your own rather than trusting mine.</b></p>'
+     + '<p><b>The baseline</b> <span class="tier t-filed">Filed</span> Revenue base is Coursera\'s'
+     + ' FY2026 outlook midpoint of $1.2325B and the 58.1% gross margin is Q2 2026 actual'
+     + ' ($173.4M ÷ $298.6M), both from the Q2 2026 10-Q. The per-interaction volume and token figures'
+     + ' are illustrative — swap in your own and the arithmetic is unchanged.</p>'
+     + '</div>';
+
+  $('out').innerHTML = h;
+  $('s3').className = 'stage';
+  $('s3-st').textContent = 'Complete';
+  $('s3-st').className = 'st ok';
+  $('lab-step').textContent = 'Stage 3 of 3';
+  $('m4after').className = '';
+  try { $('s3').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+}
+
+function cell(v, l, cls){
+  return '<div class="mcell ' + (cls||'') + '"><b>' + v + '</b><span>' + l + '</span></div>';
+}
+
+/* init */
+$('d-guess').textContent = guessDesc(100);
+gateLock();
+
+/* expose for headless verification */
+window.__lab = {
+  state: function(){ return st; },
+  project: project,
+  breakeven: breakeven,
+  consts: { R0:R0, GM0:GM0, P0:P0, T0:T0, N0:N0, COST0:COST0, COGS0:COGS0, PCT0:PCT0 },
+  run: run,
+  set: function(o){ Object.keys(o).forEach(function(k){ st[k] = o[k]; }); }
+};
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>

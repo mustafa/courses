@@ -41,6 +41,29 @@ Weekly Updates — Anthropic & Claude
   Significant Anthropic news since this course was written. Newest first; entries older than 8 weeks are pruned.
 
 
+Week of August 23, 2026
+-----------------------
+
+
+
+        * Skills become a versioned, shared artifact — which is what a network needs (August 19–20): The Skills API went GA alongside computer use, the browser use tool, and the Files API. The network-relevant part is versioning: a skill is now uploaded once, versioned server-side, attached per request, and executed in Claude's sandbox. In a multi-agent network, shared procedure is the thing that drifts fastest — six specialists each carrying their own copy of "how we file a ticket" diverge within a month. A versioned skill turns that shared procedure into a single artifact with an identity you can pin per role, which means you can upgrade the researcher's methodology without silently changing the reviewer's. Pin versions explicitly per role rather than floating to latest, or you have reintroduced the drift you were solving.
+
+        * Files API as the network's handoff bus (August 19–20): Automatic expiration, 5x rate limits, and 1TB per organization. Most networks pass work between agents by stuffing artifacts into the conversation, which is expensive and lossy at every hop. Upload once, pass the file ID, and the handoff cost stops scaling with artifact size — particularly worth it in a pipeline topology where the same document traverses four agents. The expiration policy is the part to design around deliberately: a shared artifact that vanishes mid-run is a failure mode your dispatcher should detect rather than discover.
+
+        * Egress allowlists plus persistent memory — get the order right (August 19): Managed Agents can now restrict which domains web_search and web_fetch reach (allowed_domains/blocked_domains on the agent_toolset_20260401 configs array), and sessions in self-hosted sandboxes can attach memory stores that persist state between runs. In a network these two features interact sharply. An injection that lands in one agent's context is contained to that turn; an injection that lands in a shared memory store propagates to every agent that reads it, on every future run. Treat memory writes as the highest-privilege operation in your topology: allowlist egress on any agent that both fetches untrusted content and writes to shared state, or separate those two capabilities into different roles entirely.
+
+        * Multi-action turns change your latency arithmetic (August 19–20): Computer use now takes several actions per turn instead of one per model call — 20–40% fewer round trips reported in early access, with one workflow going from 32 to 13 minutes at ~30% lower cost per task and no prompt changes. Browser use adds the page's accessibility tree so agents act on named elements instead of pixel positions. For network design this shifts where the bottleneck sits: in a serial pipeline, latency multiplies across hops, so a 40% round-trip reduction on the one agent that drives a UI can dominate everything else you tune. Re-measure your critical path before optimizing the router.
+
+        * Capability gated by output contract, not by access (August 21): Claude Mythos 5 now backs Claude Security scans for Enterprise customers, returning findings with CWE category, confidence, severity, and a suggested patch for human approval — and partner tools will run Mythos in the background where the end user never prompts it directly. Anthropic also launched a $35M Defender Advantage Fund for open-source security. This is the cleanest available illustration of a pattern this course argues for at the role level: a specialist agent is safest when its interface is a narrow output contract rather than a general chat surface. If your network has a role holding unusual privilege, do not gate it with instructions about what not to do — gate it by making its only possible output the artifact you actually want.
+
+        * Cross-session messaging on Windows, and agents that know their own name: Claude Code 2.1.238–239 brought SendMessage/ListAgents cross-session messaging to Windows, matching macOS and Linux — persistent named-agent networks are no longer platform-limited. ListAgents now tells a session the name its peers use to address it (previously an agent could not reliably introduce itself), live teammates appear in /list-agents rather than looking absent, and sessions whose title starts with / are addressable again instead of showing as "(untitled)". Also fixed: remote MCP servers staying dead after a transient 5xx on mid-session reconnect — a failure that in a network looks like one specialist mysteriously losing a capability mid-run.
+
+        * Cost and platform context: Sonnet 5's $2/$10 per Mtok promo ends August 31, reverting to $3/$15 — eight days out, and it hits the tier most networks run at highest volume. OpenAI cut GPT-5.6 Sol to $4/$20 from $5/$30, promotional through at least November 21, and shipped Zero Data Retention for frontier models with a preview "Private Safety Processing" system. Two promo clocks running in opposite directions is the argument for per-role model selection as runtime configuration. Elsewhere: an updated MCP roadmap (August 22) builds on the stateless 2026-07-28 spec, Claude's connector directory passed 950 servers, Anthropic opened the free Claude Academy, and a 36-minute authentication outage on August 16 degraded five Claude surfaces at once — in a network, a shared auth dependency means every agent fails together, so failover belongs at the routing layer rather than inside each role.
+
+
+
+
+
 Week of August 16, 2026
 -----------------------
 
