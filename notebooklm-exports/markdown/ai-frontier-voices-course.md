@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: August 17, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: August 24, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,17 @@ Last updated: August 17, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of August 24, 2026
+
+-   **Anthropic platform:** The agent stack went GA on August 20 — [computer use, a new browser use tool, the Skills API and the Files API are all generally available on the Claude Platform](https://www.channelinsider.com/ai/news-anthropic-claude-computer-use-skills-files-api/). Browser use is genuinely new rather than renamed: it reads a page's accessibility tree and drives forms, tabs and uploads directly instead of screenshotting and guessing at coordinates. Computer use can now batch several actions in a single turn, and the Files API adds automatic expiration with 1 TB of org storage — if you have been carrying beta headers for any of these, you can delete them.
+-   **@bcherny & @trq212 (Anthropic):** Claude Code's [Week 34 digest (Aug 17–21)](https://code.claude.com/docs/en/whats-new) led with `/design`, a research preview that brings Claude Design's artboard workflow into the CLI and Claude Code Desktop on top of artifacts — Claude drafts editable artboards for your UI and implements the one you pick. Also shipped: a built-in Concise output style that skips preamble, device cards on your phone for any machine running `claude remote-control`, and `ANTHROPIC_DEFAULT_MODEL` to set the model new sessions start on.
+-   **Anthropic, education:** [Claude Academy launched this week](https://finance.biggo.com/news/1456ce43-1d49-438e-a24e-a7ae72c2668e) — free courses, tutorials, learning paths, completion badges and an accompanying Claude Academy skill, spanning the consumer apps through the API, Console and MCP, with roughly 20 case studies and multi-language material. Worth noting for a course like this one: the labs are now building the curriculum layer themselves.
+-   **@leerob & @ericzakariasson (Cursor):** Two shipments that read as one strategy. [Origin](https://cursor.com/changelog/origin-code-hosting) (Aug 17, early beta on all paid plans) makes Cursor a code *host* — repos, pull requests, code browsing, GitHub sync. Then [on Aug 19 cloud agents got Subscriptions](https://cursor.com/changelog/08-19-26): an agent subscribes to an event source (a PR, a Slack thread, a schedule) and wakes when something happens, auto-subscribing to PRs it opens and driving them through CI and bot comments. The same release added subagents on their own VMs, `/goal`, skills pinned as Custom Modes, and steering that waits for the next tool call instead of cutting the agent off. Cursor is going after the whole loop, not the editor.
+-   **@mntruell (Cursor) & @milichab (xAI):** The merger stopped being paperwork. On August 21 xAI [folded Grok Bot — its always-on agent teammates — into Cursor Pro+, Cursor Ultra and Cursor Teams plans](https://x.ai/news/grok-bot-more-plans), alongside SuperGrok Plus and Heavy. That is the first product where the SpaceXAI and Cursor sides share a SKU rather than compete, six days after the $60B deal closed. Modules 4 and 5 of this course are now describing one company.
+-   **@skcd42 (xAI):** [Grok Build went to every plan on web and mobile on August 19](https://x.ai/news/grok-build-for-everyone) — describe an app and Grok builds a working version live in the chat, publishes it to a grok.me link with a generated social card, plus remixing, custom domains, GitHub export, secrets and connectors. Grok 4.6's distribution also widened again: [Amazon Bedrock on Aug 19](https://x.ai/news/grok-4-6-amazon-bedrock) and [Google's Enterprise Agent Platform Model Garden on Aug 21](https://x.ai/news/grok-4-6-vertex-ai), both at $2/$6 per Mtok with a 500k context window. Grok 4.7 is still early September.
+-   **@polynoamial & @jxnlco (OpenAI):** OpenAI [cut GPT-5.6 Sol's API price by more than 20% on August 21](https://www.investing.com/news/stock-market-news/openai-cuts-developer-pricing-for-frontier-gpt56-sol-model-by-more-than-20-4872186) — $5 → $4 per Mtok input, $30 → $20 output — through at least November 21, covering pay-as-you-go, Codex credits and eligible ChatGPT Work plans. It is the second GPT-5.6 cut in under a month and it landed a week after Gemini 3.7 Flash undercut everyone. Consumer Plus/Pro/Business pricing is unchanged, so this is an inference-margin fight, not a subscription one.
+-   **@OfficialLoganK (Google AI):** No Gemini 3.5 Pro, again. The week-of-August-21 window passed like the six before it, and the [Gemini API changelog has published nothing since 3.7 Flash on August 13](https://ai.google.dev/gemini-api/docs/changelog). Google's on-record line is still that it is testing with partners. Treat the 2M-token context window and Deep Think mode announced at I/O as unshipped until proven otherwise — nothing in the family offers more than 1M today.
 
 ### Week of August 17, 2026
 
@@ -358,4 +369,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated August 17, 2026.
+Updated weekly by an automated research task. Last updated August 24, 2026.
