@@ -1113,11 +1113,13 @@ interpretability, for fine-tuning behaviour, and for why LoRA works at all.</p>
 <div class="l"><div class="h">Attention &mdash; movement between positions</div>
 <p>The only component that lets information travel from one token position to another. It is
 routing. It decides <em>what to fetch from where</em>.</p>
-<p>Roughly a third of the parameters.</p></div>
+<p>Roughly a third of the parameters in the GPT-2 block shape &mdash; but under 20% in models with
+grouped-query attention. Stage 1 derives both.</p></div>
 <div class="r"><div class="h">MLP &mdash; computation at a position</div>
 <p>Operates on each position independently &mdash; it cannot see other tokens at all. It transforms
 whatever is currently in that position's residual stream.</p>
-<p>Roughly two-thirds of the parameters. This is where learned knowledge predominantly lives.</p></div>
+<p>Roughly two-thirds in the GPT-2 shape, and about 82% in Llama 3 70B once SwiGLU's third matrix
+is counted. This is where learned knowledge predominantly lives.</p></div>
 </div>
 
 <p>Say it as one sentence: <strong>attention moves information between positions; the MLP transforms
@@ -1172,7 +1174,7 @@ produce the code, and only one of those is load-bearing.</p>
   <li>Attention is a differentiable dictionary lookup; the scale factor exists to keep the softmax from saturating.</li>
   <li>It beat recurrence primarily because it parallelises across the sequence &mdash; a hardware argument.</li>
   <li>The residual stream is the through-line; blocks add to it rather than transform it.</li>
-  <li>Attention routes between positions; MLPs (two-thirds of parameters) compute at a position.</li>
+  <li>Attention routes between positions; MLPs (two-thirds of parameters in GPT-2, ~82% in Llama 3 70B) compute at a position.</li>
   <li>Pretraining optimises next-token cross-entropy and nothing else. Everything else is Stage 3.</li>
 </ul>
 <p style="margin-top:0.8rem;font-size:0.9rem;border-top:1px solid rgba(152,195,121,0.25);padding-top:0.7rem"><b>Full course for this stage:</b> <a href="transformer-mechanism-course.html">Stage 1 &mdash; The Mechanism</a> &mdash; the concepts taught properly, with an interactive tool and the same clearing test.</p></div>
@@ -1228,10 +1230,16 @@ that model a trillion times, training is a one-off and inference is forever. And
 scales with N &mdash; a model twice the size costs roughly twice as much per token, permanently.</p>
 <p>So the correct move for a production model is to <strong>go smaller than Chinchilla-optimal and
 train far longer</strong>. You pay more up front for a worse loss-per-training-FLOP, and you buy a
-permanently cheaper serving cost at a given quality. That is why essentially every production model
-since roughly 2023 is deliberately "over-trained" by Chinchilla's standard &mdash; 100 or more tokens
-per parameter rather than 20. It is not that the labs forgot the result. It is that they are solving
-a different optimisation problem than the one the paper solved.</p>
+permanently cheaper serving cost at a given quality. That is why models built for high-volume
+serving are deliberately "over-trained" by Chinchilla's standard &mdash; Llama 3 8B saw roughly 1,875
+tokens per parameter, about 94&times; the ratio. It is not that the labs forgot the result. It is
+that they are solving a different optimisation problem than the one the paper solved.</p>
+<p><b>The counterexample worth knowing, because the slogan is too clean:</b> Meta's own scaling law
+predicted an optimum of 402B parameters on 16.55T tokens for the Llama 3 405B compute budget, and
+they trained <b>405B on 15.6T</b> &mdash; essentially <em>at</em> their predicted optimum. Flagship
+models often are not over-trained, because a flagship's job is to set a capability ceiling and the
+serving economics are a different product's problem.
+<a href="training-stack-course.html">Stage 2</a> works through both cases.</p>
 <p>If you carry one thing from Stage 2 into a boardroom, carry this: <strong>the size of a served
 model is an inference-cost decision wearing a research-result costume.</strong></p>
 </div>
@@ -1746,8 +1754,12 @@ bandwidth trade, and the acceptance rate is what determines whether it pays.</p>
 decode bandwidth cost. Note the consequence people get wrong: <strong>quantization helps decode far
 more than prefill</strong>, because prefill was compute-bound and you did not shrink the FLOPs. If
 someone reports a 2&times; speedup from quantization on a prefill-heavy workload, ask what else
-changed. FP8 has become the practical default in serving stacks, generally landing within a fraction
-of a percent of BF16 quality on benchmarks while roughly doubling throughput.</p>
+changed. FP8 has become the practical default in serving stacks, and the largest
+independent study (Llama-3.1 family, 500,000+ evaluations) reports it as effectively lossless. The
+throughput claim needs more care: halving the bytes halves the <em>weight-read</em> term, but the KV
+cache does not shrink unless you quantize it too, and prefill does not shrink at all. Doubling is the
+best case, not the typical one &mdash;
+<a href="inference-economics-course.html">Stage 5</a> separates the three cases.</p>
 
 <h3>The exec version</h3>
 
