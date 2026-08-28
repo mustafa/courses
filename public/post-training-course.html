@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post-Training — How a Document Completer Becomes an Assistant</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.1rem;overflow-x:auto;margin:1.1rem 0;font-size:0.83rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text)}
+pre .c{color:var(--text-dim)}
+pre .k{color:var(--purple)}
+pre .s{color:var(--green)}
+pre .f{color:var(--blue)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-steel{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-steel .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* CURRENCY STATUS CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-live{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-ok{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-dated{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-frozen{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-dead{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* LEDGER ROWS */
+.ledger{margin:1.3rem 0}
+.lrow{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.05rem;margin-bottom:0.65rem;border-left:3px solid var(--border-light)}
+.lrow.live{border-left-color:var(--green)}
+.lrow.ok{border-left-color:var(--accent)}
+.lrow.dated{border-left-color:var(--yellow)}
+.lrow.frozen{border-left-color:var(--purple)}
+.lrow.dead{border-left-color:var(--red)}
+.lrow .lc{font-size:0.93rem;color:var(--text-bright);font-weight:650;margin-bottom:0.45rem}
+.lrow .lv{font-size:0.86rem;color:var(--text-dim);line-height:1.65}
+.lrow .lv b{color:var(--text)}
+.lrow .lv a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.lrow .verdict-line{margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);
+  font-size:0.85rem;color:var(--text)}
+.lrow .verdict-line b{color:var(--text-bright)}
+
+/* STAGE CLEARING TEST */
+.cleartest{background:linear-gradient(180deg,rgba(108,99,255,0.09),rgba(108,99,255,0.04));
+  border:1px solid rgba(108,99,255,0.34);border-left:3px solid var(--accent2);
+  border-radius:10px;padding:1.15rem 1.3rem;margin:1.5rem 0}
+.cleartest .lbl{font-size:0.7rem;font-weight:800;color:var(--accent2);text-transform:uppercase;
+  letter-spacing:0.08em;display:block;margin-bottom:0.6rem}
+.cleartest p{margin-bottom:0.7rem;font-size:0.93rem}
+.cleartest p:last-child{margin-bottom:0}
+.cleartest .neg{color:var(--text-dim);font-size:0.86rem}
+
+/* TIME BADGE */
+.timebar{display:flex;gap:0.5rem;flex-wrap:wrap;margin:0 0 1.3rem}
+.tb{background:var(--code-bg);border:1px solid var(--border);border-radius:7px;
+  padding:0.4rem 0.75rem;font-size:0.78rem;color:var(--text-dim);font-family:var(--mono)}
+.tb b{color:var(--accent);font-weight:700}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ PATH BUILDER (LAB) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+/* goal picker */
+.priors{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.4rem}
+.prior{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.8rem 0.9rem;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.prior:hover{border-color:var(--accent)}
+.prior.sel{border-color:var(--accent2);background:rgba(108,99,255,0.12)}
+.prior b{display:block;font-size:0.9rem;color:var(--text-bright);font-weight:750;margin-bottom:0.2rem}
+.prior span{font-size:0.75rem;color:var(--text-dim);line-height:1.45;display:block}
+@media(max-width:640px){.priors{grid-template-columns:1fr}}
+.priors.five{grid-template-columns:repeat(5,1fr)}
+@media(max-width:760px){.priors.five{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:420px){.priors.five{grid-template-columns:repeat(2,1fr)}}
+
+/* capability self-assessment */
+.cap{border:1px solid var(--border);border-radius:9px;padding:0.8rem 0.95rem;
+  margin-bottom:0.6rem;background:var(--bg2)}
+.cap .cq{font-size:0.88rem;color:var(--text);margin-bottom:0.55rem;line-height:1.6}
+.cap .cq b{color:var(--text-bright)}
+.cap .cs{font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.4rem}
+.cap-opts{display:flex;gap:0.35rem;flex-wrap:wrap}
+.cap-opt{font-size:0.72rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.cap-opt:hover{border-color:var(--accent);color:var(--accent)}
+.cap-opt.sel-y{background:rgba(152,195,121,0.2);border-color:var(--green);color:var(--green)}
+.cap-opt.sel-p{background:rgba(229,192,123,0.2);border-color:var(--yellow);color:var(--yellow)}
+.cap-opt.sel-n{background:rgba(224,108,117,0.2);border-color:var(--red);color:var(--red)}
+
+/* result */
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+.field ul{margin:0 0 0.7rem 1.2rem}
+.field li{margin-bottom:0.3rem}
+
+/* schedule rows */
+.sched{margin:1rem 0}
+.srow{display:grid;grid-template-columns:auto 1fr auto;gap:0.8rem;align-items:baseline;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:0.65rem 0.9rem;margin-bottom:0.45rem;border-left:3px solid var(--border-light)}
+.srow.now{border-left-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.srow.done{opacity:0.45;border-left-color:var(--green)}
+.srow .sw{font-family:var(--mono);font-size:0.76rem;color:var(--text-dim);white-space:nowrap}
+.srow .sn{font-size:0.88rem;color:var(--text-bright);font-weight:650}
+.srow .sn em{display:block;font-style:normal;font-size:0.78rem;color:var(--text-dim);
+  font-weight:400;margin-top:0.15rem;line-height:1.5}
+.srow .sh{font-family:var(--mono);font-size:0.76rem;color:var(--accent);white-space:nowrap}
+@media(max-width:640px){.srow{grid-template-columns:1fr;gap:0.25rem}}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+
+/* ===== course-3 extras ===== */
+.eq{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.8rem 1rem;margin:1rem 0;font-family:var(--mono);font-size:0.83rem;
+  color:var(--text-bright);overflow-x:auto;line-height:2}
+.eq b{color:var(--accent)}
+.eq .cm{color:var(--text-dim)}
+.eq .st{color:var(--accent2);font-weight:700}
+.derive{counter-reset:dv;margin:1.2rem 0}
+.dstep{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent2);
+  border-radius:9px;padding:0.9rem 1.1rem;margin-bottom:0.6rem;counter-increment:dv;position:relative}
+.dstep .dh{font-size:0.72rem;font-weight:800;color:var(--accent2);text-transform:uppercase;
+  letter-spacing:0.07em;margin-bottom:0.45rem}
+.dstep .dh::before{content:'Step ' counter(dv) ' — '}
+.dstep p{font-size:0.9rem;margin-bottom:0.6rem}
+.dstep p:last-child{margin-bottom:0}
+.dstep .eq{margin:0.6rem 0}
+.preset{display:flex;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.6rem}
+.pbtn{background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:7px;padding:0.35rem 0.75rem;font-size:0.76rem;font-weight:650;cursor:pointer;
+  font-family:var(--mono);transition:all 0.15s}
+.pbtn:hover{border-color:var(--accent);color:var(--accent)}
+.pbtn.sel{border-color:var(--accent2);background:rgba(108,99,255,0.14);color:var(--text-bright)}
+.chart{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem;margin:0.9rem 0;overflow-x:auto}
+.chart svg{display:block;width:100%;height:auto;min-width:320px}
+.clegend{display:flex;gap:1rem;flex-wrap:wrap;font-size:0.75rem;color:var(--text-dim);margin-top:0.5rem}
+.clegend span{display:inline-flex;align-items:center;gap:0.35rem}
+.clegend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">Post-Training</div>
+    <div class="nav-prog" id="nav-prog">0 / 9</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>Post-Training</h1>
+  <p class="sub">Stage 3 of the path. How a document completer becomes an assistant &mdash; SFT,
+  RLHF, and the derivation of DPO's closed form done properly rather than asserted. Then the part
+  that gets skipped: exactly where that closed form bites, why the probability of the response you
+  preferred can <em>fall</em> during training, and why reward moving from taste to verification is
+  what actually unlocked reasoning models.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>9</span> modules</div>
+    <div class="hero-badge"><span>~30 h</span> stage budget</div>
+    <div class="hero-badge"><span>~$20&ndash;60</span> compute</div>
+    <div class="hero-badge"><span>2</span> interactive tools</div>
+    <div class="hero-badge"><span>~80</span> min read</div>
+    <div class="hero-badge"><span>28 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Stage 3 of five &middot; prerequisite:
+  <a href="training-stack-course.html">The Training Stack</a> &middot;
+  the path is in <a href="ai-path-intermediate-to-advanced-course.html">Intermediate to Advanced AI</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>Post-training is where the most confident wrong beliefs in applied AI live, and one of them
+  &mdash; that fine-tuning teaches a model facts &mdash; costs enterprises more money than any other
+  single misconception in the field. Module 3 is about that specifically.</p>
+  <p><strong>The DPO derivation in Module 5 is done in full.</strong> Most explanations assert that
+  the reward model "cancels out." It does, for a specific reason, in a specific step, and you should
+  be able to point at that step. Module 6 then does the thing most treatments skip entirely: what the
+  closed form <em>costs</em> you, with a mechanism you can watch happen in the interactive tool.</p>
+  <p>Where a result is contested &mdash; and the superficial-alignment claim in Module 2 genuinely is
+  &mdash; this course says so rather than picking the tidier side.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">The problem post-training solves<span class="tag">Document completer</span></a></li>
+    <li><a href="#m2">SFT teaches format, not facts<span class="tag">And the contested claim</span></a></li>
+    <li><a href="#m3">Fine-tuning does not add knowledge<span class="tag">The expensive belief</span></a></li>
+    <li><a href="#m4">RLHF, classic<span class="tag">Reward model + PPO</span></a></li>
+    <li><a href="#m5">DPO &mdash; the derivation<span class="tag">In full</span></a></li>
+    <li><a href="#m6">Where the closed form bites<span class="tag">Displacement</span></a></li>
+    <li><a href="#m7">Verified reward and GRPO<span class="tag">What unlocked reasoning</span></a></li>
+    <li><a href="#m8">Choosing a recipe<span class="tag">Decision table</span></a></li>
+    <li><a href="#m9">The Post-Training Bench<span class="tag">Interactive</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>The problem post-training solves</h2>
+  <div class="mt">A base model is not a broken assistant. It is a working document completer.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to explain base-model behaviour as correct behaviour under the pretraining objective</li>
+  <li>Know the three post-training moves and what each one can and cannot buy</li>
+  <li>Have the result that shows how much of a model's usefulness is post-training rather than scale</li>
+</ul></div>
+
+<h3>Why the base model answers a question with another question</h3>
+
+<p>Stage 1 established that pretraining optimises one thing: the average negative log probability of
+the next token. Take that literally and base-model behaviour stops being strange.</p>
+
+<p>Ask a faithful next-token predictor <em>"What is the capital of France?"</em> and a reasonable
+continuation is <em>"What is the capital of Germany?"</em> &mdash; because across a very large
+corpus, that string appears most often inside lists of quiz questions. The model is not confused, not
+broken and not failing. It is doing exactly what it was optimised to do, correctly.</p>
+
+<p>Post-training is everything that converts that object into something that answers. It is
+conventionally three moves, and being precise about what each buys is most of the value of this
+stage.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Stage</th><th>Teaches</th><th>Data</th><th>Cannot do</th></tr></thead>
+<tbody>
+<tr><td><b>Instruction tuning (SFT)</b></td><td>Format and task shape: when you see a question, produce an answer.</td><td>Thousands to low hundreds of thousands of demonstrations.</td><td><b>Add knowledge.</b> If it was not in pretraining, SFT teaches confident statement, not knowing.</td></tr>
+<tr><td><b>Preference optimisation</b></td><td>Ranking among acceptable answers: which of two good replies is better.</td><td>Pairwise comparisons, human or model-generated.</td><td>Create a capability the base model lacks. It reweights what already exists.</td></tr>
+<tr><td><b>RL with verifiable reward</b></td><td>Reaching a checkable right answer, and the search behaviour that finds it.</td><td>Problems with automatic verifiers &mdash; maths, code, tests, constraint satisfaction.</td><td>Work where correctness cannot be checked by a program.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">How much is post-training worth? A number.</span>
+<p>The <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">InstructGPT paper</a>
+(Ouyang et al., 2022) reports that in human evaluations on their prompt distribution, outputs from
+the <b>1.3B-parameter InstructGPT model were preferred to outputs from the 175B GPT-3</b> &mdash;
+a model with 100&times; more parameters.</p>
+<p>Read that carefully, because it is easy to over-read. It does not say the small model knows more.
+It says that on <em>this prompt distribution</em>, judged by <em>these labellers</em>, a well
+post-trained small model produces more preferred outputs than a much larger base model. Knowledge did
+not move; usability did. That gap &mdash; between what a model contains and what you can get out of
+it &mdash; is the entire territory of this stage.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 1 takeaways</div>
+<ul>
+  <li>Base-model behaviour is correct under the pretraining objective, not broken.</li>
+  <li>SFT teaches format, preference optimisation teaches ranking, RL teaches reaching a checkable answer.</li>
+  <li>A 1.3B InstructGPT beat 175B GPT-3 on human preference &mdash; usability, not knowledge.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>SFT teaches format, not facts</h2>
+  <div class="mt">The simplest stage, one design decision that matters, and a famous claim that is not settled</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know exactly how SFT differs from pretraining &mdash; it is one line of code</li>
+  <li>Understand loss masking and why getting it wrong quietly degrades the model</li>
+  <li>Be able to state the superficial alignment hypothesis, its evidence, and why it is not settled</li>
+</ul></div>
+
+<h3>Mechanically, it is pretraining with two changes</h3>
+
+<p>SFT is the same next-token cross-entropy loss on a different corpus, plus one thing that is easy
+to get wrong.</p>
+
+<p>The corpus is demonstrations: a prompt and a good response, formatted with whatever chat template
+the model will use at inference. The change is <strong>loss masking</strong> &mdash; you compute the
+loss only over the response tokens, not over the prompt tokens.</p>
+
+<div class="eq">
+<span class="cm"># tokens:  [ &lt;user&gt; what is 2+2 ? &lt;assistant&gt; ][ four . ]</span><br>
+<span class="cm"># mask:    [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ][ 1 1 1 ]</span><br>
+loss = cross_entropy(logits[mask], targets[mask])
+</div>
+
+<p>If you do not mask, you are also training the model to <em>generate prompts</em> &mdash; to predict
+what a user would say. That is not a crash and not obviously visible in the loss curve. It is a
+diffuse, quiet degradation: capacity spent modelling a distribution you will never sample from, and a
+model slightly more inclined to continue conversations on the user's behalf. It is one of the most
+common bugs in hand-rolled SFT implementations precisely because nothing complains.</p>
+
+<h3>Quantity, quality, and the diversity that actually matters</h3>
+
+<p>SFT is dramatically cheaper than people expect. A useful instruction-following model can be
+produced from thousands of examples, not millions, and past a certain point additional data of the
+same shape adds very little.</p>
+
+<p>What matters more than count is <strong>coverage of the task distribution you will actually see</strong>.
+Ten thousand examples that all look like the same three tasks will produce a model that is excellent
+at those three and no better than the base model elsewhere. This is the practical form of the
+"quality over quantity" advice, and it is more actionable than the slogan: <em>diversity of task
+shape</em> is what you are buying, not prose polish.</p>
+
+<div class="callout c-dissent"><span class="lbl">The superficial alignment hypothesis &mdash; stated fairly, including that it is contested</span>
+<p><a href="https://arxiv.org/abs/2305.11206" target="_blank" rel="noopener">LIMA</a> (Zhou et al.,
+2023) trained on 1,000 carefully curated examples and reported strong instruction-following,
+motivating the <em>superficial alignment hypothesis</em>: a model's knowledge and capabilities are
+learned almost entirely in pretraining, and alignment mainly teaches it which sub-distribution of
+formats to use when talking to a user.</p>
+<p><b>Evidence for.</b> Token-distribution analyses &mdash; notably <a
+href="https://arxiv.org/abs/2312.01552" target="_blank" rel="noopener">Lin et al. (2023)</a> &mdash;
+find that a base model and its aligned version produce nearly identical distributions at most token
+positions, with the divergence concentrated on stylistic and discourse tokens: hedges, politeness
+markers, safety disclaimers, formatting. That is a real, specific, measured result and it points the
+same way.</p>
+<p><b>Where it is over-read.</b> "Alignment is superficial" gets used to mean post-training barely
+matters, which is not what the evidence supports. The token-distribution result is measured on
+particular models and prompt sets; it does not extend cleanly to safety behaviour under adversarial
+pressure, to multi-turn agentic use, or &mdash; most importantly &mdash; to the reasoning models of
+Module 7, where RL demonstrably produces behaviour that was not present in the base model's output
+distribution in any meaningful sense.</p>
+<p>The defensible position: <strong>for instruction-following style, alignment does look largely
+superficial. For capabilities elicited by large-scale RL, it does not.</strong> Anyone stating the
+strong version flatly in 2026 is behind the evidence.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 2 takeaways</div>
+<ul>
+  <li>SFT is pretraining's loss on demonstrations, with the loss masked to response tokens only.</li>
+  <li>Unmasked loss trains the model to generate prompts &mdash; a silent, diffuse degradation.</li>
+  <li>Task-shape diversity buys more than example count past a few thousand.</li>
+  <li>The superficial alignment hypothesis has real token-level support for style, and does not extend to RL-elicited reasoning.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>Fine-tuning does not add knowledge</h2>
+  <div class="mt">The single most expensive misconception in enterprise AI, and the argument that settles it</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to derive this from the objective, without appealing to empirical results</li>
+  <li>Know exactly what fine-tuning <em>does</em> buy, so the answer is not simply "no"</li>
+  <li>Have the sentence to say in the meeting where someone proposes it</li>
+</ul></div>
+
+<h3>The project that gets proposed everywhere</h3>
+
+<p>It goes like this. <em>"Let's fine-tune the model on our documentation so it knows our
+business."</em> It is proposed constantly, it is funded regularly, and it produces the same outcome
+every time: a model that has learned the <strong>register</strong> of your documents and now
+hallucinates in your house style, with more confidence than before, because it has learned that
+text which sounds like your documents is what it should produce.</p>
+
+<h3>Why, from the objective alone</h3>
+
+<p>You do not need an experiment for this. You have the loss function from Stage 1.</p>
+
+<p>Fine-tuning minimises next-token cross-entropy on your corpus. That objective rewards
+<em>producing text with the statistics of your documents</em>. It contains no term for factual
+accuracy, no term for retrieval, and no mechanism by which a specific fact seen a handful of times
+becomes reliably recoverable from a specific query phrasing months later.</p>
+
+<p>What gradient descent actually does with a rare fact seen three times in a 50,000-example
+fine-tuning set is nudge a very large number of parameters by a very small amount in a direction that
+makes those particular token sequences slightly more likely in that particular context. What it does
+much more strongly &mdash; because the signal is far denser &mdash; is learn your formatting, your
+vocabulary, your sentence rhythm and your typical topics. <strong>Style is dense in the data;
+individual facts are sparse.</strong> Gradient descent goes where the signal is.</p>
+
+<div class="callout c-steel"><span class="lbl">What fine-tuning is genuinely good at</span>
+<p>The answer is not "never fine-tune." It is that fine-tuning is a <em>behaviour</em> instrument,
+and it is very good at it:</p>
+<ul>
+  <li><b>Output format.</b> Reliable JSON, a specific schema, a house citation style. Enormously
+  effective, and often cheaper than prompt engineering plus retries.</li>
+  <li><b>Tone and register.</b> Making the model sound like your organisation.</li>
+  <li><b>Task shape.</b> Teaching a specific input-to-output transformation the model can already
+  perform but does not reliably choose to.</li>
+  <li><b>Refusal boundaries.</b> Adjusting what it declines and what it attempts.</li>
+  <li><b>Latency and cost.</b> Distilling a long, expensive prompt into weights so you stop paying
+  for it on every call &mdash; frequently the most valuable use of all, and the least discussed.</li>
+</ul>
+<p>Every item on that list is behaviour. None of them is knowledge.</p>
+</div>
+
+<h3>Where knowledge actually comes from</h3>
+
+<p>Two places, and only two. <strong>Pretraining</strong> &mdash; expensive, and almost certainly not
+yours to do. Or <strong>context at inference time</strong> &mdash; retrieval, tool calls, long
+context, a database query. That is what retrieval-augmented generation is for, and it is why RAG did
+not lose to long context: putting the fact in the context window is the mechanism, and how it gets
+there is an engineering choice.</p>
+
+<div class="callout c-warn"><span class="lbl">The sentence to say in the meeting</span>
+<p>When someone proposes fine-tuning to fix a factual problem, the useful move is not to say no. It
+is to ask a question that makes the mechanism visible:</p>
+<p><em>"What do you expect the gradient to be teaching? If the answer is a format or a tone, this is
+the right tool. If the answer is a fact, the loss function has no term for that &mdash; and the
+failure mode is that we get a model that states our facts confidently whether or not it has them."</em></p>
+<p>That reframes it from a disagreement about tooling into a question about the objective, which is
+both more persuasive and more likely to be right. Occasionally the answer <em>is</em> a format
+problem wearing a knowledge costume, and then you should fine-tune.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 3 takeaways</div>
+<ul>
+  <li>The objective rewards producing text like your corpus. It has no term for knowing what is in it.</li>
+  <li>Style is dense in the data and facts are sparse; gradient descent follows the dense signal.</li>
+  <li>Fine-tuning is excellent for format, tone, task shape, refusal boundaries and prompt distillation.</li>
+  <li>Knowledge enters through pretraining or through context. There is no third door.</li>
+  <li>Ask what the gradient is meant to be teaching. It is the question that resolves the argument.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>RLHF, classic</h2>
+  <div class="mt">Three models in memory, one KL leash, and the failure mode that limits the whole approach</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the three-step recipe and why comparisons rather than ratings are collected</li>
+  <li>Understand exactly what the KL penalty is preventing, and what happens as it goes to zero</li>
+  <li>Be able to explain reward hacking as a structural consequence rather than an implementation bug</li>
+</ul></div>
+
+<h3>The recipe</h3>
+
+<ol>
+  <li><strong>Collect comparisons.</strong> Sample two responses to the same prompt, ask a human
+  which is better.</li>
+  <li><strong>Train a reward model.</strong> A network that maps a response to a scalar, trained so
+  that preferred responses score higher. Usually initialised from the policy with the unembedding
+  replaced by a scalar head.</li>
+  <li><strong>Optimise the policy against it</strong> with reinforcement learning, classically PPO,
+  subject to a KL penalty against the original model.</li>
+</ol>
+
+<p>Step 1 is a deliberate design choice worth pausing on. <strong>Humans are bad at absolute ratings
+and good at comparisons.</strong> Ask ten people to score a response out of ten and you get ten
+different calibrations, drifting within each person over a session. Ask which of two is better and
+you get a far more consistent signal. Every method in this course inherits that decision, including
+DPO.</p>
+
+<h3>The objective, and what the KL term is doing</h3>
+
+<div class="eq">
+max<sub>&pi;</sub> &nbsp; E<sub>x~D, y~&pi;</sub> [ r(x,y) ] &nbsp;&minus;&nbsp; <b>&beta; &middot; KL( &pi;(y|x) &nbsp;||&nbsp; &pi;<sub>ref</sub>(y|x) )</b>
+</div>
+
+<p>Maximise reward, but stay close to where you started. The second term is not regularisation in the
+usual sense. It is a leash, and what it is restraining is specific.</p>
+
+<div class="callout c-dissent"><span class="lbl">Take &beta; to zero and watch what happens</span>
+<p>The reward model is a neural network trained on a finite sample of human comparisons. It is
+therefore an <em>approximation</em> of human preference, accurate in the region where it saw data and
+arbitrary outside it.</p>
+<p>The policy is an optimiser, and it is very good. Given free rein it will find the inputs on which
+the reward model is most wrong &mdash; regions of output space no human ever rated, where the reward
+model confidently returns a high score for text a person would find worthless. This is
+<strong>reward hacking</strong>, and the outputs are often not subtle: degenerate repetition, weird
+formatting tics, or fluent nonsense with the surface features the reward model learned to like.</p>
+<p>The KL penalty prevents this by making the policy pay for straying from the reference
+distribution, which is roughly the region where the reward model has evidence. So &beta; is not a
+tuning knob for output quality &mdash; <strong>it is a trust parameter for your reward model</strong>.
+Lower it and you are asserting your reward model is accurate further out than it was.</p>
+<p>The important part: <strong>this is structural, not a bug.</strong> Any learned proxy optimised
+hard enough will be exploited &mdash; it is Goodhart's law with a gradient. Which means the ceiling on
+classic RLHF is set by reward-model accuracy, and no amount of engineering removes it. Module 7 is
+about the field's answer, which was to stop learning the reward.</p>
+</div>
+
+<h3>Why it is a nuisance to run</h3>
+
+<p>Three models resident at once &mdash; policy, reward model, frozen reference. An online loop that
+must sample from the policy at every step, so generation is inside the training loop. And enough
+hyperparameter sensitivity that reproducing somebody else's published result is a project rather than
+an afternoon.</p>
+
+<p>It works, and it produced the first genuinely useful assistants. It is also exactly the kind of
+apparatus that invites someone to ask whether all of it is necessary. Somebody did.</p>
+
+<div class="takeaways"><div class="t">Module 4 takeaways</div>
+<ul>
+  <li>Comparisons are collected instead of ratings because humans are consistent at the former and not the latter.</li>
+  <li>The objective is reward minus &beta; times KL from the reference policy.</li>
+  <li>&beta; is a trust parameter for the reward model, not a quality knob.</li>
+  <li>Reward hacking is structural: optimise any learned proxy hard enough and it gets exploited.</li>
+  <li>The apparatus is three models plus an online sampling loop, which is what DPO set out to remove.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>DPO &mdash; the derivation</h2>
+  <div class="mt">Four steps. The reward model does not cancel by magic; it cancels at step three, for a reason.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to derive the DPO loss from the RLHF objective in four steps, on a whiteboard</li>
+  <li>Be able to point at the exact step where the reward model disappears and say why</li>
+  <li>Know what the "implicit reward" is and why "where is the reward model?" is a trick question</li>
+</ul></div>
+
+<h3>The claim, in two sentences</h3>
+
+<p>Here is the summary worth being able to give verbatim, before the derivation makes it earned:</p>
+
+<div class="callout c-steel"><span class="lbl">The two-sentence version</span>
+<p><strong>For the KL-constrained reward objective that RLHF optimises, the optimal policy has a
+closed form &mdash; it is the reference policy reweighted by the exponentiated reward. You can
+therefore invert that relation to express the reward as a function of the policy, substitute it into
+the preference likelihood, and optimise the policy directly on preference pairs with no reward model
+and no sampling loop.</strong></p>
+</div>
+
+<h3>The four steps</h3>
+
+<div class="derive">
+
+<div class="dstep"><div class="dh">the objective has a known optimum</div>
+<p>The RLHF objective from Module 4 is not an arbitrary loss &mdash; it is a KL-regularised
+expectation, and that family has a closed-form maximiser. For every prompt <em>x</em>:</p>
+<div class="eq">&pi;*(y|x) = <b>(1 / Z(x))</b> &middot; &pi;<sub>ref</sub>(y|x) &middot; exp( r(x,y) / &beta; )</div>
+<p>In words: the optimal policy is the reference policy, reweighted by the exponentiated reward, then
+renormalised. High-reward responses get their probability multiplied up; low-reward ones down; the
+reference distribution supplies the shape. <b>Z(x)</b> is the normalising constant that makes it sum
+to one, and it involves a sum over every possible response &mdash; so it is completely intractable to
+compute. Remember that; it is the crux.</p>
+</div>
+
+<div class="dstep"><div class="dh">invert it, so reward is written in terms of policy</div>
+<p>Take logs and rearrange for r. Nothing subtle here, just algebra:</p>
+<div class="eq">r(x,y) = &beta; &middot; log ( &pi;*(y|x) / &pi;<sub>ref</sub>(y|x) ) &nbsp;+&nbsp; <span class="st">&beta; &middot; log Z(x)</span></div>
+<p>Read this as a statement about what a reward function <em>is</em>. Any reward function corresponds
+to some optimal policy, and any policy implicitly defines a reward &mdash; the log-ratio of its
+probability to the reference model's, scaled by &beta;. The reward and the policy are two
+descriptions of the same object.</p>
+<p>The intractable <span class="st">&beta; log Z(x)</span> is still sitting there, which is why this
+step alone is not enough.</p>
+</div>
+
+<div class="dstep"><div class="dh">substitute into the preference model — and Z cancels</div>
+<p>The Bradley-Terry model says the probability a human prefers y<sub>w</sub> to y<sub>l</sub> is a
+sigmoid of the <em>difference</em> of their rewards:</p>
+<div class="eq">P(y<sub>w</sub> &#8827; y<sub>l</sub> | x) = &sigma;( r(x,y<sub>w</sub>) &minus; r(x,y<sub>l</sub>) )</div>
+<p><strong>This is the step.</strong> Substitute the expression from step 2 for both rewards. The
+term <span class="st">&beta; log Z(x)</span> depends only on <em>x</em>, and both responses share the
+same <em>x</em> &mdash; so it appears identically in both and <strong>cancels in the
+subtraction</strong>. The intractable quantity vanishes not because it was approximated or bounded,
+but because we only ever needed a difference.</p>
+<div class="eq">P = &sigma;( &beta; log(&pi;<sub>w</sub>/&pi;<sub>ref,w</sub>) &minus; &beta; log(&pi;<sub>l</sub>/&pi;<sub>ref,l</sub>) )</div>
+<p>If someone asks you where DPO's reward model went, this is the line to point at.</p>
+</div>
+
+<div class="dstep"><div class="dh">maximise the likelihood of the observed preferences</div>
+<p>You now have the probability of a preference expressed purely in terms of the policy you are
+training and a frozen reference. Fit the policy by maximum likelihood over your preference dataset:</p>
+<div class="eq">
+L<sub>DPO</sub> = &minus;E<sub>(x,y<sub>w</sub>,y<sub>l</sub>)</sub> [ log &sigma;( <b>&beta; log(&pi;<sub>&theta;</sub>(y<sub>w</sub>|x)/&pi;<sub>ref</sub>(y<sub>w</sub>|x)) &minus; &beta; log(&pi;<sub>&theta;</sub>(y<sub>l</sub>|x)/&pi;<sub>ref</sub>(y<sub>l</sub>|x))</b> ) ]
+</div>
+<p>That is a plain binary classification loss over pairs. Two forward passes through the policy and
+two through the frozen reference per example. No reward model, no rollouts, no third trainable
+network, no RL loop. You can implement it in an afternoon and it will work.</p>
+</div>
+
+</div>
+
+<h3>The implicit reward, and why "where is the reward model?" is a trick</h3>
+
+<p>The quantity in bold is worth naming. <strong>&beta; log(&pi;<sub>&theta;</sub>/&pi;<sub>ref</sub>)
+is the implicit reward</strong> &mdash; DPO's reward function, expressed through the policy's own
+weights. The reward model was not removed from the problem. It was <em>reparameterised into the
+policy</em>, which is a different and stronger claim than "eliminated."</p>
+
+<p>This is why the clearing-test question <em>"where is the reward model in your DPO
+implementation?"</em> is a trick. The wrong answer is "there isn't one." The right answer is that it
+is the log-ratio between your policy and the reference, and that the trick was noticing this quantity
+is exactly what Bradley-Terry needs.</p>
+
+<p>It also has a practical payoff: you can compute that log-ratio at any time to see how your policy
+scores its own outputs, which gives you a reward signal for monitoring without ever having trained
+one.</p>
+
+<p>The paper is <a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener">Rafailov,
+Sharma, Mitchell, Ermon, Manning and Finn (2023)</a>, and its abstract's central claim is that DPO
+matches or improves on PPO-based RLHF for sentiment control, summarisation and single-turn dialogue
+while being substantially simpler to implement and train. Note the scope of that comparison &mdash;
+it is the next module's subject.</p>
+
+<div class="takeaways"><div class="t">Module 5 takeaways</div>
+<ul>
+  <li>The KL-constrained optimum is the reference policy reweighted by exp(reward/&beta;).</li>
+  <li>Inverting gives reward = &beta; log(&pi;/&pi;<sub>ref</sub>) + &beta; log Z(x).</li>
+  <li>Bradley-Terry needs only a reward <em>difference</em>, so the intractable log Z(x) cancels exactly.</li>
+  <li>What remains is a binary classification loss over preference pairs. Two models, no sampling.</li>
+  <li>The reward model was reparameterised into the policy, not eliminated. The log-ratio is the implicit reward.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Where the closed form bites</h2>
+  <div class="mt">Three costs, and one of them is that the response you preferred can get less likely</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the three assumptions DPO's derivation buys its simplicity with</li>
+  <li>Understand likelihood displacement mechanically, not as an anecdote</li>
+  <li>Know what the successor methods each fix, and which problem yours has</li>
+</ul></div>
+
+<h3>Cost one: it is off-policy</h3>
+
+<p>PPO samples from the <em>current</em> policy, scores those samples, and updates. DPO optimises
+against a <em>fixed</em> dataset of pairs generated by something else &mdash; usually an earlier
+model or a different one entirely.</p>
+
+<p>That matters because as training proceeds, your policy drifts away from the distribution that
+produced the data, and you are increasingly optimising preferences over responses your model would
+never actually generate. You are answering the question "which of these two things somebody else said
+is better" when the useful question is "of the things I am about to say, which is better."</p>
+
+<p>This is the main reason on-policy methods retain an advantage on the hardest problems, and it is
+why the strong practical recipes iterate: generate with the current policy, get preferences on
+<em>those</em> samples, train, repeat. Iterative DPO recovers much of the gap at the cost of the
+simplicity that was the whole point.</p>
+
+<h3>Cost two: Bradley-Terry might not describe your preferences</h3>
+
+<p>Step 3 of the derivation assumed a specific model of human preference: that there exists a scalar
+reward per response, and that preference probability is a sigmoid of the difference. That is a real
+assumption, and it fails in ordinary ways.</p>
+
+<p>Preferences that are <strong>intransitive</strong> (A over B, B over C, C over A &mdash; common
+with multiple annotators or multiple criteria) have no consistent scalar reward. Preferences that are
+<strong>near-deterministic</strong> &mdash; where one response is simply always better &mdash; push
+the sigmoid towards saturation, and since the only way to increase a saturating sigmoid is to
+increase the margin without bound, the optimiser will happily drive the policy arbitrarily far from
+the reference. <a href="https://arxiv.org/abs/2310.12036" target="_blank" rel="noopener">IPO</a>
+(Azar et al., 2023) was designed for exactly this failure.</p>
+
+<h3>Cost three: likelihood displacement</h3>
+
+<p>This is the one that surprises people, and it is worth understanding mechanically because it
+changes how you build preference data.</p>
+
+<div class="callout c-dissent"><span class="lbl">The probability of the response you preferred goes down</span>
+<p>DPO's loss increases the <em>margin</em> between chosen and rejected. Nothing in it requires the
+chosen response's absolute probability to rise. In practice both frequently fall, with the rejected
+falling faster &mdash; the margin improves exactly as the loss demands, while the model becomes less
+likely to produce either.</p>
+<p><a href="https://arxiv.org/abs/2410.08847" target="_blank" rel="noopener">Razin et al. (2024)</a>
+named this <strong>likelihood displacement</strong> and showed it can be catastrophic rather than
+cosmetic: probability mass shifts not into a neutral background but into responses of
+<em>opposite meaning</em>. Their example is the one to remember &mdash; <strong>training a model to
+prefer "No" over "Never" can sharply increase the probability of "Yes."</strong></p>
+<p>The mechanism follows from the gradient. The DPO update moves parameters along
+<code>&nabla;log&pi;(y<sub>w</sub>) &minus; &nabla;log&pi;(y<sub>l</sub>)</code> &mdash; the
+<em>difference</em> of two gradients. When chosen and rejected are semantically similar, those
+gradients are nearly parallel, so their difference is small and points somewhere unrelated to either.
+Take a step along it and the probability mass you removed from the rejected response does not
+reliably land on the chosen one. It lands wherever that difference direction happens to point.</p>
+<p>The practical consequence is concrete and actionable: <strong>preference pairs whose two responses
+are very similar are actively dangerous</strong>, not merely low-signal. If your rejected responses
+are minimally edited versions of your chosen ones &mdash; which is exactly what you get from a
+"generate then lightly corrupt" data pipeline &mdash; you are constructing the failure case. The
+interactive tool in Module 9 lets you watch this happen and find the boundary.</p>
+</div>
+
+<h3>The successor methods, and which problem each one solves</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Method</th><th>Fixes</th><th>Cost</th></tr></thead>
+<tbody>
+<tr><td><b>IPO</b> (Azar et al., 2023)</td><td>Saturation under near-deterministic preferences, by replacing the sigmoid objective with a bounded one.</td><td>Another hyperparameter; less widely used in practice.</td></tr>
+<tr><td><b>KTO</b> (Ethayarajh et al., 2024)</td><td>The requirement for <em>pairs</em>. Learns from unpaired good/bad labels, which is what production feedback actually looks like.</td><td>Discards the ranking information a pair carries.</td></tr>
+<tr><td><b>ORPO</b> (Hong et al., 2024)</td><td>The reference model, using an odds-ratio penalty folded into the SFT loss. Halves memory and merges two stages into one.</td><td>Loses the KL leash that the reference model provided.</td></tr>
+<tr><td><b>SimPO</b> (Meng et al., 2024)</td><td>Length bias and the reference model, using length-normalised average log-probability as the implicit reward.</td><td>Also gives up the reference anchor; more sensitive to its margin term.</td></tr>
+<tr><td><b>Iterative / online DPO</b></td><td>The off-policy problem, by regenerating preferences from the current policy each round.</td><td>Reintroduces a generation loop &mdash; the thing DPO removed.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">And the failure mode that survives all of them: length</span>
+<p>Human annotators prefer longer responses, at a rate that is substantially independent of whether
+the extra length adds anything. That bias is in your preference data, so it is in your implicit
+reward, so it is in your policy. Every preference-optimised model drifts verbose, and the drift is
+not a bug in the algorithm &mdash; it is a faithful reproduction of the signal you gave it.</p>
+<p>Two practical consequences. <b>Always report response length alongside your win rate</b>, because
+a win rate that moved together with a length increase has told you nothing you can act on. And when
+comparing methods, check whether the comparison controlled for length; a great many published
+improvements are partly length effects, which is why SimPO's length normalisation exists.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 6 takeaways</div>
+<ul>
+  <li>DPO is off-policy: it optimises preferences over responses the current model would not produce.</li>
+  <li>The derivation assumes Bradley-Terry, which fails on intransitive and near-deterministic preferences.</li>
+  <li>Likelihood displacement: the chosen response's probability can fall, and mass can move to opposite meanings.</li>
+  <li>Similar chosen/rejected pairs make displacement worse &mdash; near-duplicate pairs are dangerous, not just weak.</li>
+  <li>Length bias is in the data, therefore in the implicit reward. Report length with every win rate.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>Verified reward and GRPO</h2>
+  <div class="mt">The change that mattered was not an algorithm. It was where the reward comes from.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Understand why a verifier removes the ceiling that a learned reward model imposes</li>
+  <li>Know what GRPO drops from PPO and why the substitution is sound</li>
+  <li>Have the predictive heuristic: which capabilities will improve next, and why</li>
+</ul></div>
+
+<h3>Learned taste versus program checking</h3>
+
+<div class="split">
+<div class="l"><div class="h">Learned reward &mdash; RLHF, 2022&ndash;2023</div>
+<p>A neural network predicts what humans prefer. It approximates taste, and like any approximation it
+can be gamed: the policy finds where the reward model is wrong and exploits it.</p>
+<p><b>This puts a hard ceiling on how far you can optimise</b>, and Module 4 showed the ceiling is
+structural rather than fixable.</p></div>
+<div class="r"><div class="h">Verified reward &mdash; RLVR, 2024&ndash;</div>
+<p>A program checks the answer. Did the arithmetic come out right? Do the tests pass? Does the proof
+check?</p>
+<p><b>There is nothing to hack, because the reward is not a model &mdash; it is a fact.</b> You can
+optimise hard and long without the signal degrading.</p></div>
+</div>
+
+<p>The term <em>reinforcement learning with verifiable rewards</em> was introduced in <a
+href="https://arxiv.org/abs/2411.15124" target="_blank" rel="noopener">Tülu 3</a> (Lambert et al.,
+Allen Institute for AI, 2024), which replaced the reward model in the standard RLHF objective with a
+verification function; the underlying idea also appears in DeepSeekMath's work from the same period.
+The change is small to describe and it removed the binding constraint on the entire approach.</p>
+
+<h3>What that bought: behaviour nobody demonstrated</h3>
+
+<p>Once the reward is a verifier rather than a critic, you can afford enormous numbers of rollouts,
+and the model can discover strategies that raise the probability of passing the check. What emerged
+&mdash; checking work, backtracking, trying a second approach, allocating more tokens to harder
+problems &mdash; was not in anyone's demonstration set.</p>
+
+<p><a href="https://arxiv.org/abs/2501.12948" target="_blank" rel="noopener">DeepSeek-R1</a> (2025) is
+the cleanest public account. <strong>R1-Zero</strong> was trained with large-scale RL directly on the
+base model, with no SFT stage at all, and developed strong reasoning behaviour including what the
+authors describe as an "aha moment" &mdash; the model spontaneously learning to pause and re-evaluate
+its own approach.</p>
+
+<div class="callout c-fact"><span class="lbl">And the part of the R1 story that gets dropped</span>
+<p>R1-Zero also came out with <strong>poor readability and language mixing</strong> &mdash; the
+authors note the base model was trained on multiple languages, especially English and Chinese, and
+the RL-trained model would switch between them mid-reasoning. Optimising purely for a verifier
+optimises purely for the verifier: nothing in "is the final answer correct" rewards the trace being
+legible to a human.</p>
+<p>That is why the shipped <strong>R1</strong> is not R1-Zero. It adds a cold-start SFT stage on
+readable, well-formatted reasoning data before RL, then further rounds of rejection sampling and RL.
+<strong>Verified reward gave the capability; supervised data made it usable.</strong> Anyone telling
+you post-training is now just RL has skipped the stage that made the product shippable, and it is the
+same lesson as Module 6's length bias: you get precisely what you measured.</p>
+</div>
+
+<h3>GRPO: drop the value network</h3>
+
+<p>PPO needs a learned value network to estimate a baseline &mdash; the advantage is "how much better
+was this than expected," and something has to supply the expectation. That is a second network the
+size of the policy, trained alongside it.</p>
+
+<p><strong>GRPO</strong> (from DeepSeekMath, Shao et al., 2024) removes it with a substitution that
+suits the setting exactly. Sample a <em>group</em> of completions for the same prompt. Score them all
+with the verifier. Use the group's mean score as the baseline. Advantage becomes <em>"how much better
+than my siblings was this attempt."</em></p>
+
+<p>The reason this works here and not everywhere: you are already sampling many completions per
+prompt, because that is how RL with a verifier operates. The baseline is therefore free &mdash; it is
+a statistic over samples you had to generate anyway. One fewer network to hold, train and debug, and
+a variance-reduction story that is easy to reason about.</p>
+
+<div class="callout c-steel"><span class="lbl">The heuristic to carry into a product conversation</span>
+<p><strong>A capability is amenable to RL exactly to the degree that you can write a checker for
+it.</strong></p>
+<p>That is a sharper predictor of what models will get good at next than any parameter count.
+Domains with cheap, reliable verifiers &mdash; competition mathematics, code with tests, formal
+proofs, constraint satisfaction, anything with a compiler or an interpreter &mdash; race ahead.
+Domains where quality is a matter of judgement &mdash; taste, strategy, interpersonal nuance, most
+writing &mdash; move at the pace of preference data, which is slow and expensive.</p>
+<p>Two cautions before you use this as a roadmap. Verifiers can be gamed too when they are weaker
+than they look: reward-hack a unit-test suite and you get code that passes tests and does not work,
+which is reward hacking with extra steps. And "we'll just write a verifier" is easy to say about
+domains where a good one is a research project in itself.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 7 takeaways</div>
+<ul>
+  <li>Learned reward models impose a structural ceiling; verifiers remove it because there is no model to exploit.</li>
+  <li>RLVR was named in Tülu 3 (Lambert et al., 2024) and is the key change of the 2024&ndash;25 generation.</li>
+  <li>R1-Zero got reasoning from pure RL and also got language mixing and poor readability.</li>
+  <li>Shipped R1 adds cold-start SFT for readability. RL gave capability; supervision gave usability.</li>
+  <li>GRPO replaces PPO's value network with the mean score of a sampled group &mdash; free, because you were sampling anyway.</li>
+  <li>Predictive heuristic: capability follows checkability. Watch out for verifiers that are weaker than they look.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>Choosing a recipe</h2>
+  <div class="mt">A decision procedure, and the two questions that eliminate most of the options immediately</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a sequence of questions that narrows a post-training problem to one or two methods</li>
+  <li>Know which failures post-training cannot fix, so you stop before spending</li>
+  <li>Know roughly what data volume each method needs</li>
+</ul></div>
+
+<h3>Two questions first, because they eliminate most options</h3>
+
+<p><strong>Question one: is this a knowledge problem?</strong> If the model does not know something,
+stop. Module 3 applies and nothing in this stage will help. Go to retrieval, tools or context.
+Answering this question honestly saves more money than every other decision here combined.</p>
+
+<p><strong>Question two: can you write a program that checks the answer?</strong> If yes, you are in
+the RLVR regime and you have the strongest option available. If no, you are in the preference regime
+and your ceiling is the quality of your preference data.</p>
+
+<p>Those two questions eliminate most of the decision space. What remains:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Symptom</th><th>Reach for</th><th>Roughly</th><th>Watch for</th></tr></thead>
+<tbody>
+<tr><td>Ignores instructions; wrong output shape; won't produce valid JSON</td><td><b>SFT</b></td><td>1K&ndash;50K demonstrations</td><td>Loss masking. Task-shape diversity, not example count.</td></tr>
+<tr><td>Answers are acceptable but not <em>good</em>; tone or judgement is off</td><td><b>DPO</b> or a successor</td><td>5K&ndash;100K pairs</td><td>Length drift. Near-duplicate pairs causing displacement.</td></tr>
+<tr><td>You have thumbs-up/down from production, not pairs</td><td><b>KTO</b></td><td>Whatever you have</td><td>Selection bias &mdash; who bothers to click.</td></tr>
+<tr><td>Fails a task where correctness is checkable</td><td><b>RLVR</b> with GRPO</td><td>1K&ndash;100K problems with verifiers</td><td>Verifier gaming. Readability of the trace.</td></tr>
+<tr><td>Memory-constrained, want SFT and preference in one pass</td><td><b>ORPO</b></td><td>Pairs, plus SFT data</td><td>No reference model, so no KL leash.</td></tr>
+<tr><td>Prompt is long, expensive and repeated every call</td><td><b>SFT</b> (distillation)</td><td>10K+ input/output pairs from the long-prompt system</td><td>Nothing &mdash; this is often the highest-ROI fine-tune available and it is rarely the one proposed.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">The order matters, and skipping SFT is the common mistake</span>
+<p>Preference optimisation reweights among responses the model already produces. If the model does
+not produce good responses at all yet, there is nothing to reweight, and DPO on a base model gives
+you a base model with a slightly different distribution over documents.</p>
+<p><strong>SFT first, always, then preference optimisation.</strong> R1's own pipeline is the
+argument: even with RL strong enough to produce novel reasoning, they still put a supervised
+cold-start stage in front of it, because the RL had nothing to say about being readable.</p>
+<p>The one legitimate exception is R1-Zero-style pure RL <em>as a research result</em> &mdash;
+demonstrating that RL alone can elicit reasoning. It is not the recipe for a product, and its authors
+did not ship it as one.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 8 takeaways</div>
+<ul>
+  <li>Is it a knowledge problem? If yes, stop &mdash; post-training is the wrong tool.</li>
+  <li>Can you write a checker? If yes, RLVR. If no, your ceiling is preference-data quality.</li>
+  <li>SFT before preference optimisation, always. There is nothing to reweight otherwise.</li>
+  <li>Distilling an expensive prompt into weights is the most under-proposed high-ROI fine-tune.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>The Post-Training Bench</h2>
+  <div class="mt">Two tools &mdash; a recipe diagnosis you argue with, and a displacement simulator you can break</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have run a real post-training problem through the decision procedure and been told, possibly, not to bother</li>
+  <li>Have found the boundary at which likelihood displacement starts, by moving one slider</li>
+  <li>Understand why "similar pairs are weak signal" understates the problem</li>
+</ul></div>
+
+<h3>Tool A &mdash; Recipe diagnosis</h3>
+
+<p>Describe a real problem. Commit to the method you think it needs before the tool says. The most
+useful outcome is the one where the tool tells you post-training cannot help, because that is the
+verdict that saves the quarter.</p>
+
+<div id="lab">
+  <div class="lab-top">
+    <span class="lab-pill">Interactive A</span>
+    <h3>Recipe Diagnosis</h3>
+    <span class="lab-step" id="lab-step">Stage 1 of 2</span>
+  </div>
+  <div class="lab-body">
+
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">The problem</div>
+        <div class="st" id="s1-st">Open</div></div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">What is actually wrong with the model's output?</span></div>
+        <div class="priors" id="sym"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Can a program check whether a given answer is correct?</span></div>
+        <div class="priors" id="ver">
+          <button class="prior" data-v="yes"><b>Yes, reliably</b><span>Tests pass or fail, arithmetic checks, a schema validates, a solver confirms.</span></button>
+          <button class="prior" data-v="partial"><b>Partly</b><span>Some cases are checkable, or the checker is a heuristic that can be fooled.</span></button>
+          <button class="prior" data-v="no"><b>No</b><span>Quality is a judgement call. A person has to read it to know.</span></button>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Demonstrations you have (prompt &rarr; good response)</span>
+          <span class="cv" id="v-sft">2,000</span></div>
+        <input type="range" id="r-sft" min="0" max="100" step="1" value="45">
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Preference pairs you have (A better than B)</span>
+          <span class="cv" id="v-pref">0</span></div>
+        <input type="range" id="r-pref" min="0" max="100" step="1" value="0">
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">How similar are your rejected responses to your chosen ones?</span>
+          <span class="cv" id="v-sim">Moderate</span></div>
+        <input type="range" id="r-sim" min="0" max="100" step="1" value="40">
+        <div class="cd" id="d-sim"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Before you look: what do you think this needs?</span></div>
+        <div class="priors five" id="guess">
+          <button class="prior" data-g="none"><b>None</b><span>Wrong tool</span></button>
+          <button class="prior" data-g="sft"><b>SFT</b><span>Demonstrations</span></button>
+          <button class="prior" data-g="dpo"><b>DPO</b><span>Preferences</span></button>
+          <button class="prior" data-g="kto"><b>KTO</b><span>Unpaired</span></button>
+          <button class="prior" data-g="rlvr"><b>RLVR</b><span>Verifier</span></button>
+        </div>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="s1-go" disabled>Diagnose</button>
+        <span class="gate-msg" id="s1-gate">Pick a symptom, a verifiability answer and a guess.</span>
+      </div>
+    </div>
+
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">Diagnosis</div>
+        <div class="st" id="s2-st">Locked</div></div>
+      <div id="out2"></div>
+      <div class="lab-btns" style="margin-top:0.9rem">
+        <button class="act ghost" id="reset">Start over</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<h3>Tool B &mdash; Likelihood displacement</h3>
+
+<p>Module 6 claimed that DPO can reduce the probability of the response you preferred, and that
+similarity between chosen and rejected is what drives it. This is that claim, running.</p>
+
+<div id="lab2">
+  <div class="lab-top">
+    <span class="lab-pill">Interactive B</span>
+    <h3>Displacement Simulator</h3>
+    <span class="lab-step" id="lab2-step">Toy model &mdash; three outcomes</span>
+  </div>
+  <div class="lab-body">
+
+    <div class="stage">
+      <p class="hint">A deliberately minimal model: three possible responses &mdash;
+      <b>chosen</b>, <b>rejected</b>, and one <b>other</b> response the model could give.
+      DPO steps along <code>&nabla;log&pi;(chosen) &minus; &nabla;log&pi;(rejected)</code>; the
+      sliders set how those gradients relate. Presets first, then move things.</p>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Scenario</span></div>
+        <div class="preset" id="dpreset"></div>
+        <div class="cd" id="d-dpreset"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Similarity between chosen and rejected &nbsp;<em style="color:var(--text-dim);font-style:normal;font-size:0.8em">(cosine of their gradients)</em></span>
+          <span class="cv" id="v-s">0.20</span></div>
+        <input type="range" id="r-s" min="0" max="99" step="1" value="20">
+        <div class="cd" id="d-s"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">How much the <em>other</em> response is aligned with the update direction</span>
+          <span class="cv" id="v-a">0.10</span></div>
+        <input type="range" id="r-a" min="-80" max="100" step="1" value="10">
+        <div class="cd">Positive means the "push chosen up, push rejected down" direction also pushes
+        this third response up. That is the case Razin et al. describe when preferring "No" over
+        "Never" raises "Yes" &mdash; the difference between two negations points towards affirmation.</div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">&beta;</span><span class="cv" id="v-b">0.10</span></div>
+        <input type="range" id="r-b" min="1" max="100" step="1" value="10">
+        <div class="cd">The DPO temperature. Larger &beta; means a larger implicit reward for the same
+        log-ratio, so the sigmoid saturates sooner and the gradient shuts off earlier.</div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Training steps</span><span class="cv" id="v-n">200</span></div>
+        <input type="range" id="r-n" min="20" max="600" step="20" value="200">
+      </div>
+
+      <div id="out3"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="callout c-warn"><span class="lbl">What Tool B is and is not</span>
+<p><b>It is a toy.</b> Three outcomes, not a vocabulary; one scalar similarity, not a real gradient
+geometry; a fixed step size instead of an optimiser. It cannot predict what your run will do.</p>
+<p><b>What it is faithful to</b> is the mechanism. The update direction really is
+<code>&nabla;log&pi;(y<sub>w</sub>) &minus; &nabla;log&pi;(y<sub>l</sub>)</code>; the log-probability
+of the chosen response really does change by its own logit's movement minus the probability-weighted
+average movement of every outcome; and the condition under which the chosen response's probability
+falls really does come out as a competition between <b>(1&minus;s)</b> &mdash; how much useful signal
+survives the subtraction &mdash; and <b>p<sub>other</sub> &middot; &alpha;</b> &mdash; how much mass
+the third response absorbs. Displacement in real models is this, in many more dimensions.</p>
+<p>The prediction the toy makes that is worth taking seriously: as similarity approaches 1, the
+useful signal vanishes faster than the leakage does. That is why near-duplicate preference pairs are
+a data-construction hazard rather than merely a weak signal, and it is checkable in your own runs by
+logging <code>log&pi;(y<sub>w</sub>)</code> rather than only the margin.</p>
+</div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 3</span>
+<p><strong>Take a small base model and make it measurably better, twice, by two different
+mechanisms.</strong> First write your own SFT loop &mdash; not TRL's &mdash; and produce an
+instruction-following version. Then write your own DPO loss from the paper and improve it further on
+a preference set <em>you constructed</em>, with a held-out split you never trained on.</p>
+<p>Report a number with an honest error bar and the mean response length alongside it. Then answer
+these unaided:</p>
+<ul>
+  <li>Why does the KL penalty exist, and what specifically happens as &beta; goes to zero?</li>
+  <li><b>Where is the reward model in your DPO implementation, and why is that question a trick?</b></li>
+  <li>Point at the step in the derivation where the intractable normalising constant cancels, and say
+  what property of the Bradley-Terry model makes it cancel.</li>
+  <li>Did the log-probability of your chosen responses go up or down during training? If you did not
+  log it, you cannot answer, and that is itself the finding.</li>
+  <li>Name a capability in your product domain that <em>is</em> amenable to verified reward and one
+  that is not, and say precisely what makes the difference.</li>
+</ul>
+<p><b>You have cleared Stage 3 when you have written the DPO loss by hand, watched it move a real
+model, and can defend the derivation at a whiteboard.</b></p>
+<p class="neg"><b>Not the test:</b> running a TRL example script. TRL is excellent and you should use
+it in production. The point of writing the loss once is that when a run misbehaves you are debugging
+code you understand rather than a library you trust &mdash; and Module 6 is a catalogue of the ways
+these runs misbehave while the loss curve looks fine.</p>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Where to go for the depth</span>
+<ul>
+  <li><a href="https://rlhfbook.com/" target="_blank" rel="noopener"><b>The RLHF Book</b></a> &mdash;
+  Nathan Lambert, free on the web. The reference text for this stage, from instruction tuning through
+  direct alignment. ~10 hours.</li>
+  <li><a href="https://huggingface.co/learn" target="_blank" rel="noopener"><b>HF smol course</b></a>,
+  units on instruction tuning, evaluation and preference alignment &mdash; the hands-on complement.</li>
+  <li><a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener"><b>CS336
+  Assignment 5</b></a> &mdash; SFT plus RL for mathematical reasoning, with an optional DPO section.
+  The rigorous version, ~15 hours.</li>
+  <li>The three papers that define the arc, in order:
+  <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">InstructGPT</a> (learned
+  reward), <a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener">DPO</a> (no
+  reward model), <a href="https://arxiv.org/abs/2501.12948" target="_blank" rel="noopener">DeepSeek-R1</a>
+  (verified reward). Then <a href="https://arxiv.org/abs/2410.08847" target="_blank"
+  rel="noopener">Razin et al. on likelihood displacement</a> as the corrective.</li>
+</ul>
+</div>
+
+<div class="takeaways"><div class="t">Module 9 takeaways</div>
+<ul>
+  <li>The most valuable diagnosis is often "post-training is the wrong tool." Ask that first.</li>
+  <li>Displacement is a competition between surviving signal (1&minus;s) and mass absorbed elsewhere (p&middot;&alpha;).</li>
+  <li>Log the absolute log-probability of chosen responses, not only the margin. The margin can improve while both fall.</li>
+  <li>Write the loss once by hand, so that when it misbehaves you are debugging something you understand.</li>
+</ul></div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Stage 3 of five. Built 28 August 2026; every claim derived or cited the same day.</p>
+  <p style="margin-top:0.6rem">
+    <a href="ai-path-intermediate-to-advanced-course.html">The path</a>
+    <a href="transformer-mechanism-course.html">Stage 1 &mdash; Mechanism</a>
+    <a href="training-stack-course.html">Stage 2 &mdash; Training stack</a>
+    <a href="llm-evals-error-analysis-course.html">Stage 4 &mdash; Evals</a>
+    <a href="inference-economics-course.html">Stage 5 &mdash; Inference</a>
+  </p>
+  <p style="margin-top:0.6rem">
+    <a href="https://arxiv.org/abs/2203.02155" target="_blank" rel="noopener">InstructGPT</a>
+    <a href="https://arxiv.org/abs/2305.18290" target="_blank" rel="noopener">DPO</a>
+    <a href="https://arxiv.org/abs/2410.08847" target="_blank" rel="noopener">Likelihood displacement</a>
+    <a href="https://arxiv.org/abs/2411.15124" target="_blank" rel="noopener">T&uuml;lu 3 / RLVR</a>
+    <a href="https://arxiv.org/abs/2501.12948" target="_blank" rel="noopener">DeepSeek-R1</a>
+    <a href="https://rlhfbook.com/" target="_blank" rel="noopener">RLHF Book</a>
+  </p>
+  <p style="margin-top:0.8rem;font-size:0.78rem">This is the fastest-moving stage of the five. The
+  method table in Module 6 is a snapshot of an active area and new direct-alignment objectives appear
+  regularly; the derivation in Module 5 and the displacement mechanism in Module 6 are the parts that
+  will still be true. The superficial-alignment discussion in Module 2 is the claim most likely to be
+  revised, which is why it is stated as contested rather than settled.</p>
+</div>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var N = 9;
+var links = document.getElementById('nav-links'); var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a); secs.push(document.getElementById('m' + i));
+}
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  document.getElementById('progress-bar').style.width =
+    Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100))) + '%';
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) if (secs[i] && secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) { var el = document.getElementById('nl' + i); if (el) el.className = (i === active) ? 'done' : ''; }
+}
+window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href')); if (!t) return; e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+})();
+</script>
+
+<script>
+/* ═══════════ TOOL A — RECIPE DIAGNOSIS ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab')) return;
+
+var SYM = [
+  { k:'knowledge', t:'It states things about my domain that are wrong',
+    d:'Confident, fluent, and factually incorrect about your products, policies or data.' },
+  { k:'format',    t:'It ignores instructions or gets the output shape wrong',
+    d:'Prose when you asked for JSON, wrong schema, missing fields, drifts out of format mid-answer.' },
+  { k:'quality',   t:'Answers are acceptable but not good',
+    d:'Nothing is wrong exactly. The judgement, tone or emphasis is not what an expert would produce.' },
+  { k:'correct',   t:'It fails a task where there is a right answer',
+    d:'Maths, code, structured extraction, constraint satisfaction — something that can be checked.' },
+  { k:'refuse',    t:'It refuses things it should handle',
+    d:'Over-cautious on legitimate requests in your domain.' },
+  { k:'cost',      t:'It works, but the prompt is enormous and I pay for it every call',
+    d:'A long system prompt with examples that is correct and expensive.' }
+];
+
+var sym = null, ver = null, guess = null, built = false;
+var nSft = 2000, nPref = 0, sim = 40;
+
+function scaleCount(v){ if (v === 0) return 0; return Math.round(Math.pow(10, 1 + (v/100) * 4.7) / 10) * 10; }
+function fmtC(n){ return n.toLocaleString('en-US'); }
+function simWord(v){ return v < 20 ? 'Very different' : v < 40 ? 'Different' : v < 60 ? 'Moderate' : v < 80 ? 'Similar' : 'Near-duplicates'; }
+function simDesc(){
+  if (sim >= 80) return 'Danger zone. If your rejected responses are lightly edited versions of your chosen ones — the output of a "generate then corrupt" pipeline — you are constructing the likelihood-displacement failure case from Module 6. Tool B below shows why.';
+  if (sim >= 60) return 'Similar enough to be worth watching. Log the absolute log-probability of chosen responses, not just the margin.';
+  if (sim >= 30) return 'A healthy range: the pairs differ enough that the gradient difference carries real signal.';
+  return 'Very different responses. Strong gradient signal, but check the pairs are still comparable — preferences between wildly different answers often encode length or format rather than quality.';
+}
+
+function renderSym(){
+  $('sym').className = 'priors';
+  $('sym').innerHTML = SYM.map(function(s){
+    return '<button class="prior' + (sym===s.k?' sel':'') + '" data-k="' + s.k + '"><b>' + s.t + '</b><span>' + s.d + '</span></button>';
+  }).join('');
+  Array.prototype.forEach.call($('sym').querySelectorAll('.prior'), function(b){
+    b.addEventListener('click', function(){ if (built) return; sym = b.dataset.k; renderSym(); gate(); });
+  });
+}
+function bindPick(id, setter){
+  Array.prototype.forEach.call($(id).querySelectorAll('.prior'), function(b){
+    b.addEventListener('click', function(){
+      if (built) return;
+      setter(b.dataset.v || b.dataset.g);
+      Array.prototype.forEach.call($(id).querySelectorAll('.prior'), function(x){
+        x.className = 'prior' + (x === b ? ' sel' : '');
+      });
+      gate();
+    });
+  });
+}
+function gate(){
+  var ok = !!sym && !!ver && !!guess;
+  $('s1-go').disabled = !ok;
+  $('s1-gate').textContent = ok ? 'Ready.' : 'Pick a symptom, a verifiability answer and a guess.';
+}
+
+$('r-sft').addEventListener('input', function(){ nSft = scaleCount(+this.value); $('v-sft').textContent = fmtC(nSft); });
+$('r-pref').addEventListener('input', function(){ nPref = scaleCount(+this.value); $('v-pref').textContent = fmtC(nPref); });
+$('r-sim').addEventListener('input', function(){ sim = +this.value; $('v-sim').textContent = simWord(sim); $('d-sim').textContent = simDesc(); });
+
+$('s1-go').addEventListener('click', function(){
+  built = true;
+  $('s1-st').textContent = 'Locked'; $('s1-st').className = 'st ok';
+  $('s1-go').disabled = true;
+  ['r-sft','r-pref','r-sim'].forEach(function(i){ $(i).disabled = true; });
+  Array.prototype.forEach.call($('lab').querySelectorAll('.prior'), function(b){
+    b.style.pointerEvents='none'; if(!b.classList.contains('sel')) b.style.opacity='0.35';
+  });
+  $('s2').className='stage'; $('s2-st').textContent='Open'; $('lab-step').textContent='Stage 2 of 2';
+  diagnose();
+  try { $('s2').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+function diagnose(){
+  var rec, why, watch, h = '';
+
+  /* the first question that eliminates everything */
+  if (sym === 'knowledge') {
+    rec = 'none';
+    h += '<div class="verdict v-miss"><span class="vl">Stop. This is not a post-training problem.</span>' +
+      '<p>You have described a <b>knowledge</b> failure, and no amount of fine-tuning on your documents ' +
+      'will fix it. The objective has no term for factual accuracy — it rewards producing text with ' +
+      'the statistics of your corpus. What you will get is a model that states your facts confidently ' +
+      'whether or not it has them, which is strictly worse than what you have now, because the ' +
+      'confidence is the part that fools people.</p>' +
+      '<p><b>Do this instead:</b> put the facts in the context window. Retrieval over your documents, ' +
+      'a tool call to the system of record, or long context if the corpus is small enough. Then, if ' +
+      'the model uses the retrieved context badly, that <em>is</em> a post-training problem — come ' +
+      'back and select "ignores instructions" instead, because it will be a format failure wearing a ' +
+      'knowledge costume.</p>' +
+      '<p>Module 3 has the sentence to say in the meeting. It saves more money than every other ' +
+      'decision on this page combined.</p></div>';
+  } else if (sym === 'cost') {
+    rec = 'sft';
+    h += '<div class="verdict v-hit"><span class="vl">SFT — prompt distillation</span>' +
+      '<p>This is the highest-return fine-tune available and the least often proposed. Generate a ' +
+      'large set of input/output pairs using your existing long-prompt system, then fine-tune a ' +
+      'smaller or plainer model on them. You are moving the prompt into the weights, so you stop ' +
+      'paying for those tokens on every single call.</p>' +
+      '<p>It works because it is a pure behaviour transfer — exactly what SFT is good at — and ' +
+      'because you have an unlimited supply of perfectly labelled data from the system you already ' +
+      'run.</p>' + (nSft < 5000 ?
+      '<p><b>You will need more data.</b> You have ' + fmtC(nSft) + ' demonstrations; distillation ' +
+      'usually wants 10,000+, and unlike every other row on this table you can simply generate them.</p>' : '') +
+      '</div>';
+    watch = 'Held-out evaluation on the distribution you actually serve. Distillation quietly loses the tails, and the tails are where the long prompt was earning its cost.';
+  } else if (ver === 'yes' && (sym === 'correct' || sym === 'quality')) {
+    rec = 'rlvr';
+    h += '<div class="verdict v-hit"><span class="vl">RLVR with GRPO — the strongest option available</span>' +
+      '<p>You have a checkable answer, which puts you in the regime that removed the ceiling on this ' +
+      'whole field. There is no reward model to game, so you can optimise hard and long, and the ' +
+      'model can discover search behaviour nobody demonstrated.</p>' +
+      '<p><b>But do SFT first.</b> ' + (nSft >= 1000
+        ? 'You have ' + fmtC(nSft) + ' demonstrations, which is enough for a cold start.'
+        : 'You have only ' + fmtC(nSft) + ' demonstrations. Get to at least 1,000 covering the format ' +
+          'and reasoning style you want before starting RL.') +
+      ' DeepSeek shipped R1 rather than R1-Zero precisely because pure RL optimises the verifier and ' +
+      'nothing else — R1-Zero produced correct answers with poor readability and language mixing.</p>' +
+      '</div>';
+    watch = 'Verifier gaming. A checker weaker than it looks gives you outputs that pass and do not work — reward hacking with extra steps. Also watch trace readability, which the verifier says nothing about.';
+  } else if (sym === 'format' || (nSft > 0 && nPref === 0)) {
+    rec = 'sft';
+    h += '<div class="verdict v-hit"><span class="vl">SFT</span>' +
+      '<p>' + (sym === 'format'
+        ? 'Format and instruction-following failures are what SFT is <em>for</em>. This is the cheapest ' +
+          'and most reliable intervention in the whole stage.'
+        : 'You have demonstrations and no preference pairs, so SFT is the only thing you can actually run. ' +
+          'It is also the right first step regardless — preference optimisation reweights among responses ' +
+          'the model already produces, and if it does not produce good ones yet there is nothing to reweight.') +
+      '</p>' + (nSft < 1000
+        ? '<p><b>' + fmtC(nSft) + ' is thin.</b> A few thousand is the usual floor for a noticeable change. ' +
+          'Prioritise <em>task-shape diversity</em> over polish — ten examples each of two hundred distinct ' +
+          'shapes beats two thousand of the same three.</p>'
+        : '<p>' + fmtC(nSft) + ' demonstrations is a workable set. Past a few thousand, additional examples ' +
+          'of the same shape add very little; spend the effort on covering task shapes you have not covered.</p>') +
+      '</div>';
+    watch = 'Loss masking. Compute the loss on response tokens only — if you do not, you are also training the model to generate user turns, and nothing will complain.';
+  } else if (nPref > 0 && sym === 'quality') {
+    rec = 'dpo';
+    h += '<div class="verdict v-hit"><span class="vl">DPO (or a successor)</span>' +
+      '<p>"Acceptable but not good" is the preference-optimisation symptom: the capability is present ' +
+      'and the ranking among available responses is wrong. With ' + fmtC(nPref) + ' pairs you can run ' +
+      'DPO directly — two forward passes per example, no reward model, no rollouts.</p>' +
+      (nPref < 2000 ? '<p><b>' + fmtC(nPref) + ' pairs is thin</b> for preference optimisation; ' +
+        '5,000+ is a more typical working floor. Below that, consider whether the problem is really ' +
+        'an SFT problem you have mislabelled.</p>' : '') +
+      (nSft < 500 ? '<p><b>Do SFT first.</b> You have almost no demonstrations, and DPO on a base ' +
+        'model reweights a distribution over documents rather than over answers.</p>' : '') +
+      '</div>';
+    watch = 'Length drift and likelihood displacement. Report mean response length with every win rate, and log log&pi;(chosen) rather than only the margin.';
+  } else if (sym === 'refuse') {
+    rec = nPref > 0 ? 'dpo' : 'sft';
+    h += '<div class="verdict v-hit"><span class="vl">' + (nPref > 0 ? 'DPO on targeted pairs' : 'Targeted SFT') + '</span>' +
+      '<p>Refusal boundaries are behaviour, so post-training is the right instrument. ' +
+      (nPref > 0
+        ? 'Pairs are the better tool here because the signal is comparative: this response was too ' +
+          'cautious, this one was appropriately helpful for the same request.'
+        : 'Build demonstrations of the borderline cases handled well. A few hundred well-chosen ' +
+          'examples on the actual boundary beats thousands of easy ones.') + '</p>' +
+      '<p><b>Do this carefully and with an eval in front of it.</b> Loosening refusal is the one ' +
+      'intervention here that can make your system worse in ways that do not show up in your own ' +
+      'testing, because the cases you did not think of are the point. Build the eval first — that ' +
+      'is Stage 4.</p></div>';
+    watch = 'Over-correction. Measure refusals on a held-out set of things that <em>should</em> be refused, not only on things that should not.';
+  } else {
+    rec = ver === 'partial' ? 'rlvr' : 'dpo';
+    h += '<div class="verdict v-miss"><span class="vl">Ambiguous — the inputs point two ways</span>' +
+      '<p>Your symptom and your data do not clearly select a method. That usually means the problem ' +
+      'is not yet characterised well enough to spend money on, and the honest next step is not a ' +
+      'training run.</p>' +
+      '<p><b>Go and read 100 failing outputs and categorise them by hand.</b> That is Stage 4 of the ' +
+      'path, and it is the correct move whenever you cannot say precisely what is wrong. Roughly half ' +
+      'the post-training projects that fail were solving a problem nobody had characterised.</p></div>';
+    watch = null;
+  }
+
+  /* guess comparison */
+  var NAMES = { none:'nothing here — wrong tool', sft:'SFT', dpo:'DPO', kto:'KTO', rlvr:'RLVR' };
+  if (guess === rec) {
+    h += '<div class="field"><span class="lbl">Your guess matched</span>' +
+      '<p>You said <b>' + NAMES[guess] + '</b> and the procedure agrees. Worth noting that the ' +
+      'procedure is only a decision tree over the questions in Module 8 — agreeing with it means you ' +
+      'have internalised the same rules, not that either of you is right about your specific case.</p></div>';
+  } else {
+    h += '<div class="field"><span class="lbl">Your guess was ' + NAMES[guess] + '; the procedure says ' + NAMES[rec] + '</span>' +
+      (guess === 'rlvr' && rec !== 'rlvr'
+        ? '<p>RLVR is the most exciting option and the most over-applied. It requires a program that ' +
+          'checks correctness, and if you cannot write one, it is not available at any budget.</p>'
+        : guess === 'dpo' && rec === 'sft'
+        ? '<p>The most common substitution error in this stage. Preference optimisation reweights ' +
+          'responses the model already produces; if the base behaviour is wrong, SFT has to come ' +
+          'first. Reaching for DPO before SFT is reaching for the second step.</p>'
+        : guess !== 'none' && rec === 'none'
+        ? '<p>The gap here is the expensive one. Every method you could have picked optimises the ' +
+          'model to produce text like your data; none of them makes it know what is in your data. ' +
+          'Module 3.</p>'
+        : '<p>Worth reading the reasoning above against your own and deciding which you believe — ' +
+          'this is a decision tree over stated rules, not an oracle, and your knowledge of the ' +
+          'specific problem beats it.</p>') +
+      '</div>';
+  }
+
+  if (watch) {
+    h += '<div class="field"><span class="lbl">The specific thing to watch</span><p>' + watch + '</p></div>';
+  }
+
+  /* displacement warning driven by the similarity slider */
+  if (rec === 'dpo' && sim >= 65) {
+    h += '<div class="verdict v-miss"><span class="vl">Flag: your pairs are too similar</span>' +
+      '<p>You rated your rejected responses as <b>' + simWord(sim).toLowerCase() + '</b> to your ' +
+      'chosen ones. DPO steps along the <em>difference</em> of two gradients, so when the two ' +
+      'responses are near-identical that difference is small and points somewhere unrelated to ' +
+      'either — and the probability mass you take from the rejected response does not reliably land ' +
+      'on the chosen one.</p>' +
+      '<p>This is not "weaker signal." It is the mechanism behind likelihood displacement, where ' +
+      'preferring "No" over "Never" raises "Yes". <b>Use Tool B below</b> with the similarity slider ' +
+      'at your value and watch what happens to the chosen response.</p></div>';
+  }
+
+  $('out2').innerHTML = h;
+}
+
+$('reset').addEventListener('click', function(){
+  built = false; sym = null; ver = null; guess = null;
+  $('out2').innerHTML = '';
+  $('s2').className='stage locked'; $('s2-st').textContent='Locked';
+  $('s1-st').textContent='Open'; $('s1-st').className='st';
+  $('lab-step').textContent='Stage 1 of 2';
+  ['r-sft','r-pref','r-sim'].forEach(function(i){ $(i).disabled=false; });
+  Array.prototype.forEach.call($('lab').querySelectorAll('.prior'), function(b){
+    b.style.pointerEvents=''; b.style.opacity=''; b.className='prior';
+  });
+  gate();
+  try { $('s1').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+renderSym();
+bindPick('ver', function(v){ ver = v; });
+bindPick('guess', function(v){ guess = v; });
+$('d-sim').textContent = simDesc();
+$('v-sim').textContent = simWord(sim);
+$('v-sft').textContent = fmtC(nSft);
+})();
+</script>
+
+<script>
+/* ═══════════ TOOL B — LIKELIHOOD DISPLACEMENT (toy, 3 outcomes) ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab2')) return;
+
+var DP = {
+  healthy: { s:0.20, a:0.10, b:0.10, n:200, label:'Healthy pairs',
+    note:'Chosen and rejected are genuinely different responses, and the third response is not much aligned with the update direction. This is what you want your preference data to look like.' },
+  nono:    { s:0.90, a:0.65, b:0.10, n:200, label:'"No" vs "Never" → "Yes"',
+    note:'The case from Razin et al. (2024). Two near-identical negations as chosen and rejected; the direction that separates them points towards affirmation, so the third response absorbs the mass. This is the catastrophic form of displacement — not a loss of signal but a shift to opposite meaning.' },
+  corrupt: { s:0.85, a:0.25, b:0.10, n:200, label:'Generate-then-corrupt pipeline',
+    note:'A very common data-construction shortcut: take a good response, lightly damage it, call it rejected. It manufactures maximal similarity by design, which is exactly the regime displacement lives in.' },
+  bigbeta: { s:0.50, a:0.30, b:0.60, n:200, label:'Large β',
+    note:'Same data, much larger DPO temperature. Watch the gradient shut off early as the implicit reward margin saturates the sigmoid — the run stops moving while the loss looks like it converged.' }
+};
+
+var s = 0.20, alpha = 0.10, beta = 0.10, steps = 200, dp = 'healthy';
+
+function sigmoid(x){ return 1 / (1 + Math.exp(-x)); }
+function softmax(z){
+  var m = Math.max.apply(null, z);
+  var e = z.map(function(v){ return Math.exp(v - m); });
+  var t = e[0] + e[1] + e[2];
+  return e.map(function(v){ return v / t; });
+}
+
+/* z = [chosen, rejected, other]. Update direction is ∇w − ∇l with |∇w|=|∇l|=1, cos = s.
+   dz_chosen   = +(1 − s)
+   dz_rejected = −(1 − s)
+   dz_other    = alpha   (alignment of the third response's gradient with the difference direction) */
+function run(){
+  var z = [0, 0, 0];
+  var ref = softmax(z).map(Math.log);
+  var lr = 0.6;
+  var hist = [];
+  for (var t = 0; t <= steps; t++) {
+    var p = softmax(z);
+    var lp = p.map(Math.log);
+    var margin = beta * ((lp[0] - ref[0]) - (lp[1] - ref[1]));
+    var g = sigmoid(-margin);                       /* DPO gradient scale */
+    hist.push({ t:t, lw:lp[0], ll:lp[1], lo:lp[2], pw:p[0], pl:p[1], po:p[2], g:g, margin:margin });
+    if (t === steps) break;
+    var eta = lr * beta * g;
+    z[0] += eta * (1 - s);
+    z[1] += eta * (s - 1);
+    z[2] += eta * alpha;
+  }
+  return hist;
+}
+
+function chart(hist){
+  var W = 720, H = 220, PL = 46, PR = 10, PT = 12, PB = 24;
+  var all = [];
+  hist.forEach(function(h){ all.push(h.lw, h.ll, h.lo); });
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+  if (hi - lo < 0.4) { hi += 0.2; lo -= 0.2; }
+  var pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+  function X(t){ return PL + (t / steps) * (W - PL - PR); }
+  function Y(v){ return PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB); }
+  function path(key, col){
+    var d = hist.map(function(h, i){ return (i ? 'L' : 'M') + X(h.t).toFixed(1) + ' ' + Y(h[key]).toFixed(1); }).join(' ');
+    return '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="2.2" />';
+  }
+  var y0 = hist[0].lw;
+  var g = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="log probability trajectories">';
+  /* grid */
+  for (var k = 0; k <= 4; k++) {
+    var v = lo + (hi - lo) * k / 4;
+    var y = Y(v);
+    g += '<line x1="' + PL + '" y1="' + y.toFixed(1) + '" x2="' + (W-PR) + '" y2="' + y.toFixed(1) +
+         '" stroke="#1e2d40" stroke-width="1" />';
+    g += '<text x="' + (PL-6) + '" y="' + (y+3.5).toFixed(1) + '" fill="#8b949e" font-size="10" text-anchor="end" font-family="monospace">' + v.toFixed(2) + '</text>';
+  }
+  /* starting level of chosen, as a reference line */
+  g += '<line x1="' + PL + '" y1="' + Y(y0).toFixed(1) + '" x2="' + (W-PR) + '" y2="' + Y(y0).toFixed(1) +
+       '" stroke="#c678dd" stroke-width="1" stroke-dasharray="4 4" opacity="0.7" />';
+  g += path('lo', '#d19a66') + path('ll', '#e06c75') + path('lw', '#98c379');
+  g += '<text x="' + PL + '" y="' + (H-7) + '" fill="#8b949e" font-size="10" font-family="monospace">step 0</text>';
+  g += '<text x="' + (W-PR) + '" y="' + (H-7) + '" fill="#8b949e" font-size="10" font-family="monospace" text-anchor="end">step ' + steps + '</text>';
+  g += '</svg>';
+  return g;
+}
+
+function render(){
+  var hist = run();
+  var a = hist[0], b = hist[hist.length - 1];
+  var dW = b.lw - a.lw, dL = b.ll - a.ll, dO = b.lo - a.lo;
+  var displaced = dW < 0;
+  var marginUp = (b.lw - b.ll) > (a.lw - a.ll);
+
+  /* the analytic condition, evaluated at the start */
+  var signal = (1 - s) * (1 - a.pw + a.pl);
+  var leak = a.po * alpha;
+
+  var h = '<div class="mgrid">' +
+    '<div class="mcell' + (displaced ? ' bad' : ' good') + '"><b>' + (dW >= 0 ? '+' : '') + dW.toFixed(3) +
+      '</b><span>&Delta; log &pi;(chosen)</span></div>' +
+    '<div class="mcell"><b>' + (dL >= 0 ? '+' : '') + dL.toFixed(3) + '</b><span>&Delta; log &pi;(rejected)</span></div>' +
+    '<div class="mcell' + (dO > 0.05 ? ' warn' : '') + '"><b>' + (dO >= 0 ? '+' : '') + dO.toFixed(3) +
+      '</b><span>&Delta; log &pi;(other)</span></div>' +
+    '<div class="mcell' + (marginUp ? ' good' : '') + '"><b>' + ((b.lw-b.ll)-(a.lw-a.ll)).toFixed(3) +
+      '</b><span>&Delta; margin &mdash; what DPO optimises</span></div>' +
+    '<div class="mcell"><b>' + (b.g).toFixed(3) + '</b><span>gradient scale at the end</span></div>' +
+    '</div>';
+
+  h += '<div class="chart">' + chart(hist) +
+    '<div class="clegend"><span><i style="background:#98c379"></i>chosen</span>' +
+    '<span><i style="background:#e06c75"></i>rejected</span>' +
+    '<span><i style="background:#d19a66"></i>other</span>' +
+    '<span><i style="background:#c678dd"></i>chosen&rsquo;s starting level</span></div></div>';
+
+  if (displaced) {
+    h += '<div class="verdict v-miss"><span class="vl">Likelihood displacement</span>' +
+      '<p>The margin <b>improved by ' + (((b.lw-b.ll)-(a.lw-a.ll))).toFixed(3) + '</b> — DPO did ' +
+      'exactly what its loss asks. And the log-probability of the response you <em>preferred</em> ' +
+      '<b>fell by ' + Math.abs(dW).toFixed(3) + '</b>, while the third response rose by <b>' +
+      dO.toFixed(3) + '</b>.</p>' +
+      '<p>The mass came off the rejected response and did not land on the chosen one. It went to the ' +
+      'third outcome, because the update direction — the <em>difference</em> of two nearly parallel ' +
+      'gradients — happened to point that way.</p>' +
+      '<p><b>The condition, evaluated at step 0:</b> useful signal <code>(1&minus;s)(1&minus;p<sub>w</sub>+p<sub>l</sub>) = ' +
+      signal.toFixed(3) + '</code> versus leakage <code>p<sub>o</sub>&middot;&alpha; = ' + leak.toFixed(3) +
+      '</code>. Leakage wins. Reduce the similarity slider until the first term dominates and watch ' +
+      'the green line turn.</p>' +
+      '<p>Note what a real training run would have shown you: <b>the loss curve looks fine.</b> The ' +
+      'margin is the thing being optimised and the margin improved. Only logging ' +
+      '<code>log&pi;(chosen)</code> separately reveals this.</p></div>';
+  } else if (dO > dW && dO > 0.02) {
+    h += '<div class="verdict v-miss"><span class="vl">Near miss &mdash; the third response gained more than the chosen one</span>' +
+      '<p>The chosen response did rise, by <b>' + dW.toFixed(3) + '</b>. But the <em>other</em> ' +
+      'response rose by <b>' + dO.toFixed(3) + '</b> — <b>' + (dO/Math.max(dW,1e-6)).toFixed(0) +
+      '&times; more</b>. Most of the probability mass you removed from the rejected response went ' +
+      'somewhere you did not choose.</p>' +
+      '<p>Strictly this is not displacement: the sign on the chosen response is still positive, and ' +
+      'the margin improved by <b>' + (((b.lw-b.ll)-(a.lw-a.ll))).toFixed(3) + '</b>. Every metric you ' +
+      'were likely to log looks fine. But the intervention is barely doing what you wanted, and a ' +
+      'small further increase in similarity or in the third response&rsquo;s alignment flips the sign.</p>' +
+      '<p><b>The condition, at step 0:</b> signal <code>(1&minus;s)(1&minus;p<sub>w</sub>+p<sub>l</sub>) = ' +
+      signal.toFixed(3) + '</code> versus leakage <code>p<sub>o</sub>&middot;&alpha; = ' + leak.toFixed(3) +
+      '</code>. Signal wins, narrowly. That margin of safety is what your data-construction pipeline ' +
+      'is spending when it makes rejected responses out of lightly damaged chosen ones.</p></div>';
+  } else {
+    h += '<div class="verdict v-hit"><span class="vl">No displacement &mdash; the update did what you wanted</span>' +
+      '<p>Chosen rose by <b>' + dW.toFixed(3) + '</b>, rejected fell by <b>' + Math.abs(dL).toFixed(3) +
+      '</b>, and the margin improved by <b>' + (((b.lw-b.ll)-(a.lw-a.ll))).toFixed(3) + '</b>.</p>' +
+      '<p><b>The condition, at step 0:</b> useful signal <code>(1&minus;s)(1&minus;p<sub>w</sub>+p<sub>l</sub>) = ' +
+      signal.toFixed(3) + '</code> versus leakage <code>p<sub>o</sub>&middot;&alpha; = ' + leak.toFixed(3) +
+      '</code>. Signal wins, so the chosen response gains.</p>' +
+      '<p>Now push the similarity slider towards 1 and watch the first term collapse. The point is ' +
+      'that <b>(1&minus;s) is the only thing multiplying your useful signal</b>, and nothing ' +
+      'multiplies the leakage — so at high similarity the leakage wins for <em>any</em> positive ' +
+      'alignment, however small.</p></div>';
+  }
+
+  if (b.g < 0.08) {
+    h += '<div class="field"><span class="lbl">The gradient has switched off</span>' +
+      '<p>The gradient scale &sigma;(&minus;margin) is down to <b>' + b.g.toFixed(3) + '</b>. The ' +
+      'sigmoid has saturated: the implicit reward margin is large enough that the model is confidently ' +
+      '"right" about this pair and further steps do almost nothing.</p>' +
+      '<p>That is DPO working as designed, and it is also the property IPO was written to address — ' +
+      'with near-deterministic preferences the only way to keep improving a saturating sigmoid is to ' +
+      'push the margin without bound, which drags the policy arbitrarily far from the reference.</p></div>';
+  }
+
+  $('out3').innerHTML = h;
+}
+
+function renderPresets(){
+  $('dpreset').innerHTML = Object.keys(DP).map(function(k){
+    return '<button class="pbtn' + (k===dp?' sel':'') + '" data-k="' + k + '">' + DP[k].label + '</button>';
+  }).join('');
+  Array.prototype.forEach.call($('dpreset').querySelectorAll('.pbtn'), function(bt){
+    bt.addEventListener('click', function(){
+      dp = bt.dataset.k; var d = DP[dp];
+      s = d.s; alpha = d.a; beta = d.b; steps = d.n;
+      $('r-s').value = Math.round(s*100); $('v-s').textContent = s.toFixed(2);
+      $('r-a').value = Math.round(alpha*100); $('v-a').textContent = alpha.toFixed(2);
+      $('r-b').value = Math.round(beta*100); $('v-b').textContent = beta.toFixed(2);
+      $('r-n').value = steps; $('v-n').textContent = steps;
+      $('d-dpreset').textContent = d.note;
+      $('d-s').textContent = sDesc();
+      renderPresets(); render();
+    });
+  });
+}
+function sDesc(){
+  if (s >= 0.85) return 'Near-duplicate responses. The gradients of chosen and rejected are almost parallel, so their difference — which is the entire update direction — is tiny and points nowhere in particular.';
+  if (s >= 0.6) return 'Quite similar. Enough signal to train on, enough parallelism that displacement is a real risk if a third response is aligned with the difference.';
+  if (s >= 0.3) return 'A healthy separation. The difference direction still carries most of what distinguishes the two responses.';
+  return 'Very different responses. Maximum useful signal — though in practice pairs this different often encode length or format rather than quality.';
+}
+function clearPreset(){ dp = null; renderPresets(); $('d-dpreset').textContent = 'Custom settings.'; }
+
+$('r-s').addEventListener('input', function(){ s = +this.value/100; $('v-s').textContent = s.toFixed(2); $('d-s').textContent = sDesc(); clearPreset(); render(); });
+$('r-a').addEventListener('input', function(){ alpha = +this.value/100; $('v-a').textContent = alpha.toFixed(2); clearPreset(); render(); });
+$('r-b').addEventListener('input', function(){ beta = +this.value/100; $('v-b').textContent = beta.toFixed(2); clearPreset(); render(); });
+$('r-n').addEventListener('input', function(){ steps = +this.value; $('v-n').textContent = steps; clearPreset(); render(); });
+
+renderPresets();
+$('d-dpreset').textContent = DP[dp].note;
+$('d-s').textContent = sDesc();
+render();
+
+window.__dpo = { run: run, set: function(o){ if('s' in o)s=o.s; if('a' in o)alpha=o.a; if('b' in o)beta=o.b; if('n' in o)steps=o.n; } };
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>
