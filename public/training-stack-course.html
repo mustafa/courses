@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Training Stack — What It Costs to Make a Model</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.1rem;overflow-x:auto;margin:1.1rem 0;font-size:0.83rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text)}
+pre .c{color:var(--text-dim)}
+pre .k{color:var(--purple)}
+pre .s{color:var(--green)}
+pre .f{color:var(--blue)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-steel{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-steel .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* CURRENCY STATUS CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-live{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-ok{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-dated{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-frozen{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-dead{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* LEDGER ROWS */
+.ledger{margin:1.3rem 0}
+.lrow{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.05rem;margin-bottom:0.65rem;border-left:3px solid var(--border-light)}
+.lrow.live{border-left-color:var(--green)}
+.lrow.ok{border-left-color:var(--accent)}
+.lrow.dated{border-left-color:var(--yellow)}
+.lrow.frozen{border-left-color:var(--purple)}
+.lrow.dead{border-left-color:var(--red)}
+.lrow .lc{font-size:0.93rem;color:var(--text-bright);font-weight:650;margin-bottom:0.45rem}
+.lrow .lv{font-size:0.86rem;color:var(--text-dim);line-height:1.65}
+.lrow .lv b{color:var(--text)}
+.lrow .lv a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.lrow .verdict-line{margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);
+  font-size:0.85rem;color:var(--text)}
+.lrow .verdict-line b{color:var(--text-bright)}
+
+/* STAGE CLEARING TEST */
+.cleartest{background:linear-gradient(180deg,rgba(108,99,255,0.09),rgba(108,99,255,0.04));
+  border:1px solid rgba(108,99,255,0.34);border-left:3px solid var(--accent2);
+  border-radius:10px;padding:1.15rem 1.3rem;margin:1.5rem 0}
+.cleartest .lbl{font-size:0.7rem;font-weight:800;color:var(--accent2);text-transform:uppercase;
+  letter-spacing:0.08em;display:block;margin-bottom:0.6rem}
+.cleartest p{margin-bottom:0.7rem;font-size:0.93rem}
+.cleartest p:last-child{margin-bottom:0}
+.cleartest .neg{color:var(--text-dim);font-size:0.86rem}
+
+/* TIME BADGE */
+.timebar{display:flex;gap:0.5rem;flex-wrap:wrap;margin:0 0 1.3rem}
+.tb{background:var(--code-bg);border:1px solid var(--border);border-radius:7px;
+  padding:0.4rem 0.75rem;font-size:0.78rem;color:var(--text-dim);font-family:var(--mono)}
+.tb b{color:var(--accent);font-weight:700}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ PATH BUILDER (LAB) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+/* goal picker */
+.priors{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.4rem}
+.prior{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.8rem 0.9rem;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.prior:hover{border-color:var(--accent)}
+.prior.sel{border-color:var(--accent2);background:rgba(108,99,255,0.12)}
+.prior b{display:block;font-size:0.9rem;color:var(--text-bright);font-weight:750;margin-bottom:0.2rem}
+.prior span{font-size:0.75rem;color:var(--text-dim);line-height:1.45;display:block}
+@media(max-width:640px){.priors{grid-template-columns:1fr}}
+.priors.five{grid-template-columns:repeat(5,1fr)}
+@media(max-width:760px){.priors.five{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:420px){.priors.five{grid-template-columns:repeat(2,1fr)}}
+
+/* capability self-assessment */
+.cap{border:1px solid var(--border);border-radius:9px;padding:0.8rem 0.95rem;
+  margin-bottom:0.6rem;background:var(--bg2)}
+.cap .cq{font-size:0.88rem;color:var(--text);margin-bottom:0.55rem;line-height:1.6}
+.cap .cq b{color:var(--text-bright)}
+.cap .cs{font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.4rem}
+.cap-opts{display:flex;gap:0.35rem;flex-wrap:wrap}
+.cap-opt{font-size:0.72rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.cap-opt:hover{border-color:var(--accent);color:var(--accent)}
+.cap-opt.sel-y{background:rgba(152,195,121,0.2);border-color:var(--green);color:var(--green)}
+.cap-opt.sel-p{background:rgba(229,192,123,0.2);border-color:var(--yellow);color:var(--yellow)}
+.cap-opt.sel-n{background:rgba(224,108,117,0.2);border-color:var(--red);color:var(--red)}
+
+/* result */
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+.field ul{margin:0 0 0.7rem 1.2rem}
+.field li{margin-bottom:0.3rem}
+
+/* schedule rows */
+.sched{margin:1rem 0}
+.srow{display:grid;grid-template-columns:auto 1fr auto;gap:0.8rem;align-items:baseline;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:0.65rem 0.9rem;margin-bottom:0.45rem;border-left:3px solid var(--border-light)}
+.srow.now{border-left-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.srow.done{opacity:0.45;border-left-color:var(--green)}
+.srow .sw{font-family:var(--mono);font-size:0.76rem;color:var(--text-dim);white-space:nowrap}
+.srow .sn{font-size:0.88rem;color:var(--text-bright);font-weight:650}
+.srow .sn em{display:block;font-style:normal;font-size:0.78rem;color:var(--text-dim);
+  font-weight:400;margin-top:0.15rem;line-height:1.5}
+.srow .sh{font-family:var(--mono);font-size:0.76rem;color:var(--accent);white-space:nowrap}
+@media(max-width:640px){.srow{grid-template-columns:1fr;gap:0.25rem}}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+
+/* ===== course-2 extras ===== */
+.eq{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.7rem 1rem;margin:1rem 0;font-family:var(--mono);font-size:0.84rem;
+  color:var(--text-bright);overflow-x:auto;line-height:1.9}
+.eq b{color:var(--accent)}
+.eq .cm{color:var(--text-dim)}
+.bar{height:10px;border-radius:5px;background:var(--code-bg);overflow:hidden;display:flex;margin:0.45rem 0 0.3rem}
+.bar i{display:block;height:100%}
+.bar .b-a{background:var(--accent)}
+.bar .b-b{background:var(--accent2)}
+.bar .b-c{background:var(--orange)}
+.bar .b-d{background:var(--green)}
+.key{display:flex;gap:0.9rem;flex-wrap:wrap;font-size:0.74rem;color:var(--text-dim);margin-bottom:0.5rem}
+.key span{display:inline-flex;align-items:center;gap:0.32rem}
+.key i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.preset{display:flex;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.6rem}
+.pbtn{background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:7px;padding:0.35rem 0.75rem;font-size:0.76rem;font-weight:650;cursor:pointer;
+  font-family:var(--mono);transition:all 0.15s}
+.pbtn:hover{border-color:var(--accent);color:var(--accent)}
+.pbtn.sel{border-color:var(--accent2);background:rgba(108,99,255,0.14);color:var(--text-bright)}
+.roof{margin:1rem 0}
+.rrow{display:grid;grid-template-columns:11rem 1fr auto;gap:0.7rem;align-items:center;
+  padding:0.4rem 0;font-size:0.82rem}
+.rrow .rn{color:var(--text);font-weight:600}
+.rrow .rb{height:12px;border-radius:6px;background:var(--code-bg);overflow:hidden}
+.rrow .rb i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.rrow .rb i.bad{background:var(--red)}
+.rrow .rb i.warn{background:var(--yellow)}
+.rrow .rv{font-family:var(--mono);color:var(--accent);font-weight:700;white-space:nowrap;font-size:0.8rem}
+@media(max-width:640px){.rrow{grid-template-columns:1fr;gap:0.2rem}}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">The Training Stack</div>
+    <div class="nav-prog" id="nav-prog">0 / 10</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>The Training Stack</h1>
+  <p class="sub">Stage 2 of the path. The arithmetic of a training run &mdash; what a FLOP budget
+  buys, why scaling laws are a unit-economics argument rather than a fact about quality, what
+  actually occupies the GPU, why your expensive silicon is idle most of the time, and what to do when
+  a run starts misbehaving at four in the morning.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>10</span> modules</div>
+    <div class="hero-badge"><span>~45 h</span> stage budget</div>
+    <div class="hero-badge"><span>~$50&ndash;100</span> compute</div>
+    <div class="hero-badge"><span>1</span> interactive tool</div>
+    <div class="hero-badge"><span>~85</span> min read</div>
+    <div class="hero-badge"><span>28 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Stage 2 of five &middot; prerequisite:
+  <a href="transformer-mechanism-course.html">The Mechanism</a> &middot;
+  the path is in <a href="ai-path-intermediate-to-advanced-course.html">Intermediate to Advanced AI</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>Stage 1 was about what the model computes. This stage is about <strong>what it costs to make
+  one</strong>, and almost every idea here is an economic argument wearing a research costume. That
+  is not a criticism &mdash; it is the most useful frame available, and it is the one that makes the
+  decisions legible.</p>
+  <p><strong>Every number in this course is either derived in front of you or cited.</strong> Where a
+  widely repeated figure turns out to be contested &mdash; and one of the most famous ones in the
+  field is &mdash; the course says so rather than quietly picking a side. Two claims here are
+  extrapolations from a single published data point, and both are labelled.</p>
+  <p>The prerequisite is real. If you cannot write the forward pass from a blank file,
+  <a href="transformer-mechanism-course.html">go back to Stage 1</a> &mdash; the memory accounting
+  in Module 5 and the parallelism trade-offs in Module 7 are meaningless without it.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">The arithmetic of a training run<span class="tag">C &asymp; 6ND</span></a></li>
+    <li><a href="#m2">Scaling laws as unit economics<span class="tag">Chinchilla</span></a></li>
+    <li><a href="#m3">Why nobody follows Chinchilla<span class="tag">And one who did</span></a></li>
+    <li><a href="#m4">Data, and the tokenizer decision<span class="tag">15 trillion tokens</span></a></li>
+    <li><a href="#m5">What is actually on the GPU<span class="tag">16 bytes/param</span></a></li>
+    <li><a href="#m6">Arithmetic intensity and the roofline<span class="tag">The key concept</span></a></li>
+    <li><a href="#m7">The four parallelisms<span class="tag">What each costs</span></a></li>
+    <li><a href="#m8">When the run goes wrong<span class="tag">Diagnosis</span></a></li>
+    <li><a href="#m9">MFU &mdash; the number that grades you<span class="tag">Efficiency</span></a></li>
+    <li><a href="#m10">The Training Run Planner<span class="tag">Interactive</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>The arithmetic of a training run</h2>
+  <div class="mt">One approximation that turns a research programme into a spreadsheet</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know where C &asymp; 6ND comes from, term by term</li>
+  <li>Be able to convert between FLOPs, GPU-days and dollars in either direction</li>
+  <li>Have checked the approximation against a real published training run and seen it hold</li>
+</ul></div>
+
+<h3>Six FLOPs per parameter per token</h3>
+
+<p>The single most useful fact in this stage is that the cost of training a dense transformer is
+approximately</p>
+
+<div class="eq"><b>C &asymp; 6 &middot; N &middot; D</b>&nbsp;&nbsp;<span class="cm">FLOPs, where N = parameters and D = training tokens</span></div>
+
+<p>The six is not magic and you should be able to derive it. Consider a single weight in a matrix
+multiply, processing a single token.</p>
+
+<ul>
+  <li><strong>Forward pass: 2 FLOPs.</strong> The weight is multiplied by an activation and the
+  result is added into an accumulator. One multiply, one add.</li>
+  <li><strong>Backward pass: 4 FLOPs.</strong> Backpropagation through a matrix multiply computes
+  two things, not one &mdash; the gradient with respect to the <em>input</em>, so the signal can
+  continue backwards, and the gradient with respect to the <em>weight</em>, so it can be updated.
+  Each is a multiply-accumulate of the same shape. Two operations at two FLOPs each.</li>
+</ul>
+
+<p>Two plus four is six, per parameter, per token. Multiply by all parameters and all tokens and you
+have the run. This is why the backward pass costs roughly twice the forward pass &mdash; a ratio
+worth carrying, because it is also why inference is so much cheaper per token than training, and why
+gradient-free methods look tempting until you count the samples they need.</p>
+
+<div class="callout c-fact"><span class="lbl">Check it against a real run</span>
+<p>Meta published both the size and the compute for Llama 3 405B, which lets us test the
+approximation rather than trust it. The paper states the flagship was pre-trained on
+<b>15.6T tokens</b> with <b>405B parameters</b>, using <b>3.8 &times; 10<sup>25</sup> FLOPs</b>.</p>
+<div class="eq">6 &times; 405e9 &times; 15.6e12 = <b>3.79 &times; 10<sup>25</sup></b>&nbsp;&nbsp;<span class="cm">vs 3.8 &times; 10<sup>25</sup> reported</span></div>
+<p>Within a quarter of a percent, on a run that cost a nine-figure sum. The approximation ignores
+attention's quadratic term, all normalisation, every activation function and the embeddings, and it
+still lands on the published number &mdash; because at frontier scale the dense matrix multiplies
+genuinely are everything else rounded to zero.</p>
+<p>Source: <a href="https://arxiv.org/abs/2407.21783" target="_blank" rel="noopener">The Llama 3 Herd
+of Models</a> (Grattafiori et al., 2024).</p>
+</div>
+
+<h3>Converting to time and money</h3>
+
+<p>A FLOP count is not a plan. Three more lines turn it into one.</p>
+
+<div class="eq">
+achieved_FLOP/s = n_gpus &times; peak_FLOP/s &times; <b>MFU</b><br>
+seconds         = C / achieved_FLOP/s<br>
+dollars         = n_gpus &times; hours &times; $/gpu-hour
+</div>
+
+<p>The only term here that is not a number you can look up is <b>MFU</b> &mdash; model FLOPs
+utilisation, the fraction of the hardware's advertised peak you actually achieve. Module 9 is about
+that number specifically. For now, know that <strong>large well-engineered runs land in the
+30&ndash;50% range</strong>, and that assuming 100% will make you wrong by a factor of two to three
+in the direction that gets people fired.</p>
+
+<div class="callout c-warn"><span class="lbl">The peak-FLOPS number on the spec sheet is probably not the one you want</span>
+<p>NVIDIA's H100 datasheet lists BFLOAT16 Tensor Core performance as <b>1,979 TFLOPS</b> for the SXM
+part, with an asterisk. The footnote reads: <em>"Shown with sparsity. Specifications 1/2 lower
+without sparsity."</em></p>
+<p>Structured sparsity requires a model whose weights have been pruned into a 2:4 pattern. Standard
+dense training does not qualify. <strong>The number you should plan against is about 989 TFLOPS,
+half the headline.</strong></p>
+<p>This is the most commonly misquoted specification in the field, it appears in vendor decks and
+capacity plans, and it makes every downstream estimate wrong by exactly 2&times;. When someone quotes
+a peak-FLOPS figure, the useful question is not whether it is right but whether it includes
+sparsity.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 1 takeaways</div>
+<ul>
+  <li>C &asymp; 6ND: two FLOPs forward, four backward, per parameter per token.</li>
+  <li>The backward pass costs twice the forward because it computes two gradients, not one.</li>
+  <li>The approximation reproduces Llama 3 405B's published compute to within 0.3%.</li>
+  <li>Time and money need one extra term: MFU, realistically 30&ndash;50%.</li>
+  <li>H100 dense BF16 is ~989 TFLOPS. The 1,979 on the datasheet is the sparsity number.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>Scaling laws as unit economics</h2>
+  <div class="mt">Chinchilla is a budgeting result, and the famous number has a replication history worth knowing</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to derive compute-optimal model size from a FLOP budget in two lines</li>
+  <li>Know what the 20-tokens-per-parameter rule is and is not evidence for</li>
+  <li>Know that the paper's headline analysis failed replication, what was wrong, and how it resolved</li>
+</ul></div>
+
+<h3>The trade you are actually making</h3>
+
+<p>Chinchilla is usually taught as a fact about model quality. It is more useful taught as a fact
+about budgets, because that is the decision it informs.</p>
+
+<p>Fix C, because in practice C is what is fixed &mdash; you have a cluster for a month. Since
+C &asymp; 6ND, holding C constant makes N and D inversely proportional. You are choosing a point on a
+hyperbola: a large model on few tokens, or a small model on many. Both cost identically. The question
+is which point minimises loss.</p>
+
+<p>The empirical answer from <a href="https://arxiv.org/abs/2203.15556" target="_blank"
+rel="noopener">Hoffmann et al. (2022)</a> is that the two should scale in roughly equal proportion,
+which for their setting put the optimum near <strong>20 tokens per parameter</strong>. Substituting
+D = 20N into C = 6ND gives a formula you can use directly:</p>
+
+<div class="eq">
+C = 6 &middot; N &middot; 20N = 120N&sup2;&nbsp;&nbsp;&rarr;&nbsp;&nbsp;<b>N = &radic;(C / 120)</b>, &nbsp; <b>D = 20N</b>
+</div>
+
+<p>Check it on the paper's own model. Chinchilla is 70B parameters trained on 1.4T tokens, so
+C = 6 &times; 70e9 &times; 1.4e12 = 5.88 &times; 10<sup>23</sup>. Then
+&radic;(5.88e23 / 120) = 7.0 &times; 10<sup>10</sup> &mdash; 70B. The formula reproduces the model
+it came from, which is the least it should do.</p>
+
+<p>The result mattered because the field had been getting this badly wrong in one direction.
+GPT-3 was 175B parameters on 300B tokens &mdash; 1.7 tokens per parameter, more than a factor of ten
+away from optimal. Chinchilla demonstrated that a 70B model trained properly beat it, using the same
+compute. An enormous amount of money had been spent on models that were too large and too
+under-trained, and the correction was worth having.</p>
+
+<div class="callout c-dissent"><span class="lbl">The part that is usually left out: the headline analysis did not replicate</span>
+<p>Hoffmann et al. estimated their scaling law three ways. Approaches 1 and 2 agreed on roughly
+equal scaling of N and D. Approach 3 &mdash; fitting a parametric loss surface, and the one whose
+coefficients get quoted &mdash; did not survive scrutiny.</p>
+<p><a href="https://arxiv.org/abs/2404.10102" target="_blank" rel="noopener">Besiroglu, Erdil,
+Barnett and You (2024)</a> reconstructed the data from the paper's own plots and found three
+problems. The published fit <strong>fits that data poorly</strong>. Its confidence intervals are
+<strong>implausibly narrow</strong> &mdash; narrow enough to require orders of magnitude more
+experiments than were run. And the scaling policy it implies is <strong>inconsistent with the
+paper's own other two approaches</strong> and with the 20-tokens-per-parameter rule the same paper
+recommends.</p>
+<p>The resolution is reassuring rather than scandalous. Once optimiser and rounding issues in the
+fitting procedure are corrected, Approach 3 becomes consistent with Approaches 1 and 2 and with the
+scaling policy actually used to train Chinchilla. <strong>The 20:1 headline stands; the published
+parametric coefficients did not.</strong></p>
+<p>Two lessons, and the second is the important one. First, if you are using Chinchilla's fitted
+coefficients for anything load-bearing, use the corrected ones. Second: <em>the most cited empirical
+result in this field had a reproducible error in it for two years, in the analysis whose numbers
+everyone quoted.</em> Extend the appropriate scepticism to the next chart someone shows you,
+including the ones in this course.</p>
+</div>
+
+<h3>What the rule is not evidence for</h3>
+
+<p>Three limits worth stating, because the 20:1 number gets applied well outside where it was
+measured.</p>
+
+<ul>
+  <li><strong>It is a fit, not a constant.</strong> The optimal ratio depends on the architecture,
+  the data distribution, the optimiser and the compute scale. Meta fitted their own IsoFLOPs curves
+  for Llama 3 and, at roughly 100&times; Chinchilla's compute, extrapolated an optimum of
+  <b>402B parameters on 16.55T tokens</b> &mdash; about 41 tokens per parameter, twice Chinchilla's
+  ratio. Two careful teams, two different answers, and neither is wrong.</li>
+  <li><strong>It optimises loss, not capability.</strong> Loss is a proxy. Downstream benchmark
+  performance and loss are strongly related but not identical, and the mapping is not something the
+  scaling law predicts.</li>
+  <li><strong>It is silent about inference</strong> entirely, which is the subject of the next
+  module and the reason almost nobody follows it.</li>
+</ul>
+
+<div class="takeaways"><div class="t">Module 2 takeaways</div>
+<ul>
+  <li>Fixing C makes N and D inversely proportional; Chinchilla says put the optimum near D = 20N.</li>
+  <li>N = &radic;(C/120), D = 20N. The formula reproduces Chinchilla's own 70B from its own compute.</li>
+  <li>GPT-3 was ~1.7 tokens per parameter &mdash; more than 10&times; away from optimal.</li>
+  <li>The paper's third estimation approach failed replication in 2024; the corrected fit agrees with the other two.</li>
+  <li>The 20:1 ratio is a fit, not a constant. Meta's own extrapolation at 100&times; the compute gave ~41:1.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>Why nobody follows Chinchilla</h2>
+  <div class="mt">Training is once, inference is forever &mdash; and the one flagship that complicates the story</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to explain over-training as an inference-cost decision, in one sentence, to a non-technical audience</li>
+  <li>Know the counterexample that stops this from being a slogan</li>
+  <li>Understand what over-training actually costs you, since it is not free</li>
+</ul></div>
+
+<h3>The optimisation problem the paper did not solve</h3>
+
+<p>Chinchilla minimises loss for a fixed <em>training</em> budget. That is the right objective for a
+research lab establishing a scaling result and the wrong one for anybody shipping a product.</p>
+
+<p>If you serve a model a trillion times, training is a one-off capital expense and inference is an
+operating cost that never stops. And &mdash; this is the connection to Stage 5 &mdash; inference cost
+during generation scales with N, because producing one token requires reading every parameter from
+memory. A model twice the size costs roughly twice as much per token, permanently.</p>
+
+<p>So the correct move for a model you intend to serve is to go <strong>smaller than
+Chinchilla-optimal and train much longer</strong>. You accept a worse loss-per-training-FLOP and buy
+a permanently cheaper serving cost at a given quality level. The exchange rate is excellent whenever
+the deployment is large, and it gets better the more you serve.</p>
+
+<div class="callout c-fact"><span class="lbl">The arithmetic, on models you can look up</span>
+<p>Llama 3 8B was trained on the same ~15T-token corpus as its larger siblings. That is roughly
+<b>1,875 tokens per parameter</b> &mdash; about <b>94&times;</b> Chinchilla's ratio. Nobody made an
+error. An 8B model trained to 15T tokens is a deliberately different product from a 750B model
+trained to 160B tokens at the same compute: it is worse per training FLOP and vastly cheaper to
+serve, and the second property is the one that pays for a consumer deployment.</p>
+<p>Say it in one line for a boardroom: <strong>the size of a served model is an inference-cost
+decision wearing a research-result costume.</strong></p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">And here is the counterexample, because the slogan is too clean</span>
+<p>"Everyone over-trains now" is the version of this that circulates, and the flagship model of the
+family just cited is a counterexample.</p>
+<p>Meta's scaling-law extrapolation for their 3.8&times;10<sup>25</sup> FLOP budget predicted an
+optimum of <b>402B parameters on 16.55T tokens</b>. They trained <b>405B on 15.6T</b> &mdash;
+essentially on their own predicted optimum, and they say so, noting that the IsoFLOPs curves flatten
+near the minimum at large budgets so the exact choice was not very sensitive.</p>
+<p>So the honest statement is narrower than the slogan. <strong>Models intended for high-volume
+serving are heavily over-trained; frontier flagship models often are not</strong>, because a
+flagship's job is to establish a capability ceiling, and the serving economics are a different
+product's problem. Which regime you are in changes the answer completely, and "over-train, always"
+is advice that would have produced a worse Llama 3 405B.</p>
+</div>
+
+<h3>What over-training costs, since it is not free</h3>
+
+<p>Three costs, in increasing order of how often they are forgotten.</p>
+
+<ul>
+  <li><strong>You pay more compute for the same loss.</strong> By construction &mdash; you moved off
+  the optimum. The question is only whether serving savings repay it, which depends entirely on
+  volume.</li>
+  <li><strong>Returns diminish, sharply.</strong> Loss falls roughly as a power law in tokens, so the
+  hundredth trillion tokens buys far less than the first. Past some point you are spending real money
+  for a change you cannot measure downstream.</li>
+  <li><strong>You may run out of good data.</strong> This is the binding constraint that most
+  discussions omit. Getting to 15T high-quality, deduplicated, filtered tokens is genuinely hard,
+  and once you have exhausted the available corpus, more epochs over the same data buy much less than
+  fresh tokens would. Data quality becomes the ceiling, and it is not one you can buy your way
+  through with more GPUs.</li>
+</ul>
+
+<div class="takeaways"><div class="t">Module 3 takeaways</div>
+<ul>
+  <li>Chinchilla optimises training cost; production optimises training plus a very large inference bill.</li>
+  <li>Decode cost scales with N, so a smaller over-trained model is permanently cheaper to serve.</li>
+  <li>Llama 3 8B is ~1,875 tokens/parameter &mdash; roughly 94&times; Chinchilla.</li>
+  <li>But Llama 3 405B was trained essentially at Meta's own predicted optimum. The slogan has a counterexample.</li>
+  <li>Over-training costs compute, hits diminishing returns, and eventually runs into the data ceiling.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>Data, and the tokenizer decision</h2>
+  <div class="mt">Where fifteen trillion tokens come from, and the one preprocessing choice you cannot undo</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the pipeline that turns a web crawl into training tokens, and which stage matters most</li>
+  <li>Understand why deduplication is the highest-leverage step and what it actually removes</li>
+  <li>Know what the tokenizer decision locks in, and why vocabulary size is a real trade rather than a detail</li>
+</ul></div>
+
+<h3>The pipeline</h3>
+
+<p>Nobody trains on a raw web crawl. The distance between "Common Crawl" and "training data" is most
+of the work, and it is where the largest quality differences between labs live &mdash; which is
+precisely why it is the least published part of the stack. A representative pipeline:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Stage</th><th>What it does</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td><b>Extraction</b></td><td>HTML to text, discarding boilerplate, navigation and markup.</td><td>Bad extraction poisons everything downstream and is invisible in aggregate statistics.</td></tr>
+<tr><td><b>Language ID</b></td><td>Classify and route or filter by language.</td><td>Determines the multilingual mix, which is a product decision made in a preprocessing script.</td></tr>
+<tr><td><b>Quality filtering</b></td><td>Heuristics and learned classifiers for "document-like" text.</td><td>Removes spam and machine-generated filler. Also the stage most likely to encode someone's unexamined taste.</td></tr>
+<tr><td><b>Deduplication</b></td><td>Exact and fuzzy (MinHash-style) removal of repeated documents.</td><td>The highest-leverage step. See below.</td></tr>
+<tr><td><b>Decontamination</b></td><td>Remove documents overlapping evaluation sets.</td><td>Without it your benchmark numbers are partly memorisation, and you will not know by how much.</td></tr>
+<tr><td><b>Mixing</b></td><td>Weight sources: web, code, books, maths, curated.</td><td>Tunable, consequential, and almost entirely undocumented across the industry.</td></tr>
+</tbody></table></div>
+
+<h3>Why deduplication is the step that pays</h3>
+
+<p>The web is enormously redundant. The same article appears on dozens of aggregators, boilerplate
+licence text appears on millions of pages, and popular passages recur constantly. Left in, that
+redundancy does three bad things at once: it wastes compute re-learning things already learned, it
+increases verbatim memorisation of exactly the passages most likely to be sensitive or copyrighted,
+and it silently distorts the data distribution towards whatever happens to be most duplicated.</p>
+
+<p>The consistent finding across the deduplication literature is that removing duplicates lets you
+reach a given loss with fewer tokens and reduces memorised output. It is the rare intervention that
+improves quality, cost and legal exposure simultaneously, which is why it is universal.</p>
+
+<div class="callout c-warn"><span class="lbl">The claim to be careful with</span>
+<p>"Data quality matters more than data quantity" is repeated constantly and is too vague to be
+either true or false. What is well supported is narrower: <em>deduplication and removing
+low-quality documents reliably help</em>, and <em>aggressive filtering can remove useful diversity
+and hurt</em>. Where the optimum sits depends on the corpus and the target, and the labs that know
+have not published it.</p>
+<p>If someone tells you their data pipeline is the reason their model is better, they may well be
+right, and you have no way to check. Treat data-quality claims as unfalsifiable-in-practice unless
+the pipeline is open.</p>
+</div>
+
+<h3>The tokenizer is a decision you cannot revisit</h3>
+
+<p>Stage 1 covered what tokenization does. What matters here is that <strong>choosing it is
+irreversible</strong>: changing the tokenizer invalidates every trained weight, because the
+embedding table is indexed by token ID. It is fixed before the first step and lives for the life of
+the model.</p>
+
+<p>The main lever is vocabulary size, and it is a genuine trade:</p>
+
+<div class="split">
+<div class="l"><div class="h">Larger vocabulary</div>
+<p>Fewer tokens per document, so a fixed context holds more text and each training step covers more
+material. Better compression for non-English scripts, which is a fairness and cost issue as much as
+a technical one.</p>
+<p>Costs: a bigger embedding and unembedding matrix, and a more expensive final softmax over V.</p></div>
+<div class="r"><div class="h">Smaller vocabulary</div>
+<p>Cheaper embeddings and softmax, and more training signal per token type, so rare tokens are seen
+more often.</p>
+<p>Costs: more tokens per document, so more compute and context for the same text, and worse
+compression for anything unlike the fitting corpus.</p></div>
+</div>
+
+<p>The industry moved decisively larger &mdash; GPT-2 used about 50K, Llama 3 uses 128,256 &mdash;
+because at modern model sizes the embedding matrix is a small fraction of parameters (you computed
+this in Stage 1: 3% for Llama 3 70B, 31% for GPT-2 small) while the per-document token saving applies
+to every training step and every inference call. When the embedding stops being expensive, buying
+compression with vocabulary is nearly free.</p>
+
+<div class="takeaways"><div class="t">Module 4 takeaways</div>
+<ul>
+  <li>Extraction, language ID, quality filtering, dedup, decontamination and mixing &mdash; each stage is a product decision.</li>
+  <li>Deduplication improves quality, cost and memorisation exposure at once. It is the step that pays.</li>
+  <li>Decontamination is what stops your benchmarks from measuring memorisation.</li>
+  <li>Data-quality claims are usually unfalsifiable from outside. Treat them accordingly.</li>
+  <li>Vocabulary size trades embedding cost against tokens per document; large vocabularies won because embeddings stopped being expensive.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>What is actually on the GPU</h2>
+  <div class="mt">Sixteen bytes per parameter before you have stored a single activation</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to state the memory cost of training a model of size N, term by term</li>
+  <li>Know why mixed precision needs an FP32 copy of the weights, and what breaks without it</li>
+  <li>Understand what each ZeRO stage shards and what it costs in communication</li>
+</ul></div>
+
+<h3>The accounting</h3>
+
+<p>People estimate training memory as "the model in BF16," which is off by a factor of eight. The
+standard mixed-precision Adam setup, as laid out in the <a href="https://arxiv.org/abs/1910.02054"
+target="_blank" rel="noopener">ZeRO paper</a> (Rajbhandari et al., 2019), costs:</p>
+
+<div class="tw"><table>
+<thead><tr><th>What</th><th>Precision</th><th>Bytes per parameter</th></tr></thead>
+<tbody>
+<tr><td>Weights, used for forward and backward</td><td>BF16</td><td>2</td></tr>
+<tr><td>Gradients</td><td>BF16</td><td>2</td></tr>
+<tr><td>Master copy of the weights</td><td>FP32</td><td>4</td></tr>
+<tr><td>Adam first moment (momentum)</td><td>FP32</td><td>4</td></tr>
+<tr><td>Adam second moment (variance)</td><td>FP32</td><td>4</td></tr>
+<tr><td><b>Total model states</b></td><td></td><td><b>16</b></td></tr>
+</tbody></table></div>
+
+<p>Sixteen bytes per parameter, before a single activation is stored. A 7B model needs about
+<b>112 GB</b> of model states &mdash; more than fits on an 80 GB H100, for a model whose weights are
+14 GB. The ZeRO paper's worked example uses 7.5B parameters and 120 GB for exactly this reason.</p>
+
+<div class="callout c-steel"><span class="lbl">Why the FP32 master copy is not optional</span>
+<p>It looks like waste and it is the thing that makes mixed precision work at all.</p>
+<p>Late in training, a weight of magnitude around 1 receives an update of magnitude around
+10<sup>&minus;7</sup>. BF16 has roughly 8 bits of mantissa, so the smallest change it can represent
+near 1 is about 2<sup>&minus;8</sup> &asymp; 0.004. The update is far below that threshold, so
+<code>w + update == w</code> exactly. The addition is discarded, silently, every step.</p>
+<p>Keeping an FP32 master copy &mdash; roughly 24 bits of mantissa &mdash; means the updates
+accumulate, and the BF16 copy used for the fast matrix multiplies is cast fresh from it each step.
+You get tensor-core throughput on the arithmetic and full precision on the accumulation.</p>
+<p>The failure mode without it is nasty because it is not a crash. Training simply stops improving,
+in a way that looks like a learning-rate schedule problem, at whatever point the updates fall below
+representable resolution.</p>
+</div>
+
+<h3>Activations, and the trade that buys them back</h3>
+
+<p>Model states are only half the bill. The backward pass needs the forward pass's intermediate
+activations, so they must be kept. Activation memory scales with batch size, sequence length, model
+dimension and depth &mdash; and at long context it is dominated by the attention terms you saw in the
+Stage 1 ledger.</p>
+
+<p><strong>Gradient checkpointing</strong> (also called activation recomputation) is the standard
+answer: keep only a subset of activations, and recompute the rest during the backward pass. The usual
+arrangement stores one checkpoint per layer, which turns activation memory from linear in depth into
+roughly the cost of a single layer's activations plus the checkpoints, at the price of one extra
+forward pass &mdash; about 33% more compute.</p>
+
+<p>That is the trade to have at your fingertips: <strong>roughly a third more compute buys you a
+large multiple in activation memory</strong>, which usually converts directly into a larger batch,
+which usually converts into better hardware utilisation. It frequently makes the run <em>faster</em>
+in wall-clock terms despite doing more arithmetic, which is a good early lesson in why FLOPs are the
+wrong unit.</p>
+
+<h3>ZeRO: stop storing the same thing on every device</h3>
+
+<p>In plain data parallelism every device holds a complete copy of all 16 bytes per parameter. Across
+64 devices that is 64 identical copies of the optimiser state, which is pure waste. ZeRO shards them.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Stage</th><th>Shards</th><th>Memory per device</th><th>Communication cost</th></tr></thead>
+<tbody>
+<tr><td><b>ZeRO-1</b></td><td>Optimiser states (12 of the 16 bytes)</td><td>4 + 12/n</td><td>Unchanged from plain data parallel.</td></tr>
+<tr><td><b>ZeRO-2</b></td><td>+ gradients</td><td>2 + 14/n</td><td>Still unchanged &mdash; reduce-scatter replaces all-reduce.</td></tr>
+<tr><td><b>ZeRO-3</b></td><td>+ parameters</td><td>16/n</td><td>Roughly 1.5&times; &mdash; parameters must be gathered before each layer's use.</td></tr>
+</tbody></table></div>
+
+<p>ZeRO-3 &mdash; the same idea as PyTorch's FSDP &mdash; is the one that changes what is possible,
+because memory per device now falls linearly with device count. The cost is that every layer's
+weights are gathered from across the cluster immediately before use and released after, so you are
+trading memory for interconnect bandwidth. On a fast fabric that is an excellent trade. On a slow one
+it is a disaster, and this is the single most common reason a distributed run is inexplicably slow.</p>
+
+<div class="takeaways"><div class="t">Module 5 takeaways</div>
+<ul>
+  <li>Mixed-precision Adam costs 16 bytes per parameter of model state. A 7B model needs ~112 GB before activations.</li>
+  <li>The FP32 master copy exists because small updates vanish in BF16; without it training silently plateaus.</li>
+  <li>Gradient checkpointing trades ~33% more compute for a large activation-memory saving, often netting faster.</li>
+  <li>ZeRO-1/2/3 shard optimiser states, then gradients, then parameters; only ZeRO-3 changes the communication pattern.</li>
+  <li>ZeRO-3 trades memory for interconnect bandwidth &mdash; excellent on fast fabric, ruinous on slow.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Arithmetic intensity and the roofline</h2>
+  <div class="mt">The single concept that makes systems work click, and it is a ratio</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to compute the ridge point of any accelerator from two datasheet numbers</li>
+  <li>Be able to classify any kernel as compute-bound or bandwidth-bound before running it</li>
+  <li>Be able to explain FlashAttention in one sentence, and say why you could have predicted it</li>
+</ul></div>
+
+<h3>Two numbers, one ratio</h3>
+
+<p>An H100 SXM can do about <b>989 &times; 10<sup>12</sup></b> dense BF16 FLOPs per second and can
+read from its HBM at <b>3.35 &times; 10<sup>12</sup></b> bytes per second. Divide them:</p>
+
+<div class="eq">
+ridge point = 989e12 / 3.35e12 &asymp; <b>295 FLOPs per byte</b>
+</div>
+
+<p>Read that as a threshold. If a kernel performs <em>more</em> than about 295 floating-point
+operations for every byte it reads from memory, it can keep the arithmetic units busy and it is
+<strong>compute-bound</strong> &mdash; the good case, where you are getting what you paid for. If it
+performs <em>fewer</em>, the arithmetic units finish and wait for data: it is
+<strong>memory-bandwidth-bound</strong>, and buying a chip with more FLOPs changes nothing.</p>
+
+<p>That ratio &mdash; FLOPs performed per byte moved &mdash; is <strong>arithmetic intensity</strong>,
+and plotting achievable performance against it gives the roofline model: a diagonal bandwidth-limited
+region, a flat compute-limited ceiling, and a ridge where they meet.</p>
+
+<div class="callout c-fact"><span class="lbl">Where common operations actually sit</span>
+<ul>
+  <li><b>Large dense matrix multiply</b> (training, big batch) &mdash; intensity grows with the tile
+  dimensions, comfortably into the hundreds or thousands. <b>Compute-bound.</b> This is the case the
+  hardware was designed for and the only one that reaches advertised throughput.</li>
+  <li><b>Elementwise operations</b> &mdash; add, GELU, dropout, scaling. Read a number, do one or two
+  operations, write it back. Intensity below 1. <b>Massively bandwidth-bound</b>, which is why kernel
+  fusion is worth so much: three fused elementwise ops cost barely more than one.</li>
+  <li><b>Normalisation</b> &mdash; a reduction and a rescale over the feature dimension. Low
+  intensity. <b>Bandwidth-bound</b>, and this is exactly why RMSNorm's removal of the mean pass was
+  worth doing.</li>
+  <li><b>Single-token decode</b> &mdash; 2 FLOPs per parameter, 2 bytes read per parameter in BF16,
+  so intensity is about <b>1</b>. Against a ridge of 295 that is a factor of ~300 off. This one
+  number is the whole of Stage 5, and it is why batching is the primary lever there.</li>
+</ul>
+</div>
+
+<h3>FlashAttention in one sentence</h3>
+
+<p>Naive attention materialises the full T&times;T score matrix in HBM: write the scores, read them
+back for the softmax, write the result, read it again for the value multiply. In the Stage 1 ledger
+you saw that tensor is <code>(B, H, T, T)</code> &mdash; at batch 4, 12 heads and 1,024 tokens it is
+96 MiB <em>per layer</em>, against a 6 MiB residual stream. It is shuttled to and from memory several
+times, per head, per layer, per step.</p>
+
+<p><a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener">FlashAttention</a> (Dao,
+Fu, Ermon, Rudra and Ré, 2022) <strong>does not reduce the FLOPs at all</strong>. It tiles the
+computation so the score matrix is never written to HBM: blocks are built in on-chip SRAM, consumed
+immediately, and discarded, with an online-softmax formulation that keeps the normalisation correct
+without ever holding all the scores at once. Same arithmetic, far fewer memory round trips.</p>
+
+<p>The reported gains in the original paper are 15% end-to-end on BERT-large at sequence length 512,
+<b>3&times; on GPT-2</b> at 1K, and 2.4&times; on long-range arena at 1K&ndash;4K. Note the pattern:
+the benefit grows with sequence length, because that is where the discarded tensor grows quadratically
+while the useful work does not.</p>
+
+<div class="callout c-steel"><span class="lbl">Why this is the module that changes how you read papers</span>
+<p>Once you hold arithmetic intensity, you could have predicted FlashAttention. The question "which
+part of this computation moves the most bytes per useful FLOP?" identifies the score matrix
+immediately, and "can we avoid materialising it?" is the obvious follow-up.</p>
+<p>The same question predicts most of the rest of the systems literature. Kernel fusion, mixed
+precision, FP8, KV-cache layout, MoE routing, gradient accumulation &mdash; nearly all of it is
+someone asking where the bytes are going. <strong>The paper's title says IO-awareness rather than
+attention for a reason, and the reason is the whole lesson.</strong></p>
+</div>
+
+<div class="takeaways"><div class="t">Module 6 takeaways</div>
+<ul>
+  <li>Ridge point = peak FLOP/s &divide; memory bandwidth. For H100 SXM that is ~295 FLOPs per byte.</li>
+  <li>Above the ridge you are compute-bound and getting value; below it the FLOPs sit idle.</li>
+  <li>Big matmuls are compute-bound; elementwise ops, norms and single-token decode are not.</li>
+  <li>Single-token decode has arithmetic intensity ~1 against a ridge of ~295. Remember that for Stage 5.</li>
+  <li>FlashAttention removes memory traffic, not FLOPs. Ask "where are the bytes going" and you can derive it.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>The four parallelisms</h2>
+  <div class="mt">What each one splits, what it buys, and the resource it spends to get it</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to name the four axes and say precisely what each splits</li>
+  <li>Know which ones need a fast interconnect and which tolerate a slow one &mdash; and why</li>
+  <li>Be able to lay out a plausible parallelism strategy for a given model and cluster</li>
+</ul></div>
+
+<h3>The four axes</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Kind</th><th>Splits</th><th>Buys</th><th>Costs</th></tr></thead>
+<tbody>
+<tr><td><b>Data</b></td><td>The batch. Every device holds the whole model.</td><td>Simplest, near-linear throughput scaling.</td><td>Nothing on memory &mdash; every device still needs everything. One gradient all-reduce per step, which overlaps well with the backward pass.</td></tr>
+<tr><td><b>Tensor</b></td><td>Individual weight matrices, within a layer.</td><td>Fits a layer too large for one device; reduces per-device memory and compute together.</td><td>Communication <em>inside</em> every forward and backward pass, twice per block. Needs NVLink-class bandwidth; degrades badly across nodes.</td></tr>
+<tr><td><b>Pipeline</b></td><td>Layers across devices.</td><td>Fits a very deep model with modest communication &mdash; only activations cross the boundary.</td><td>Bubbles. Devices idle waiting for the stage ahead. Micro-batching shrinks the bubble; it never removes it.</td></tr>
+<tr><td><b>Sequence / context</b></td><td>The sequence dimension.</td><td>Contexts whose attention memory would not otherwise fit.</td><td>Attention needs all positions, so keys and values must circulate &mdash; typically a ring exchange overlapped with compute.</td></tr>
+</tbody></table></div>
+
+<h3>The rule of thumb, and the reason behind it</h3>
+
+<p>Real systems compose all four. The arrangement that keeps recurring is:</p>
+
+<p><strong>Tensor parallelism inside a node. Pipeline parallelism between nodes. Data parallelism
+over everything. Sequence parallelism when the context demands it.</strong></p>
+
+<p>The reason is a bandwidth hierarchy, and once you see it the rule stops being arbitrary. Inside a
+server, GPUs talk over NVLink at hundreds of gigabytes per second. Between servers they talk over
+InfiniBand or Ethernet at a small fraction of that. Tensor parallelism communicates twice per
+transformer block, so it must live where bandwidth is cheapest. Pipeline parallelism communicates
+once per stage boundary and only activations, so it tolerates the slow link. Data parallelism
+communicates once per optimiser step and overlaps with computation, so it tolerates the slowest link
+of all.</p>
+
+<p><strong>Match the communication frequency to the bandwidth hierarchy.</strong> That is the whole
+principle, and it is enough to reconstruct the rule from first principles when you have forgotten
+it.</p>
+
+<div class="callout c-warn"><span class="lbl">The pipeline bubble, made concrete</span>
+<p>With P pipeline stages and M micro-batches, the fraction of time devices spend idle is
+approximately <b>(P &minus; 1) / (M + P &minus; 1)</b>.</p>
+<p>Four stages and four micro-batches: 3/7, about <b>43% of your cluster idle</b>. Four stages and
+thirty-two micro-batches: 3/35, under <b>9%</b>. Same hardware, same model, a five-fold difference in
+waste from one scheduling parameter.</p>
+<p>Which is why the pipeline-heavy configurations you will read about always come with a large
+micro-batch count, and why raising the micro-batch count is the first thing to check when a
+pipelined run underperforms. It also explains why increasing pipeline depth without increasing
+micro-batches makes things worse, which is a mistake people make when they are chasing a memory
+problem and forget they have a throughput one.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 7 takeaways</div>
+<ul>
+  <li>Data splits the batch, tensor splits matrices, pipeline splits layers, sequence splits positions.</li>
+  <li>Communication frequency dictates placement: tensor inside a node, pipeline between, data over everything.</li>
+  <li>Pipeline bubble &asymp; (P&minus;1)/(M+P&minus;1). Micro-batch count is the lever.</li>
+  <li>Tensor parallelism across a slow interconnect is the classic self-inflicted wound.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>When the run goes wrong</h2>
+  <div class="mt">Loss spikes, dead GPUs, and the diagnostic ladder &mdash; the part that separates people who have trained from people who have read</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the ranked candidate causes of a loss spike and the cheapest diagnostic for each</li>
+  <li>Know the counterintuitive published result about what causes spikes</li>
+  <li>Have a realistic expectation of hardware failure rate at scale, from real numbers</li>
+</ul></div>
+
+<h3>The loss spikes at step 4,000 and does not recover</h3>
+
+<p>This is the interview question for this stage, and the reason it works is that people who have
+trained something have ranked opinions while people who have only read produce a memorised list.
+Here is a defensible ranking, cheapest diagnostic first.</p>
+
+<div class="ledger">
+<div class="lrow dead"><div class="lc">1. Numerical overflow, especially in attention logits</div>
+<div class="lv">Attention logits growing without bound is a known and specific instability. <b>Diagnostic:</b>
+log the max absolute attention logit and the max activation norm per layer &mdash; you will usually
+see them climbing for hundreds of steps before the loss moves.
+<b>Fix:</b> QK normalisation, logit soft-capping, or a lower learning rate on the affected layers.
+<span class="verdict-line" style="border:none;padding:0;margin:0.4rem 0 0"><b>Cheapest to check, so check it first.</b></span></div></div>
+
+<div class="lrow dated"><div class="lc">2. Learning rate too high for the current phase</div>
+<div class="lv">Especially just after warm-up ends, or after a schedule change. <b>Diagnostic:</b> plot
+gradient norm against step. A spike is usually preceded by the gradient norm trending up.
+<b>Fix:</b> lower the peak, lengthen the warm-up, tighten gradient clipping. Note that clipping alone
+often does not prevent spikes &mdash; the PaLM run had clipping enabled throughout.</div></div>
+
+<div class="lrow ok"><div class="lc">3. A pathological batch interacting with the current parameters</div>
+<div class="lv">Not "bad data" on its own &mdash; see the box below, because the published evidence here
+is genuinely surprising. <b>Diagnostic:</b> identify the batches around the spike and inspect them,
+but also test whether they reproduce the spike from a different checkpoint.
+<b>Fix:</b> restart from an earlier checkpoint and skip that data window.</div></div>
+
+<div class="lrow ok"><div class="lc">4. Optimiser state corruption or a stale second moment</div>
+<div class="lv">Adam's second moment adapts slowly. A sudden distribution shift can leave it badly
+mismatched, producing enormous effective step sizes. <b>Diagnostic:</b> log the ratio of update
+magnitude to weight magnitude per layer. <b>Fix:</b> lower epsilon sensitivity, reset the moments,
+or use a shorter second-moment horizon.</div></div>
+
+<div class="lrow frozen"><div class="lc">5. A hardware or communication fault producing silently wrong gradients</div>
+<div class="lv">Rare, expensive to find, and the one people forget. A single bad GPU can corrupt an
+all-reduce without raising an error. <b>Diagnostic:</b> checksum gradients across data-parallel
+replicas, or re-run one step deterministically on a subset. <b>Fix:</b> find and drain the node.
+<span class="verdict-line" style="border:none;padding:0;margin:0.4rem 0 0">Last on the list because
+it is expensive to check &mdash; but at 16,000 GPUs it is not rare in absolute terms.</span></div></div>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">What the PaLM team actually found, and it is not what you would guess</span>
+<p>The <a href="https://arxiv.org/abs/2204.02311" target="_blank" rel="noopener">PaLM paper</a>
+reports spikes in the loss roughly <b>20 times</b> during training of the 540B model, at highly
+irregular intervals, <em>despite gradient clipping being enabled</em>. Their mitigation was to
+restart from a checkpoint about 100 steps before the spike and skip roughly 200&ndash;500 data
+batches, which worked &mdash; the loss did not spike again at the same point.</p>
+<p>Here is the part worth remembering. They did <strong>not</strong> conclude the spikes were caused
+by bad data. They ran the ablation: take the batches surrounding the spike, train on those same
+batches from a <em>different, earlier</em> checkpoint, and see what happens. <strong>No spike.</strong></p>
+<p>So the spike was not a property of the data and not a property of the parameters. It was a
+property of the <em>interaction</em> &mdash; a particular batch meeting a particular parameter state.
+That is an uncomfortable result, because it means "find the bad data" is often the wrong
+investigation, and it means these events are not fully reproducible even in principle from the data
+alone. Anyone who tells you loss spikes are simply a data-cleaning problem has not read this
+ablation.</p>
+</div>
+
+<h3>Hardware failure is a scheduled event, not an accident</h3>
+
+<p>At small scale a GPU failure is a bad day. At cluster scale it is a rate, and you engineer for it.
+Meta published the numbers for a 54-day snapshot of Llama 3 405B pre-training on up to 16,000 H100s:</p>
+
+<div class="mgrid">
+  <div class="mcell"><b>466</b><span>total job interruptions in 54 days</span></div>
+  <div class="mcell warn"><b>419</b><span>unexpected &mdash; about one every 3 hours</span></div>
+  <div class="mcell"><b>78%</b><span>of those confirmed hardware faults</span></div>
+  <div class="mcell good"><b>&gt;90%</b><span>effective training time achieved anyway</span></div>
+</div>
+
+<p>Roughly one unexpected interruption every three hours, sustained for two months, and they still
+kept the cluster productive more than 90% of the time. That is not luck. It is fast checkpointing,
+automated detection and node draining, and restart machinery treated as core infrastructure rather
+than as operations overhead.</p>
+
+<p>The practical consequence for anyone planning a run: <strong>checkpoint frequency is a function of
+your failure rate, not of your preferences.</strong> If you expect an interruption every three hours
+and you checkpoint every six, you are on average discarding an hour and a half of cluster time per
+failure &mdash; at 16,000 GPUs that is a genuinely large number, repeated hundreds of times.</p>
+
+<div class="takeaways"><div class="t">Module 8 takeaways</div>
+<ul>
+  <li>Rank spike causes by diagnostic cost: attention logits, learning rate, data&times;state interaction, optimiser state, silent hardware fault.</li>
+  <li>PaLM saw ~20 spikes at 540B despite gradient clipping.</li>
+  <li>Their ablation showed the spikes were an interaction of batch and parameter state, not bad data alone.</li>
+  <li>Llama 3: 419 unexpected interruptions in 54 days on 16K GPUs, 78% hardware, still &gt;90% effective training time.</li>
+  <li>Checkpoint interval should be derived from your failure rate, not chosen.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>MFU &mdash; the number that grades you</h2>
+  <div class="mt">One ratio that says whether your cluster is working or waiting</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to compute MFU from a throughput measurement and a spec sheet</li>
+  <li>Know the difference between MFU and HFU, and why quoting the wrong one flatters you</li>
+  <li>Know what published frontier runs actually achieve, so you can calibrate your own</li>
+</ul></div>
+
+<h3>The definition</h3>
+
+<div class="eq">
+MFU = ( 6 &middot; N &middot; tokens_per_second ) / ( n_gpus &times; peak_dense_FLOP/s )
+</div>
+
+<p>The numerator is the useful arithmetic your model requires, from Module 1. The denominator is what
+the hardware could theoretically do. The ratio is the fraction of your very expensive silicon that is
+doing work you actually needed.</p>
+
+<p>It is the right headline efficiency metric because it is hardware-independent in the numerator and
+model-independent in the denominator, so it compares across both. It was introduced in the <a
+href="https://arxiv.org/abs/2204.02311" target="_blank" rel="noopener">PaLM paper</a>
+(Chowdhery et al., 2022).</p>
+
+<div class="callout c-warn"><span class="lbl">MFU versus HFU &mdash; and which one to be suspicious of</span>
+<p><strong>Model FLOPs utilisation</strong> counts only the FLOPs the model logically requires.
+<strong>Hardware FLOPs utilisation</strong> counts every FLOP actually executed, including
+recomputation from gradient checkpointing and redundant work in tensor parallelism.</p>
+<p>HFU is always the larger number. PaLM reported <b>46.2% MFU and 57.8% HFU</b> for the same run
+&mdash; an eleven-point gap, and it is not noise: the gap is mostly the extra forward passes bought
+by activation recomputation, which is real work the hardware did and not work the model needed.</p>
+<p>Both are legitimate metrics for different questions. HFU tells you how well your kernels use the
+chip; MFU tells you how much you are paying per unit of useful training. If a vendor quotes a
+utilisation figure without saying which, assume HFU, and ask.</p>
+</div>
+
+<h3>Calibration &mdash; what good actually looks like</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Run</th><th>Reported</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td><b>PaLM 540B</b>, 6,144 TPU v4 chips</td><td>46.2% MFU / 57.8% HFU</td><td>The paper that introduced the metric; it also notes prior systems struggled to exceed 30%.</td></tr>
+<tr><td><b>Llama 3 405B</b>, 8,192 H100s</td><td>43% BF16 MFU</td><td>The higher of Meta's two reported configurations.</td></tr>
+<tr><td><b>Llama 3 405B</b>, 16,384 H100s</td><td>41% BF16 MFU</td><td>Meta attributes the drop to a smaller per-replica batch needed to hold global batch size constant.</td></tr>
+</tbody></table></div>
+
+<p>That last row is the most instructive line in the table. <strong>Doubling the cluster cost two
+points of MFU</strong> &mdash; not because the engineering got worse, but because holding the global
+batch size fixed while doubling data-parallel width halves the per-replica batch, and smaller batches
+have lower arithmetic intensity. Scaling out is not free, the inefficiency is structural, and it is
+predictable from Module 6.</p>
+
+<p>Use these as your calibration. If you measure 15% MFU, you have a real problem worth a day of
+profiling. If you measure 40%, you are in the same band as published frontier runs and your time is
+better spent elsewhere. If you measure 85%, check your arithmetic &mdash; you have probably used the
+sparsity peak in the denominator.</p>
+
+<div class="takeaways"><div class="t">Module 9 takeaways</div>
+<ul>
+  <li>MFU = useful model FLOPs &divide; theoretical peak. Introduced by the PaLM paper.</li>
+  <li>HFU counts recomputation and redundancy too, so it is always higher. PaLM: 46.2% vs 57.8%.</li>
+  <li>Frontier runs land around 40&ndash;46%. Below 20% means go profile; above 60% means check the denominator.</li>
+  <li>Llama 3 lost two points of MFU by doubling the cluster &mdash; scaling out costs efficiency, predictably.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 10 ============================ -->
+<section class="module" id="m10">
+<div class="module-header"><div class="num">10</div><div>
+  <h2>The Training Run Planner</h2>
+  <div class="mt">Turn a cluster and a calendar into a model &mdash; then argue with the answer</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have converted a real hardware budget into a compute-optimal model, unaided by anything but sliders</li>
+  <li>Have seen the training-versus-serving trade-off quantified rather than described</li>
+  <li>Know whether your instinct about what a given cluster can produce was anywhere near right</li>
+</ul></div>
+
+<p>Every formula in this tool appeared in Modules 1 through 9, and each output says which one
+produced it. The tool asks you to guess the compute-optimal model size <em>before</em> computing one,
+for the same reason as always: an answer you see first is one you will find reasons to have
+expected.</p>
+
+<div id="lab">
+  <div class="lab-top">
+    <span class="lab-pill">Interactive</span>
+    <h3>Training Run Planner</h3>
+    <span class="lab-step" id="lab-step">Stage 1 of 3</span>
+  </div>
+  <div class="lab-body">
+
+    <!-- STAGE 1 -->
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">Your budget</div>
+        <div class="st" id="s1-st">Open</div></div>
+      <p class="hint">A cluster, a calendar and an efficiency assumption. That is all a training run is.</p>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Hardware</span></div>
+        <div class="preset" id="hw"></div>
+        <div class="cd" id="d-hw"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">GPUs</span><span class="cv" id="v-g">64</span></div>
+        <input type="range" id="r-g" min="0" max="60" step="1" value="21">
+        <div class="cd" id="d-g"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Days of training</span><span class="cv" id="v-d">30</span></div>
+        <input type="range" id="r-d" min="1" max="120" step="1" value="30">
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">MFU you expect to achieve</span><span class="cv" id="v-m">40%</span></div>
+        <input type="range" id="r-m" min="5" max="60" step="1" value="40">
+        <div class="cd" id="d-m"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Price per GPU-hour</span><span class="cv" id="v-p">$3.00</span></div>
+        <input type="range" id="r-p" min="50" max="1200" step="10" value="300">
+        <div class="cd">Rental prices move constantly and vary by term, region and provider. The
+        $3/GPU-hour default is the figure nanochat's README uses for an 8&times;H100 node; treat it as
+        an anchor with a wide error bar, not a quote.</div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Before you look: how many parameters is the compute-optimal model for this budget?</span>
+          <span class="cv" id="v-q">1.0B</span></div>
+        <input type="range" id="r-q" min="0" max="100" step="1" value="40">
+        <div class="cd">Module 2 gives you N = &radic;(C/120). You have every number you need to do
+        this in your head to within a factor of two &mdash; which is the point of asking.</div>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="s1-go">Lock in and compute</button>
+        <span class="gate-msg">Your guess is recorded before the budget is evaluated.</span>
+      </div>
+    </div>
+
+    <!-- STAGE 2 -->
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">What the budget buys</div>
+        <div class="st" id="s2-st">Locked</div></div>
+      <div id="out2"></div>
+    </div>
+
+    <!-- STAGE 3 -->
+    <div class="stage locked" id="s3">
+      <div class="stage-h"><div class="n">3</div><div class="ttl">Spend it differently</div>
+        <div class="st" id="s3-st">Locked</div></div>
+      <p class="hint">Same compute, different allocation. Move the ratio and watch training quality
+      trade against serving cost &mdash; which is the entire argument of Module 3, as a number.</p>
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Tokens per parameter</span><span class="cv" id="v-r">20</span></div>
+        <input type="range" id="r-r" min="0" max="100" step="1" value="30">
+        <div class="cd" id="d-r"></div>
+      </div>
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Serving batch size you expect to sustain</span><span class="cv" id="v-sb">64</span></div>
+        <input type="range" id="r-sb" min="1" max="256" step="1" value="64">
+        <div class="cd">Used for the inference estimate. Stage 5 explains why this number is the
+        largest single lever on a serving bill.</div>
+      </div>
+      <div id="out3"></div>
+      <div class="lab-btns" style="margin-top:0.9rem">
+        <button class="act ghost" id="reset">Start over</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="m10after" class="hid">
+
+<div class="callout c-warn"><span class="lbl">What this tool is and is not</span>
+<p><b>Grounded:</b> the FLOP model (C = 6ND) is checked against Llama 3's published compute to within
+0.3%. The peak-FLOPS and bandwidth figures are from vendor datasheets, using <em>dense</em> not
+sparsity numbers. The MFU calibration band comes from PaLM and Llama 3's published values. The memory
+accounting is the ZeRO paper's 16 bytes per parameter.</p>
+<p><b>Extrapolated from a single data point:</b> the hardware-interruption estimate scales Meta's
+Llama 3 figure &mdash; 419 unexpected interruptions over 54 days on 16,000 H100s &mdash; linearly in
+GPU-days. That assumes your failure rate matches theirs, which depends on your hardware vintage, your
+data centre and your software stack. Treat it as an order of magnitude, and notice that it is the
+only number here derived from one observation.</p>
+<p><b>Rough:</b> the serving cost model assumes decode is purely bandwidth-bound, weights are sharded
+across the minimum number of GPUs that fit them, and nothing else competes for memory. It ignores the
+KV cache entirely, which Stage 5 will show is usually what actually limits concurrency &mdash; so
+this figure is optimistic, and knowingly so. It is here to show the <em>shape</em> of the
+training-versus-serving trade, not to price a deployment.</p>
+<p><b>Absent:</b> data acquisition and cleaning cost, salaries, failed runs, hyperparameter sweeps,
+and the several smaller models you train first. In a real programme these are frequently larger than
+the headline compute line.</p>
+</div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 2</span>
+<p><strong>Three artefacts and one diagnosis.</strong></p>
+<ul>
+  <li><b>A model you trained end to end</b>, from raw text to a working chat interface, with the
+  wall-clock time and the dollar cost written down. <a href="https://github.com/karpathy/nanochat"
+  target="_blank" rel="noopener">nanochat</a> is the cheapest honest route &mdash; its README
+  currently states a GPT-2-capability model for about <b>$48</b> of 8&times;H100 time, roughly two
+  hours, against about $43,000 for the equivalent in 2019.</li>
+  <li><b>A profile of that run</b> in which you name the top three time-consuming kernels and say,
+  for each, whether it is compute-bound, memory-bandwidth-bound or communication-bound &mdash; and
+  what you would do about it. Then compute your MFU and compare it to the 40&ndash;46% band.</li>
+  <li><b>A hand-written allocation memo:</b> given 10<sup>22</sup> FLOPs, your recommended
+  (parameters, tokens) pair, the Chinchilla answer, and a paragraph on why you would deviate for a
+  model you intend to serve at scale &mdash; including the counterexample from Module 3 that stops
+  it being a slogan.</li>
+</ul>
+<p>Then the diagnosis, which is the actual test: <strong>your loss spikes at step 4,000 and does not
+recover. Name five candidate causes, ranked, and the cheapest diagnostic for each.</strong> If you
+have trained something you will have opinions and they will be ordered by what you have actually
+checked at 2 a.m. If you have only read about training, you will produce a list.</p>
+<p><b>You have cleared Stage 2 when you can be handed a run that is behaving badly and have a next
+move</b> &mdash; and when you can size a run from a budget without opening anything.</p>
+<p class="neg"><b>Not the test:</b> having run <code>train.py</code> to completion. The distinguishing
+capability at this stage is diagnosis, not execution.</p>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Where to go for the depth</span>
+<ul>
+  <li><a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener"><b>nanochat</b></a>
+  &mdash; tokenizer, pretraining, midtraining, SFT, evaluation, inference and a web UI in one legible
+  repository. Run it, break it, change one thing. ~10 hours plus waiting.</li>
+  <li><a href="https://www.youtube.com/watch?v=l8pRSuU81PU" target="_blank" rel="noopener">Karpathy,
+  <b>Let's reproduce GPT-2 (124M)</b></a> &mdash; four hours covering the whole training loop
+  including the unglamorous parts.</li>
+  <li><a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener"><b>CS336
+  lectures 4&ndash;9</b></a> &mdash; GPUs and TPUs, kernels and Triton, parallelism, scaling laws.
+  The systems core; the Triton lecture is where arithmetic intensity becomes concrete.</li>
+  <li><b>CS336 Assignment 2</b> &mdash; FlashAttention-2 in Triton plus distributed training. Hard,
+  ~20 hours, and it is this stage's real work.</li>
+  <li><a href="https://github.com/gpu-mode/lectures" target="_blank" rel="noopener"><b>GPU MODE</b></a>
+  &mdash; 100+ lectures with code, actively maintained, free. The deep end for kernels and profiling.</li>
+</ul>
+</div>
+
+<div class="takeaways"><div class="t">Module 10 takeaways</div>
+<ul>
+  <li>A training run is a cluster, a calendar and an MFU assumption. Everything else follows.</li>
+  <li>N = &radic;(C/120) puts a compute-optimal model within reach of mental arithmetic.</li>
+  <li>Moving off the Chinchilla ratio trades training quality for permanent serving cost &mdash; the tool prices both.</li>
+  <li>At cluster scale, hardware interruptions are a budgeted rate, not an incident.</li>
+</ul></div>
+</div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Stage 2 of five. Built 28 August 2026; every figure derived or cited the same day.</p>
+  <p style="margin-top:0.6rem">
+    <a href="ai-path-intermediate-to-advanced-course.html">The path</a>
+    <a href="transformer-mechanism-course.html">Stage 1 &mdash; Mechanism</a>
+    <a href="post-training-course.html">Stage 3 &mdash; Post-training</a>
+    <a href="llm-evals-error-analysis-course.html">Stage 4 &mdash; Evals</a>
+    <a href="inference-economics-course.html">Stage 5 &mdash; Inference</a>
+  </p>
+  <p style="margin-top:0.6rem">
+    <a href="https://arxiv.org/abs/2203.15556" target="_blank" rel="noopener">Chinchilla</a>
+    <a href="https://arxiv.org/abs/2404.10102" target="_blank" rel="noopener">Chinchilla replication</a>
+    <a href="https://arxiv.org/abs/2407.21783" target="_blank" rel="noopener">Llama 3</a>
+    <a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener">FlashAttention</a>
+    <a href="https://arxiv.org/abs/1910.02054" target="_blank" rel="noopener">ZeRO</a>
+    <a href="https://arxiv.org/abs/2204.02311" target="_blank" rel="noopener">PaLM</a>
+    <a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a>
+  </p>
+  <p style="margin-top:0.8rem;font-size:0.78rem">Hardware specifications and rental prices are the
+  fastest-decaying figures here; the H100 numbers are from NVIDIA's published datasheet and the
+  $3/GPU-hour anchor is nanochat's, both as of August 2026. The interruption-rate extrapolation rests
+  on a single published observation and is labelled as such in the tool. If the Chinchilla ratio is
+  refitted again at larger scale, Module 2's 20:1 is the row to re-check.</p>
+</div>
+
+</div>
+
+<script>
+/* ────────── nav, progress ────────── */
+(function(){
+'use strict';
+var N = 10;
+var links = document.getElementById('nav-links');
+var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a); secs.push(document.getElementById('m' + i));
+}
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  document.getElementById('progress-bar').style.width =
+    Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100))) + '%';
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) {
+    if (secs[i] && secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  }
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) {
+    var el = document.getElementById('nl' + i);
+    if (el) el.className = (i === active) ? 'done' : '';
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href'));
+    if (!t) return;
+    e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+})();
+</script>
+
+<script>
+/* ═══════════ MODULE 10 — TRAINING RUN PLANNER ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab')) return;
+
+/* dense BF16 peak (NOT the sparsity figure on the datasheet), HBM bandwidth, memory */
+var HW = {
+  h100: { label:'H100 SXM', flops:989.5e12, bw:3.35e12, mem:80*1073741824,
+    note:'80 GB HBM3, 3.35 TB/s. Datasheet lists 1,979 TFLOPS BF16 <em>with sparsity</em>; the dense figure used here is 989.5 TFLOPS. Ridge point ~295 FLOPs/byte.' },
+  h200: { label:'H200 SXM', flops:989.5e12, bw:4.8e12, mem:141*1073741824,
+    note:'Same Hopper compute as H100, but 141 GB of HBM3e at 4.8 TB/s. Identical FLOPs, far more bandwidth — so it changes decode economics much more than it changes training time. Ridge point ~206 FLOPs/byte.' },
+  a100: { label:'A100 80GB', flops:312e12, bw:2.039e12, mem:80*1073741824,
+    note:'80 GB HBM2e, 2.039 TB/s, 312 TFLOPS dense BF16. Roughly a third of H100’s compute; still very widely deployed. Ridge point ~153 FLOPs/byte.' }
+};
+
+var hw = 'h100', gpus = 64, days = 30, mfu = 0.40, price = 3.0, guessN = 1e9;
+var ratio = 20, sbatch = 64, built = false;
+
+/* log-scaled GPU slider: 1 → 32768 */
+function gFromSlider(v){
+  var g = Math.round(Math.pow(2, v / 4));
+  return Math.max(1, g);
+}
+function sliderFromG(g){ return Math.round(Math.log2(g) * 4); }
+/* log-scaled parameter guess: 10M → 2T */
+function nFromSlider(v){ return Math.pow(10, 7 + (v/100) * (12.3 - 7)); }
+/* log-scaled ratio: 1 → 3000 */
+function rFromSlider(v){ return Math.pow(10, (v/100) * Math.log10(3000)); }
+function sliderFromR(r){ return Math.round(Math.log10(r) / Math.log10(3000) * 100); }
+
+function fmtN(n){
+  if (n >= 1e12) return (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return (n/1e9).toFixed(n >= 1e10 ? 0 : 1) + 'B';
+  if (n >= 1e6)  return (n/1e6).toFixed(0) + 'M';
+  if (n >= 1e3)  return (n/1e3).toFixed(0) + 'K';
+  return n.toFixed(0);
+}
+function fmtFlop(c){
+  var e = Math.floor(Math.log10(c));
+  return (c / Math.pow(10, e)).toFixed(2) + '&times;10<sup>' + e + '</sup>';
+}
+function money(d){
+  if (d >= 1e9) return '$' + (d/1e9).toFixed(2) + 'B';
+  if (d >= 1e6) return '$' + (d/1e6).toFixed(1) + 'M';
+  if (d >= 1e3) return '$' + (d/1e3).toFixed(0) + 'K';
+  return '$' + d.toFixed(0);
+}
+function gib(b){ return (b/1073741824).toFixed(1) + ' GiB'; }
+
+/* ---------- the model ---------- */
+function budget(){
+  var h = HW[hw];
+  var seconds = days * 86400;
+  var C = gpus * h.flops * mfu * seconds;
+  var dollars = gpus * days * 24 * price;
+  /* Llama 3: 419 unexpected interruptions over 54 days on 16,000 H100s */
+  var rate = 419 / (54 * 16000);
+  var interrupts = rate * gpus * days;
+  return { C:C, dollars:dollars, interrupts:interrupts, seconds:seconds, hw:h };
+}
+function alloc(C, r){
+  var N = Math.sqrt(C / (6 * r));
+  return { N:N, D:r * N, r:r };
+}
+/* decode-only serving estimate: bandwidth-bound, weights sharded over the minimum GPUs that fit */
+function serve(N){
+  var h = HW[hw];
+  var wb = N * 2;
+  var tp = Math.max(1, Math.ceil(wb / (h.mem * 0.8)));
+  var perTok = (wb / tp) / h.bw;              /* seconds to read one shard */
+  var tps = sbatch / perTok;                  /* aggregate tokens per second */
+  var hourly = tp * price;
+  var per1M = (hourly / 3600) * 1e6 / tps;
+  return { tp:tp, tps:tps, per1M:per1M, wb:wb };
+}
+
+/* ---------- stage 1 wiring ---------- */
+function renderHw(){
+  $('hw').innerHTML = Object.keys(HW).map(function(k){
+    return '<button class="pbtn' + (k===hw?' sel':'') + '" data-k="' + k + '">' + HW[k].label + '</button>';
+  }).join('');
+  Array.prototype.forEach.call($('hw').querySelectorAll('.pbtn'), function(b){
+    b.addEventListener('click', function(){
+      if (built) return;
+      hw = b.dataset.k; renderHw(); $('d-hw').innerHTML = HW[hw].note;
+    });
+  });
+}
+function gDesc(){
+  if (gpus <= 8) return 'A single node or less. This is the tier where nanochat lives and where you can learn everything without a procurement conversation.';
+  if (gpus <= 64) return 'A small cluster. Enough to train a genuinely useful small model, and enough that the parallelism decisions in Module 7 start to matter.';
+  if (gpus <= 1024) return 'A serious cluster. At this scale hardware failures become a scheduled rate rather than an event, and checkpointing strategy is load-bearing.';
+  if (gpus <= 8192) return 'Frontier-adjacent. Meta reported 43% MFU at 8,192 H100s; matching that is a substantial engineering achievement, not a default.';
+  return 'Frontier scale. Above 8K GPUs, Meta’s own MFU fell from 43% to 41% purely from having to shrink the per-replica batch — scaling out costs efficiency.';
+}
+function mDesc(){
+  if (mfu >= 0.55) return 'Above anything published for a large run. If you are assuming this, check whether you have accidentally used the sparsity peak in the denominator.';
+  if (mfu >= 0.38) return 'The published frontier band. PaLM reported 46.2% MFU; Llama 3 reported 41–43% BF16 MFU. Realistic for a well-engineered run.';
+  if (mfu >= 0.25) return 'Below the frontier band but plausible for a first serious attempt, or for a model shape that does not tile well.';
+  return 'Low enough that a day of profiling almost certainly pays for itself. The PaLM paper notes prior systems struggled to exceed 30%.';
+}
+function rDesc(){
+  var r = ratio;
+  if (r < 5) return 'Severely under-trained. GPT-3 sat at about 1.7 tokens per parameter, and Chinchilla is the paper that demonstrated how much was being wasted there.';
+  if (r < 15) return 'Under-trained relative to Chinchilla. You are buying parameters you cannot afford to feed, and you will pay for them again at every inference call.';
+  if (r <= 30) return 'The Chinchilla band. Loss-optimal for a fixed training budget, and the right answer if the model is a research artefact rather than a product.';
+  if (r <= 60) return 'The band Meta’s own scaling law pointed at for Llama 3 405B — about 41 tokens per parameter. Reasonable at large compute, where the fitted optimum moves.';
+  if (r <= 300) return 'Deliberately over-trained for serving. You are paying training compute to buy a permanently smaller model. Watch the inference line below.';
+  return 'Aggressively over-trained — Llama 3 8B territory at roughly 1,875 tokens per parameter. Correct for a high-volume deployment, and check the data ceiling flag.';
+}
+
+$('r-g').addEventListener('input', function(){ gpus = gFromSlider(+this.value); $('v-g').textContent = gpus.toLocaleString('en-US'); $('d-g').textContent = gDesc(); });
+$('r-d').addEventListener('input', function(){ days = +this.value; $('v-d').textContent = days; });
+$('r-m').addEventListener('input', function(){ mfu = +this.value/100; $('v-m').textContent = this.value + '%'; $('d-m').textContent = mDesc(); });
+$('r-p').addEventListener('input', function(){ price = +this.value/100; $('v-p').textContent = '$' + price.toFixed(2); });
+$('r-q').addEventListener('input', function(){ guessN = nFromSlider(+this.value); $('v-q').textContent = fmtN(guessN); });
+$('r-r').addEventListener('input', function(){ ratio = rFromSlider(+this.value); $('v-r').textContent = ratio < 10 ? ratio.toFixed(1) : Math.round(ratio); $('d-r').textContent = rDesc(); renderAlloc(); });
+$('r-sb').addEventListener('input', function(){ sbatch = +this.value; $('v-sb').textContent = sbatch; renderAlloc(); });
+
+/* ---------- stage 2 ---------- */
+$('s1-go').addEventListener('click', function(){
+  built = true;
+  $('s1-st').textContent = 'Locked'; $('s1-st').className = 'st ok';
+  $('s1-go').disabled = true;
+  ['r-g','r-d','r-m','r-p','r-q'].forEach(function(i){ $(i).disabled = true; });
+  Array.prototype.forEach.call($('hw').querySelectorAll('.pbtn'), function(b){
+    b.style.pointerEvents='none'; if(!b.classList.contains('sel')) b.style.opacity='0.35';
+  });
+  $('s2').className='stage'; $('s2-st').textContent='Open';
+  $('s3').className='stage'; $('s3-st').textContent='Open';
+  $('lab-step').textContent='Stage 2 of 3';
+  renderBudget(); renderAlloc();
+  $('m10after').className='';
+  try { $('s2').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+function renderBudget(){
+  var b = budget();
+  var opt = alloc(b.C, 20);
+  var meta = alloc(b.C, 41);
+  var err = Math.log10(guessN / opt.N);
+  var factor = Math.pow(10, Math.abs(err));
+
+  var h = '<div class="mgrid">' +
+    '<div class="mcell"><b>' + fmtFlop(b.C) + '</b><span>FLOPs of compute</span></div>' +
+    '<div class="mcell"><b>' + money(b.dollars) + '</b><span>at $' + price.toFixed(2) + '/GPU-hr</span></div>' +
+    '<div class="mcell good"><b>' + fmtN(opt.N) + '</b><span>Chinchilla-optimal params</span></div>' +
+    '<div class="mcell"><b>' + fmtN(opt.D) + '</b><span>tokens to match</span></div>' +
+    '<div class="mcell' + (b.interrupts > 20 ? ' warn' : '') + '"><b>' +
+      (b.interrupts < 1 ? b.interrupts.toFixed(2) : Math.round(b.interrupts)) +
+      '</b><span>expected interruptions</span></div>' +
+    '</div>';
+
+  var hit = factor < 2;
+  h += '<div class="verdict ' + (hit ? 'v-hit' : 'v-miss') + '"><span class="vl">' +
+    (hit ? 'Your guess was within a factor of two' : 'Your guess was off by ' + factor.toFixed(1) + '×') +
+    '</span>' +
+    '<p>You guessed <b>' + fmtN(guessN) + '</b> parameters. N = &radic;(C/120) gives <b>' +
+    fmtN(opt.N) + '</b>, trained on <b>' + fmtN(opt.D) + '</b> tokens.</p>';
+  if (hit) {
+    h += '<p>That is the calibration this stage is for. The useful property of &radic;(C/120) is that ' +
+      'it is <em>mental</em> arithmetic — you can size a run from a cluster description in a meeting, ' +
+      'which is a capability almost nobody in the room has.</p>';
+  } else if (err > 0) {
+    h += '<p>You over-estimated. The intuition that usually causes this is linear: twice the compute ' +
+      'feels like twice the model. It is not — <b>N grows as the square root of C</b>, because the ' +
+      'extra compute has to be split between more parameters <em>and</em> more tokens. To double the ' +
+      'model you need four times the compute, not two.</p>';
+  } else {
+    h += '<p>You under-estimated, which is less common. The likely cause is anchoring on published ' +
+      'frontier models without noticing how enormous their compute budgets are. It is worth ' +
+      'internalising the square-root relationship in both directions: <b>a tenth of the compute is ' +
+      'not a tenth of the model, it is roughly a third of it.</b></p>';
+  }
+  h += '</div>';
+
+  /* the two reference allocations */
+  h += '<div class="field"><span class="lbl">The same budget, two published opinions</span>' +
+    '<div class="tw"><table><thead><tr><th>Allocation</th><th>Parameters</th><th>Tokens</th><th>Tokens/param</th></tr></thead><tbody>' +
+    '<tr><td><b>Chinchilla</b> (Hoffmann et al., 2022)</td><td>' + fmtN(opt.N) + '</td><td>' + fmtN(opt.D) + '</td><td>20</td></tr>' +
+    '<tr><td><b>Meta’s Llama 3 fit</b> at ~10<sup>25</sup> FLOPs</td><td>' + fmtN(meta.N) + '</td><td>' + fmtN(meta.D) + '</td><td>41</td></tr>' +
+    '</tbody></table></div>' +
+    '<p>Two careful teams, the same compute, model sizes differing by about <b>' +
+    (opt.N/meta.N).toFixed(2) + '×</b>. Neither is wrong. The optimal ratio is a fitted quantity that ' +
+    'depends on architecture, data and compute scale — which is exactly why Module 2 insists it is a ' +
+    'fit and not a constant.</p></div>';
+
+  /* memory and parallelism */
+  var states = opt.N * 16;
+  var perGpuZ3 = states / gpus;
+  var fits = perGpuZ3 < (b.hw.mem * 0.6);
+  h += '<div class="field"><span class="lbl">Will it fit? — memory at the Chinchilla-optimal size</span>' +
+    '<p>Model states at 16 bytes per parameter: <b>' + gib(states) + '</b> total. ' +
+    'Sharded across ' + gpus.toLocaleString('en-US') + ' GPUs with ZeRO-3 that is <b>' + gib(perGpuZ3) +
+    '</b> per device, against ' + gib(b.hw.mem) + ' of HBM.</p>' +
+    (fits
+      ? '<p>That leaves headroom for activations, so data parallelism with ZeRO-3 is likely sufficient ' +
+        'and you can skip tensor and pipeline parallelism entirely. <b>Take that option if you have it</b> — ' +
+        'every parallelism you add is a source of bugs, bubbles and interconnect sensitivity.</p>'
+      : '<p><b>It does not fit with room for activations.</b> You will need tensor parallelism inside ' +
+        'each node and probably pipeline parallelism across nodes, plus gradient checkpointing — which ' +
+        'costs about 33% more compute and will pull your MFU down from whatever you assumed above. ' +
+        'Module 7 has the placement rule.</p>') +
+    '</div>';
+
+  /* interruptions */
+  h += '<div class="field"><span class="lbl">Failures you should plan for</span>' +
+    '<p>Extrapolating Meta’s published rate — 419 unexpected interruptions over 54 days on 16,000 ' +
+    'H100s — this run should expect roughly <b>' +
+    (b.interrupts < 1 ? b.interrupts.toFixed(2) : Math.round(b.interrupts)) +
+    '</b> unexpected interruptions, about one every <b>' +
+    (b.interrupts >= 0.05 ? (days * 24 / b.interrupts).toFixed(1) + ' hours' : 'few months') + '</b>.</p>' +
+    (b.interrupts >= 2
+      ? '<p>At that rate, checkpoint interval is an arithmetic decision, not a preference. Checkpointing ' +
+        'every <b>' + Math.max(0.5, (days*24/b.interrupts/4)).toFixed(1) + ' hours</b> — roughly a quarter ' +
+        'of your mean time between failures — keeps expected lost work near ' +
+        Math.round(100/8) + '% of an inter-failure interval, which is usually the right trade against ' +
+        'checkpoint write cost.</p>'
+      : '<p>At this scale failures are rare enough to handle as incidents rather than as a rate. That ' +
+        'changes at a few hundred GPU-months; move the GPU slider up and watch the number turn.</p>') +
+    '<p style="font-size:0.84rem;color:var(--text-dim)"><b>Caveat:</b> this is a linear extrapolation ' +
+    'from a single published observation on one vendor’s hardware in one data centre. It is the least ' +
+    'well-grounded number on this page and is here because an order of magnitude beats no estimate.</p></div>';
+
+  $('out2').innerHTML = h;
+}
+
+/* ---------- stage 3 ---------- */
+function renderAlloc(){
+  if (!built) return;
+  var b = budget();
+  var opt = alloc(b.C, 20);
+  var mine = alloc(b.C, ratio);
+  var sOpt = serve(opt.N);
+  var sMine = serve(mine.N);
+  var costRatio = sMine.per1M / sOpt.per1M;
+
+  var h = '<div class="mgrid">' +
+    '<div class="mcell"><b>' + fmtN(mine.N) + '</b><span>parameters</span></div>' +
+    '<div class="mcell"><b>' + fmtN(mine.D) + '</b><span>training tokens</span></div>' +
+    '<div class="mcell"><b>' + sMine.tp + '</b><span>GPUs to hold weights</span></div>' +
+    '<div class="mcell' + (costRatio < 0.7 ? ' good' : (costRatio > 1.4 ? ' bad' : '')) + '"><b>$' +
+      sMine.per1M.toFixed(sMine.per1M < 1 ? 3 : 2) + '</b><span>per 1M output tokens</span></div>' +
+    '<div class="mcell"><b>' + Math.round(sMine.tps).toLocaleString('en-US') + '</b><span>tokens/sec at batch ' + sbatch + '</span></div>' +
+    '</div>';
+
+  /* the trade, priced */
+  h += '<div class="verdict ' + (Math.abs(Math.log(costRatio)) < 0.15 ? 'v-hit' : 'v-miss') + '">' +
+    '<span class="vl">The trade, priced</span>' +
+    '<p>At <b>' + (ratio < 10 ? ratio.toFixed(1) : Math.round(ratio)) + ' tokens per parameter</b> you ' +
+    'get a <b>' + fmtN(mine.N) + '</b> model. The Chinchilla allocation for the same compute gives ' +
+    '<b>' + fmtN(opt.N) + '</b>.</p>';
+
+  if (costRatio < 0.95) {
+    h += '<p>Your model costs <b>$' + sMine.per1M.toFixed(3) + '</b> per million output tokens against ' +
+      '<b>$' + sOpt.per1M.toFixed(3) + '</b> for the Chinchilla-optimal one — <b>' +
+      ((1 - costRatio) * 100).toFixed(0) + '% cheaper, forever.</b></p>' +
+      '<p>The training budget was <b>' + money(b.dollars) + '</b> either way — you did not spend more, ' +
+      'you spent it differently. So the saving is pure, and the number worth carrying is the volume at ' +
+      'which it repays the entire run: <b>' + fmtN(b.dollars / ((sOpt.per1M - sMine.per1M) / 1e6)) +
+      ' output tokens</b>. Past that point the smaller model has paid for its own training and is ' +
+      'still saving. What you gave up is loss-per-training-FLOP — a real cost, paid once, in a ' +
+      'currency the customer never sees.</p>';
+    if (mine.D > 20e12) {
+      h += '<p><b>Data ceiling flag.</b> This allocation needs <b>' + fmtN(mine.D) + '</b> tokens. ' +
+        'Llama 3 used about 15.6T, and assembling that much deduplicated, filtered, decontaminated ' +
+        'text is one of the hardest parts of the whole enterprise. Beyond roughly 20T you are into ' +
+        'territory where repeated epochs, synthetic data or licensed corpora become the binding ' +
+        'constraint — and none of those behave like fresh tokens. <b>The plan above may not be ' +
+        'executable at any price.</b></p>';
+    }
+  } else if (costRatio > 1.05) {
+    h += '<p>Your model costs <b>$' + sMine.per1M.toFixed(3) + '</b> per million output tokens against ' +
+      '<b>$' + sOpt.per1M.toFixed(3) + '</b> for the Chinchilla-optimal one — <b>' +
+      ((costRatio - 1) * 100).toFixed(0) + '% more expensive to serve, permanently</b>, and it is also ' +
+      'a <em>worse</em> model, because you moved away from the loss-optimal allocation in the ' +
+      'expensive direction.</p>' +
+      '<p>Under-training is the failure mode Chinchilla was written to correct, and it is the one ' +
+      'expensive mistake here that has no compensating benefit. If you find yourself in this region ' +
+      'the honest question is whether the parameter count is being chosen for a reason other than ' +
+      'performance.</p>';
+  } else {
+    h += '<p>You are at the Chinchilla point, so the serving cost is the reference. Move the ratio ' +
+      'right and watch the cost per million tokens fall while the training loss (which this tool does ' +
+      'not model) gets worse. That tension is the decision.</p>';
+  }
+  h += '</div>';
+
+  /* serving detail */
+  h += '<div class="field"><span class="lbl">How the serving figure is computed</span>' +
+    '<p>Weights in BF16: <b>' + gib(sMine.wb) + '</b>, sharded across <b>' + sMine.tp +
+    ' ' + b.hw.label + '</b>' + (sMine.tp > 1 ? 's' : '') + '. Decode is bandwidth-bound, so each token ' +
+    'costs one full read of each shard: ' + gib(sMine.wb / sMine.tp) + ' &divide; ' +
+    (b.hw.bw/1e12).toFixed(2) + ' TB/s = <b>' + ((sMine.wb/sMine.tp/b.hw.bw)*1000).toFixed(1) +
+    ' ms</b> per token per sequence. At batch ' + sbatch + ' that read serves ' + sbatch +
+    ' tokens at once, giving ' + Math.round(sMine.tps).toLocaleString('en-US') + ' tokens/sec.</p>' +
+    '<p><b>This estimate is optimistic and deliberately so.</b> It ignores the KV cache, which Stage 5 ' +
+    'shows is usually what actually limits the batch size you can sustain — meaning the batch you set ' +
+    'above may not be achievable at all for a long-context workload. It is here to show the shape of ' +
+    'the trade, not to price a deployment.</p></div>';
+
+  $('out3').innerHTML = h;
+}
+
+$('reset').addEventListener('click', function(){
+  built = false;
+  $('out2').innerHTML=''; $('out3').innerHTML='';
+  $('m10after').className='hid';
+  $('s2').className='stage locked'; $('s2-st').textContent='Locked';
+  $('s3').className='stage locked'; $('s3-st').textContent='Locked';
+  $('s1-st').textContent='Open'; $('s1-st').className='st';
+  $('s1-go').disabled=false;
+  $('lab-step').textContent='Stage 1 of 3';
+  ['r-g','r-d','r-m','r-p','r-q'].forEach(function(i){ $(i).disabled=false; });
+  Array.prototype.forEach.call($('hw').querySelectorAll('.pbtn'), function(b){
+    b.style.pointerEvents=''; b.style.opacity='';
+  });
+  try { $('s1').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+/* ---------- init ---------- */
+renderHw();
+$('d-hw').innerHTML = HW[hw].note;
+$('r-g').value = sliderFromG(64); gpus = gFromSlider(+$('r-g').value);
+$('v-g').textContent = gpus.toLocaleString('en-US'); $('d-g').textContent = gDesc();
+$('d-m').textContent = mDesc();
+$('r-r').value = sliderFromR(20); ratio = rFromSlider(+$('r-r').value);
+$('v-r').textContent = Math.round(ratio); $('d-r').textContent = rDesc();
+$('v-q').textContent = fmtN(nFromSlider(+$('r-q').value)); guessN = nFromSlider(+$('r-q').value);
+
+window.__lab = {
+  budget: budget, alloc: alloc, serve: serve,
+  set: function(o){ if(o.hw)hw=o.hw; if(o.gpus)gpus=o.gpus; if(o.days)days=o.days;
+    if(o.mfu)mfu=o.mfu; if(o.price)price=o.price; if(o.ratio)ratio=o.ratio; if(o.sbatch)sbatch=o.sbatch; },
+  state: function(){ return {hw:hw,gpus:gpus,days:days,mfu:mfu,price:price,ratio:ratio,sbatch:sbatch}; }
+};
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>
