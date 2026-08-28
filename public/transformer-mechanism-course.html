@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Mechanism — What a Transformer Actually Computes</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.1rem;overflow-x:auto;margin:1.1rem 0;font-size:0.83rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text)}
+pre .c{color:var(--text-dim)}
+pre .k{color:var(--purple)}
+pre .s{color:var(--green)}
+pre .f{color:var(--blue)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-steel{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-steel .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* CURRENCY STATUS CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-live{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-ok{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-dated{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-frozen{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-dead{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* LEDGER ROWS */
+.ledger{margin:1.3rem 0}
+.lrow{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.05rem;margin-bottom:0.65rem;border-left:3px solid var(--border-light)}
+.lrow.live{border-left-color:var(--green)}
+.lrow.ok{border-left-color:var(--accent)}
+.lrow.dated{border-left-color:var(--yellow)}
+.lrow.frozen{border-left-color:var(--purple)}
+.lrow.dead{border-left-color:var(--red)}
+.lrow .lc{font-size:0.93rem;color:var(--text-bright);font-weight:650;margin-bottom:0.45rem}
+.lrow .lv{font-size:0.86rem;color:var(--text-dim);line-height:1.65}
+.lrow .lv b{color:var(--text)}
+.lrow .lv a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.lrow .verdict-line{margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);
+  font-size:0.85rem;color:var(--text)}
+.lrow .verdict-line b{color:var(--text-bright)}
+
+/* STAGE CLEARING TEST */
+.cleartest{background:linear-gradient(180deg,rgba(108,99,255,0.09),rgba(108,99,255,0.04));
+  border:1px solid rgba(108,99,255,0.34);border-left:3px solid var(--accent2);
+  border-radius:10px;padding:1.15rem 1.3rem;margin:1.5rem 0}
+.cleartest .lbl{font-size:0.7rem;font-weight:800;color:var(--accent2);text-transform:uppercase;
+  letter-spacing:0.08em;display:block;margin-bottom:0.6rem}
+.cleartest p{margin-bottom:0.7rem;font-size:0.93rem}
+.cleartest p:last-child{margin-bottom:0}
+.cleartest .neg{color:var(--text-dim);font-size:0.86rem}
+
+/* TIME BADGE */
+.timebar{display:flex;gap:0.5rem;flex-wrap:wrap;margin:0 0 1.3rem}
+.tb{background:var(--code-bg);border:1px solid var(--border);border-radius:7px;
+  padding:0.4rem 0.75rem;font-size:0.78rem;color:var(--text-dim);font-family:var(--mono)}
+.tb b{color:var(--accent);font-weight:700}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ PATH BUILDER (LAB) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+/* goal picker */
+.priors{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.4rem}
+.prior{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.8rem 0.9rem;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.prior:hover{border-color:var(--accent)}
+.prior.sel{border-color:var(--accent2);background:rgba(108,99,255,0.12)}
+.prior b{display:block;font-size:0.9rem;color:var(--text-bright);font-weight:750;margin-bottom:0.2rem}
+.prior span{font-size:0.75rem;color:var(--text-dim);line-height:1.45;display:block}
+@media(max-width:640px){.priors{grid-template-columns:1fr}}
+.priors.five{grid-template-columns:repeat(5,1fr)}
+@media(max-width:760px){.priors.five{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:420px){.priors.five{grid-template-columns:repeat(2,1fr)}}
+
+/* capability self-assessment */
+.cap{border:1px solid var(--border);border-radius:9px;padding:0.8rem 0.95rem;
+  margin-bottom:0.6rem;background:var(--bg2)}
+.cap .cq{font-size:0.88rem;color:var(--text);margin-bottom:0.55rem;line-height:1.6}
+.cap .cq b{color:var(--text-bright)}
+.cap .cs{font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.4rem}
+.cap-opts{display:flex;gap:0.35rem;flex-wrap:wrap}
+.cap-opt{font-size:0.72rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.cap-opt:hover{border-color:var(--accent);color:var(--accent)}
+.cap-opt.sel-y{background:rgba(152,195,121,0.2);border-color:var(--green);color:var(--green)}
+.cap-opt.sel-p{background:rgba(229,192,123,0.2);border-color:var(--yellow);color:var(--yellow)}
+.cap-opt.sel-n{background:rgba(224,108,117,0.2);border-color:var(--red);color:var(--red)}
+
+/* result */
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+.field ul{margin:0 0 0.7rem 1.2rem}
+.field li{margin-bottom:0.3rem}
+
+/* schedule rows */
+.sched{margin:1rem 0}
+.srow{display:grid;grid-template-columns:auto 1fr auto;gap:0.8rem;align-items:baseline;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:0.65rem 0.9rem;margin-bottom:0.45rem;border-left:3px solid var(--border-light)}
+.srow.now{border-left-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.srow.done{opacity:0.45;border-left-color:var(--green)}
+.srow .sw{font-family:var(--mono);font-size:0.76rem;color:var(--text-dim);white-space:nowrap}
+.srow .sn{font-size:0.88rem;color:var(--text-bright);font-weight:650}
+.srow .sn em{display:block;font-style:normal;font-size:0.78rem;color:var(--text-dim);
+  font-weight:400;margin-top:0.15rem;line-height:1.5}
+.srow .sh{font-family:var(--mono);font-size:0.76rem;color:var(--accent);white-space:nowrap}
+@media(max-width:640px){.srow{grid-template-columns:1fr;gap:0.25rem}}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+
+/* ===== course-1 extras: tensor trace + parameter ledger ===== */
+.trace{font-family:var(--mono);font-size:0.78rem;margin:1rem 0;overflow-x:auto}
+.trow{display:grid;grid-template-columns:1.6rem 1fr auto;gap:0.6rem;align-items:baseline;
+  padding:0.4rem 0.6rem;border-bottom:1px solid var(--border);white-space:nowrap}
+.trow:last-child{border-bottom:none}
+.trow.hi{background:rgba(108,99,255,0.09)}
+.trow .ti{color:var(--text-dim)}
+.trow .tn{color:var(--text)}
+.trow .tn em{font-style:normal;color:var(--text-dim)}
+.trow .ts{color:var(--accent);font-weight:700}
+.trow.warn .ts{color:var(--yellow)}
+.bar{height:10px;border-radius:5px;background:var(--code-bg);overflow:hidden;display:flex;margin:0.45rem 0 0.3rem}
+.bar i{display:block;height:100%}
+.bar .b-attn{background:var(--accent)}
+.bar .b-mlp{background:var(--accent2)}
+.bar .b-emb{background:var(--orange)}
+.bar .b-oth{background:var(--border-light)}
+.key{display:flex;gap:0.9rem;flex-wrap:wrap;font-size:0.74rem;color:var(--text-dim);margin-bottom:0.6rem}
+.key span{display:inline-flex;align-items:center;gap:0.32rem}
+.key i{width:9px;height:9px;border-radius:2px;display:inline-block}
+.eq{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.7rem 1rem;margin:1rem 0;font-family:var(--mono);font-size:0.84rem;
+  color:var(--text-bright);overflow-x:auto;line-height:1.9}
+.eq b{color:var(--accent)}
+.eq .cm{color:var(--text-dim)}
+.toggles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0.55rem;margin:0.7rem 0}
+.tg{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.8rem;
+  cursor:pointer;font-family:inherit;text-align:left;transition:all 0.15s;font-size:0.8rem;color:var(--text-dim)}
+.tg:hover{border-color:var(--accent)}
+.tg.on{border-color:var(--red);background:rgba(224,108,117,0.12);color:var(--red)}
+.tg b{display:block;color:var(--text-bright);font-size:0.85rem;margin-bottom:0.15rem;font-weight:700}
+.tg.on b{color:var(--red)}
+.preset{display:flex;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.9rem}
+.pbtn{background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:7px;padding:0.35rem 0.75rem;font-size:0.76rem;font-weight:650;cursor:pointer;
+  font-family:var(--mono);transition:all 0.15s}
+.pbtn:hover{border-color:var(--accent);color:var(--accent)}
+.pbtn.sel{border-color:var(--accent2);background:rgba(108,99,255,0.14);color:var(--text-bright)}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">The Mechanism</div>
+    <div class="nav-prog" id="nav-prog">0 / 9</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>The Mechanism</h1>
+  <p class="sub">Stage 1 of the path. What a transformer actually computes between the text going in
+  and the logits coming out &mdash; attention as routing, the residual stream as a sequence of
+  additive edits, and where the parameters really live. Taught so that at the end you can write the
+  forward pass from a blank file, and read a <code>config.json</code> as a spec sheet.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>9</span> modules</div>
+    <div class="hero-badge"><span>~30 h</span> stage budget</div>
+    <div class="hero-badge"><span>$0</span> compute</div>
+    <div class="hero-badge"><span>1</span> interactive tool</div>
+    <div class="hero-badge"><span>~75</span> min read</div>
+    <div class="hero-badge"><span>28 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Stage 1 of five &middot; the path is in
+  <a href="ai-path-intermediate-to-advanced-course.html">Intermediate to Advanced AI</a> &middot;
+  next: <a href="training-stack-course.html">The Training Stack</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">What this course is for</span>
+  <p>This is the first of five stage courses that teach the path laid out in
+  <a href="ai-path-intermediate-to-advanced-course.html">Intermediate to Advanced AI</a>. That course
+  tells you what the stages are and in what order. This one teaches the first stage.</p>
+  <p><strong>Everything downstream depends on this.</strong> Learning-rate schedules, loss spikes,
+  LoRA, KV caches, quantization error, why fine-tuning cannot add facts &mdash; all of it is a
+  statement about the object described here. Skip this stage and the other four become folklore you
+  are memorising rather than mechanics you are reasoning about.</p>
+  <p>The prose is written to be understood, not skimmed. But the course does not end in
+  understanding &mdash; it ends in a <strong>clearing test</strong> that produces a file. Reading
+  this page is not the test.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">Text in, logits out<span class="tag">The whole pass</span></a></li>
+    <li><a href="#m2">Attention is a soft dictionary lookup<span class="tag">Routing</span></a></li>
+    <li><a href="#m3">The residual stream<span class="tag">The load-bearing idea</span></a></li>
+    <li><a href="#m4">The MLP, and where parameters live<span class="tag">Arithmetic</span></a></li>
+    <li><a href="#m5">Norms and positions<span class="tag">The plumbing</span></a></li>
+    <li><a href="#m6">Heads &mdash; multi, grouped, and what they do<span class="tag">And its limits</span></a></li>
+    <li><a href="#m7">The objective is one line<span class="tag">Cross-entropy</span></a></li>
+    <li><a href="#m8">Reading a config like a spec sheet<span class="tag">Applied</span></a></li>
+    <li><a href="#m9">The Forward Pass Ledger<span class="tag">Interactive</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>Text in, logits out</h2>
+  <div class="mt">The entire forward pass on one page, before we slow down and look at the parts</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to name every step between a string and a probability distribution, in order</li>
+  <li>Know the shape of the tensor at each step, in terms of B, T, C and V</li>
+  <li>Understand what "the model" is doing that is <em>not</em> the neural network &mdash; and why that matters</li>
+</ul></div>
+
+<h3>The whole thing, uncompressed</h3>
+
+<p>A decoder-only transformer &mdash; the architecture behind essentially every current language
+model &mdash; is a function from a sequence of integers to a matrix of scores. That is the entire
+contract. Everything else is detail about how the function is computed.</p>
+
+<p>Here is the whole pass, with nothing hidden. Four dimensions carry the argument throughout:
+<b>B</b> is batch size, <b>T</b> is sequence length in tokens, <b>C</b> is the model dimension (the
+width of the residual stream, called <code>hidden_size</code> or <code>d_model</code> in configs),
+and <b>V</b> is vocabulary size.</p>
+
+<pre><code><span class="c"># 0. OUTSIDE THE NETWORK — tokenization</span>
+"The cat sat"  &rarr;  [791, 8415, 7731]              <span class="c"># (T,)  ints, not floats</span>
+
+<span class="c"># 1. EMBEDDING — integers become vectors</span>
+x = W_embed[ids]                                  <span class="c"># (B,T,C)</span>
+
+<span class="c"># 2. N IDENTICAL BLOCKS — each one reads the stream and adds to it</span>
+<span class="k">for</span> block <span class="k">in</span> blocks:
+    x = x + attention(norm(x))                    <span class="c"># (B,T,C) — unchanged shape</span>
+    x = x + mlp(norm(x))                          <span class="c"># (B,T,C) — unchanged shape</span>
+
+<span class="c"># 3. FINAL NORM</span>
+x = norm(x)                                       <span class="c"># (B,T,C)</span>
+
+<span class="c"># 4. UNEMBEDDING — vectors become scores over the vocabulary</span>
+logits = x @ W_unembed                            <span class="c"># (B,T,V)</span>
+</code></pre>
+
+<p>Read that again and notice the thing that is easy to miss: <strong>the shape never changes in the
+middle.</strong> From step 1 to step 3, the tensor is <code>(B,T,C)</code> the entire way. Forty
+blocks, eighty blocks, a hundred and twenty &mdash; the object being passed along is the same size at
+every point. That is not an implementation convenience. It is the central architectural fact, and
+Module 3 is about what follows from it.</p>
+
+<div class="callout c-steel"><span class="lbl">The output is not "the next token"</span>
+<p>Step 4 produces <code>(B,T,V)</code> &mdash; a full distribution over the vocabulary at
+<em>every</em> position, not just the last one. Position 0 predicts what follows token 0, position 1
+predicts what follows token 1, and so on, all in the same forward pass.</p>
+<p>This is why training is so efficient. One pass over a 4,096-token document yields 4,096
+supervised prediction problems, not one. And it is why the causal mask (Module 2) is
+load-bearing rather than decorative: without it, position 5 could see token 6 while being asked to
+predict token 6, and the task would be trivial.</p>
+<p>At <em>inference</em> you usually throw away all but the last row, which is why people picture the
+model as producing one distribution. That is a property of how you use it, not of what it computes.</p>
+</div>
+
+<h3>The step that is not a neural network</h3>
+
+<p>Step 0 deserves separate billing because it is not learned by gradient descent, it happens before
+the model sees anything, and it is responsible for a startling share of confusing model behaviour.</p>
+
+<p>Tokenization is a deterministic, greedy compression scheme &mdash; usually byte-pair encoding
+&mdash; fitted once on a corpus and then frozen. It merges frequent byte sequences into single
+symbols. Common English words become one token. Rare words fragment. Numbers fragment in ways that
+depend on the exact digits. Whitespace attaches to the following word in some schemes and not
+others.</p>
+
+<p>The consequences are not cosmetic:</p>
+
+<ul>
+  <li><strong>Arithmetic is harder than it looks</strong> because the digits of a number may not
+  align with token boundaries in any consistent way, so "carry the one" is not a local operation in
+  the model's input representation.</li>
+  <li><strong>Character-level tasks are structurally awkward.</strong> Counting the letters in a word
+  the model sees as a single opaque symbol requires it to have memorised the spelling of that symbol
+  rather than to look.</li>
+  <li><strong>Cost and context length are measured in tokens, not characters</strong>, and the
+  tokens-per-character ratio varies by more than a factor of two across languages, which is a real
+  and under-discussed pricing asymmetry.</li>
+</ul>
+
+<p>Byte-pair encoding as a compression algorithm is due to <a
+href="https://dl.acm.org/doi/10.5555/177910.177914" target="_blank" rel="noopener">Gage (1994)</a>;
+its application to neural text was <a href="https://arxiv.org/abs/1508.07909" target="_blank"
+rel="noopener">Sennrich, Haddow and Birch (2016)</a>, who introduced it to handle rare and unseen
+words in machine translation. If a model's behaviour on some input seems inexplicable, tokenization
+is the first place to look and it is right an unreasonable share of the time.</p>
+
+<div class="takeaways"><div class="t">Module 1 takeaways</div>
+<ul>
+  <li>A decoder-only transformer maps <code>(B,T)</code> integers to <code>(B,T,V)</code> scores.</li>
+  <li>The tensor is <code>(B,T,C)</code> at every point between embedding and final norm. The shape never changes.</li>
+  <li>Every position gets a prediction in every pass &mdash; that is why training is efficient and why the causal mask matters.</li>
+  <li>Tokenization happens outside the network, is frozen, and explains a large share of odd behaviour.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>Attention is a soft dictionary lookup</h2>
+  <div class="mt">The one component that moves information between positions &mdash; and the scale factor that makes it trainable</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to derive attention from a Python dictionary in four steps</li>
+  <li>Know precisely why the scores are divided by the square root of the head dimension</li>
+  <li>Understand the causal mask, why it is implemented with negative infinity, and what breaks without it</li>
+  <li>Be able to state the real reason attention displaced recurrence &mdash; which is not the usual answer</li>
+</ul></div>
+
+<h3>Start from something that already makes sense</h3>
+
+<p>A Python dictionary does a hard lookup. You supply a key, it finds the one entry whose key matches
+exactly, and it returns that entry's value. One winner, no partial credit, and &mdash; crucially for
+our purposes &mdash; no derivative. You cannot ask a dictionary how its output would change if the
+key were slightly different, because the answer is a step function.</p>
+
+<p>Attention is that operation made differentiable, in four moves.</p>
+
+<ol>
+  <li><strong>Every position emits three vectors instead of being a key-value pair.</strong> The
+  <b>query</b> is what this position is looking for. The <b>key</b> is the label this position
+  advertises. The <b>value</b> is what it will hand over if selected. All three are linear
+  projections of the position's current residual-stream vector, so all three are learned.</li>
+  <li><strong>Replace exact matching with a similarity score.</strong> Dot the query at position
+  <em>i</em> against the key at every position <em>j</em>. High dot product means "these match."</li>
+  <li><strong>Replace "pick the winner" with a softmax.</strong> The scores become weights that are
+  positive and sum to one. Now every position contributes something; the good matches just
+  contribute more.</li>
+  <li><strong>Return a weighted average of the values</strong> rather than one value.</li>
+</ol>
+
+<p>That is the whole operation. Hard lookup becomes soft lookup, and soft lookup has a gradient
+everywhere &mdash; which means the model can learn what to look for and what to advertise, by
+backpropagation, from nothing but next-token prediction.</p>
+
+<div class="eq">
+<span class="cm"># one head, ignoring batch. Q,K: (T, d_head)   V: (T, d_head)</span><br>
+scores  = Q @ K.T / <b>sqrt(d_head)</b>          <span class="cm"># (T, T)</span><br>
+scores  = scores.masked_fill(causal_mask, <b>-inf</b>)<br>
+weights = softmax(scores, dim=-1)          <span class="cm"># (T, T), each row sums to 1</span><br>
+out     = weights @ V                      <span class="cm"># (T, d_head)</span>
+</div>
+
+<h3>Why divide by the square root of the head dimension</h3>
+
+<p>This is the detail people skip, and it is the difference between a model that trains and one that
+does not.</p>
+
+<p>Take two vectors of dimension <em>d</em> whose components are independent with mean zero and unit
+variance. Their dot product is a sum of <em>d</em> such products, so its variance is
+proportional to <em>d</em> and its typical magnitude grows like the square root of <em>d</em>. At a
+head dimension of 128, raw scores routinely land in the tens.</p>
+
+<p>Now feed scores of that size into a softmax. Softmax exponentiates, so a gap of ten between the
+largest and second-largest score becomes a ratio of about 22,000 to one. The distribution collapses
+to nearly one-hot &mdash; and the gradient of a saturated softmax with respect to its inputs is
+nearly zero. The layer stops learning. Dividing by the square root of the head dimension
+rescales the scores back to order one, which is where softmax has usable gradients.</p>
+
+<div class="callout c-fact"><span class="lbl">Check it yourself in thirty seconds</span>
+<p>This is one of the few claims in this course you can verify in a REPL without training anything.
+Draw <code>q, k = torch.randn(128), torch.randn(128)</code>, compute <code>q @ k</code> over a
+thousand draws, and look at the standard deviation. You should see roughly
+<code>sqrt(128) &asymp; 11.3</code>. Then softmax a vector of scores at that scale and look at the
+max weight. Do it &mdash; the number is more convincing than the paragraph.</p>
+<p>The original paper (<a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani
+et al., 2017</a>, footnote 4) gives exactly this argument: they suspect that for large values of the
+key dimension, the dot products grow large in magnitude and push the softmax into regions of
+extremely small gradients.</p>
+</div>
+
+<h3>The causal mask</h3>
+
+<p>A language model must not see the future. When predicting the token at position <em>t</em>+1 from
+positions 0 through <em>t</em>, position <em>t</em> must not be allowed to attend to
+<em>t</em>+1 &mdash; otherwise the answer is in the input.</p>
+
+<p>The implementation is one line: before the softmax, set every score where <em>j</em> &gt;
+<em>i</em> to negative infinity. Exponentiating negative infinity gives exactly zero, so those
+positions receive zero weight and, importantly, receive zero gradient. Masking <em>after</em> the
+softmax would be a bug: the masked entries would still have consumed probability mass from the
+normalisation.</p>
+
+<div class="callout c-warn"><span class="lbl">What actually breaks if you remove it &mdash; and which direction the loss moves</span>
+<p>This is a favourite interview question because the intuitive answer is backwards.</p>
+<p>Remove the causal mask and the <strong>training loss falls</strong>, often dramatically and
+immediately. It does not rise. The model can now see the token it is being asked to predict, so it
+learns the trivial identity mapping &mdash; copy position <em>t</em>+1's information into position
+<em>t</em>'s prediction &mdash; and drives loss towards zero.</p>
+<p>What breaks is <em>generation</em>. At inference the future does not exist, so the model is asked
+to run in a regime it never trained for, and produces nonsense. This is the cleanest example in the
+field of a metric improving while the system gets worse, and it is worth holding as a template: a
+loss that drops suspiciously fast is usually leakage, not learning.</p>
+</div>
+
+<h3>Why it beat recurrence &mdash; the honest answer</h3>
+
+<p>The usual story is that RNNs forget long-range context and attention does not. That is real, and
+it is secondary. <strong>The primary reason attention won is that it parallelises and recurrence
+does not.</strong></p>
+
+<p>An RNN computes the state at position <em>t</em> from the state at position <em>t</em>&minus;1.
+That is a sequential dependency by construction: step 500 cannot start until step 499 finishes. A
+GPU with tens of thousands of arithmetic units can therefore do almost nothing at once along the
+sequence axis and spends the run mostly idle.</p>
+
+<p>In attention, every position's output depends on the full input sequence but on no other
+position's <em>output</em>. So all positions compute simultaneously, as one large matrix multiply
+&mdash; precisely the operation the hardware is built for. The paper is titled <em>Attention Is All
+You Need</em>; a fair subtitle would have been <em>and it parallelises</em>.</p>
+
+<p>Hold on to this, because it generalises. Architecture in this field is jointly determined by
+mathematics and by silicon, and when a design choice looks arbitrary the hardware is usually the
+missing half of the explanation. That framing is what makes the training and inference stages
+legible rather than a list of tricks.</p>
+
+<div class="callout c-dissent"><span class="lbl">The cost, stated fairly</span>
+<p>Attention's parallelism is bought with quadratic cost: the score matrix is T&times;T, so doubling
+the context quadruples the attention compute and memory. Recurrence is linear in sequence length and
+constant in memory. The trade was overwhelmingly worth it at the sequence lengths that mattered in
+2017, and the entire long-context research programme since is an attempt to recover some of
+recurrence's scaling without giving up the parallelism.</p>
+<p>This is also why modern state-space and linear-attention hybrids keep reappearing. They are not
+nostalgia. They are attempts to get a recurrent-shaped cost curve with a parallelisable training
+formulation, and whether any of them displaces softmax attention at frontier scale is genuinely
+unsettled as of 2026 &mdash; treat confident claims in either direction with suspicion.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 2 takeaways</div>
+<ul>
+  <li>Attention is a dictionary lookup with exact matching replaced by softmax over dot-product similarity.</li>
+  <li>The 1/&radic;d<sub>head</sub> scale exists because dot-product magnitude grows like &radic;d and saturated softmax has no gradient.</li>
+  <li>The causal mask is applied before the softmax with &minus;&infin;, so masked positions get zero weight and zero gradient.</li>
+  <li>Removing the mask makes training loss <em>fall</em> and generation fail &mdash; leakage, not learning.</li>
+  <li>Attention displaced recurrence primarily on parallelism, at the price of quadratic cost in sequence length.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>The residual stream</h2>
+  <div class="mt">Blocks do not transform the input. They read it, compute, and add an edit back.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to say why the standard "stack of transformations" picture of a transformer is wrong</li>
+  <li>Know the four things the additive view explains that the pipeline view cannot</li>
+  <li>Be able to state the honest limits of each of those four claims</li>
+</ul></div>
+
+<h3>The picture in your head is probably wrong</h3>
+
+<p>Almost every diagram draws a transformer as a stack: input enters at the bottom, block 1 transforms
+it, block 2 transforms that, and so on to the top. It is the natural way to draw a deep network and
+it will actively mislead you.</p>
+
+<p>Because of the residual connections, a block does not transform its input. It <em>reads</em> its
+input, computes something, and <em>adds</em> the result back:</p>
+
+<pre><code><span class="c"># NOT this — a pipeline of transformations</span>
+x = block(x)
+
+<span class="c"># but this — read, compute, add back</span>
+x = x + attention(norm(x))
+x = x + mlp(norm(x))</code></pre>
+
+<p>So there is a single vector per position &mdash; the <strong>residual stream</strong> &mdash;
+running unbroken from the embedding to the final norm. Every sublayer is a side channel that reads
+from the stream and writes an increment into it. Nothing is ever replaced. Things are only ever
+added.</p>
+
+<p>The term and the framing come from <a href="https://transformer-circuits.pub/2021/framework/index.html"
+target="_blank" rel="noopener">Elhage et al., <em>A Mathematical Framework for Transformer
+Circuits</em></a> (Anthropic, 2021), which treats the stream as a communication channel that
+components read from and write to. It is the single most useful reframing available for this
+architecture, and it costs nothing to adopt.</p>
+
+<div class="callout c-steel"><span class="lbl">One consequence, stated in linear algebra</span>
+<p>Because every contribution is added, the final residual-stream vector is a <em>sum</em>: the
+embedding, plus one term per attention sublayer, plus one term per MLP sublayer. For a 40-layer
+model that is 81 addends.</p>
+<p>Two things fall out of that immediately. First, every component's output can influence every
+later component, so the computational graph between layers is fully connected rather than a chain.
+Second, you can ask what any individual addend contributed to the final answer &mdash; project it
+through the unembedding and look at which logits it pushed on. That is the basis of most
+mechanistic-interpretability tooling, and it is only well defined because the combination is a sum.</p>
+</div>
+
+<h3>Four things this explains &mdash; and what each claim actually supports</h3>
+
+<h4>1. Deleting a middle layer degrades gracefully</h4>
+<p>Delete stage 7 of a seven-stage pipeline and everything downstream receives garbage. Delete one
+addend from a sum of 81 and the sum is slightly wrong. The additive structure predicts graceful
+rather than catastrophic degradation, and that is what is observed &mdash; the effect was first
+characterised for residual networks generally by <a href="https://arxiv.org/abs/1605.06431"
+target="_blank" rel="noopener">Veit, Wilber and Belongie (2016)</a>, who argued residual networks
+behave like ensembles of relatively shallow paths.</p>
+<p class="neg" style="color:var(--text-dim);font-size:0.88rem"><b>The limit, stated honestly:</b>
+this is not uniform across depth. Work on layer pruning in LLMs &mdash; for example <a
+href="https://arxiv.org/abs/2403.17887" target="_blank" rel="noopener">Gromov et al., <em>The
+Unreasonable Ineffectiveness of the Deeper Layers</em></a> &mdash; finds that a substantial fraction
+of the <em>deeper</em> layers can be removed with modest degradation, while early layers cannot. So
+the correct claim is "later blocks are individually low-impact," not "any block is deletable." If
+you repeat the strong version you will be wrong in front of someone who has tried it.</p>
+
+<h4>2. Activation steering is writing in the model's native format</h4>
+<p>If a concept corresponds to a direction in the residual stream, then adding a multiple of that
+vector at some layer is exactly the same kind of operation the model's own sublayers perform. You
+are not injecting a foreign signal; you are doing what block 12 does, with a vector you chose. The
+additive view is why this is even a coherent thing to attempt.</p>
+<p class="neg" style="color:var(--text-dim);font-size:0.88rem"><b>The limit:</b> "concepts are
+directions" is a working hypothesis with substantial supporting evidence, not a theorem. Steering
+often works, sometimes fails, and can degrade unrelated capabilities. Treat it as an empirical
+technique with a good mechanistic story rather than a settled account of representation.</p>
+
+<h4>3. Depth buys refinement, not re-representation</h4>
+<p>Layer 30 does not receive a foreign encoding produced by layer 29. It receives the accumulated
+draft that all 29 previous sublayers have been editing, in the same basis it started in. The model is
+doing successive editing, not successive translation. This is why intermediate layers can be decoded
+with the output unembedding at all &mdash; the "logit lens" technique &mdash; which would be
+meaningless if each layer re-encoded into a private space.</p>
+
+<h4>4. Why low-rank adaptation is plausible</h4>
+<p>If capability changes correspond to modest edits in a shared space rather than to wholesale
+rewiring, then a small low-rank perturbation to each weight matrix is a sensible thing to expect to
+work. That is not a proof that LoRA works, but it is why the idea is not obviously absurd, and it is
+the intuition to carry into Stage 3.</p>
+
+<div class="callout c-warn"><span class="lbl">The one place the picture is genuinely incomplete</span>
+<p>The residual stream has fixed width C and every sublayer writes into it, so its capacity is
+finite and contested &mdash; components must share a limited number of usable directions. The
+interpretability literature discusses this as bandwidth pressure and treats it as a partial
+explanation for <em>superposition</em>, where a model represents more features than it has
+dimensions by using non-orthogonal directions and tolerating interference.</p>
+<p>You do not need superposition to write a forward pass. You do need it the moment someone claims a
+neuron or a direction "is" a concept, because in a superposed representation that claim is usually
+false in the strong form. Know the word and know that it is an active research area, not a solved
+one.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 3 takeaways</div>
+<ul>
+  <li>Blocks read from and add to a persistent per-position vector; nothing is replaced.</li>
+  <li>The final vector is a sum of the embedding plus one term per sublayer &mdash; 81 addends in a 40-layer model.</li>
+  <li>Graceful layer deletion, activation steering, the logit lens and LoRA's plausibility all follow from additivity.</li>
+  <li>The honest version of the deletion claim is about <em>deeper</em> layers, not arbitrary ones.</li>
+  <li>Fixed stream width is finite bandwidth, which is where superposition enters &mdash; an open area, not a settled one.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>The MLP, and where the parameters live</h2>
+  <div class="mt">Attention moves information between positions; the MLP computes at one. And the split is not what you were told.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to state the division of labour between attention and MLP in one sentence</li>
+  <li>Be able to compute the parameter count of any decoder-only model by hand from its config</li>
+  <li>Know why the familiar "one-third attention, two-thirds MLP" rule is true for GPT-2 and false for Llama 3</li>
+</ul></div>
+
+<h3>The division of labour</h3>
+
+<div class="split">
+<div class="l"><div class="h">Attention &mdash; movement between positions</div>
+<p>The only component in the architecture that lets information travel from one token position to
+another. It is routing: it decides <em>what to fetch from where</em>.</p>
+<p>It cannot do position-wise nonlinear computation beyond the value projection.</p></div>
+<div class="r"><div class="h">MLP &mdash; computation at a position</div>
+<p>Operates on each position completely independently &mdash; it literally cannot see other tokens.
+It transforms whatever is currently in that position's residual stream.</p>
+<p>It cannot move anything. Every fact it uses must already have been routed there by attention.</p></div>
+</div>
+
+<p>Say it as one sentence and keep it: <strong>attention moves information between positions; the MLP
+transforms information at a position.</strong> Once you hold that, several empirical results stop
+being surprising &mdash; that factual recall interventions tend to localise to MLP layers, that
+mixture-of-experts routes MLPs rather than attention heads, and that long-context work is almost
+entirely attention work.</p>
+
+<p>The MLP itself is deliberately boring: project up to a wider dimension (<code>d_ff</code>, called
+<code>intermediate_size</code> in configs), apply a nonlinearity, project back down. The width ratio
+is conventionally about four in the classic form. Whatever computation happens at a position happens
+in that wide middle.</p>
+
+<h3>Now count the parameters, because the count is where the intuition lives</h3>
+
+<p>This is arithmetic you should be able to do on a whiteboard. Per block, ignoring biases and norm
+scales, which are negligible:</p>
+
+<div class="eq">
+<span class="cm"># classic (GPT-2 style): multi-head attention, 2-matrix MLP, d_ff = 4C</span><br>
+attention = 4C&sup2;          <span class="cm"># W_Q, W_K, W_V, W_O, each C&times;C</span><br>
+mlp       = 2 &middot; C &middot; d_ff = 8C&sup2;<br>
+<b>block     = 12C&sup2;   &rarr;  attention 33.3%, MLP 66.7%</b>
+</div>
+
+<p>That is where the familiar one-third / two-thirds rule comes from, and it is exactly right for
+GPT-2. Check it against a published number: GPT-2 small has C = 768, 12 layers, d_ff = 3072, vocab
+50,257, learned position embeddings for 1,024 positions, tied embeddings.</p>
+
+<div class="eq">
+blocks     = 12 &times; 12 &times; 768&sup2;  = 84,934,656<br>
+token emb  = 50,257 &times; 768      = 38,597,376<br>
+pos emb    = 1,024 &times; 768       = &nbsp;&nbsp;&nbsp;786,432<br>
+<b>total      = 124,318,464       &rarr; the "124M" in the model card</b>
+</div>
+
+<p>If your hand-count lands on the published number, you have understood where the parameters are.
+That is a better test of this module than any quiz.</p>
+
+<div class="callout c-dissent"><span class="lbl">And the rule is wrong for every current model</span>
+<p>Two changes since GPT-2 break it, and they push in the same direction.</p>
+<p><strong>Grouped-query attention</strong> shrinks W_K and W_V by the ratio of key-value heads to
+query heads, because several query heads share one key-value head. <strong>SwiGLU MLPs</strong> use
+three matrices instead of two. Run the same arithmetic on Llama 3 70B, whose published config is
+C = 8192, d_ff = 28,672, 80 layers, 64 query heads, 8 key-value heads, vocab 128,256, untied:</p>
+<div class="eq">
+Q, O   = 2 &times; 8192&sup2;                    = 134,217,728<br>
+K, V   = 2 &times; 8192 &times; (8 &times; 128)        = &nbsp;16,777,216<br>
+attention&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 150,994,944&nbsp;&nbsp;<b>(17.6%)</b><br>
+mlp    = 3 &times; 8192 &times; 28,672          = 704,643,072&nbsp;&nbsp;<b>(82.4%)</b><br>
+block                              = 855,638,016<br>
+&times; 80 layers                        = 68,451,041,280<br>
++ 2 &times; 128,256 &times; 8192 (untied)     = &nbsp;2,101,346,304<br>
+<b>total                              = 70,552,387,584  &rarr; "70B"</b>
+</div>
+<p>So the split for Llama 3 70B is roughly <strong>18% attention, 82% MLP</strong> &mdash; not
+33/67. The intuition survives and gets stronger: the MLP holds most of the parameters, and more of
+them than it used to. The specific fraction does not survive, and quoting "a third" about a modern
+model is the kind of small error that costs credibility in a room where someone has read the config.</p>
+</div>
+
+<h3>What "knowledge lives in the MLP" does and does not mean</h3>
+
+<p>You will hear that the MLP is where facts are stored, often justified by the observation that it
+looks like a key-value memory: the up-projection produces a sparse-ish activation pattern, the
+down-projection sums the corresponding rows. Interventions that edit specific factual associations
+do typically target MLP weights in the middle layers, and they work well enough to be a research
+subfield.</p>
+
+<p>Be careful with the strong reading. What is supported is that <em>editing MLP weights at
+particular layers reliably changes particular factual outputs</em>. What is not supported is that
+each fact has a tidy address, or that MLPs are a lookup table with attention as the index. Model
+editing has known failure modes &mdash; edits that do not generalise to paraphrases, edits that
+damage unrelated behaviour, edits that revert under further training. Hold the localisation result;
+do not upgrade it to a filing cabinet.</p>
+
+<div class="takeaways"><div class="t">Module 4 takeaways</div>
+<ul>
+  <li>Attention moves information between positions; the MLP transforms it at a position. Neither can do the other's job.</li>
+  <li>Classic block = 12C&sup2;: attention 4C&sup2;, MLP 8C&sup2;. That is the source of the one-third/two-thirds rule.</li>
+  <li>You can hand-derive GPT-2 small's 124M from its config. Do it once.</li>
+  <li>GQA and SwiGLU shift Llama 3 70B to about 18% attention / 82% MLP. The old ratio no longer holds.</li>
+  <li>MLP localisation of facts is a real empirical result, not a claim that facts have addresses.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>Norms and positions</h2>
+  <div class="mt">The plumbing nobody puts on the diagram, and which decides whether the thing trains at all</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know why normalisation moved inside the residual branch, and what that bought</li>
+  <li>Understand why RMSNorm replaced LayerNorm and what was dropped</li>
+  <li>Be able to explain rotary position embeddings as a rotation, and why they extrapolate better than learned positions</li>
+</ul></div>
+
+<h3>Pre-norm versus post-norm</h3>
+
+<p>The 2017 paper puts the normalisation <em>after</em> the residual addition:
+<code>x = norm(x + sublayer(x))</code>. Every current model puts it <em>inside</em> the branch:
+<code>x = x + sublayer(norm(x))</code>. That reordering looks like a detail and is not.</p>
+
+<p>In the post-norm arrangement there is no unnormalised path from input to output &mdash; every
+residual addition is immediately renormalised, so gradients are repeatedly rescaled on the way back.
+<a href="https://arxiv.org/abs/2002.04745" target="_blank" rel="noopener">Xiong et al. (ICML
+2020)</a> showed that post-norm transformers have large expected gradients near the output layer at
+initialisation, which is why the original recipe needed a learning-rate warm-up to train at all, and
+that pre-norm transformers are well behaved at initialisation and can drop the warm-up entirely.</p>
+
+<p>Pre-norm gives you the clean picture from Module 3: an unbroken additive stream, with each branch
+seeing a normalised copy. GPT-2 made the switch and effectively nobody has switched back.</p>
+
+<div class="callout c-warn"><span class="lbl">What pre-norm costs, since nothing is free</span>
+<p>Because nothing rescales the stream itself, the residual stream's magnitude grows monotonically
+with depth &mdash; every block adds, nothing normalises the accumulator. In very deep models this
+produces a stream whose norm at the top is much larger than at the bottom, which effectively shrinks
+the relative contribution of later blocks.</p>
+<p>Practical stacks respond with a final normalisation before the unembedding (universal), and
+sometimes with additional normalisation of the queries and keys inside attention &mdash; "QK norm"
+&mdash; which bounds the attention logits directly and is one of the standard mitigations when
+attention logits blow up mid-run. If you see QK norm in a modern config, that is what it is for.</p>
+</div>
+
+<h3>RMSNorm, and what it dropped</h3>
+
+<p>LayerNorm does two things per position: subtract the mean, then divide by the standard deviation,
+then apply a learned scale and shift. <a href="https://arxiv.org/abs/1910.07467" target="_blank"
+rel="noopener">RMSNorm</a> (Zhang and Sennrich, NeurIPS 2019) keeps only the rescaling: divide by the
+root-mean-square of the vector, apply a learned scale. No mean subtraction, no bias.</p>
+
+<p>The finding that made it stick is that the mean-centring was not doing much of the work. Dropping
+it removes a reduction pass over the vector and a subtraction, which matters because normalisation is
+a memory-bandwidth-bound elementwise operation executed twice per block &mdash; exactly the kind of
+cheap-looking op that shows up embarrassingly high in a profile. Same quality, fewer bytes moved.
+Llama and essentially every model that followed use RMSNorm.</p>
+
+<h3>Positions: the model has no idea what order the tokens are in</h3>
+
+<p>Attention is permutation-equivariant. Shuffle the input positions and the outputs shuffle with
+them &mdash; the mechanism has no notion of sequence at all. Order has to be injected deliberately,
+and how you inject it determines what happens when you exceed the lengths seen in training.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Scheme</th><th>How</th><th>Behaviour past training length</th></tr></thead>
+<tbody>
+<tr><td><b>Learned absolute</b> (GPT-2)</td><td>A trainable vector per position, added to the embedding.</td><td>Undefined. There is literally no parameter for position 1,025. Hard ceiling.</td></tr>
+<tr><td><b>Sinusoidal</b> (2017)</td><td>Fixed sines and cosines at geometric frequencies, added to the embedding.</td><td>Defined everywhere, but quality degrades quickly; extrapolation was never as good as hoped.</td></tr>
+<tr><td><b>Rotary &mdash; RoPE</b> (current default)</td><td>Rotate each query and key by an angle proportional to its position, before the dot product.</td><td>Defined everywhere; degrades, but is cheaply extendable by rescaling frequencies.</td></tr>
+</tbody></table></div>
+
+<p><a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener">RoPE</a> (Su et al.,
+2021) is worth understanding properly because it is what you will meet. Split each query and key
+vector into two-dimensional pairs, and rotate each pair by an angle equal to the position times a
+frequency that depends on which pair it is. Low-index pairs rotate fast, high-index pairs rotate
+slowly &mdash; so the vector encodes position at multiple scales at once, like the hands of a clock.</p>
+
+<p>The property that makes it work: the dot product of two rotated vectors depends only on the
+<em>difference</em> of the two angles. So attention scores become a function of <em>relative</em>
+position automatically, without ever adding a position vector to the residual stream. Position
+information is injected into the query-key comparison only, and never occupies stream bandwidth.</p>
+
+<div class="callout c-steel"><span class="lbl">Why this is the thing that makes long context tractable</span>
+<p>Because the position dependence is a rotation frequency rather than a learned table, you can
+change the frequencies after training. Divide all the angles by a factor and positions that used to
+be 8,000 apart now look 2,000 apart &mdash; the model is running in a regime it has seen. That
+family of tricks (frequency scaling, and its refinements) is how models get extended from an 8K
+training context to 128K without retraining from scratch, and it is only available because position
+was encoded as an angle.</p>
+<p>You can see the parameter in any modern config. Llama 3's <code>rope_theta</code> is 500,000,
+against the 10,000 of the original formulation &mdash; a much longer wavelength base chosen so the
+low-frequency components still vary usefully across a 128K context. Configs are readable once you
+know what the fields mean, which is what Module 8 is about.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 5 takeaways</div>
+<ul>
+  <li>Pre-norm moved normalisation inside the residual branch; it removed the need for LR warm-up and gave a clean additive stream.</li>
+  <li>Its cost is a stream whose norm grows with depth, mitigated by a final norm and sometimes QK norm.</li>
+  <li>RMSNorm drops mean-centring, saving a bandwidth-bound pass with no quality loss.</li>
+  <li>Attention is permutation-equivariant; order must be injected deliberately.</li>
+  <li>RoPE rotates queries and keys so scores depend on relative position &mdash; which is what makes context extension possible.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Heads &mdash; multi, grouped, and what they actually do</h2>
+  <div class="mt">Why one attention is not enough, why modern models share keys, and how far the "this head does X" story goes</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know why heads exist and what is lost by having only one</li>
+  <li>Understand grouped-query attention as an inference-cost decision, and be able to predict its effect</li>
+  <li>Be able to state what head-interpretation results support, and where the popular version overreaches</li>
+</ul></div>
+
+<h3>One attention pattern is not enough</h3>
+
+<p>A single attention operation produces one softmax distribution per position: one set of weights,
+one blended answer. But a token frequently needs several unrelated things at once. Resolving a
+pronoun means finding its antecedent. Getting the verb agreement right means finding the subject.
+Continuing a list means finding the list's previous items. One distribution cannot point at three
+places with full weight.</p>
+
+<p>So run several attentions in parallel over slices of the stream. Split the C-dimensional vector
+into H heads of dimension C/H, run the whole query-key-value-softmax operation independently in each,
+concatenate the results, and pass them through one output projection. Total compute is roughly
+unchanged &mdash; you split the width rather than adding to it &mdash; and you buy H independent
+routing patterns per layer.</p>
+
+<div class="callout c-fact"><span class="lbl">The output projection is not a formality</span>
+<p>People read <code>concat(heads) @ W_O</code> as bookkeeping to restore the shape. It is doing more
+than that. Because W_O is a full C&times;C matrix applied to the concatenation, each head's output is
+mapped into the residual stream through its own slice of W_O's rows &mdash; which means each head
+writes into a direction it effectively chooses. Heads do not deposit their output at a fixed address;
+where they write is learned.</p>
+<p>This is why the interpretability literature talks about the OV circuit (what a head writes, given
+what it attends to) separately from the QK circuit (where a head attends). They are separately
+learnable and separately analysable, and the framing comes from the same Anthropic circuits work as
+the residual stream.</p>
+</div>
+
+<h3>Grouped-query attention is a memory decision</h3>
+
+<p>In classic multi-head attention every head has its own W_K and W_V, so at inference you must cache
+one key vector and one value vector per head per token. That cache is what Stage 5 will show you is
+usually the binding constraint on how many users a GPU can serve at once.</p>
+
+<p><strong>Grouped-query attention</strong> keeps all H query heads but gives them fewer key-value
+heads to share. Llama 3 70B has 64 query heads and 8 key-value heads, so each key-value head serves
+eight queries. The cache shrinks by exactly that ratio &mdash; eight times &mdash; and so do the K and
+V parameter matrices, which is half of what shifted the parameter split in Module 4.</p>
+
+<p>The quality cost is small and the memory saving is enormous, which is why it is universal. But
+notice what kind of decision this is: <strong>an architecture choice made to reduce inference memory,
+accepted at a small quality cost, before the model was ever trained.</strong> That is the
+mathematics-and-silicon pattern from Module 2 showing up again, and once you see it you will see it
+everywhere in modern configs.</p>
+
+<h3>What heads "do", and where that story stops</h3>
+
+<p>You have read that particular heads perform particular functions. Some of that is genuinely
+established. Induction heads &mdash; which find a previous occurrence of the current token and
+copy what followed it &mdash; are a real, mechanistically characterised circuit, described in <a
+href="https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html"
+target="_blank" rel="noopener">Olsson et al. (2022)</a>, and their formation is visible as a
+discrete phase change during training. Previous-token heads are similarly well characterised. These
+are not stories; they are circuits people have traced.</p>
+
+<div class="callout c-dissent"><span class="lbl">Where the popular version overreaches</span>
+<p>The move from "this head implements copying in this setting" to "heads are modules with jobs" is
+not supported, and it is the version that circulates.</p>
+<p>Three specific problems. <strong>Polysemanticity:</strong> a head that behaves cleanly on one
+distribution frequently does something unrelated on another. <strong>Redundancy:</strong> ablating a
+head that appears essential often barely moves behaviour, because another head compensates &mdash;
+which the additive stream makes easy. <strong>Selection effects:</strong> most published head stories
+come from small models on narrow tasks, chosen partly because the story was findable there.</p>
+<p>The defensible position is that specific circuits have been identified in specific models for
+specific behaviours, and that this is real progress, and that a general functional decomposition of a
+frontier model into labelled heads does not currently exist. If you present the strong version to
+someone who works on interpretability, expect to be corrected.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 6 takeaways</div>
+<ul>
+  <li>Heads exist because one softmax cannot attend to several unrelated things at once; you split the width, not add to it.</li>
+  <li>W_O lets each head choose where in the stream it writes &mdash; QK (where to look) and OV (what to write) are separate circuits.</li>
+  <li>GQA shares key-value heads across query heads; Llama 3 70B's 64:8 ratio shrinks the KV cache eightfold.</li>
+  <li>GQA is an inference-memory decision baked into the architecture before training.</li>
+  <li>Induction heads are real and traced; "each head has a job" is not supported for frontier models.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>The objective is one line</h2>
+  <div class="mt">Next-token cross-entropy, nothing else &mdash; and everything that follows from taking that literally</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to state the pretraining loss precisely, including what the units mean</li>
+  <li>Know the relationship between loss, perplexity and bits, and roughly what loss values indicate</li>
+  <li>Understand why the simplicity of the objective is what makes Stage 3 necessary</li>
+</ul></div>
+
+<h3>The whole objective</h3>
+
+<p>Show the model a prefix. Ask for a distribution over the next token. Penalise it by the negative
+logarithm of the probability it assigned to the token that actually came next. Average over every
+position of every document. That is the entire pretraining objective.</p>
+
+<div class="eq">
+loss = &minus; (1/N) &Sigma;<sub>i</sub> log p<sub>&theta;</sub>( token<sub>i+1</sub> | token<sub>&le;i</sub> )
+</div>
+
+<p>There is no auxiliary term for reasoning. No supervision signal for truthfulness. No objective
+encoding helpfulness or harmlessness. Everything that later looks like capability is a side effect of
+compressing a very large corpus under that single loss.</p>
+
+<p>It is worth being concrete about the units, because they let you sanity-check a training run.
+Natural-log cross-entropy is in <em>nats per token</em>. Divide by ln 2 to get <em>bits per token</em>
+&mdash; the number of yes/no questions you would need to identify the next token given a perfect
+code. Exponentiate the loss to get <em>perplexity</em>, which behaves like an effective branching
+factor: perplexity 20 means the model is about as uncertain as if it were choosing uniformly among
+20 options.</p>
+
+<div class="callout c-fact"><span class="lbl">Two reference points, and a warning about comparing them</span>
+<p>A model that has learned nothing sits at loss = ln(V). For a 128,000-token vocabulary that is
+about <b>11.8</b>. Any run that starts materially away from ln(V) has an initialisation bug, and
+this is the cheapest sanity check in all of training &mdash; it costs one step.</p>
+<p>Trained models land in a much lower band, but <strong>loss values are not comparable across models
+with different tokenizers.</strong> A tokenizer that packs more characters into each token has fewer,
+harder predictions to make, and its per-token loss will look worse for the same underlying quality.
+Comparing raw loss across tokenizers is one of the most common unforced errors in this field. If you
+must compare, normalise to bits per <em>character</em> or bits per byte.</p>
+</div>
+
+<h3>Why this is what makes post-training necessary</h3>
+
+<p>Take the objective literally and the behaviour of a base model stops being mysterious. Ask a
+faithful next-token predictor "What is the capital of France?" and it may well continue with "What is
+the capital of Germany?" &mdash; because in a very large corpus, that string most often appears in a
+list of quiz questions. The model is not confused. It is doing exactly what it was optimised to do.</p>
+
+<p>A base model is a <strong>document completer</strong>. It has enormous knowledge and no notion
+that it is supposed to answer you. Post-training &mdash; Stage 3 of this path &mdash; exists entirely
+to close that gap, and it is much easier to understand once you have accepted that pretraining was
+never trying to produce an assistant.</p>
+
+<p>This also gives you the sharpest available refutation of a common enterprise mistake. If the loss
+is next-token prediction over your documents, then fine-tuning on your documents optimises the model
+to <em>produce text like your documents</em>. It does not optimise for knowing what is in them. That
+is why fine-tuning does not reliably add facts, and the argument is available to you from the
+objective alone, before any empirical evidence.</p>
+
+<div class="takeaways"><div class="t">Module 7 takeaways</div>
+<ul>
+  <li>Pretraining is average negative log probability of the next token. There is no other term.</li>
+  <li>Loss is nats/token; &divide; ln 2 for bits, exp() for perplexity as an effective branching factor.</li>
+  <li>Untrained loss is ln(V) &mdash; about 11.8 for a 128K vocabulary. Check it on step one.</li>
+  <li>Loss is not comparable across tokenizers. Normalise to bits per byte if you must compare.</li>
+  <li>The objective produces a document completer, which is precisely why post-training exists.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>Reading a config like a spec sheet</h2>
+  <div class="mt">Turning nine numbers into a parameter count, a memory budget and a set of expectations</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know what every field in a modern model config controls</li>
+  <li>Be able to go from a config to parameters, weight memory and KV cache per token, unaided</li>
+  <li>Have a habit that will save you repeatedly: checking the arithmetic before believing the marketing</li>
+</ul></div>
+
+<h3>The fields that matter</h3>
+
+<p>A <code>config.json</code> is a small document and most of it is boilerplate. Nine fields carry
+the architecture:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Field</th><th>Is</th><th>What it decides</th></tr></thead>
+<tbody>
+<tr><td><code>hidden_size</code></td><td>C</td><td>Residual stream width. Drives parameters quadratically.</td></tr>
+<tr><td><code>num_hidden_layers</code></td><td>L</td><td>Depth. Drives parameters and KV cache linearly.</td></tr>
+<tr><td><code>intermediate_size</code></td><td>d_ff</td><td>MLP width. With SwiGLU this is the single largest parameter block.</td></tr>
+<tr><td><code>num_attention_heads</code></td><td>H</td><td>Query heads. C/H is the head dimension.</td></tr>
+<tr><td><code>num_key_value_heads</code></td><td>H<sub>kv</sub></td><td>The GQA ratio. Divides KV cache size by H/H<sub>kv</sub>.</td></tr>
+<tr><td><code>vocab_size</code></td><td>V</td><td>Embedding and unembedding size. Significant in small models, minor in large ones.</td></tr>
+<tr><td><code>tie_word_embeddings</code></td><td>&mdash;</td><td>Whether the unembedding reuses the embedding matrix. Worth V&times;C parameters.</td></tr>
+<tr><td><code>max_position_embeddings</code></td><td>T<sub>max</sub></td><td>The advertised context. Says nothing about quality at that length.</td></tr>
+<tr><td><code>rope_theta</code></td><td>&mdash;</td><td>RoPE frequency base. A large value signals a long-context design.</td></tr>
+</tbody></table></div>
+
+<h3>The three derivations to have at your fingertips</h3>
+
+<div class="eq">
+<b>1. Parameters</b><br>
+per layer = <span class="cm">[</span> 2C&sup2; + 2C&middot;(H<sub>kv</sub>&middot;C/H) <span class="cm">]</span> + <span class="cm">[</span> 3&middot;C&middot;d_ff <span class="cm">]</span>&nbsp;&nbsp;<span class="cm"># attention + SwiGLU MLP</span><br>
+total     = L &times; per_layer + (1 or 2) &times; V&middot;C<br>
+<br>
+<b>2. Weight memory</b><br>
+bytes = total_params &times; bytes_per_param&nbsp;&nbsp;<span class="cm"># BF16 = 2, FP8 = 1, INT4 = 0.5</span><br>
+<br>
+<b>3. KV cache, per token, per sequence</b><br>
+bytes = 2 &times; L &times; H<sub>kv</sub> &times; (C/H) &times; bytes_per_element&nbsp;&nbsp;<span class="cm"># the 2 is K and V</span>
+</div>
+
+<p>Run the third one on Llama 3 70B: 2 &times; 80 &times; 8 &times; 128 &times; 2 bytes =
+<b>327,680 bytes</b>, or 320 KiB, <em>per token</em>. At the advertised 131,072-token context that is
+<b>41 GiB for a single sequence</b> &mdash; more than half an H100's 80 GB, on top of 141 GB of
+weights that already do not fit on one card. Without grouped-query attention it would be eight times
+that.</p>
+
+<div class="callout c-steel"><span class="lbl">This is the moment the spec sheet stops being abstract</span>
+<p>Nobody serves a single 131K-token sequence per GPU. So the config has just told you something the
+marketing did not: the advertised context length and the achievable concurrency are in direct
+competition for the same memory, and the trade is fully determined by numbers printed in a public
+JSON file.</p>
+<p>You now have a habit worth keeping. When someone quotes a context length, a model size or a
+throughput number, the arithmetic above takes ninety seconds and frequently disagrees with the claim.
+Stage 5 turns this into a full cost model; for now it is enough that you can do the three
+calculations and are inclined to.</p>
+</div>
+
+<h3>What the config cannot tell you</h3>
+
+<p>Be equally clear about the limits, because config-reading breeds overconfidence. The file gives
+you shape and therefore cost. It says nothing about the training data, the number of tokens trained,
+the post-training recipe, or quality at any context length short of the maximum. Two models with
+byte-identical configs can differ by an enormous margin on every benchmark. Architecture determines
+what a model costs; data and training determine what it knows.</p>
+
+<div class="takeaways"><div class="t">Module 8 takeaways</div>
+<ul>
+  <li>Nine config fields carry the architecture; the rest is boilerplate.</li>
+  <li>Parameters, weight memory and KV-cache-per-token are three short derivations. Memorise them.</li>
+  <li>Llama 3 70B is 320 KiB of KV cache per token &mdash; 41 GiB for one full-context sequence.</li>
+  <li>Advertised context and achievable concurrency compete for the same memory, and the config proves it.</li>
+  <li>Config gives you cost, never quality. Data and training decide the rest.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>The Forward Pass Ledger</h2>
+  <div class="mt">Commit to a guess, then trace every tensor and every parameter &mdash; and break things on purpose</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have seen every tensor shape in a real model's forward pass, with the numbers filled in</li>
+  <li>Know whether your intuition about the parameter split survives contact with an actual config</li>
+  <li>Have watched specific ablations change specific numbers, which is how the mechanism becomes yours</li>
+</ul></div>
+
+<p>The tool asks you to guess the MLP's share of the parameters <em>before</em> it computes one. That
+ordering is deliberate: if you see the answer first you will find reasons to have expected it, and
+the useful case is the one where your guess and the arithmetic disagree. Module 4 gave you two
+worked examples that point in different directions, so this is a fair test of whether you took the
+right lesson from them.</p>
+
+<div id="lab">
+  <div class="lab-top">
+    <span class="lab-pill">Interactive</span>
+    <h3>Forward Pass Ledger</h3>
+    <span class="lab-step" id="lab-step">Stage 1 of 3</span>
+  </div>
+  <div class="lab-body">
+
+    <!-- STAGE 1 -->
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">Configure and commit</div>
+        <div class="st" id="s1-st">Open</div></div>
+      <p class="hint">Pick a real config or build your own, choose a batch and sequence length, then
+      commit to a guess before anything is computed.</p>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Model</span></div>
+        <div class="preset" id="preset"></div>
+        <div class="cd" id="d-preset"></div>
+      </div>
+
+      <div id="custom" class="hid">
+        <div class="ctrl">
+          <div class="cl"><span class="cn">hidden_size &mdash; C</span><span class="cv" id="v-c">768</span></div>
+          <input type="range" id="r-c" min="256" max="8192" step="256" value="768">
+        </div>
+        <div class="ctrl">
+          <div class="cl"><span class="cn">num_hidden_layers &mdash; L</span><span class="cv" id="v-l">12</span></div>
+          <input type="range" id="r-l" min="2" max="96" step="2" value="12">
+        </div>
+        <div class="ctrl">
+          <div class="cl"><span class="cn">num_attention_heads &mdash; H</span><span class="cv" id="v-h">12</span></div>
+          <input type="range" id="r-h" min="1" max="64" step="1" value="12">
+        </div>
+        <div class="ctrl">
+          <div class="cl"><span class="cn">num_key_value_heads &mdash; H<sub>kv</sub></span><span class="cv" id="v-kv">12</span></div>
+          <input type="range" id="r-kv" min="1" max="64" step="1" value="12">
+          <div class="cd">Equal to H is classic multi-head attention. Lower is grouped-query. Must divide H.</div>
+        </div>
+        <div class="ctrl">
+          <div class="cl"><span class="cn">intermediate_size &mdash; d_ff</span><span class="cv" id="v-ff">3072</span></div>
+          <input type="range" id="r-ff" min="512" max="32768" step="512" value="3072">
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Sequence length T for the trace</span><span class="cv" id="v-t">1024</span></div>
+        <input type="range" id="r-t" min="128" max="16384" step="128" value="1024">
+        <div class="cd" id="d-t"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Batch size B</span><span class="cv" id="v-b">4</span></div>
+        <input type="range" id="r-b" min="1" max="64" step="1" value="4">
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Before you look: what share of this model's parameters are in the MLPs?</span>
+          <span class="cv" id="v-g">50%</span></div>
+        <input type="range" id="r-g" min="0" max="100" step="1" value="50">
+        <div class="cd">Count the embeddings in the denominator. Module 4 worked two examples that
+        disagree with each other &mdash; the question is whether you know which one this config
+        resembles.</div>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="s1-go">Lock in and trace</button>
+        <span class="gate-msg" id="s1-gate">Your guess is locked before the ledger is computed.</span>
+      </div>
+    </div>
+
+    <!-- STAGE 2 -->
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">The ledger</div>
+        <div class="st" id="s2-st">Locked</div></div>
+      <div id="out2"></div>
+    </div>
+
+    <!-- STAGE 3 -->
+    <div class="stage locked" id="s3">
+      <div class="stage-h"><div class="n">3</div><div class="ttl">Break it on purpose</div>
+        <div class="st" id="s3-st">Locked</div></div>
+      <p class="hint">Each switch removes something the architecture depends on. Turn one on and read
+      what it does to the numbers and to the model. These are the questions the clearing test asks.</p>
+      <div class="toggles" id="toggles"></div>
+      <div id="out3"></div>
+      <div class="lab-btns" style="margin-top:0.9rem">
+        <button class="act ghost" id="reset">Start over</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="m9after" class="hid">
+
+<div class="callout c-warn"><span class="lbl">What this tool is and is not</span>
+<p>The parameter counts are exact arithmetic on the stated configs, and the four presets reproduce
+their published sizes &mdash; GPT-2 small at 124M, GPT-2 XL at ~1.56B, Llama 3 8B at ~8.03B, Llama 3
+70B at ~70.6B. If a preset here disagrees with a model card, the tool is wrong and you should trust
+the card.</p>
+<p>The FLOP figures use the standard approximation from <a href="https://arxiv.org/abs/2001.08361"
+target="_blank" rel="noopener">Kaplan et al. (2020)</a>: forward cost per token &asymp; 2N +
+2&middot;L&middot;T&middot;C, where N excludes embeddings. It ignores normalisation, activation
+functions, softmax and every elementwise operation. Those are cheap in FLOPs and, as Stage 2 will
+show, not at all cheap in time &mdash; which is the first hint that FLOPs are the wrong unit for
+predicting speed.</p>
+<p>Activation memory is reported for the attention score matrix only, because that is the term that
+grows quadratically and the one that motivates FlashAttention. Real activation memory during
+training is larger and depends on what the framework chooses to keep for the backward pass.</p>
+</div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 1</span>
+<p><strong>Open a blank editor and write a decoder-only transformer forward pass in PyTorch from
+memory.</strong> Token embeddings, positional information, causal multi-head self-attention with the
+scale factor, an MLP, pre-norm residual blocks, a final norm, and an output head. Train it on a text
+file small enough to overfit. Watch the loss fall towards zero, and sample from it.</p>
+<p>Then answer these five unaided &mdash; no reference, no model writing them for you.</p>
+<ul>
+  <li>State the shape of every tensor at every step given B, T, C, H and H<sub>kv</sub>.</li>
+  <li>Explain what specifically breaks if you remove the causal mask, and say <em>which direction the
+  training loss moves</em> and why.</li>
+  <li>Point at the line where the residual stream is written to, and say what the model loses if
+  <code>x = x + attn(...)</code> becomes <code>x = attn(...)</code>.</li>
+  <li>Given a config file you have not seen, produce the parameter count, the BF16 weight memory and
+  the KV cache per token &mdash; and be within a percent of the published size.</li>
+  <li>Explain why the scale factor is there in terms of the variance of a dot product, and say what
+  you would observe in training if it were missing.</li>
+</ul>
+<p><b>You have cleared Stage 1 when you can write the forward pass from a blank file and answer all
+five without looking anything up.</b> Not when you have read this course.</p>
+<p class="neg"><b>Not the test:</b> having read this page. Having a repo you followed along with.
+Being able to describe attention fluently in words. The characteristic failure of this stage is
+<em>fluency without construction</em> &mdash; you can explain queries and keys beautifully and still
+not produce the code, and only one of those is load-bearing for everything that comes after.</p>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Where to go for the depth</span>
+<p>This course teaches the concepts. It is not a substitute for building the thing, and these are
+the resources worth your hours &mdash; all free, all checked on 28 August 2026.</p>
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=kCc8FmEb1nY" target="_blank" rel="noopener">Karpathy,
+  <b>Let's build GPT: from scratch, in code, spelled out</b></a> &mdash; still the single best
+  artefact for this stage. Type it, do not watch it. ~2 hours of video, budget six of work.</li>
+  <li><a href="https://www.youtube.com/watch?v=zduSFxRajkE" target="_blank" rel="noopener">Karpathy,
+  <b>Let's build the GPT Tokenizer</b></a> &mdash; Module 1's step 0, done properly. Skipping
+  tokenization is a debt you pay later with interest.</li>
+  <li><a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener"><b>Stanford
+  CS336</b>, lectures 1&ndash;3</a> &mdash; the rigorous version, plus modern architecture variants.</li>
+  <li><a href="https://transformer-circuits.pub/2021/framework/index.html" target="_blank"
+  rel="noopener"><b>A Mathematical Framework for Transformer Circuits</b></a> &mdash; where the
+  residual stream framing in Module 3 comes from. Read it after you can write the forward pass.</li>
+  <li><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener"><b>Attention Is All
+  You Need</b></a> &mdash; read it <em>after</em> the videos, at which point it is short and mostly
+  familiar. That is the correct experience of this paper, and it is not the one most people have.</li>
+</ul>
+</div>
+
+<div class="takeaways"><div class="t">Module 9 takeaways</div>
+<ul>
+  <li>The shape is <code>(B,T,C)</code> from embedding to final norm, however deep the model.</li>
+  <li>The attention score tensor is <code>(B,H,T,T)</code> and it is the term that explodes with context.</li>
+  <li>Modern configs put roughly 80% of block parameters in the MLP, not 67% &mdash; GQA and SwiGLU moved it.</li>
+  <li>Every ablation in stage 3 changes a number you can point at. That is the difference between knowing and having read.</li>
+</ul></div>
+</div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Stage 1 of five. Built 28 August 2026; every link and figure checked the same day.</p>
+  <p style="margin-top:0.6rem">
+    <a href="ai-path-intermediate-to-advanced-course.html">The path</a>
+    <a href="training-stack-course.html">Stage 2 &mdash; Training stack</a>
+    <a href="post-training-course.html">Stage 3 &mdash; Post-training</a>
+    <a href="llm-evals-error-analysis-course.html">Stage 4 &mdash; Evals</a>
+    <a href="inference-economics-course.html">Stage 5 &mdash; Inference</a>
+  </p>
+  <p style="margin-top:0.6rem">
+    <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Attention Is All You Need</a>
+    <a href="https://transformer-circuits.pub/2021/framework/index.html" target="_blank" rel="noopener">Transformer Circuits</a>
+    <a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener">RoPE</a>
+    <a href="https://arxiv.org/abs/2002.04745" target="_blank" rel="noopener">Pre-LN</a>
+    <a href="https://arxiv.org/abs/2001.08361" target="_blank" rel="noopener">Scaling Laws</a>
+    <a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener">CS336</a>
+  </p>
+  <p style="margin-top:0.8rem;font-size:0.78rem">Architecture claims decay slowly, but they do decay.
+  The parameter splits here are computed from configs published as of August 2026; if a model family
+  changes its attention or MLP shape, Module 4's Llama 3 arithmetic is a snapshot rather than a rule.
+  The interpretability claims in Modules 3 and 6 are the ones most likely to be revised &mdash; they
+  are stated with their limits for that reason.</p>
+</div>
+
+</div>
+
+<script>
+/* ────────── nav, progress, active-module tracking ────────── */
+(function(){
+'use strict';
+var N = 9;
+var links = document.getElementById('nav-links');
+var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a);
+  secs.push(document.getElementById('m' + i));
+}
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  var pct = Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100)));
+  document.getElementById('progress-bar').style.width = pct + '%';
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) {
+    if (!secs[i]) continue;
+    if (secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  }
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) {
+    var el = document.getElementById('nl' + i);
+    if (el) el.className = (i === active) ? 'done' : '';
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href'));
+    if (!t) return;
+    e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+})();
+</script>
+
+<script>
+/* ═══════════ MODULE 9 — FORWARD PASS LEDGER ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab')) return;
+
+/* ---------- configs. mlp:2 = GELU two-matrix, mlp:3 = SwiGLU three-matrix ---------- */
+var PRESETS = {
+  gpt2s:  { label:'GPT-2 small', C:768,  L:12, H:12, KV:12, FF:3072,  V:50257,  tied:true,  mlp:2, pos:1024,   published:'124M',
+            note:'The 2019 shape: classic multi-head attention, a two-matrix GELU MLP at d_ff = 4C, learned absolute positions, tied embeddings. Everything in Module 4’s first derivation.' },
+  gpt2xl: { label:'GPT-2 XL',    C:1600, L:48, H:25, KV:25, FF:6400,  V:50257,  tied:true,  mlp:2, pos:1024,   published:'~1.56B',
+            note:'Same architecture, scaled. Useful because it shows what changes when C grows and the vocabulary does not — watch the embedding share collapse.' },
+  l3_8b:  { label:'Llama 3 8B',  C:4096, L:32, H:32, KV:8,  FF:14336, V:128256, tied:false, mlp:3, pos:131072, published:'~8.03B',
+            note:'The modern shape: grouped-query attention at 32:8, a three-matrix SwiGLU MLP, RMSNorm, RoPE, untied embeddings, a 128K vocabulary. Compare its split to GPT-2’s.' },
+  l3_70b: { label:'Llama 3 70B', C:8192, L:80, H:64, KV:8,  FF:28672, V:128256, tied:false, mlp:3, pos:131072, published:'~70.6B',
+            note:'The config worked by hand in Module 4. A 64:8 query-to-key-value ratio, which is what shrinks both the KV cache and the attention parameter share.' },
+  custom: { label:'Custom',      C:768,  L:12, H:12, KV:12, FF:3072,  V:50257,  tied:true,  mlp:3, pos:8192,   published:null,
+            note:'Build your own. SwiGLU MLP and untied embeddings are assumed. Try holding total parameters roughly fixed while trading depth against width, and watch the KV cache move.' }
+};
+
+/* ---------- state ---------- */
+var key = 'gpt2s';
+var cfg = null;
+var T = 1024, B = 4, guess = 50;
+var built = false;
+var ABL = { mask:false, resid:false, scale:false, onehead:false, nogqa:false };
+
+/* ---------- helpers ---------- */
+function fmt(n){
+  if (n >= 1e12) return (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return (n/1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return (n/1e6).toFixed(1)  + 'M';
+  if (n >= 1e3)  return (n/1e3).toFixed(1)  + 'K';
+  return String(n);
+}
+function bytes(n){
+  if (n >= 1024*1024*1024*1024) return (n/1099511627776).toFixed(2) + ' TiB';
+  if (n >= 1024*1024*1024) return (n/1073741824).toFixed(2) + ' GiB';
+  if (n >= 1024*1024) return (n/1048576).toFixed(1) + ' MiB';
+  if (n >= 1024) return (n/1024).toFixed(1) + ' KiB';
+  return n + ' B';
+}
+function commas(n){ return n.toLocaleString('en-US'); }
+
+/* ---------- the whole model, as arithmetic ---------- */
+function compute(){
+  var c = cfg;
+  var kv = ABL.nogqa ? c.H : c.KV;
+  var heads = ABL.onehead ? 1 : c.H;
+  var hd = Math.floor(c.C / c.H);                 /* head dim is fixed by the real H */
+  var qo = 2 * c.C * c.C;
+  var kvp = 2 * c.C * (kv * hd);
+  var attn = qo + kvp;
+  var mlp = c.mlp * c.C * c.FF;
+  var perLayer = attn + mlp;
+  var blocks = c.L * perLayer;
+  var emb = c.V * c.C;
+  var embTotal = emb * (c.tied ? 1 : 2);
+  var posP = (c.pos && c.mlp === 2) ? c.pos * c.C : 0;   /* learned positions only in the GPT-2 shape */
+  var total = blocks + embTotal + posP;
+
+  var nNonEmb = blocks;
+  var flopsTok = 2 * nNonEmb + 2 * c.L * T * c.C;        /* Kaplan et al. forward approximation */
+
+  var kvPerTok = 2 * c.L * kv * hd * 2;                  /* K and V, BF16 */
+  var scoreBytes = B * heads * T * T * 2;                /* the (B,H,T,T) tensor in BF16 */
+
+  return {
+    heads:heads, hd:hd, kv:kv,
+    attn:attn, mlp:mlp, perLayer:perLayer, blocks:blocks,
+    embTotal:embTotal, posP:posP, total:total,
+    attnAll:attn * c.L, mlpAll:mlp * c.L,
+    weightsB:total * 2, flopsTok:flopsTok,
+    kvPerTok:kvPerTok, kvSeq:kvPerTok * T, scoreBytes:scoreBytes
+  };
+}
+
+/* ---------- stage 1 wiring ---------- */
+function renderPresets(){
+  var box = $('preset');
+  box.innerHTML = Object.keys(PRESETS).map(function(k){
+    return '<button class="pbtn' + (k === key ? ' sel' : '') + '" data-k="' + k + '">' +
+           PRESETS[k].label + '</button>';
+  }).join('');
+  Array.prototype.forEach.call(box.querySelectorAll('.pbtn'), function(b){
+    b.addEventListener('click', function(){
+      if (built) return;
+      key = b.dataset.k;
+      cfg = JSON.parse(JSON.stringify(PRESETS[key]));
+      $('custom').className = (key === 'custom') ? '' : 'hid';
+      syncCustom();
+      renderPresets();
+      $('d-preset').innerHTML = PRESETS[key].note;
+    });
+  });
+}
+function syncCustom(){
+  $('r-c').value = cfg.C; $('v-c').textContent = cfg.C;
+  $('r-l').value = cfg.L; $('v-l').textContent = cfg.L;
+  $('r-h').value = cfg.H; $('v-h').textContent = cfg.H;
+  $('r-kv').value = cfg.KV; $('v-kv').textContent = cfg.KV;
+  $('r-ff').value = cfg.FF; $('v-ff').textContent = cfg.FF;
+}
+function customChanged(){
+  if (key !== 'custom') return;
+  cfg.C = +$('r-c').value; $('v-c').textContent = cfg.C;
+  cfg.L = +$('r-l').value; $('v-l').textContent = cfg.L;
+  cfg.H = +$('r-h').value; $('v-h').textContent = cfg.H;
+  cfg.FF = +$('r-ff').value; $('v-ff').textContent = cfg.FF;
+  var kvv = +$('r-kv').value;
+  if (kvv > cfg.H) kvv = cfg.H;
+  /* keep H divisible by KV so the grouping is real */
+  while (cfg.H % kvv !== 0 && kvv > 1) kvv--;
+  cfg.KV = kvv; $('r-kv').value = kvv; $('v-kv').textContent = kvv;
+}
+['r-c','r-l','r-h','r-kv','r-ff'].forEach(function(id){
+  $(id).addEventListener('input', customChanged);
+});
+
+function tDesc(){
+  var s = 'The trace and the score-matrix memory are computed at this length. ';
+  if (T >= 8192) s += 'At this length the (B,H,T,T) score tensor dominates everything else, which is the entire motivation for FlashAttention in Stage 2.';
+  else if (T >= 2048) s += 'Long enough that the quadratic term starts to bite. Watch the score-matrix row in the ledger.';
+  else s += 'Short enough that the quadratic term still looks harmless. Push it up once you have seen the ledger.';
+  return s;
+}
+$('r-t').addEventListener('input', function(){ T = +this.value; $('v-t').textContent = commas(T); $('d-t').textContent = tDesc(); });
+$('r-b').addEventListener('input', function(){ B = +this.value; $('v-b').textContent = B; });
+$('r-g').addEventListener('input', function(){ guess = +this.value; $('v-g').textContent = guess + '%'; });
+
+/* ---------- the trace ---------- */
+function traceRows(r){
+  var c = cfg, hd = r.hd;
+  var rows = [
+    ['ids', 'token ids from the tokenizer', '(' + B + ', ' + commas(T) + ')  int64', 0],
+    ['embed', 'W_embed lookup — the stream begins', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', 1]
+  ];
+  rows.push(['─', 'per block, × ' + c.L, '', 2]);
+  rows.push(['norm', c.mlp === 3 ? 'RMSNorm' : 'LayerNorm', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', 0]);
+  rows.push(['Q', 'x @ W_Q, split into ' + r.heads + ' heads', '(' + B + ', ' + r.heads + ', ' + commas(T) + ', ' + hd + ')', 0]);
+  rows.push(['K', 'x @ W_K — ' + r.kv + ' key/value head' + (r.kv === 1 ? '' : 's'), '(' + B + ', ' + r.kv + ', ' + commas(T) + ', ' + hd + ')', 0]);
+  rows.push(['V', 'x @ W_V', '(' + B + ', ' + r.kv + ', ' + commas(T) + ', ' + hd + ')', 0]);
+  rows.push(['scores', 'Q @ K.T / sqrt(' + hd + ')' + (ABL.scale ? '  ← SCALE REMOVED' : ''), '(' + B + ', ' + r.heads + ', ' + commas(T) + ', ' + commas(T) + ')', 3]);
+  rows.push(['mask', ABL.mask ? 'CAUSAL MASK REMOVED — future is visible' : 'masked_fill(j > i, -inf)', '(' + B + ', ' + r.heads + ', ' + commas(T) + ', ' + commas(T) + ')', ABL.mask ? 4 : 0]);
+  rows.push(['weights', 'softmax(scores, dim=-1)', '(' + B + ', ' + r.heads + ', ' + commas(T) + ', ' + commas(T) + ')', 0]);
+  rows.push(['heads_out', 'weights @ V', '(' + B + ', ' + r.heads + ', ' + commas(T) + ', ' + hd + ')', 0]);
+  rows.push(['attn_out', 'concat heads, @ W_O', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', 0]);
+  rows.push(['x', ABL.resid ? 'x = attn_out    ← RESIDUAL REMOVED' : 'x = x + attn_out', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', ABL.resid ? 4 : 1]);
+  rows.push(['norm', 'second normalisation', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', 0]);
+  rows.push(['h', c.mlp === 3 ? 'SwiGLU: (x@W_gate) * silu(x@W_up)' : 'gelu(x @ W_in)', '(' + B + ', ' + commas(T) + ', ' + commas(c.FF) + ')', 0]);
+  rows.push(['mlp_out', 'h @ W_down', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', 0]);
+  rows.push(['x', ABL.resid ? 'x = mlp_out     ← RESIDUAL REMOVED' : 'x = x + mlp_out', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', ABL.resid ? 4 : 1]);
+  rows.push(['─', 'end of block', '', 2]);
+  rows.push(['norm', 'final normalisation', '(' + B + ', ' + commas(T) + ', ' + c.C + ')', 0]);
+  rows.push(['logits', 'x @ W_unembed' + (c.tied ? '  (tied to W_embed)' : ''), '(' + B + ', ' + commas(T) + ', ' + commas(c.V) + ')', 1]);
+
+  var n = 0;
+  return rows.map(function(rw){
+    if (rw[3] === 2) return '<div class="trow" style="opacity:0.55"><span class="ti">&middot;</span><span class="tn"><em>' + rw[1] + '</em></span><span class="ts"></span></div>';
+    n++;
+    var cls = 'trow' + (rw[3] === 1 || rw[3] === 3 ? ' hi' : '') + (rw[3] === 4 ? ' warn' : '');
+    return '<div class="' + cls + '"><span class="ti">' + n + '</span><span class="tn">' +
+      rw[0] + ' &nbsp;<em>' + rw[1] + '</em></span><span class="ts">' + rw[2] + '</span></div>';
+  }).join('');
+}
+
+/* ---------- stage 2 ---------- */
+$('s1-go').addEventListener('click', function(){
+  built = true;
+  $('s1-st').textContent = 'Locked'; $('s1-st').className = 'st ok';
+  $('s1-go').disabled = true;
+  ['r-c','r-l','r-h','r-kv','r-ff','r-t','r-b','r-g'].forEach(function(id){ $(id).disabled = true; });
+  Array.prototype.forEach.call($('preset').querySelectorAll('.pbtn'), function(b){
+    b.style.pointerEvents = 'none'; if (!b.classList.contains('sel')) b.style.opacity = '0.35';
+  });
+  $('s2').className = 'stage'; $('s2-st').textContent = 'Open';
+  $('s3').className = 'stage'; $('s3-st').textContent = 'Open';
+  $('lab-step').textContent = 'Stage 2 of 3';
+  renderLedger();
+  renderToggles();
+  renderAblation();
+  $('m9after').className = '';
+  try { $('s2').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+function renderLedger(){
+  var c = cfg, r = compute();
+  var mlpShare = r.mlpAll / r.total * 100;
+  var attnShare = r.attnAll / r.total * 100;
+  var embShare = (r.embTotal + r.posP) / r.total * 100;
+  var err = Math.abs(guess - mlpShare);
+
+  var h = '';
+
+  h += '<div class="mgrid">' +
+    '<div class="mcell"><b>' + fmt(r.total) + '</b><span>parameters' + (c.published ? ' · card says ' + c.published : '') + '</span></div>' +
+    '<div class="mcell"><b>' + bytes(r.weightsB) + '</b><span>weights in BF16</span></div>' +
+    '<div class="mcell"><b>' + fmt(r.flopsTok) + '</b><span>FLOPs / token, forward</span></div>' +
+    '<div class="mcell"><b>' + bytes(r.kvPerTok) + '</b><span>KV cache / token</span></div>' +
+    '<div class="mcell' + (r.scoreBytes > 8*1073741824 ? ' bad' : (r.scoreBytes > 1073741824 ? ' warn' : '')) + '"><b>' +
+      bytes(r.scoreBytes) + '</b><span>score tensor at B=' + B + ', T=' + commas(T) + '</span></div>' +
+    '</div>';
+
+  /* guess vs reality */
+  var vcls = err <= 6 ? 'v-hit' : 'v-miss';
+  h += '<div class="verdict ' + vcls + '"><span class="vl">' +
+    (err <= 6 ? 'Your guess held' : 'Your guess was off by ' + err.toFixed(0) + ' points') + '</span>' +
+    '<p>You guessed <b>' + guess + '%</b> of parameters in the MLPs. The arithmetic says <b>' +
+    mlpShare.toFixed(1) + '%</b>, against <b>' + attnShare.toFixed(1) + '%</b> in attention and <b>' +
+    embShare.toFixed(1) + '%</b> in embeddings.</p>';
+
+  if (c.mlp === 2 && err <= 6) {
+    h += '<p>This is the GPT-2 shape, where the block really is 4C&sup2; of attention and 8C&sup2; of ' +
+      'MLP — exactly one third and two thirds <em>of the block</em>. Note that the headline number ' +
+      'above is lower than 66.7%, because the embeddings are in the denominator and at C=' + c.C +
+      ' with a ' + commas(c.V) + '-token vocabulary they are not small. Now switch to Llama 3 8B and guess again.</p>';
+  } else if (c.mlp === 3 && guess < mlpShare - 6) {
+    h += '<p>You under-guessed, and the reason is almost certainly that you carried the ' +
+      '"one-third / two-thirds" rule across from GPT-2. Two changes broke it, and they compound. ' +
+      '<b>Grouped-query attention</b> shrinks W_K and W_V by ' + (c.H / c.KV) + '× here, and ' +
+      '<b>SwiGLU</b> uses three matrices where GELU used two. Attention got smaller and the MLP got ' +
+      'bigger in the same generation.</p>' +
+      '<p>The lesson is not the number. It is that a rule of thumb you learned from a 2019 ' +
+      'architecture silently stopped applying, and nothing announced it. Rederive from the config.</p>';
+  } else if (guess > mlpShare + 6) {
+    h += '<p>You over-guessed. The term you are probably under-weighting is the <b>embeddings</b>: ' +
+      commas(c.V) + ' × ' + c.C + (c.tied ? ' (tied, counted once)' : ' × 2 (untied)') +
+      ' = ' + fmt(r.embTotal) + ' parameters, ' + embShare.toFixed(1) + '% of the total. In small ' +
+      'models the vocabulary is a surprisingly large fraction of the model; in large ones it vanishes. ' +
+      'Compare GPT-2 small against Llama 3 70B to see the effect at both ends.</p>';
+  } else {
+    h += '<p>Close enough that you were reasoning from the config rather than from a remembered rule. ' +
+      'The check worth doing now is the other direction: switch presets and see whether the ' +
+      'reasoning transfers, because the two families give genuinely different answers.</p>';
+  }
+  h += '</div>';
+
+  /* the bar */
+  h += '<div class="field"><span class="lbl">Where the parameters are</span>' +
+    '<div class="key"><span><i class="b-attn"></i>attention ' + attnShare.toFixed(1) + '%</span>' +
+    '<span><i class="b-mlp"></i>MLP ' + mlpShare.toFixed(1) + '%</span>' +
+    '<span><i class="b-emb"></i>embeddings ' + embShare.toFixed(1) + '%</span></div>' +
+    '<div class="bar"><i class="b-attn" style="width:' + attnShare + '%"></i>' +
+    '<i class="b-mlp" style="width:' + mlpShare + '%"></i>' +
+    '<i class="b-emb" style="width:' + embShare + '%"></i></div>' +
+    '<p style="margin-top:0.7rem;font-size:0.85rem">Per layer: attention ' + commas(r.attn) +
+    ', MLP ' + commas(r.mlp) + ', block ' + commas(r.perLayer) + '. ' +
+    '× ' + c.L + ' layers = ' + commas(r.blocks) + '. Plus ' + commas(r.embTotal) +
+    ' of embeddings' + (r.posP ? ' and ' + commas(r.posP) + ' of learned positions' : '') +
+    '. <b>Total ' + commas(r.total) + '</b>.</p></div>';
+
+  /* the trace */
+  h += '<div class="field"><span class="lbl">Every tensor, in order, at B=' + B + ' and T=' + commas(T) + '</span>' +
+    '<div class="trace">' + traceRows(r) + '</div>' +
+    '<p style="font-size:0.85rem">The highlighted rows are where the residual stream is read from and ' +
+    'written to. Notice that between the embedding and the final norm the shape is <code>(' + B + ', ' +
+    commas(T) + ', ' + c.C + ')</code> at every single point — that invariance is Module 3’s ' +
+    'whole argument, in the shapes.</p></div>';
+
+  /* the quadratic term */
+  var streamBytes = B * T * c.C * 2;
+  h += '<div class="field"><span class="lbl">The term that does not scale</span>' +
+    '<p>The residual stream at this batch and length is <b>' + bytes(streamBytes) + '</b>. ' +
+    'The attention score tensor for <em>one layer</em> is <b>' + bytes(r.scoreBytes) + '</b> — ' +
+    '<b>' + (r.scoreBytes / streamBytes).toFixed(0) + '× larger</b>. Double T and the stream ' +
+    'doubles while the scores quadruple.</p>' +
+    '<p>Naive attention writes that tensor to memory, reads it back for the softmax, writes it again ' +
+    'and reads it again for the value multiply. Stage 2 shows you that <em>this traffic</em>, not the ' +
+    'arithmetic, is what FlashAttention removes — which is why it is several times faster while ' +
+    'doing exactly the same number of FLOPs.</p></div>';
+
+  $('out2').innerHTML = h;
+}
+
+/* ---------- stage 3: ablations ---------- */
+var TOGGLES = [
+  { k:'mask',    n:'Remove the causal mask',       d:'Let every position see the whole sequence' },
+  { k:'resid',   n:'Remove residual connections',  d:'x = sublayer(x) instead of x = x + sublayer(x)' },
+  { k:'scale',   n:'Remove the 1/&radic;d scale',   d:'Feed raw dot products into the softmax' },
+  { k:'onehead', n:'Collapse to one head',         d:'A single attention pattern per layer' },
+  { k:'nogqa',   n:'Undo grouped-query attention', d:'Give every query head its own K and V' }
+];
+function renderToggles(){
+  $('toggles').innerHTML = TOGGLES.map(function(t){
+    return '<button class="tg' + (ABL[t.k] ? ' on' : '') + '" data-k="' + t.k + '"><b>' +
+      t.n + '</b>' + t.d + '</button>';
+  }).join('');
+  Array.prototype.forEach.call($('toggles').querySelectorAll('.tg'), function(b){
+    b.addEventListener('click', function(){
+      ABL[b.dataset.k] = !ABL[b.dataset.k];
+      renderToggles(); renderLedger(); renderAblation();
+    });
+  });
+}
+
+function renderAblation(){
+  var c = cfg, r = compute();
+  var on = TOGGLES.filter(function(t){ return ABL[t.k]; });
+  if (!on.length) {
+    $('out3').innerHTML = '<div class="field"><span class="lbl">Nothing broken yet</span>' +
+      '<p>Turn on a switch. Each one is a question from the clearing test, and the ledger above ' +
+      'updates live — some of these change the numbers, and some change only the behaviour, ' +
+      'which is itself the point.</p></div>';
+    return;
+  }
+  var h = '';
+  if (ABL.mask) {
+    h += '<div class="verdict v-miss"><span class="vl">Causal mask removed</span>' +
+      '<p><b>The parameter count does not move. Not one byte.</b> That is the first thing to notice: ' +
+      'the most consequential change available here is invisible to every number in the ledger.</p>' +
+      '<p>What happens is that position <em>t</em> can now attend to position <em>t</em>+1 while being ' +
+      'asked to predict token <em>t</em>+1. The answer is in the input. <b>Training loss falls, fast, ' +
+      'towards zero</b> — it does not rise — because the model learns a copy operation ' +
+      'rather than a prediction.</p>' +
+      '<p>Generation then fails completely, because at inference the future does not exist and the ' +
+      'model has never trained in that regime. Hold this as the template for label leakage: a loss ' +
+      'curve that looks too good is the symptom, and no aggregate metric will tell you.</p></div>';
+  }
+  if (ABL.resid) {
+    h += '<div class="verdict v-miss"><span class="vl">Residual connections removed</span>' +
+      '<p>Again the parameter count is unchanged, and again the model is destroyed.</p>' +
+      '<p>Every claim in Module 3 evaporates at once. There is no persistent stream, so there is ' +
+      'nothing for a later block to read a draft from; each block receives only its predecessor’s ' +
+      'output. Gradients must now pass <em>through</em> all ' + (c.L * 2) + ' sublayers multiplicatively ' +
+      'rather than flowing along an additive identity path, and at this depth they vanish. ' +
+      'Layer ablation stops degrading gracefully and starts being catastrophic. The logit lens becomes ' +
+      'meaningless because layer ' + c.L + ' is no longer in the same basis as layer 1. Activation ' +
+      'steering has no stream to steer.</p>' +
+      '<p>One line of code carries all of that. It is the highest ratio of consequence to characters ' +
+      'in the architecture.</p></div>';
+  }
+  if (ABL.scale) {
+    h += '<div class="verdict v-miss"><span class="vl">Scale factor removed</span>' +
+      '<p>Head dimension here is <b>' + r.hd + '</b>, so dot products of unit-variance vectors have ' +
+      'standard deviation about <b>' + Math.sqrt(r.hd).toFixed(1) + '</b>. Scores separated by that ' +
+      'much become softmax weights separated by a factor of about <b>' +
+      fmt(Math.round(Math.exp(Math.sqrt(r.hd)))) + '</b>.</p>' +
+      '<p>The distribution collapses to nearly one-hot at initialisation, and a saturated softmax ' +
+      'has vanishing gradient with respect to its inputs. The attention layer stops learning where to ' +
+      'look before it has learned anything. In practice you see a loss that drops from ln(V) to a ' +
+      'plateau and then sits there, which reads like a learning-rate problem and is not.</p>' +
+      '<p>Note that the effect gets worse as the head dimension grows, so this bug hides at small ' +
+      'scale and appears when you widen the model.</p></div>';
+  }
+  if (ABL.onehead) {
+    h += '<div class="verdict v-miss"><span class="vl">Collapsed to a single head</span>' +
+      '<p>The score tensor shrank to <b>' + bytes(r.scoreBytes) + '</b>, because it is ' +
+      '(B, H, T, T) and H just went to 1. Parameters are unchanged — W_Q, W_K, W_V and W_O are ' +
+      'still full C×C matrices; heads are a <em>view</em> of those matrices, not extra weights.</p>' +
+      '<p>That is the thing worth internalising: multi-head attention is free in parameters and ' +
+      'nearly free in FLOPs. You are reshaping the same weights into ' + c.H + ' independent ' +
+      'subspaces. What you lose by collapsing is the ability to attend to several unrelated things at ' +
+      'once — one distribution, one blended answer, per layer.</p></div>';
+  }
+  if (ABL.nogqa && c.H === c.KV) {
+    h += '<div class="verdict v-hit"><span class="vl">Nothing to undo — this model has no GQA</span>' +
+      '<p>This config already gives every query head its own W_K and W_V (' + c.H + ' query heads, ' +
+      c.KV + ' key-value heads), so the switch changes nothing. That is itself informative: ' +
+      'grouped-query attention is a post-2023 idea, and the GPT-2-era shapes predate it entirely.</p>' +
+      '<p>Switch to a Llama 3 preset and try this again — that is where the number moves.</p></div>';
+  } else if (ABL.nogqa) {
+    var base = 2 * c.L * c.KV * r.hd * 2;
+    h += '<div class="verdict v-miss"><span class="vl">Grouped-query attention undone</span>' +
+      '<p>KV cache per token went from <b>' + bytes(base) + '</b> to <b>' + bytes(r.kvPerTok) +
+      '</b> — <b>' + (c.H / c.KV).toFixed(0) + '×</b> more. At T=' + commas(T) +
+      ' that is <b>' + bytes(r.kvSeq) + '</b> for a single sequence.</p>' +
+      '<p>Attention parameters also rose, which moved the split in the bar above. Both effects come ' +
+      'from the same change: every query head now carries its own W_K and W_V instead of sharing.</p>' +
+      '<p>This is the clearest case in the architecture of a design decision made for <em>serving</em> ' +
+      'rather than for quality, taken before training and accepted at a small cost to capability. ' +
+      'Stage 5 shows you exactly how much money that number is worth.</p></div>';
+  }
+  $('out3').innerHTML = h;
+}
+
+$('reset').addEventListener('click', function(){
+  built = false;
+  ABL = { mask:false, resid:false, scale:false, onehead:false, nogqa:false };
+  $('out2').innerHTML = ''; $('out3').innerHTML = '';
+  $('m9after').className = 'hid';
+  $('s2').className = 'stage locked'; $('s2-st').textContent = 'Locked';
+  $('s3').className = 'stage locked'; $('s3-st').textContent = 'Locked';
+  $('s1-st').textContent = 'Open'; $('s1-st').className = 'st';
+  $('s1-go').disabled = false;
+  $('lab-step').textContent = 'Stage 1 of 3';
+  ['r-c','r-l','r-h','r-kv','r-ff','r-t','r-b','r-g'].forEach(function(id){ $(id).disabled = false; });
+  Array.prototype.forEach.call($('preset').querySelectorAll('.pbtn'), function(b){
+    b.style.pointerEvents = ''; b.style.opacity = '';
+  });
+  try { $('s1').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+/* ---------- init ---------- */
+cfg = JSON.parse(JSON.stringify(PRESETS[key]));
+renderPresets();
+syncCustom();
+$('d-preset').innerHTML = PRESETS[key].note;
+$('d-t').textContent = tDesc();
+$('v-t').textContent = commas(T);
+
+/* expose for headless verification */
+window.__lab = {
+  presets: PRESETS,
+  set: function(k){ key = k; cfg = JSON.parse(JSON.stringify(PRESETS[k])); },
+  setT: function(v){ T = v; }, setB: function(v){ B = v; }, setGuess: function(v){ guess = v; },
+  setAbl: function(o){ ABL = o; },
+  compute: function(){ return compute(); },
+  cfg: function(){ return cfg; }
+};
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>
