@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Forward Deployed Engineer Wave — Interactive Course</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-steel{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-steel .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* PROVENANCE TIER CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-ver{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-rep{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-asm{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-op{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-uns{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* SIDE-BY-SIDE QUOTE COMPARISON */
+.qcmp{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.qcmp>div{border-radius:9px;padding:1rem 1.1rem;border:1px solid;font-size:0.89rem;line-height:1.65}
+.qcmp .qa{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.3)}
+.qcmp .qb{background:rgba(78,168,222,0.06);border-color:rgba(78,168,222,0.3)}
+.qcmp .qh{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.55rem;display:block}
+.qcmp .qa .qh{color:var(--yellow)}
+.qcmp .qb .qh{color:var(--accent)}
+.qcmp mark{background:rgba(224,108,117,0.25);color:var(--text-bright);padding:0.05em 0.2em;border-radius:3px}
+.qcmp .qsrc{font-size:0.75rem;color:var(--text-dim);margin-top:0.6rem;display:block;font-style:normal}
+@media(max-width:700px){.qcmp{grid-template-columns:1fr}}
+
+/* SCORE LEDGER ROWS */
+.ledger{margin:1.3rem 0}
+.lrow{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1rem;margin-bottom:0.6rem;border-left:3px solid var(--border-light)}
+.lrow.v{border-left-color:var(--green)}
+.lrow.r{border-left-color:var(--accent)}
+.lrow.a{border-left-color:var(--yellow)}
+.lrow.o{border-left-color:var(--purple)}
+.lrow.u{border-left-color:var(--red)}
+.lrow .lc{font-size:0.9rem;color:var(--text-bright);font-weight:600;margin-bottom:0.4rem}
+.lrow .lv{font-size:0.85rem;color:var(--text-dim);line-height:1.6}
+.lrow .lv b{color:var(--text)}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ DECISION TOOL (LAB) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]:disabled::-webkit-slider-thumb{background:var(--border-light);box-shadow:none}
+
+.why-wrap{margin-top:0.9rem}
+.why-wrap label{display:block;font-size:0.8rem;color:var(--text-dim);margin-bottom:0.4rem}
+.why-wrap textarea{width:100%;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:7px;padding:0.55rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.87rem;
+  min-height:52px;resize:vertical}
+.why-wrap textarea:focus{outline:none;border-color:var(--accent)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+/* prior commitment picker */
+.priors{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.4rem}
+.prior{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.8rem 0.9rem;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.prior:hover{border-color:var(--accent)}
+.prior.sel{border-color:var(--accent2);background:rgba(108,99,255,0.12)}
+.prior b{display:block;font-size:0.9rem;color:var(--text-bright);font-weight:750;margin-bottom:0.2rem}
+.prior span{font-size:0.75rem;color:var(--text-dim);line-height:1.45;display:block}
+@media(max-width:640px){.priors{grid-template-columns:1fr}}
+
+/* result bars */
+.rbars{margin:1rem 0}
+.rbar{margin-bottom:0.75rem}
+.rbar .rl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.3rem}
+.rbar .rn{font-size:0.9rem;font-weight:700;color:var(--text-bright)}
+.rbar .rs{font-family:var(--mono);font-size:0.9rem;font-weight:800;color:var(--text-bright)}
+.rbar .rt{height:9px;background:var(--code-bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)}
+.rbar .rf{height:100%;border-radius:5px;transition:width 0.6s ease}
+.rbar.win .rn{color:var(--green)}
+.rbar.win .rf{background:linear-gradient(90deg,var(--green),#7fb069)}
+.rbar.mid .rf{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.rbar.low .rf{background:var(--border-light)}
+.rbar .rw{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+
+/* scorecard */
+.sc-item{border:1px solid var(--border);border-radius:9px;padding:0.8rem 0.95rem;
+  margin-bottom:0.6rem;background:var(--bg2)}
+.sc-item .sq{font-size:0.88rem;color:var(--text);margin-bottom:0.55rem;line-height:1.6}
+.sc-item .sq b{color:var(--text-bright)}
+.sc-opts{display:flex;gap:0.35rem;flex-wrap:wrap}
+.sc-opt{font-size:0.72rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.sc-opt:hover{border-color:var(--accent);color:var(--accent)}
+.sc-opt.sel-y{background:rgba(152,195,121,0.2);border-color:var(--green);color:var(--green)}
+.sc-opt.sel-p{background:rgba(229,192,123,0.2);border-color:var(--yellow);color:var(--yellow)}
+.sc-opt.sel-n{background:rgba(224,108,117,0.2);border-color:var(--red);color:var(--red)}
+.sc-why{font-size:0.78rem;color:var(--text-dim);margin-top:0.5rem;padding-top:0.5rem;
+  border-top:1px solid var(--border);line-height:1.6}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">The FDE Wave</div>
+    <div class="nav-prog" id="nav-prog">0 / 8</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>The Forward Deployed Engineer Wave</h1>
+  <p class="sub">Between February and July 2026, seven organisations put money behind one job title.
+  A practitioner with eleven years in embedded engineering says they will all learn the same five
+  lessons the hard way. He is right about more of it than you would expect from a post that ends in
+  a booking link &mdash; and wrong in two places that matter. This course separates which, then asks
+  what you would actually do.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>8</span> modules</div>
+    <div class="hero-badge"><span>11</span> claims checked</div>
+    <div class="hero-badge"><span>1</span> decision tool</div>
+    <div class="hero-badge"><span>~75</span> min</div>
+    <div class="hero-badge"><span>28 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Primary sources:
+  <a href="https://blogs.microsoft.com/blog/2026/07/02/microsoft-frontier-company-ai-engineering-that-amplifies-and-protects-your-intelligence/" target="_blank" rel="noopener">Microsoft Frontier announcement</a> &middot;
+  <a href="https://www.cnbc.com/2026/06/30/aws-amazon-ai-forward-deployed-engineers.html" target="_blank" rel="noopener">CNBC on the AWS $1B unit</a> &middot;
+  <a href="https://openai.com/index/openai-launches-the-deployment-company/" target="_blank" rel="noopener">OpenAI Deployment Company</a> &middot;
+  <a href="https://www.directionsonmicrosoft.com/microsoft-launches-its-own-forward-deployed-engineering-unit-the-frontier-company/" target="_blank" rel="noopener">Directions on Microsoft</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>The source is a LinkedIn post by an operator who <strong>runs a company that sells the exact
+  service he is arguing the labs will fail to deliver</strong>, and the post ends in a booking link.
+  That is a conflict of interest, not a disqualification. He has real operating experience and at
+  least one of his arguments is sharper than anything the labs have published. The job here is to
+  take it seriously <em>and</em> check it.</p>
+  <p>Every claim carries a provenance chip.
+  <span class="tier t-ver">Verified</span> means a primary source or several independent outlets say
+  so and I checked. <span class="tier t-rep">Reported</span> means credible press, single-sourced or
+  not checkable against a primary document. <span class="tier t-asm">Assembled</span> means a number
+  built by adding things that are not the same kind of thing.
+  <span class="tier t-op">Opinion</span> means a claim about the world that is not checkable as
+  stated. <span class="tier t-uns">Unsupported</span> means asserted as fact, no source found, and
+  in some cases the available evidence points the other way.</p>
+  <p><strong>Module 8 is a decision tool.</strong> It asks you to commit to an answer before it
+  computes one. Do that honestly or it is worthless.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">What actually happened<span class="tag">Verified timeline</span></a></li>
+    <li><a href="#m2">The claim ledger<span class="tag">Fact-check</span></a></li>
+    <li><a href="#m3">Auditing the $9 billion<span class="tag">Arithmetic</span></a></li>
+    <li><a href="#m4">The argument at its strongest<span class="tag">Steelman</span></a></li>
+    <li><a href="#m5">Where it breaks<span class="tag">Counterargument</span></a></li>
+    <li><a href="#m6">Lock-in, and what a buyer does about it<span class="tag">The real claim</span></a></li>
+    <li><a href="#m7">If you had to build this<span class="tag">Org design</span></a></li>
+    <li><a href="#m8">The decision tool<span class="tag">Interactive</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>What actually happened</h2>
+  <div class="mt">Four ventures in ten weeks &mdash; and the post gets the order backwards</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the four ventures, their dates, their money, and their actual headcounts</li>
+  <li>Be able to state which lab moved first, and why the sequence changes the story</li>
+  <li>Know what Microsoft's Frontier Company is structurally &mdash; and what it was before</li>
+</ul></div>
+
+<h3>The verified sequence</h3>
+
+<p>All four announcements are real and all four numbers are reported accurately in the post. The
+<em>order</em> is not.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Date</th><th>Who</th><th>What</th><th>Money</th><th>Actual engineers</th></tr></thead>
+<tbody>
+<tr><td><b>11 May 2026</b></td><td>OpenAI</td><td>OpenAI Deployment Company &mdash; a majority-owned JV; acquired consultancy Tomoro</td><td>&gt;$4B raised, TPG-led</td><td>~150, from Tomoro</td></tr>
+<tr><td><b>May 2026</b> <span style="color:var(--text-dim)">(launched 15 Jul)</span></td><td>Anthropic</td><td>Ode with Anthropic &mdash; JV with Blackstone and Hellman &amp; Friedman; built on the Fractional AI acquisition</td><td>$1.5B</td><td>~100</td></tr>
+<tr><td><b>30 Jun 2026</b></td><td>AWS</td><td>AWS Forward Deployed Engineering org</td><td>$1B</td><td>"thousands" &mdash; unspecified</td></tr>
+<tr><td><b>2 Jul 2026</b></td><td>Microsoft</td><td>Microsoft Frontier Company</td><td>$2.5B</td><td>6,000 "industry and engineering experts"</td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; the two-day gap is exactly right</span>
+<p>The post says Amazon committed $1&nbsp;billion "two days before" Microsoft. AWS announced on
+<strong>30 June 2026</strong>; Microsoft on <strong>2 July 2026</strong>. Two days.
+<span class="tier t-ver">Verified</span> Small detail, correctly reported, and worth noting because
+the post's larger numbers hold up too. This is not a sloppy writer.</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">But the causality is inverted</span>
+<p>The post's framing is: <em>"Microsoft committed $2.5 billion&hellip; Amazon committed $1 billion
+two days before that. Anthropic, OpenAI, Accenture, EY, all racing to build the same thing."</em>
+That reads as though the hyperscalers set the pace and the labs are chasing.</p>
+<p><strong>The labs went first.</strong> OpenAI stood up its Deployment Company on 11 May; Anthropic's
+Ode venture was announced the same month. AWS followed on 30 June and Microsoft on 2 July.
+TechCrunch's headline on the AWS news was literally
+<em>"Amazon launches new $1 billion FDE org, following OpenAI and Anthropic."</em>
+<span class="tier t-ver">Verified</span></p>
+<p>Why it matters for the argument: the post's thesis is that <em>model makers are becoming
+implementation companies</em>. The corrected sequence supports that thesis <b>more</b> strongly than
+the post's own version does &mdash; the pure model companies moved first, and the cloud vendors
+responded. He undersold his own point by getting the order wrong.</p>
+</div>
+
+<h3>What Microsoft's Frontier Company actually is</h3>
+
+<p>This is the one place where the reported figure needs three asterisks, none of which make it
+false.</p>
+
+<ul>
+  <li><strong>The 6,000 are not 6,000 FDEs.</strong> Microsoft's own language is "6,000 industry and
+  engineering experts," described as bringing "deep industry knowledge, change management and
+  continuous improvement experience, and enterprise-grade AI engineering expertise."
+  Trade coverage described the unit as "6,000 engineers and salespeople."
+  <span class="tier t-ver">Verified</span></li>
+  <li><strong>They are mostly not new hires.</strong> The unit is staffed largely from people already
+  at Microsoft. Structurally, Frontier Company <em>restructures</em> Microsoft Consulting Services
+  (renamed Industry Solution Engineering) and the Cloud Solution Architects program, under new
+  leadership with its own P&amp;L. <span class="tier t-ver">Verified</span></li>
+  <li><strong>Whether the $2.5B is new money is unclear.</strong> Directions on Microsoft notes it
+  "remains unclear whether this represents new funding or reallocated consulting budgets."
+  <span class="tier t-rep">Reported</span></li>
+</ul>
+
+<div class="callout c-steel"><span class="lbl">Credit where it is due</span>
+<p>The post's sharpest one-liner &mdash; <em>"That's consulting with better branding"</em> &mdash; is
+substantially <strong>correct</strong> on the Microsoft case specifically, and he appears to have
+reached it without the org-chart detail that proves it. Frontier Company <em>is</em> a rebranded and
+re-incentivised consulting arm. He called the shape right.</p>
+</div>
+
+<h3>Leadership and taglines</h3>
+
+<p>Frontier Company was announced by Judson Althoff, Microsoft's Commercial Business CEO, with
+Rodrigo Kede Lima named president. Early named engagements include the London Stock Exchange Group,
+Unilever, Land O'Lakes and Accenture. <span class="tier t-ver">Verified</span></p>
+
+<p>Two things about the tagline. <strong>"No Pilots. Scale from Day One." is real</strong> &mdash;
+reported by Directions on Microsoft as one of the unit's taglines.
+<span class="tier t-ver">Verified</span> But it is not the headline Microsoft leads with. Microsoft's
+own launch blog foregrounds "Intelligence + Trust," "Amplify their IQ with AI," and "End-to-end
+Frontier Transformation." The post picks the most attackable of the available taglines, which is fair
+game in an argument but worth noticing.</p>
+
+<details class="reveal"><summary>Where "No Pilots" comes from &mdash; and why that stat is shakier than either side admits</summary>
+<p>The tagline targets a widely cited claim that the overwhelming majority of enterprise AI pilots
+never reach production. The number in circulation traces to MIT's <em>The GenAI Divide: State of AI
+in Business 2025</em>, which found <strong>95% of pilots delivered no measurable P&amp;L impact.</strong>
+<span class="tier t-rep">Reported</span></p>
+<p>Handle it carefully in either direction. The study rests on 52 executive interviews, 153 surveys
+and 300 public deployments, and "no measurable P&amp;L impact" is not the same claim as "failed" &mdash;
+plenty of pilots are explicitly not run for P&amp;L impact. The finding has been publicly contested on
+exactly these grounds. If you are going to cite it, cite what it measured.</p>
+<p>One finding from that same study is the <em>best empirical support the FDE thesis has</em>, and
+neither Microsoft nor the post mentions it: pilots that <strong>blended internal specialists with
+external expertise succeeded 67% of the time, versus 22% for IT-only builds.</strong> That is a
+direct argument for embedding. It is also, note, an argument for <em>blending</em> &mdash; not for
+outsourcing.</p>
+</details>
+
+<div class="takeaways"><div class="t">Module 1 takeaways</div>
+<ul>
+  <li>Four ventures, ten weeks, all four headline numbers reported accurately.</li>
+  <li>The labs moved first; the clouds followed. The post has this backwards and it costs him.</li>
+  <li>Microsoft's 6,000 are mostly existing staff, not all engineers, in a restructured consulting arm.</li>
+  <li>"Consulting with better branding" is a fair description of Frontier Company specifically.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>The claim ledger</h2>
+  <div class="mt">Every checkable assertion in the post, graded</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know exactly which parts of the post you can repeat in a board meeting</li>
+  <li>Know which single claim is doing the most work while resting on the least evidence</li>
+</ul></div>
+
+<p>Scan this. It is the compressed version of the whole course. Modules 3 through 6 unpack the
+rows that matter.</p>
+
+<div class="ledger">
+
+<div class="lrow v"><div class="lc"><span class="tier t-ver">Verified</span>Microsoft committed $2.5B and 6,000 people to embedded AI engineering</div>
+<div class="lv">Announced 2 July 2026. <b>Caveats that do not make it false:</b> the 6,000 are "industry and engineering experts" including sellers, drawn mostly from existing Microsoft staff in a restructured consulting arm; whether the $2.5B is incremental is unconfirmed.</div></div>
+
+<div class="lrow v"><div class="lc"><span class="tier t-ver">Verified</span>The "Frontier Company" branding and the "No Pilots. Scale from Day One." tagline</div>
+<div class="lv">Both real. The unit is Microsoft Frontier Company; the tagline is reported by Directions on Microsoft. <b>Note:</b> it is not the tagline Microsoft's own announcement leads with.</div></div>
+
+<div class="lrow v"><div class="lc"><span class="tier t-ver">Verified</span>Amazon committed $1B, two days before Microsoft</div>
+<div class="lv">AWS announced 30 June 2026; Microsoft 2 July 2026. The gap is exactly two days. The AWS release describes the model as agentic-first, structured "around shared goals and business results, not billable hours."</div></div>
+
+<div class="lrow v"><div class="lc"><span class="tier t-ver">Verified</span>Anthropic, OpenAI, Accenture and EY are all building FDE practices</div>
+<div class="lv">All four confirmed. OpenAI Deployment Company (11 May). Ode with Anthropic (May, launched 15 July). Accenture launched an FDE practice with Microsoft in March 2026 and another with ServiceNow in May. EY launched FDE roles in the UK and Ireland in April 2026.</div></div>
+
+<div class="lrow v"><div class="lc"><span class="tier t-ver">Verified</span>Palantir originated the model in government contracting</div>
+<div class="lv">Correct, and the internal name was <b>"Delta."</b> Sources disagree on the year &mdash; some date it to 2005 and the early CIA/NSA/Army work, others to the early 2010s when the Delta designation formalised. Either way it predates this wave by well over a decade, and until roughly 2016 Palantir had more FDEs than ordinary software engineers.</div></div>
+
+<div class="lrow v"><div class="lc"><span class="tier t-ver">Verified</span>"I've been running an embedded engineering company for over a decade"</div>
+<div class="lv">Limestone Digital was founded in 2015 and is now 130+ people. Eleven years. The claim holds.</div></div>
+
+<div class="lrow a"><div class="lc"><span class="tier t-asm">Assembled</span>"$9 billion in new FDE ventures"</div>
+<div class="lv">The arithmetic works and the components are all real, but they are four different <b>kinds</b> of money summed as if they were one. The likely origin phrases it as capital "committed <b>or attracted</b>" &mdash; a hedge the post drops. <b>Module 3 takes this apart.</b></div></div>
+
+<div class="lrow o"><div class="lc"><span class="tier t-op">Opinion</span>"The FDE is not a rare species &mdash; a full-stack developer who was curious enough to think in product terms"</div>
+<div class="lv">Partly contradicted by the specs. Anthropic's own FDE posting asks for 4+ years in a technical customer-facing role plus <b>production LLM experience</b> &mdash; prompt engineering, agent development, eval frameworks, deployment at scale. But Palantir has hired FDEs with a year of post-college experience. The honest statement is that the profile is <b>bimodal</b>, not that it is common. <b>Module 5.</b></div></div>
+
+<div class="lrow o"><div class="lc"><span class="tier t-op">Opinion</span>"Culture looks like a factory floor" / 8 AM stand-ups produce FDEs</div>
+<div class="lv">One firm's operating style, presented as a general law. No evidence offered that it generalises, and none found. Not wrong &mdash; unfalsifiable as stated. <b>Module 5 asks what would disconfirm it.</b></div></div>
+
+<div class="lrow o"><div class="lc"><span class="tier t-op">Opinion</span>"The purpose is client outcomes, not engineer happiness"</div>
+<div class="lv">A values statement, defensible on its own terms. It has an obvious retention counterargument the post does not address, and the FDE role is independently documented as a burnout risk. <b>Module 5.</b></div></div>
+
+<div class="lrow u"><div class="lc"><span class="tier t-uns">Unsupported</span>"Your FDE learns your system for three months, gets reassigned" / "cycles through a client every quarter"</div>
+<div class="lv"><b>This is the load-bearing assumption of the whole argument and no source supports it.</b> No published material from Microsoft, AWS, OpenAI or Anthropic states a rotation cadence at all. The available comparators point the other way: Palantir FDEs sat with a customer six to twelve months; industry guidance describes engineers rotating back to core product <b>within about 18 months</b>. <b>Module 5.</b></div></div>
+
+<div class="lrow u"><div class="lc"><span class="tier t-uns">Unsupported</span>Onsite-only hiring makes the economics break</div>
+<div class="lv">The wage data does not show the blowout the argument needs. Median FDE pay in San Francisco runs <b>$192&ndash;194K against $180K fully remote</b> &mdash; a 7&ndash;8% gap. Frontier-lab FDE comp <i>is</i> extreme ($385K median mid-level, $610K staff, $1.2M for principals) but that is a scarcity-and-equity effect, not a geography effect. <b>Module 5.</b></div></div>
+
+<div class="lrow r"><div class="lc"><span class="tier t-rep">Reported</span>"An embedded Frontier Company engineer&hellip; is Microsoft's architecture being installed as your infrastructure"</div>
+<div class="lv">The strongest claim in the post, and well supported by independent analysis. It also appears in <b>near-identical wording</b> in an analyst note published weeks earlier, uncredited. <b>Module 6 puts them side by side.</b></div></div>
+
+</div>
+
+<div class="callout c-warn"><span class="lbl">The pattern in the ledger</span>
+<p>Notice the shape: <strong>everything externally checkable checks out.</strong> Dates, dollar
+figures, company names, the Palantir lineage, his own tenure &mdash; all correct, some of it
+impressively precise. The weakness is concentrated entirely in the <em>connective tissue</em>: the
+aggregated number, the assumed rotation cadence, the generalisation from one firm's practice.</p>
+<p>That is a specific and common failure mode, and it is worth naming because you will see it in
+board decks. <strong>Verified facts arranged into an unverified mechanism.</strong> The facts do the
+work of making the mechanism feel checked.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 2 takeaways</div>
+<ul>
+  <li>Every discrete external fact in the post is accurate. Repeat those freely.</li>
+  <li>The $9B is assembled, the rotation cadence is invented, and the culture claims are unfalsifiable.</li>
+  <li>The strongest line in the piece is also the one most closely echoing someone else's published wording.</li>
+  <li>Correct facts do not certify the argument built on top of them.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>Auditing the $9 billion</h2>
+  <div class="mt">Four kinds of money, one addition sign</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to decompose the $9B into its four components and name what kind of money each is</li>
+  <li>See why the headcount data undercuts the "hiring war" framing the number implies</li>
+  <li>Have a reusable test for aggregated figures in any market narrative</li>
+</ul></div>
+
+<h3>The components</h3>
+
+<p>The number is used twice in the post as a stand-in for how much the labs are spending on FDEs.
+It sums cleanly, which is exactly why it deserves scrutiny.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Component</th><th>Amount</th><th>What kind of money this actually is</th></tr></thead>
+<tbody>
+<tr><td><b>OpenAI Deployment Company</b></td><td>&gt;$4.0B</td><td><b>External capital raised.</b> A TPG-led round with Advent, Bain Capital, Brookfield, Goldman Sachs, SoftBank, McKinsey and Capgemini participating. OpenAI holds majority ownership and control but this is <em>investors' money into a JV</em> &mdash; not OpenAI spending $4B on engineers.</td></tr>
+<tr><td><b>Microsoft Frontier Company</b></td><td>$2.5B</td><td><b>Internal commitment.</b> Possibly reallocated from existing consulting budgets; Microsoft has not clarified. Closest of the four to "money being spent on this."</td></tr>
+<tr><td><b>Ode with Anthropic</b></td><td>$1.5B</td><td><b>Ambiguous, and the weakest link.</b> Described in coverage as "the $1.5 billion AI implementation company." TechCrunch does not clarify whether that is committed capital or the venture's value. Earlier reporting referenced a $300M founding commitment. If it is a valuation, it does not belong in a spending total at all.</td></tr>
+<tr><td><b>AWS FDE org</b></td><td>$1.0B</td><td><b>Investment commitment.</b> Announced as an investment; no breakdown published.</td></tr>
+<tr><td colspan="2" style="text-align:right"><b>Sum</b></td><td><b>$9.0B</b> &mdash; arithmetically correct, semantically mixed</td></tr>
+</tbody></table></div>
+
+<div class="callout c-dissent"><span class="lbl">The tell is in the source's own hedge</span>
+<p>The likely origin of the figure phrases it as: <em>AWS, Microsoft, OpenAI and Anthropic have
+"committed <strong>or attracted</strong>" roughly $9 billion.</em> <span class="tier t-asm">Assembled</span></p>
+<p><strong>"Committed or attracted" is doing enormous work in that sentence,</strong> and the post
+drops it. "Attracted" is what covers the $4B of outside investor capital and, arguably, the Ode
+valuation. Strip the hedge and you have converted a mixed-basket figure into an apparent spending
+commitment.</p>
+<p>The defensible version is: <em>roughly $9 billion of capital was mobilised across four enterprise
+AI implementation ventures in ten weeks.</em> That is still a striking sentence. It is just true.</p>
+</div>
+
+<h3>The headcount check &mdash; and this is the interesting part</h3>
+
+<p>If $9B were really chasing a scarce engineer, you would expect enormous hiring. Compare the
+capital to the bodies actually reported:</p>
+
+<div class="mgrid">
+  <div class="mcell warn"><b>~150</b><span>OpenAI Deployment Co, seeded from Tomoro</span></div>
+  <div class="mcell warn"><b>~100</b><span>Ode engineers</span></div>
+  <div class="mcell"><b>"thousands"</b><span>AWS &mdash; unspecified, unverified</span></div>
+  <div class="mcell"><b>6,000</b><span>Microsoft &mdash; largely existing staff</span></div>
+</div>
+
+<p>The two pure-play ventures &mdash; the ones carrying <strong>$5.5B of the $9B</strong> &mdash;
+between them report about <strong>250 engineers</strong>, and both got them by acquiring an existing
+consultancy rather than by hiring. OpenAI bought Tomoro (~150 FDEs, clients including Mattel, Tesco,
+Red Bull, Virgin Atlantic). Ode is built on the Fractional AI acquisition.
+<span class="tier t-ver">Verified</span></p>
+
+<div class="callout c-steel"><span class="lbl">This cuts in the post's favour, and he missed it</span>
+<p>The post argues FDEs are not a rare species and that the market is mispricing them. The
+acquisition pattern is <strong>evidence for that thesis, not against it.</strong> When two of the
+best-capitalised organisations on earth need forward-deployed engineers, they do not run a hiring
+campaign &mdash; they buy a firm that already has the team and the operating habits. That is much
+closer to "the scarce thing is the assembled capability, not the individual" than to "FDEs are
+unobtainable unicorns."</p>
+<p>Which is roughly the post's Lesson 3, arrived at from the other direction. He had a stronger
+argument available in public data than the one he made from his own experience.</p>
+</div>
+
+<details class="reveal"><summary>The demand side is real, though &mdash; don't over-correct</summary>
+<p>Indeed job postings for Forward Deployed Engineer went from <strong>643 in April 2025 to 5,330 in
+April 2026</strong>, roughly a 7&times; increase in a year that was otherwise quiet for tech hiring.
+<span class="tier t-rep">Reported</span> Anthropic, OpenAI, Palantir, Salesforce, Google Cloud and
+Stripe are all posting for the role.</p>
+<p>So: the aggregated capital figure is soft, the near-term headcount is smaller than the money
+implies, and the demand signal is nonetheless genuine and steep. All three are true at once. A
+market can be real and its headline number still be assembled.</p>
+</details>
+
+<h3>The reusable test</h3>
+
+<p>Any time you meet an aggregate in a market narrative, run three questions before you repeat it:</p>
+
+<ol>
+  <li><strong>Are the components the same kind of thing?</strong> Internal budget, external raise,
+  valuation and commitment are four different objects. Summing them produces a number with no
+  referent.</li>
+  <li><strong>Who is out of pocket?</strong> Follow the cash. Here, most of the largest component is
+  private equity's money, not the lab's.</li>
+  <li><strong>Does a physical quantity corroborate it?</strong> Capital is easy to announce.
+  Headcount, deployments and customers are harder. When the money and the bodies disagree by an
+  order of magnitude, believe the bodies.</li>
+</ol>
+
+<div class="takeaways"><div class="t">Module 3 takeaways</div>
+<ul>
+  <li>$9B = $4B outside capital + $2.5B internal commitment + $1.5B ambiguous + $1B commitment.</li>
+  <li>The source hedges with "committed or attracted." The post drops the hedge; that is the whole error.</li>
+  <li>$5.5B of the total sits behind ~250 engineers, both teams acquired rather than hired.</li>
+  <li>Demand growth is separately real: 643 → 5,330 postings in twelve months.</li>
+  <li>Test any aggregate: same kind of thing, whose cash, does a physical quantity agree.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>The argument at its strongest</h2>
+  <div class="mt">Steelmanning a piece written by someone with a booking link at the bottom</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to state the post's argument better than the post does</li>
+  <li>Know which independent evidence supports each of the five lessons</li>
+  <li>Be able to separate the parts that survive the conflict of interest from the parts that serve it</li>
+</ul></div>
+
+<h3>The argument, reconstructed</h3>
+
+<p>Stripped of the sales framing, the post makes a structural claim that is more interesting than its
+own headline. Here it is at full strength:</p>
+
+<div class="callout c-steel"><span class="lbl">The steelman</span>
+<p><strong>Enterprise AI does not fail on model quality. It fails on accumulated context.</strong>
+The thing that makes an AI system work inside a specific business is a large body of unwritten
+knowledge &mdash; which teams actually own which decisions, which data is trustworthy, which
+processes have exceptions nobody documented, where the political landmines are. That knowledge is
+expensive to acquire, it lives in a person's head, and it does not transfer through documentation.</p>
+<p>Any delivery model that moves people off an account faster than they accumulate that context will
+underperform, <em>independent of the capital behind it</em>. Capital buys headcount; it does not buy
+tenure. And tenure is the input.</p>
+<p>Therefore the binding constraint in this market is not the supply of talented engineers. It is
+the supply of <strong>operating systems that reliably convert ordinary engineers into context-rich
+ones and keep them in place long enough to matter.</strong> Those are rare because they are built
+from unglamorous daily management practice, which is hard to buy and harder to copy.</p>
+</div>
+
+<p>That is a real argument. It is falsifiable in principle, it explains something the press releases
+do not, and it does not depend on the author's business existing.</p>
+
+<h3>The independent evidence for it</h3>
+
+<div class="tw"><table>
+<thead><tr><th>His claim</th><th>Supporting evidence he did not cite</th></tr></thead>
+<tbody>
+<tr><td><b>Blended teams beat pure vendor delivery</b></td><td>MIT's GenAI Divide found pilots blending internal specialists with external expertise succeeded <b>67%</b> of the time versus <b>22%</b> for IT-only builds. <span class="tier t-rep">Reported</span> The single best data point for embedding, in the study whose headline number Microsoft's tagline is built on.</td></tr>
+<tr><td><b>Frontier Company is rebranded consulting</b></td><td>Directions on Microsoft confirms it restructures Microsoft Consulting Services and Cloud Solution Architects. <span class="tier t-ver">Verified</span> He guessed the org chart correctly from the outside.</td></tr>
+<tr><td><b>The scarce asset is the system, not the person</b></td><td>OpenAI and Anthropic both <b>acquired</b> their FDE teams (Tomoro, Fractional AI) rather than hiring them. <span class="tier t-ver">Verified</span> Two of the richest buyers in the world chose to buy an assembled team over recruiting individuals.</td></tr>
+<tr><td><b>Context is the product</b></td><td>Palantir's own framing of the role: <i>"a Dev's focus is one capability, many customers; a Delta's focus is one customer, many capabilities."</i> <span class="tier t-ver">Verified</span> The entire design premise is depth on one account.</td></tr>
+<tr><td><b>The FDE role is operationally punishing</b></td><td>Independent practitioner writing describes the role's intensity as a documented burnout and attrition risk, with retention treated as a scope-design problem owned by management. <span class="tier t-rep">Reported</span> He is right that this needs active management; see Module 5 for where he draws the wrong conclusion from it.</td></tr>
+</tbody></table></div>
+
+<h3>The part that is genuinely sharp</h3>
+
+<p>The line worth keeping is <strong>"context doesn't survive rotation."</strong> Not because the
+rotation premise is established &mdash; it is not, and Module 5 dismantles it &mdash; but because the
+underlying observation is correct and under-discussed: <em>context is a depreciating asset held in a
+person, and no organisational structure has solved its transfer.</em></p>
+
+<p>Every large delivery organisation you have ever worked with has this problem. It is the reason the
+third systems integrator on an account is worse than the first. It is the reason internal platform
+teams lose to embedded ones. He named a real mechanism.</p>
+
+<div class="callout c-warn"><span class="lbl">Where the self-interest actually shows</span>
+<p>Be precise about this, because "he's selling something" is lazy as a rebuttal. The conflict does
+not obviously distort the facts &mdash; those check out. It shows up in
+<strong>which questions go unasked</strong>:</p>
+<ul>
+  <li>He argues context does not survive rotation, then proposes <em>his</em> engineers embedded
+  long-term. He never asks what happens when <b>his</b> engineer leaves &mdash; the same context
+  problem, relocated to a smaller balance sheet with less redundancy.</li>
+  <li>He argues the labs' economics break at premium onsite rates. He does not disclose his own
+  model's rates or margins, which is the only way to evaluate the comparison.</li>
+  <li>He argues culture is the scarce asset, and the only culture described in any detail is his own.</li>
+</ul>
+<p>None of that makes him wrong. It means the piece is an argument, not an analysis, and the
+omissions are where you should push.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 4 takeaways</div>
+<ul>
+  <li>The real thesis: capital buys headcount, not tenure, and tenure is the input that matters.</li>
+  <li>MIT's 67% vs 22% blended-team finding is the strongest evidence for embedding, and he missed it.</li>
+  <li>Both labs bought their FDE teams rather than hiring &mdash; his "the system is the scarce thing" point, confirmed.</li>
+  <li>"Context doesn't survive rotation" is a real mechanism even though the rotation premise is not.</li>
+  <li>The self-interest shows in unasked questions, not in false statements.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>Where it breaks</h2>
+  <div class="mt">Five load-bearing claims and what the evidence does to each</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know why the rotation premise &mdash; the argument's foundation &mdash; is unsupported</li>
+  <li>Be able to state what would disconfirm "culture over hiring," which the post cannot</li>
+  <li>Have the wage data that partly falsifies the economics argument</li>
+  <li>Be able to separate a geography premium from a scarcity premium</li>
+</ul></div>
+
+<h3>1. The rotation premise is assumed, not established</h3>
+
+<p>This is the most important finding in the course, because Lesson 4 is the argument's keystone and
+it rests entirely on a cadence nobody has published.</p>
+
+<div class="split">
+  <div class="l"><div class="h">What the post asserts</div>
+  <p>"Your FDE learns your system for three months, gets reassigned, and the next one starts from
+  scratch."</p>
+  <p>"When your FDE cycles through a client <b>every quarter</b>, the context walks out the door with
+  them."</p></div>
+  <div class="r"><div class="h">What is actually published</div>
+  <p><b>Nothing.</b> Microsoft, AWS, OpenAI and Anthropic have published no rotation cadence at all.
+  Microsoft's launch blog contains no statement on engagement duration.</p>
+  <p>The comparators point the opposite way: Palantir FDEs embedded with a customer for
+  <b>six to twelve months</b>; practitioner guidance describes engineers rotating back to core product
+  <b>within roughly 18 months</b>. <span class="tier t-rep">Reported</span></p></div>
+</div>
+
+<p>Three months is not a number anyone has reported. It appears to be the author's stipulation, and
+the whole of Lesson 4 &mdash; "no amount of capital fixes that" &mdash; is downstream of it.
+<span class="tier t-uns">Unsupported</span></p>
+
+<div class="callout c-dissent"><span class="lbl">And the design intent runs the other way</span>
+<p>The published models are explicitly built around <em>reducing</em> customer dependence, not
+rotating through it:</p>
+<ul>
+  <li>AWS: <i>"Customers leave AWS FDE deployments with both new solutions and new engineering
+  capabilities."</i> Deployments are <i>"structured around shared goals and business results, not
+  billable hours."</i> <span class="tier t-ver">Verified</span></li>
+  <li>Industry framing: <i>"A successful FDE engagement should reduce the customer's dependence on
+  the FDE team"</i> &mdash; a designed progression from observers to co-builders to independent
+  operators. <span class="tier t-rep">Reported</span></li>
+</ul>
+<p>The post treats context transfer as an <em>accident</em> of rotation. The published models treat
+it as the <em>objective</em>. Whether they achieve it is an open question &mdash; and a fair one to
+be sceptical about. But you cannot critique a design by assuming it does not have the goal it states.</p>
+</div>
+
+<div class="callout c-warn"><span class="lbl">The steelman of his position survives, in weaker form</span>
+<p>Stated intentions are not outcomes, and there is a real asymmetry: <strong>a vendor whose revenue
+comes from metered consumption has no commercial incentive to make you self-sufficient.</strong>
+That is a legitimate structural doubt, and it is available <em>without</em> inventing a rotation
+cadence. The honest version of Lesson 4 is: <em>"Nobody has published an engagement duration or a
+context-transfer standard, and the business model gives them a reason not to. Ask for both in
+writing."</em> That is a better argument and it is fully supported.</p>
+</div>
+
+<h3>2. "The FDE is not a rare species" &mdash; the specs disagree, but not entirely</h3>
+
+<p>The post: an FDE is "a full-stack developer who was curious enough to think in product terms." The
+actual postings ask for considerably more than curiosity.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Requirement</th><th>Anthropic's Forward Deployed Engineer posting <span class="tier t-ver">Verified</span></th></tr></thead>
+<tbody>
+<tr><td>Experience</td><td>4+ years in a technical, customer-facing role &mdash; FDE, or software engineer with consulting experience. Former technical founders encouraged.</td></tr>
+<tr><td>AI-specific</td><td><b>Production experience with LLMs</b>: advanced prompt engineering, agent development, evaluation frameworks, deployment at scale.</td></tr>
+<tr><td>Engineering</td><td>Strong Python plus ideally a second language; experience shipping production applications.</td></tr>
+<tr><td>Disposition</td><td>"High agency with an ability to navigate ambiguity present in complex organizations."</td></tr>
+<tr><td>Domain</td><td>Financial services, healthcare/life sciences or another enterprise vertical preferred.</td></tr>
+</tbody></table></div>
+
+<p>"High agency, navigating ambiguity in complex organizations" is close to the post's description.
+The production-LLM requirement is not &mdash; that is a specific, currently scarce skill set, and it
+is the reason frontier-lab FDE compensation reaches $385K median at mid-level and $1.2M for
+principals. <span class="tier t-rep">Reported</span></p>
+
+<details class="reveal"><summary>But Palantir hires juniors &mdash; which is the post's best counter-evidence</summary>
+<p>Palantir has hired FDEs with <strong>as little as one year of post-college experience</strong>,
+while Ramp asks 5+ years for senior FDE roles. <span class="tier t-rep">Reported</span> The profile
+is <strong>bimodal</strong>, not uniformly senior, and the junior end of it is precisely the "develop
+them in-house" thesis working in practice at the firm that invented the role.</p>
+<p>So the defensible synthesis is: <em>the disposition is common and developable; the production-LLM
+skill set currently is not; and organisations that can develop the second on top of the first have a
+real advantage.</em> That is close to what the post means and some distance from what it says.</p>
+</details>
+
+<h3>3. "Culture over hiring" is unfalsifiable as stated</h3>
+
+<p>Lesson 3 argues that hiring only A-players does not scale and that culture is what converts
+competent developers into FDEs. As written, no observation could contradict it. If a
+culture-first firm succeeds, culture worked. If it fails, the culture was not maintained. That is
+not a claim about the world; it is a frame.</p>
+
+<div class="callout c-steel"><span class="lbl">What would actually disconfirm it</span>
+<p>Make it testable and it becomes a genuinely useful management hypothesis. Any of these would count
+as evidence against:</p>
+<ul>
+  <li><strong>Ramp-time convergence.</strong> If firms with heavy daily operating cadence show no
+  better time-to-productive-context than firms without it, the mechanism is not doing the work.
+  Measurable: weeks until an engineer closes a client issue unaided.</li>
+  <li><strong>Outcome parity at matched selectivity.</strong> If two firms hiring from the same
+  candidate pool get the same client retention with very different management intensity, culture is
+  not the differentiator &mdash; selection is.</li>
+  <li><strong>The acquisitions.</strong> If OpenAI's and Anthropic's acquired teams deliver
+  comparably to Palantir's home-grown FDEs within a year, then a transplanted team retains its
+  operating system, and "culture takes months of daily pressure to build" is overstated. <em>This one
+  is observable within the next 12 months and is the cleanest live test available.</em></li>
+  <li><strong>Attrition-adjusted delivery.</strong> If high-cadence firms hit their delivery numbers
+  but bleed 40% of engineers annually, the culture is producing output by consuming its input.</li>
+</ul>
+<p>Note what this does. It converts an unfalsifiable assertion into four things you could actually
+instrument in a company you run. That is the useful move whenever someone hands you a
+culture-is-destiny argument.</p>
+</div>
+
+<h3>4. The factory floor is n=1</h3>
+
+<p>The 8 AM stand-up, the daily numbers review, the repeated uncomfortable quality conversation &mdash;
+presented as <em>the</em> mechanism that produces FDEs. It is one firm's operating style,
+described by its founder, with no comparison group.</p>
+
+<p>Two specific reasons to hold it loosely. First, <strong>Limestone Digital is a 130-person firm</strong>
+&mdash; a daily all-hands cadence with founder-level enforcement is available at that size and
+mechanically is not at 6,000. Whatever Microsoft should do, it cannot be this. Second, the mechanism
+is <em>confounded with selection</em>: firms that run this hard also filter hard, because people who
+hate it leave. You cannot tell from the inside whether the cadence built the engineers or sorted
+them.</p>
+
+<h3>5. "Client outcomes, not engineer happiness" &mdash; the retention gap</h3>
+
+<p>The post is explicit: <em>"The purpose is client outcomes, not engineer happiness.
+Avocado-and-matcha team perks don't produce FDEs."</em> The framing wins an argument against perks
+and loses one against retention, which is not the same thing as perks.</p>
+
+<div class="split">
+  <div class="l"><div class="h">The unaddressed counterargument</div>
+  <p>His own thesis is that <b>context lives in tenured people.</b> Anything that shortens tenure
+  destroys the asset he says is decisive.</p>
+  <p>Attrition is therefore not a morale issue in his model &mdash; it is <b>the same failure mode as
+  rotation</b>, arriving by a different door. An engineer who quits at month nine has taken the
+  context out of the building exactly as surely as one reassigned at month three.</p></div>
+  <div class="r"><div class="h">What the evidence says</div>
+  <p>FDE work is independently documented as a burnout risk: constant customer pressure, travel, and
+  a large share of work that is <i>"necessary but not strategic."</i> <span class="tier t-rep">Reported</span></p>
+  <p>Practitioner guidance treats retention as <b>a scope-design problem owned by the manager</b>
+  &mdash; actively rebalancing work away from endless one-off customisation. That is neither perks
+  nor pressure. It is a third thing the post's dichotomy has no room for.</p></div>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">The internal contradiction, stated plainly</span>
+<p>Lesson 4 says context is destroyed when people leave accounts. Lesson 2 says the operating model
+is sustained pressure with engineer satisfaction explicitly deprioritised. <strong>These are in
+tension and the post never reconciles them.</strong> If retention is the mechanism, then engineer
+experience is not a soft concern competing with client outcomes &mdash; it is an <em>input to</em>
+client outcomes, and the strongest argument for taking it seriously is his own.</p>
+</div>
+
+<h3>6. The onsite economics claim, checked against wage data</h3>
+
+<p>Lesson 5 argues that hiring FDEs onsite-only narrows the pool so far that rates become
+unsustainable and the economics break. The observed premium is real but small:</p>
+
+<div class="mgrid">
+  <div class="mcell"><b>$192&ndash;194K</b><span>Median FDE, San Francisco</span></div>
+  <div class="mcell"><b>$180K</b><span>Median fully remote FDE</span></div>
+  <div class="mcell warn"><b>7&ndash;8%</b><span>The actual gap</span></div>
+  <div class="mcell bad"><b>$385K</b><span>Median mid-level at frontier labs</span></div>
+</div>
+
+<p><span class="tier t-rep">Reported</span> Two independent 2026 compensation analyses put the San
+Francisco median at $192K and $194K against a fully-remote median of $180K &mdash; a 7&ndash;8% gap.
+A differential that size does not break anyone's business model. The genuinely extreme numbers are at the frontier labs &mdash; $385K median mid-level, $610K
+staff, $1.2M for principals &mdash; but those are driven by <strong>equity and talent-market
+scarcity, not by geography</strong>. Remote hiring does not fix them.</p>
+
+<p>The mechanism he names is therefore not the mechanism that produces the cost problem. His
+conclusion &mdash; distributed hiring improves FDE unit economics &mdash; may still be right for
+his firm's segment. The stated reason does not survive the data.</p>
+
+<div class="takeaways"><div class="t">Module 5 takeaways</div>
+<ul>
+  <li>Quarterly rotation is unsupported; published comparators say 6&ndash;18 months, and the models state self-sufficiency as the goal.</li>
+  <li>The honest version of the rotation critique is stronger: nobody published a duration or a transfer standard, and metered revenue is a reason not to.</li>
+  <li>The FDE profile is bimodal &mdash; developable disposition, currently scarce production-LLM skills.</li>
+  <li>"Culture over hiring" becomes useful only once you name what would disconfirm it. Four candidates supplied.</li>
+  <li>The retention counterargument is not soft: by his own logic attrition and rotation are the same failure.</li>
+  <li>The onsite wage premium is 7&ndash;8%, not the blowout the economics argument requires.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Lock-in, and what a buyer does about it</h2>
+  <div class="mt">The strongest claim in the piece &mdash; and where it came from</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Understand the mechanism by which embedded engineering converts into architectural lock-in</li>
+  <li>Know Microsoft's counter-position and whether it answers the objection</li>
+  <li>Have specific contract terms to demand, from published analyst recommendations</li>
+</ul></div>
+
+<h3>The claim</h3>
+
+<p>The post's closing argument in Lesson 4 is the best paragraph in it:</p>
+
+<blockquote>"An embedded Frontier Company engineer co-designing your AI systems isn't engineering
+help. That's Microsoft's architecture being installed as your infrastructure. Customers should
+understand that before their next renewal, not after."</blockquote>
+
+<p>That is correct, important, and well supported by independent analysis. It is also, in wording,
+extremely close to something published several weeks earlier.</p>
+
+<h3>An attribution note</h3>
+
+<div class="qcmp">
+  <div class="qa"><span class="qh">The post</span>
+  "An embedded Frontier Company engineer co-designing your AI systems isn't engineering help. That's
+  <mark>Microsoft's architecture being installed as your infrastructure.</mark>
+  <mark>Customers should understand that before their next renewal, not after.</mark>"
+  <span class="qsrc">LinkedIn, August 2026. No attribution given.</span></div>
+  <div class="qb"><span class="qh">Published earlier</span>
+  "An embedded Frontier engineer co-designing your AI systems isn't just engineering help. That's
+  <mark>Microsoft's roadmap being installed as your architecture.</mark>
+  <mark>Customers should understand that before their next renewal, not after.</mark>"
+  <span class="qsrc">Lane Shelton, Director of Advisory Services, Directions on Microsoft &mdash; quoted in coverage of the 2 July 2026 launch.</span></div>
+</div>
+
+<p>The first sentence differs by one word ("just"). The second swaps the noun pair &mdash;
+<em>roadmap&nbsp;→&nbsp;architecture</em> becomes <em>architecture&nbsp;→&nbsp;infrastructure</em>.
+<strong>The third sentence is identical, word for word, including "not after."</strong></p>
+
+<div class="callout c-warn"><span class="lbl">State this carefully</span>
+<p>I cannot prove direction of influence and I am not going to assert plagiarism.
+What is establishable: the analyst quote is <strong>dated, attributed, and published in trade
+coverage weeks before the post</strong>, and the third sentence matches exactly.
+<span class="tier t-rep">Reported</span></p>
+<p>The reason this belongs in the course is not gossip. It is that <strong>the single most
+authoritative-sounding claim in a first-person "here's what a decade taught me" post is the one part
+that most closely tracks someone else's published analysis.</strong> The lesson generalises past this
+author: when a practitioner piece suddenly shifts register into crisp analyst phrasing, that is the
+sentence to search for. It took one query.</p>
+<p>It also, usefully, <em>strengthens</em> the claim's standing as fact. A named industry analyst
+whose job is advising Microsoft customers reached this conclusion independently and on the record.
+Treat the substance as well-sourced &mdash; just source it correctly.</p>
+</div>
+
+<h3>The mechanism, properly</h3>
+
+<p>The lock-in argument is stronger than either version states, because it does not depend on bad
+faith. It follows from ordinary engineering defaults:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Layer</th><th>What the embedded engineer decides</th><th>Why it locks</th></tr></thead>
+<tbody>
+<tr><td><b>Reference architecture</b></td><td>The overall system shape and integration pattern</td><td>"Whoever writes the reference architecture owns the roadmap." Every later decision is made inside a frame the vendor drew.</td></tr>
+<tr><td><b>Substrate</b></td><td>Queues, identity, vector stores, storage</td><td>Individually defensible defaults that collectively assume one cloud. Switching becomes a re-platforming project.</td></tr>
+<tr><td><b>Evaluation</b></td><td>Eval frameworks, quality gates, benchmarks</td><td>The subtlest one. If the vendor's tooling defines "working," you cannot prove an alternative works.</td></tr>
+<tr><td><b>Operations</b></td><td>Runbooks, on-call, deployment pipeline</td><td>Your staff learn the vendor's operating model. Switching is retraining, not procurement.</td></tr>
+<tr><td><b>People</b></td><td>Who actually understands the system</td><td>The one the post gets right: after three years of embedded co-design, the deepest system knowledge sits with the vendor's employees.</td></tr>
+</tbody></table></div>
+
+<p>As one analysis puts it: <strong>"Lock-in stopped being a licensing clause and became an
+architecture diagram."</strong> <span class="tier t-rep">Reported</span> And the commercial logic is
+explicit &mdash; per Directions on Microsoft: <em>"Free deployment is the customer acquisition cost
+and consumption meters are the payback. They ran this exact play with Azure migrations, and that
+worked out very well for them."</em> <span class="tier t-ver">Verified</span></p>
+
+<h3>Microsoft's answer, and whether it lands</h3>
+
+<div class="split">
+  <div class="l"><div class="h">Microsoft's position</div>
+  <p>Customers "shouldn't be locked into a single model any more than a single technology vendor."
+  The platform offers flexibility to run OpenAI, Anthropic, Microsoft AI, open-source or specialised
+  models "without ceding control to any one of them."</p>
+  <p>On IP: <i>"Their data, their IP, their competitive advantage &mdash; none of it is used to train
+  models in ways that commoditize what differentiates them."</i> <span class="tier t-ver">Verified</span></p></div>
+  <div class="r"><div class="h">Why it is a partial answer</div>
+  <p>It answers <b>model</b> lock-in, which is the weakest form. Nobody's switching cost is the model
+  weights &mdash; swapping a model provider is a config change.</p>
+  <p>It does not answer <b>architectural</b> lock-in: the substrate, the eval harness, the runbooks,
+  the reference design. Model portability with a fixed surrounding architecture is portability of the
+  cheapest component. Multi-model support is real and it is not responsive to the objection.</p></div>
+</div>
+
+<h3>What a buyer actually does about it</h3>
+
+<p>This is where the post stops &mdash; it identifies the risk and offers a discovery call. Published
+analysis goes further, and these are the three terms worth taking into a negotiation.
+<span class="tier t-rep">Reported</span></p>
+
+<ol>
+  <li><strong>IP and design documentation vest continuously.</strong> "As it's produced, not at the
+  end." End-loaded IP transfer is worthless the moment a relationship sours, which is exactly when
+  you need it.</li>
+  <li><strong>Exit deliverables defined before final payment.</strong> Specifically: portable
+  infrastructure-as-code, plus a <em>tested</em> model-swap runbook. Tested, not documented.</li>
+  <li><strong>A portability SLA.</strong> Named workloads must demonstrably run on an alternative
+  stack <strong>at least once a year.</strong> This is the strongest of the three, because it converts
+  portability from a claim into a recurring, observable event. An annual failed portability test is
+  the earliest possible warning that your optionality has quietly expired.</li>
+</ol>
+
+<div class="callout c-steel"><span class="lbl">Three more worth adding</span>
+<p>These follow from Module 5's findings rather than from published analysis, and they close the gaps
+the post correctly identified but did not convert into terms:</p>
+<ul>
+  <li><strong>Named individuals with minimum tenure,</strong> plus a replacement-notice period and a
+  mandatory overlap. This is the actual remedy for the rotation concern, and it is a contract term
+  rather than a hope. If the vendor will not commit to a duration, that is your answer about their
+  operating model.</li>
+  <li><strong>Context artefacts as deliverables.</strong> Decision log, architecture rationale, the
+  list of what was rejected and why. Not documentation of what was built &mdash; documentation of
+  <em>why</em>, which is the part that does not survive a handover.</li>
+  <li><strong>A named capability-transfer milestone</strong> with your engineers on the team from day
+  one. AWS states self-sufficiency as the goal; make it a dated, testable milestone rather than a
+  stated intention. MIT's GenAI Divide study found external partnerships reach production at
+  <b>67% versus 33% for internal builds</b> &mdash; so a transfer milestone is the term most likely
+  to improve the delivery itself, not just the exit.</li>
+</ul>
+</div>
+
+<div class="takeaways"><div class="t">Module 6 takeaways</div>
+<ul>
+  <li>The lock-in claim is correct, important, and near-identical to a dated analyst quote the post does not credit.</li>
+  <li>It does not require bad faith &mdash; ordinary engineering defaults produce it.</li>
+  <li>Microsoft answers model lock-in, which is the cheapest layer, and not architectural lock-in.</li>
+  <li>Three published remedies: continuous IP vesting, tested exit deliverables, an annual portability SLA.</li>
+  <li>Three more: named tenure, decision-rationale artefacts, a dated capability-transfer milestone.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>If you had to build this</h2>
+  <div class="mt">Standing up an embedded-engineering capability inside a company you run</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a concrete build / buy / embed decomposition rather than a binary</li>
+  <li>Know which four practices from the post are worth stealing and which are size-dependent</li>
+  <li>Have the instrumentation that makes the capability manageable instead of anecdotal</li>
+</ul></div>
+
+<p>Everything up to here has been evaluation. This module assumes you have to actually do it: you run
+product and technology somewhere, AI has to land inside real workflows, and you need people who
+accumulate context rather than rotate through it.</p>
+
+<h3>Stop treating it as one decision</h3>
+
+<p>Build-versus-buy is the wrong granularity, because the four things you need have different answers.
+Decompose first:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Component</th><th>Default answer</th><th>Reasoning</th></tr></thead>
+<tbody>
+<tr><td><b>The context</b> &mdash; who owns what, which data is trustworthy, where the exceptions are</td><td><b>Always build.</b> Never outsource.</td><td>This is the asset. It cannot be bought because it does not exist outside your organisation. Every other decision is about how to avoid losing it.</td></tr>
+<tr><td><b>The AI engineering skill</b> &mdash; evals, agent design, prompt and retrieval work at production quality</td><td><b>Buy first, transfer fast.</b></td><td>Genuinely scarce right now and slow to develop from scratch. This is the one place a vendor is straightforwardly worth paying. Time-box it with a transfer milestone.</td></tr>
+<tr><td><b>The product judgement</b> &mdash; deciding which problems are worth solving</td><td><b>Build. You may already have it.</b></td><td>The post is right here. People who ask "what problem are we solving" before "what framework" exist in most orgs; they are usually stuck in roles that don't reward it. Look before you hire.</td></tr>
+<tr><td><b>The operating cadence</b> &mdash; the management system that keeps context accumulating</td><td><b>Build. Nobody sells it.</b></td><td>This is the post's real thesis and it is correct. No vendor will install your management system, and a vendor's cadence leaves when they do.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-steel"><span class="lbl">The shape this implies</span>
+<p><strong>Buy the scarce skill, on a clock. Build the context and the cadence, permanently. Never
+let the first substitute for the second.</strong></p>
+<p>Concretely: a vendor FDE and two of your engineers on the same problem from week one, with a dated
+milestone at which your engineers run it and the vendor advises. If you cannot name the two engineers,
+you are not embedding &mdash; you are outsourcing with better vocabulary, and Module 6's lock-in
+mechanism is now running in your architecture.</p>
+</div>
+
+<h3>What to steal from the post, and what not to</h3>
+
+<div class="split">
+  <div class="l"><div class="h">Worth stealing</div>
+  <p><b>Daily cadence with actual numbers.</b> Not the 8 AM part &mdash; the <i>specificity</i> part.
+  "What happened yesterday, with numbers; what ships today, named; what is blocked" is a real
+  practice and it works at any hour.</p>
+  <p><b>Blockers surfaced before they become client surprises.</b> The single most transferable line
+  in the post.</p>
+  <p><b>Code review with business context.</b> Reviewing for "does this solve the customer's problem"
+  rather than only correctness is how a full-stack developer becomes a product thinker. This is the
+  actual mechanism behind Lesson 1 and it is cheap to adopt.</p>
+  <p><b>Developing people rather than waiting for unicorns.</b> Corroborated from an unexpected
+  direction: Palantir hires FDEs a year out of college.</p></div>
+  <div class="r"><div class="h">Doesn't transfer</div>
+  <p><b>Founder-enforced daily pressure.</b> Works at 130 people because the founder is in the room.
+  At 500+ it decays into theatre &mdash; a meeting everyone attends and nobody uses. Past that size
+  you need the cadence to survive without you, which is a different design problem the post does not
+  address.</p>
+  <p><b>"Client outcomes, not engineer happiness."</b> A workable posture for a founder-led services
+  firm. Inside a product company it will cost you the tenure your context depends on &mdash; and by
+  the post's own logic, tenure is the asset. Module 5.</p>
+  <p><b>The same quality conversation three days running.</b> Effective when the founder does it.
+  Delegated down two levels without the relationship behind it, it reads as harassment and drives
+  exits.</p></div>
+</div>
+
+<h3>Instrument it, or you will be arguing from anecdote in six months</h3>
+
+<p>The post's weakest claims are unfalsifiable because nothing is measured. Do not reproduce that in
+your own org. Four metrics make this manageable:</p>
+
+<ol>
+  <li><strong>Time-to-unaided-resolution.</strong> Weeks from an engineer joining a domain until they
+  close a non-trivial issue in it without help. This is context accumulation, made observable. It is
+  the number that tells you whether your cadence works.</li>
+  <li><strong>Context concentration.</strong> For each critical system, how many people could handle a
+  Sev-1 alone? Where the answer is one, you have the rotation problem already &mdash; internally,
+  without any vendor involved.</li>
+  <li><strong>Vendor-authored surface.</strong> Share of production systems whose reference
+  architecture was designed by someone not on your payroll. Trend matters more than level.</li>
+  <li><strong>Embedded-engineer tenure on account.</strong> Median months a person stays on one
+  domain. If you are going to critique rotation, measure your own first &mdash; most internal orgs
+  rotate faster than the vendors they worry about.</li>
+</ol>
+
+<div class="callout c-warn"><span class="lbl">The uncomfortable one</span>
+<p>Run metric 2 and metric 4 on your own organisation before evaluating any vendor. Internal platform
+teams, reorgs, promotions and backfills churn people off systems at a rate that would look alarming
+in a supplier. <strong>The rotation critique is frequently correct and frequently aimed at the wrong
+party.</strong> If your own median tenure-on-domain is nine months, a vendor committing to eighteen is
+an improvement in context continuity, not a threat to it.</p>
+</div>
+
+<h3>Three questions for a vendor, in order</h3>
+
+<ol>
+  <li><strong>"What is the median tenure of an engineer on a single account, and what is your
+  distribution?"</strong> If they have never computed it, they are not managing the thing they are
+  selling. The answer matters less than whether the number exists.</li>
+  <li><strong>"Name the milestone at which my engineers run this and yours advise. What date, and what
+  is the test?"</strong> AWS states self-sufficiency as a design goal. Ask for it as a dated,
+  testable deliverable and watch what happens.</li>
+  <li><strong>"Show me a workload you built for another client that now runs on a stack you don't
+  sell."</strong> The portability SLA in past tense. Nobody has a good answer to this yet, which is
+  precisely why asking it is informative.</li>
+</ol>
+
+<div class="takeaways"><div class="t">Module 7 takeaways</div>
+<ul>
+  <li>Decompose into context, AI skill, product judgement, cadence. Only the second is genuinely a buy.</li>
+  <li>Buy the scarce skill on a clock; build context and cadence permanently.</li>
+  <li>Named client engineers on the team from week one, or it is outsourcing with better vocabulary.</li>
+  <li>Steal the specificity of the cadence, not the founder-enforcement or the happiness dichotomy.</li>
+  <li>Measure your own tenure-on-domain before critiquing anyone's rotation.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>The decision tool</h2>
+  <div class="mt">Commit to an answer, then see what the inputs actually imply</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a defensible build / buy / embed position on a specific capability, with the reasoning</li>
+  <li>Know which single input would flip your answer &mdash; the sensitivity, not just the result</li>
+  <li>Have scored a vendor proposal against eight terms and produced a negotiation list</li>
+</ul></div>
+
+<p>This is not a quiz. Nothing here has a right answer stored in it &mdash; the model computes from
+your inputs and tells you what they imply, including when they imply something close to a tie. The
+useful output is the <strong>disagreement</strong> between your prior and the model, and the
+sensitivity readout that tells you which assumption is carrying your decision.</p>
+
+<div id="lab">
+  <div class="lab-top">
+    <span class="lab-pill">Interactive</span>
+    <h3>Build &middot; Buy &middot; Embed</h3>
+    <span class="lab-step" id="lab-step">Stage 1 of 3</span>
+  </div>
+  <div class="lab-body">
+
+    <!-- STAGE 1 -->
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">Commit before you compute</div>
+        <div class="st" id="s1-st">Open</div></div>
+      <p class="hint">Pick a specific capability you are actually considering &mdash; not a
+      hypothetical. Then commit to an answer <b>now</b>, before the model runs. If you skip this
+      honestly, the rest is just a calculator agreeing with you.</p>
+
+      <div class="priors" id="priors">
+        <button class="prior" data-p="build"><b>Build</b><span>Hire and develop the capability in-house. Slower, permanent.</span></button>
+        <button class="prior" data-p="buy"><b>Buy</b><span>A vendor delivers the outcome. You consume it, they own the how.</span></button>
+        <button class="prior" data-p="embed"><b>Embed</b><span>Vendor engineers inside your teams, with a transfer obligation.</span></button>
+      </div>
+
+      <div class="why-wrap">
+        <label for="s1-why">In one line: why? (Stays in your browser, nothing is sent anywhere.)</label>
+        <textarea id="s1-why" placeholder="e.g. We need it live before the January release and nobody internal has shipped an eval harness."></textarea>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="s1-go" disabled>Lock it in</button>
+        <span class="gate-msg" id="s1-gate">Pick one to continue.</span>
+      </div>
+    </div>
+
+    <!-- STAGE 2 -->
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">Characterise the capability</div>
+        <div class="st" id="s2-st">Locked</div></div>
+      <p class="hint">Seven inputs. Answer for the specific capability you had in mind, not for your
+      org in general.</p>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Strategic centrality</span><span class="cv" id="v-cent">50</span></div>
+        <input type="range" id="r-cent" min="0" max="100" value="50">
+        <div class="cd" id="d-cent"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Context depth required</span><span class="cv" id="v-ctx">50</span></div>
+        <input type="range" id="r-ctx" min="0" max="100" value="50">
+        <div class="cd" id="d-ctx"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Time pressure</span><span class="cv" id="v-time">50</span></div>
+        <input type="range" id="r-time" min="0" max="100" value="50">
+        <div class="cd" id="d-time"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Internal bench</span><span class="cv" id="v-bench">50</span></div>
+        <input type="range" id="r-bench" min="0" max="100" value="50">
+        <div class="cd" id="d-bench"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Durability of the workload</span><span class="cv" id="v-dur">50</span></div>
+        <input type="range" id="r-dur" min="0" max="100" value="50">
+        <div class="cd" id="d-dur"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Regulatory / data sensitivity</span><span class="cv" id="v-reg">50</span></div>
+        <input type="range" id="r-reg" min="0" max="100" value="50">
+        <div class="cd" id="d-reg"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Existing vendor concentration</span><span class="cv" id="v-conc">50</span></div>
+        <input type="range" id="r-conc" min="0" max="100" value="50">
+        <div class="cd" id="d-conc"></div>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="s2-go">Run the model</button>
+        <button class="act ghost" id="s2-reset">Reset sliders</button>
+      </div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div id="out"></div>
+
+    <!-- STAGE 3 -->
+    <div class="stage locked" id="s3">
+      <div class="stage-h"><div class="n">3</div><div class="ttl">Score the vendor proposal</div>
+        <div class="st" id="s3-st">Locked</div></div>
+      <p class="hint">Eight terms, drawn from Module 6. Score a real proposal in front of you, or the
+      last one you saw. <b>Yes</b> means it is written in the contract. <b>Partial</b> means it was
+      said in a meeting. <b>No</b> means it is absent.</p>
+      <div id="sc-list"></div>
+      <div class="lab-btns">
+        <button class="act" id="s3-go" disabled>Score it</button>
+        <button class="act ghost" id="s3-reset">Reset</button>
+        <span class="gate-msg" id="s3-gate"></span>
+      </div>
+      <div id="sc-out"></div>
+    </div>
+
+  </div>
+</div>
+
+<div id="m8after" class="hid">
+
+<h3>What to do with the output</h3>
+
+<p>The ranking is the least interesting part. Two things are worth more:</p>
+
+<p><strong>The flip point.</strong> If one input moving 20 points changes your answer, that input is
+your decision &mdash; not the framework. Go get a better estimate of it before you commit budget.
+Most build/buy decisions are actually one contested assumption wearing a spreadsheet.</p>
+
+<p><strong>The gap against your prior.</strong> If the model disagreed with what you locked in at
+Stage 1, one of two things is true: the inputs are wrong, or the prior was. Both are useful. The
+common case is that people pick <em>Buy</em> under time pressure and then rate context depth high,
+which is the combination that reliably produces a failed implementation and a lock-in problem
+eighteen months later.</p>
+
+<div class="callout c-warn"><span class="lbl">What this tool cannot tell you</span>
+<p>It has no view on your specific vendor, your people, or your politics, and the weights are
+reasoned rather than empirically fitted &mdash; there is no dataset of embedded-engineering outcomes
+to fit them to. <span class="tier t-op">Opinion</span> It is a structured way to make your own
+assumptions visible and to find the one that is load-bearing. Treat the output as a prompt for the
+argument, not a substitute for it.</p>
+<p>The scorecard is on firmer ground: six of its eight terms come from published analyst
+recommendations or vendors' own stated design goals. <span class="tier t-rep">Reported</span></p>
+</div>
+
+<div class="takeaways"><div class="t">Module 8 takeaways</div>
+<ul>
+  <li>Commit to an answer before computing one, or the tool just ratifies your prior.</li>
+  <li>The sensitivity matters more than the ranking &mdash; find the input carrying the decision.</li>
+  <li>High time pressure plus high context depth is the classic failure combination.</li>
+  <li>A vendor proposal with no exit terms is a fine proposal for a workload you don't care about.</li>
+</ul></div>
+
+</div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Built 28 August 2026. All source checks performed the same day.</p>
+  <p style="margin-top:0.6rem">
+    <a href="https://blogs.microsoft.com/blog/2026/07/02/microsoft-frontier-company-ai-engineering-that-amplifies-and-protects-your-intelligence/" target="_blank" rel="noopener">Microsoft Frontier</a>
+    <a href="https://www.cnbc.com/2026/06/30/aws-amazon-ai-forward-deployed-engineers.html" target="_blank" rel="noopener">AWS FDE</a>
+    <a href="https://openai.com/index/openai-launches-the-deployment-company/" target="_blank" rel="noopener">OpenAI Deployment Co</a>
+    <a href="https://www.directionsonmicrosoft.com/microsoft-launches-its-own-forward-deployed-engineering-unit-the-frontier-company/" target="_blank" rel="noopener">Directions on Microsoft</a>
+    <a href="https://www.reworked.co/digital-workplace/microsofts-frontier-company-strategy-from-model-lockin-to-people-lockin/" target="_blank" rel="noopener">Reworked on lock-in</a>
+    <a href="https://newsletter.pragmaticengineer.com/p/forward-deployed-engineers" target="_blank" rel="noopener">Pragmatic Engineer on FDEs</a>
+  </p>
+  <p style="margin-top:0.8rem;font-size:0.78rem">If any of these programmes has since published an
+  engagement duration or a context-transfer standard, Module 5's central finding is out of date and
+  the published document supersedes it. That would be good news.</p>
+</div>
+
+</div>
+
+<script>
+/* ────────── nav, progress, active-module tracking ────────── */
+(function(){
+'use strict';
+var N = 8;
+var links = document.getElementById('nav-links');
+var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a);
+  secs.push(document.getElementById('m' + i));
+}
+
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  var pct = Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100)));
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) {
+    if (!secs[i]) continue;
+    if (secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  }
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) {
+    var el = document.getElementById('nl' + i);
+    if (el) el.className = (i === active) ? 'done' : '';
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href'));
+    if (!t) return;
+    e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+})();
+</script>
+
+<script>
+/* ═══════════ MODULE 8 — BUILD / BUY / EMBED DECISION TOOL ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab')) return;
+
+/* ---------- state ---------- */
+var st = { cent:50, ctx:50, time:50, bench:50, dur:50, reg:50, conc:50 };
+var prior = null;
+var ran = false;
+
+var LABELS = {
+  build: 'Build',
+  buy:   'Buy',
+  embed: 'Embed'
+};
+
+/* ---------- slider descriptors ---------- */
+var DESC = {
+  cent: function(v){
+    if (v < 25) return 'Plumbing. If a competitor had exactly this, it would change nothing about why customers choose you.';
+    if (v < 50) return 'Supporting. Matters operationally, but it is not what you compete on.';
+    if (v < 75) return 'Differentiating. Customers would notice if this were meaningfully better or worse than a rival’s.';
+    return 'Core. This is a reason people buy from you rather than someone else. Losing control of it is a strategic problem, not a procurement one.';
+  },
+  ctx: function(v){
+    if (v < 25) return 'Generic. A competent outsider could do this well in week one with public documentation.';
+    if (v < 50) return 'Some domain knowledge needed, but it is mostly written down somewhere.';
+    if (v < 75) return 'Substantial tacit knowledge: undocumented exceptions, which data is actually trustworthy, who really decides.';
+    return 'Deep. Months of accumulated context before someone stops making expensive mistakes. This is exactly the asset the source post argues does not survive handover.';
+  },
+  time: function(v){
+    if (v < 25) return 'No hard date. You can hire and develop people on a normal timeline.';
+    if (v < 50) return 'Wanted this year. Uncomfortable to hire for from scratch, not impossible.';
+    if (v < 75) return 'Committed date within two quarters. Hiring and ramping will not make it.';
+    return 'Already late, or externally committed. The only question is who does it starting now.';
+  },
+  bench: function(v){
+    if (v < 25) return 'Nobody. No engineer internally could grow into this within a year.';
+    if (v < 50) return 'One or two candidates, currently doing something else, unproven in this domain.';
+    if (v < 75) return 'A real bench: several engineers with the disposition, missing the specific AI-engineering skill.';
+    return 'Strong. You have people who have shipped production AI systems. If you are here, be honest — most orgs overrate this.';
+  },
+  dur: function(v){
+    if (v < 25) return 'Probably obsolete in eighteen months. A campaign, a migration, a one-off.';
+    if (v < 50) return 'Useful for a couple of years, then likely superseded.';
+    if (v < 75) return 'Durable. Still core to how the business runs in three years.';
+    return 'Structural. This becomes part of the permanent operating fabric and will accrete dependencies.';
+  },
+  reg: function(v){
+    if (v < 25) return 'Low. Public or low-sensitivity data, no meaningful regulatory surface.';
+    if (v < 50) return 'Moderate. Some PII, standard commercial obligations.';
+    if (v < 75) return 'High. Regulated data, audit obligations, contractual restrictions on third-party access.';
+    return 'Severe. Health, financial, student or government data with statutory constraints on who may touch it and where it may live.';
+  },
+  conc: function(v){
+    if (v < 25) return 'Diverse stack. No single vendor could hold you hostage today.';
+    if (v < 50) return 'Some concentration, manageable.';
+    if (v < 75) return 'Substantial. One vendor already underpins a lot of what you run.';
+    return 'Very high. One vendor is effectively your infrastructure. Module 6’s architectural lock-in is not a future risk for you — it is your current state.';
+  }
+};
+
+/* ---------- wire sliders ---------- */
+var KEYS = ['cent','ctx','time','bench','dur','reg','conc'];
+KEYS.forEach(function(k){
+  var r = $('r-' + k);
+  if (!r) return;
+  r.addEventListener('input', function(){
+    st[k] = +r.value;
+    $('v-' + k).textContent = r.value;
+    $('d-' + k).textContent = DESC[k](st[k]);
+  });
+  $('v-' + k).textContent = st[k];
+  $('d-' + k).textContent = DESC[k](st[k]);
+});
+
+/* ---------- stage 1: prior ---------- */
+Array.prototype.forEach.call(document.querySelectorAll('#priors .prior'), function(b){
+  b.addEventListener('click', function(){
+    Array.prototype.forEach.call(document.querySelectorAll('#priors .prior'), function(x){
+      x.classList.remove('sel');
+    });
+    b.classList.add('sel');
+    prior = b.dataset.p;
+    $('s1-go').disabled = false;
+    $('s1-gate').textContent = 'Locked answer: ' + LABELS[prior] + '.';
+  });
+});
+
+$('s1-go').addEventListener('click', function(){
+  $('s1').className = 'stage';
+  $('s1-st').textContent = 'Committed';
+  $('s1-st').className = 'st ok';
+  $('s1-go').disabled = true;
+  Array.prototype.forEach.call(document.querySelectorAll('#priors .prior'), function(x){
+    x.disabled = true;
+  });
+  $('s1-why').readOnly = true;
+  $('s2').className = 'stage';
+  $('s2-st').textContent = 'Open';
+  $('lab-step').textContent = 'Stage 2 of 3';
+  try { $('s2').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+/* ---------- the model ---------- */
+function score(s){
+  var c = s.cent/100, x = s.ctx/100, t = s.time/100,
+      b = s.bench/100, d = s.dur/100, g = s.reg/100, k = s.conc/100;
+
+  var benchMid = 1 - Math.abs(b - 0.5) * 2;   /* peaks when you have some bench but not enough */
+  var squeeze  = c * t;                       /* care about it AND need it now */
+
+  var build = 0.20*c + 0.16*x + 0.18*d + 0.20*b + 0.08*g + 0.08*k + 0.10*(1-t);
+  var buy   = 0.22*(1-c) + 0.18*(1-x) + 0.20*t + 0.16*(1-b) + 0.14*(1-d) + 0.10*(1-g);
+  var embed = 0.16*c + 0.16*x + 0.20*t + 0.12*d + 0.12*benchMid + 0.08*g + 0.16*squeeze;
+
+  return {
+    build: Math.round(build*100),
+    buy:   Math.round(buy*100),
+    embed: Math.round(embed*100)
+  };
+}
+
+function winner(sc){
+  var arr = [['build',sc.build],['buy',sc.buy],['embed',sc.embed]];
+  arr.sort(function(a,b){ return b[1]-a[1]; });
+  return arr;
+}
+
+/* which single input, moved +/-20, flips the winner */
+function sensitivity(s){
+  var base = winner(score(s))[0][0];
+  var flips = [];
+  KEYS.forEach(function(k){
+    [-20, 20].forEach(function(delta){
+      var s2 = {}; KEYS.forEach(function(j){ s2[j] = s[j]; });
+      s2[k] = Math.max(0, Math.min(100, s[k] + delta));
+      if (s2[k] === s[k]) return;
+      var w = winner(score(s2))[0][0];
+      if (w !== base) {
+        flips.push({ key:k, delta:delta, to:w });
+      }
+    });
+  });
+  /* de-duplicate by key, keep the smallest-magnitude flip */
+  var seen = {};
+  return flips.filter(function(f){
+    if (seen[f.key]) return false;
+    seen[f.key] = true;
+    return true;
+  });
+}
+
+var KEYNAME = {
+  cent:'Strategic centrality', ctx:'Context depth', time:'Time pressure',
+  bench:'Internal bench', dur:'Durability', reg:'Regulatory sensitivity',
+  conc:'Vendor concentration'
+};
+
+var FAILMODE = {
+  build: 'You will be late, and the lateness will be invisible until it is expensive. The classic build failure is not that the team cannot do it — it is that ramp takes two quarters longer than anyone put in the plan, and by then the window has moved. Mitigation: hire or contract one person who has already shipped this exact thing, purely to compress ramp.',
+  buy: 'You get a working system nobody inside can modify. Eighteen months on, every change is a statement of work, and the vendor’s architecture is now your architecture — Module 6, exactly. Mitigation: even on a pure buy, insist on continuous IP vesting and an annual portability test. They cost the vendor little and preserve your optionality.',
+  embed: 'The transfer never happens. Embedding degrades into permanent staff augmentation because the milestone was aspirational rather than dated, and your engineers were "going to join once things settle down." Mitigation: name the two internal engineers and the transfer date before signing. If you cannot name them, you are buying, not embedding — price it accordingly.'
+};
+
+var RATIONALE = {
+  build: function(s){
+    var r = [];
+    if (s.cent >= 60) r.push('high strategic centrality — this is something you compete on');
+    if (s.bench >= 55) r.push('you have a bench that can carry it');
+    if (s.dur >= 60) r.push('the workload is durable enough to justify a permanent capability');
+    if (s.time <= 40) r.push('no acute time pressure, so ramp is affordable');
+    if (s.reg >= 65) r.push('regulatory sensitivity argues for keeping hands on the data');
+    if (s.conc >= 65) r.push('existing vendor concentration is already high — adding to it compounds a risk you have');
+    return r;
+  },
+  buy: function(s){
+    var r = [];
+    if (s.cent <= 40) r.push('low strategic centrality — owning it buys you nothing');
+    if (s.ctx <= 40) r.push('shallow context requirements, so an outsider can be effective quickly');
+    if (s.time >= 60) r.push('time pressure that hiring cannot meet');
+    if (s.bench <= 40) r.push('no internal bench to build on');
+    if (s.dur <= 40) r.push('the workload may not outlive the capability you would build for it');
+    return r;
+  },
+  embed: function(s){
+    var r = [];
+    if (s.cent >= 55 && s.time >= 55) r.push('the squeeze case: you care about this <em>and</em> you need it before you could hire for it');
+    if (s.ctx >= 55) r.push('deep context requirements mean an arms-length vendor will produce something subtly wrong');
+    if (s.bench > 30 && s.bench < 70) r.push('a partial bench — people to transfer to, but not enough to go alone');
+    if (s.dur >= 55) r.push('durable enough that you will need to own it eventually');
+    return r;
+  }
+};
+
+/* ---------- run ---------- */
+$('s2-go').addEventListener('click', run);
+$('s2-reset').addEventListener('click', function(){
+  KEYS.forEach(function(k){
+    st[k] = 50; $('r-' + k).value = 50; $('v-' + k).textContent = '50';
+    $('d-' + k).textContent = DESC[k](50);
+  });
+});
+
+function run(){
+  ran = true;
+  var sc = score(st);
+  var rank = winner(sc);
+  var top = rank[0], second = rank[1];
+  var margin = top[1] - second[1];
+  var close = margin < 6;
+
+  var h = '<div class="stage"><div class="stage-h"><div class="n">✓</div>' +
+          '<div class="ttl">What your inputs imply</div>' +
+          '<div class="st ok">Computed</div></div>';
+
+  /* bars */
+  h += '<div class="rbars">';
+  rank.forEach(function(row, i){
+    var cls = i === 0 ? 'win' : (i === 1 ? 'mid' : 'low');
+    var reasons = RATIONALE[row[0]](st);
+    h += '<div class="rbar ' + cls + '">' +
+         '<div class="rl"><span class="rn">' + LABELS[row[0]] +
+         (i === 0 ? (close ? ' — narrow lead' : ' — clear') : '') +
+         '</span><span class="rs">' + row[1] + '</span></div>' +
+         '<div class="rt"><div class="rf" style="width:' + row[1] + '%"></div></div>' +
+         (reasons.length ? '<div class="rw">' + (i === 0 ? 'Driven by: ' : 'Supported by: ') +
+            reasons.join('; ') + '.</div>' : '') +
+         '</div>';
+  });
+  h += '</div>';
+
+  /* close-call warning */
+  if (close) {
+    h += '<div class="verdict v-miss"><span class="vl">Too close to call</span>' +
+         '<p><b>' + LABELS[top[0]] + '</b> leads <b>' + LABELS[second[0]] + '</b> by ' + margin +
+         ' points. That is inside the noise of a model whose weights are reasoned rather than' +
+         ' measured. <b>Do not treat this as an answer.</b> It means the decision is genuinely' +
+         ' balanced on your inputs, and it will be settled by something not in this model —' +
+         ' who is available, what your board will fund, whether you trust the specific vendor.</p>' +
+         '<p>The useful move here is to stop optimising the choice and start reducing the downside' +
+         ' of both. The exit terms in Module 6 do that regardless of which way you go.</p></div>';
+  }
+
+  /* prior comparison */
+  if (prior === top[0]) {
+    h += '<div class="verdict v-hit"><span class="vl">Your prior held</span>' +
+         '<p>You committed to <b>' + LABELS[prior] + '</b> and the inputs agree' +
+         (close ? ', though narrowly' : '') + '. That is worth something, but check the sensitivity' +
+         ' below before you relax — agreement between your instinct and your stated assumptions' +
+         ' is not evidence the assumptions are right. It may just mean both came from the same place.</p></div>';
+  } else {
+    h += '<div class="verdict v-miss"><span class="vl">Your prior and your inputs disagree</span>' +
+         '<p>You committed to <b>' + LABELS[prior] + '</b>. Your inputs point to <b>' +
+         LABELS[top[0]] + '</b> (' + LABELS[prior] + ' scored ' + sc[prior] + ').</p>' +
+         '<p>One of the two is wrong and it is worth knowing which. Either you rated an input' +
+         ' inaccurately — <b>internal bench is the one people overrate most</b> — or your' +
+         ' instinct is carrying information you have not made explicit, which is common and often' +
+         ' correct. If it is the latter, the thing to do is name it: what do you know about this' +
+         ' situation that none of the seven sliders asked about?</p></div>';
+  }
+
+  /* sensitivity */
+  var flips = sensitivity(st);
+  h += '<div class="field"><span class="lbl">Sensitivity — what would change the answer</span>';
+  if (!flips.length) {
+    h += '<p><b>Nothing flips it.</b> No single input moved 20 points changes the ranking. Your' +
+         ' inputs point robustly at <b>' + LABELS[top[0]] + '</b>. That is the strongest result this' +
+         ' tool produces — it means the decision is not resting on one contested estimate.</p>';
+  } else {
+    h += '<p><b>' + flips.length + ' input' + (flips.length > 1 ? 's' : '') + ' would flip this.</b>' +
+         ' Each of these, moved 20 points, changes the winner:</p><ul>';
+    flips.forEach(function(f){
+      h += '<li><b>' + KEYNAME[f.key] + '</b> ' + (f.delta > 0 ? 'up' : 'down') + ' 20 → ' +
+           LABELS[f.to] + '</li>';
+    });
+    h += '</ul><p>These are your real decision variables. Everything else is commentary. Before you' +
+         ' commit budget, go get a defensible estimate of ' +
+         (flips.length === 1 ? 'that one' : 'those') + ' — ideally from someone who does not' +
+         ' report to you and has no stake in the outcome.</p>';
+  }
+  h += '</div>';
+
+  /* failure mode of the winner */
+  h += '<div class="field"><span class="lbl">How ' + LABELS[top[0]] + ' fails</span>' +
+       '<p>' + FAILMODE[top[0]] + '</p></div>';
+
+  /* the specific danger combination */
+  if (st.time >= 65 && st.ctx >= 65) {
+    h += '<div class="verdict v-miss"><span class="vl">Flag: the failure combination</span>' +
+         '<p>You have rated <b>time pressure at ' + st.time + '</b> and <b>context depth at ' +
+         st.ctx + '</b>. This pairing — needing it fast, in a domain that takes months to' +
+         ' understand — is the one that reliably produces a system that works in the demo and' +
+         ' is subtly wrong in production, because the people who built it did not know what they did' +
+         ' not know.</p><p>Neither Build nor Buy solves it: Build is too slow, and Buy puts the' +
+         ' understanding outside the building. If you are going to spend effort anywhere, spend it on' +
+         ' the transfer mechanism — named internal engineers, on the team, from week one.</p></div>';
+  }
+
+  if (st.conc >= 70 && top[0] === 'buy') {
+    h += '<div class="verdict v-miss"><span class="vl">Flag: compounding concentration</span>' +
+         '<p>Vendor concentration is already at <b>' + st.conc + '</b> and the model still favours' +
+         ' Buy. That can be correct — the workload may simply not be worth owning — but it' +
+         ' is the path by which organisations discover, several years in, that their architecture' +
+         ' belongs to someone else. If you go this way, the annual portability test from Module 6 is' +
+         ' not optional hygiene. It is the only instrument that will tell you when the option to' +
+         ' leave has expired.</p></div>';
+  }
+
+  h += '</div>';
+
+  $('out').innerHTML = h;
+  $('s3').className = 'stage';
+  $('s3-st').textContent = 'Open';
+  $('lab-step').textContent = 'Stage 3 of 3';
+  $('m8after').className = '';
+  renderScorecard();
+  try { $('out').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+}
+
+/* ---------- stage 3: vendor scorecard ---------- */
+var TERMS = [
+  { q:'<b>IP and design documentation vest continuously</b> — as produced, not on completion.',
+    src:'Published analyst recommendation.',
+    why:'End-loaded IP transfer is worthless precisely when you need it, which is when the relationship is failing. If this is absent, everything produced before a dispute is leverage against you.' },
+  { q:'<b>Exit deliverables are defined and due before final payment</b> — portable infrastructure-as-code plus a <i>tested</i> model-swap runbook.',
+    src:'Published analyst recommendation.',
+    why:'Note "tested". A documented runbook that has never been executed is a hypothesis. Payment is the only leverage that reliably converts a hypothesis into a test.' },
+  { q:'<b>A portability SLA:</b> named workloads demonstrably run on an alternative stack at least once a year.',
+    src:'Published analyst recommendation.',
+    why:'The strongest single term available. It converts portability from a claim into a recurring observable event. The first year it fails is the year you learn your optionality is gone — which is far better than learning it during a renewal negotiation.' },
+  { q:'<b>Named individuals with a minimum tenure commitment,</b> plus replacement notice and a mandatory overlap period.',
+    src:'Derived from Module 5 — the actual remedy for the rotation concern.',
+    why:'This is how you convert the post’s rotation critique from a worry into a contract term. No vendor has published a rotation cadence; that makes this a question you must ask rather than one you can look up. Refusal to commit to any duration is itself the answer.' },
+  { q:'<b>Context artefacts are contractual deliverables:</b> decision log, architecture rationale, what was rejected and why.',
+    src:'Derived from Module 4.',
+    why:'Documentation of what was built is standard and nearly useless. Documentation of <i>why</i>, including the rejected alternatives, is the part that does not survive a handover and the part nobody volunteers.' },
+  { q:'<b>A dated capability-transfer milestone</b> with your named engineers on the team from week one.',
+    src:'AWS states customer self-sufficiency as a design goal; this makes it testable.',
+    why:'MIT’s GenAI Divide found blended internal/external teams succeeded 67% of the time against 22% for IT-only builds. So this term is not only your exit protection — it is the term most likely to make the delivery itself work.' },
+  { q:'<b>Pricing is not primarily tied to consumption of the vendor’s own metered services</b> — or if it is, that is disclosed and capped.',
+    src:'Derived from Module 6 — "free deployment is the customer acquisition cost, consumption meters are the payback."',
+    why:'This is the term that reveals the business model. A vendor paid on your consumption has no commercial reason to make your system efficient, or you self-sufficient. That is not cynicism — it is the stated strategy, on the record.' },
+  { q:'<b>Success is measured on your business metric,</b> defined and agreed before kickoff.',
+    src:'AWS states engagements are structured "around shared goals and business results, not billable hours."',
+    why:'Every vendor in this market now says outcome-based. Ask which outcome, measured how, agreed when. A metric chosen after the work starts is chosen to be met.' }
+];
+
+var picks = new Array(TERMS.length).fill(null);
+var scored = false;
+
+function renderScorecard(){
+  var box = $('sc-list');
+  if (!box) return;
+  box.innerHTML = TERMS.map(function(t, i){
+    var opts = [['y','In the contract'],['p','Said, not written'],['n','Absent']];
+    return '<div class="sc-item"><div class="sq">' + (i+1) + '. ' + t.q + '</div><div class="sc-opts">' +
+      opts.map(function(o){
+        var cls = 'sc-opt';
+        if (picks[i] === o[0]) cls += ' sel-' + o[0];
+        return '<button class="' + cls + '" data-i="' + i + '" data-v="' + o[0] + '"' +
+               (scored ? ' disabled' : '') + '>' + o[1] + '</button>';
+      }).join('') +
+      '</div>' + (scored ? '<div class="sc-why"><b>Why it matters.</b> ' + t.why +
+                           ' <span style="color:var(--text-dim)">(' + t.src + ')</span></div>' : '') +
+      '</div>';
+  }).join('');
+
+  if (!scored) {
+    Array.prototype.forEach.call(box.querySelectorAll('.sc-opt'), function(b){
+      b.addEventListener('click', function(){
+        picks[+b.dataset.i] = b.dataset.v;
+        renderScorecard();
+        gateScorecard();
+      });
+    });
+  }
+  gateScorecard();
+}
+
+function gateScorecard(){
+  var n = picks.filter(function(p){ return p; }).length;
+  var ready = n === TERMS.length;
+  $('s3-go').disabled = !ready || scored;
+  $('s3-gate').textContent = scored ? '' :
+    (ready ? 'Ready.' : 'Scored ' + n + ' of ' + TERMS.length + '.');
+}
+
+$('s3-go').addEventListener('click', function(){
+  scored = true;
+  renderScorecard();
+
+  var pts = picks.reduce(function(a, p){ return a + (p === 'y' ? 2 : p === 'p' ? 1 : 0); }, 0);
+  var max = TERMS.length * 2;
+  var absent = [];
+  picks.forEach(function(p, i){ if (p === 'n') absent.push(i + 1); });
+  var verbal = [];
+  picks.forEach(function(p, i){ if (p === 'p') verbal.push(i + 1); });
+
+  var band, cls, msg;
+  if (pts >= 13) {
+    band = 'Unusually well protected'; cls = 'v-hit';
+    msg = 'This is stronger than most proposals in this market. If it is real, the vendor has thought' +
+          ' about your exit, which is the best available proxy for whether they intend to earn the' +
+          ' renewal rather than inherit it. Verify that the tested items have actually been tested.';
+  } else if (pts >= 9) {
+    band = 'Workable, with gaps'; cls = 'v-hit';
+    msg = 'Normal shape for a competent proposal. The gaps below are negotiable — most of these' +
+          ' terms cost the vendor very little at signing and a great deal later, which is exactly why' +
+          ' they are easier to get now than at renewal.';
+  } else if (pts >= 5) {
+    band = 'Thin'; cls = 'v-miss';
+    msg = 'You are buying delivery with no exit. That is an acceptable trade for a workload you rated' +
+          ' low on centrality and durability — and a bad one for anything else. Go back to your' +
+          ' Stage 2 inputs and check which you have.';
+  } else {
+    band = 'No exit at all'; cls = 'v-miss';
+    msg = 'This proposal transfers no ownership, defines no exit, and commits to no tenure. It may' +
+          ' still be the right thing to sign if the work is genuinely peripheral. If it is not' +
+          ' peripheral, this is how the architecture ends up belonging to someone else — not' +
+          ' through a bad decision, but through eight reasonable ones.';
+  }
+
+  var h = '<div class="verdict ' + cls + '"><span class="vl">' + band + ' — ' + pts + ' of ' + max + '</span>' +
+          '<p>' + msg + '</p>';
+
+  if (verbal.length) {
+    h += '<p><b>Said but not written (terms ' + verbal.join(', ') + ').</b> These are the cheapest' +
+         ' wins available to you. A vendor who said it in a meeting has already conceded the' +
+         ' principle; ask for it in the document. Refusal at this point is informative — it means' +
+         ' the meeting answer was not the real one.</p>';
+  }
+  if (absent.length) {
+    h += '<p><b>Absent entirely (terms ' + absent.join(', ') + ').</b> Take these into the' +
+         ' negotiation in this order: <b>3 (portability SLA)</b> first if it is missing, because it' +
+         ' subsumes several others and is the hardest to retrofit; then <b>1 (continuous IP' +
+         ' vesting)</b>; then <b>6 (dated transfer milestone)</b>.</p>';
+  }
+  if (!absent.length && !verbal.length) {
+    h += '<p>Every term is in the contract. The remaining question is not the paper — it is' +
+         ' whether anyone will actually run the annual portability test in year two, when it is' +
+         ' inconvenient and the system is working. Put a named owner and a calendar date on it now.</p>';
+  }
+
+  h += '</div>';
+  $('sc-out').innerHTML = h;
+  $('s3-st').textContent = 'Complete';
+  $('s3-st').className = 'st ok';
+  $('s3-go').disabled = true;
+});
+
+$('s3-reset').addEventListener('click', function(){
+  picks = new Array(TERMS.length).fill(null);
+  scored = false;
+  $('sc-out').innerHTML = '';
+  renderScorecard();
+});
+
+/* expose for headless verification */
+window.__lab = {
+  state: function(){ return st; },
+  score: score,
+  winner: winner,
+  sensitivity: sensitivity,
+  set: function(o){
+    Object.keys(o).forEach(function(k){
+      st[k] = o[k];
+      if ($('r-' + k)) { $('r-' + k).value = o[k]; $('v-' + k).textContent = o[k]; $('d-' + k).textContent = DESC[k](o[k]); }
+    });
+  },
+  setPrior: function(p){ prior = p; },
+  run: run,
+  terms: TERMS
+};
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>
