@@ -1,0 +1,2660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intermediate to Advanced AI — The Actual Path</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.1rem;overflow-x:auto;margin:1.1rem 0;font-size:0.83rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text)}
+pre .c{color:var(--text-dim)}
+pre .k{color:var(--purple)}
+pre .s{color:var(--green)}
+pre .f{color:var(--blue)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-steel{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-steel .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* CURRENCY STATUS CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-live{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-ok{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-dated{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-frozen{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-dead{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* LEDGER ROWS */
+.ledger{margin:1.3rem 0}
+.lrow{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.05rem;margin-bottom:0.65rem;border-left:3px solid var(--border-light)}
+.lrow.live{border-left-color:var(--green)}
+.lrow.ok{border-left-color:var(--accent)}
+.lrow.dated{border-left-color:var(--yellow)}
+.lrow.frozen{border-left-color:var(--purple)}
+.lrow.dead{border-left-color:var(--red)}
+.lrow .lc{font-size:0.93rem;color:var(--text-bright);font-weight:650;margin-bottom:0.45rem}
+.lrow .lv{font-size:0.86rem;color:var(--text-dim);line-height:1.65}
+.lrow .lv b{color:var(--text)}
+.lrow .lv a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.lrow .verdict-line{margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);
+  font-size:0.85rem;color:var(--text)}
+.lrow .verdict-line b{color:var(--text-bright)}
+
+/* STAGE CLEARING TEST */
+.cleartest{background:linear-gradient(180deg,rgba(108,99,255,0.09),rgba(108,99,255,0.04));
+  border:1px solid rgba(108,99,255,0.34);border-left:3px solid var(--accent2);
+  border-radius:10px;padding:1.15rem 1.3rem;margin:1.5rem 0}
+.cleartest .lbl{font-size:0.7rem;font-weight:800;color:var(--accent2);text-transform:uppercase;
+  letter-spacing:0.08em;display:block;margin-bottom:0.6rem}
+.cleartest p{margin-bottom:0.7rem;font-size:0.93rem}
+.cleartest p:last-child{margin-bottom:0}
+.cleartest .neg{color:var(--text-dim);font-size:0.86rem}
+
+/* TIME BADGE */
+.timebar{display:flex;gap:0.5rem;flex-wrap:wrap;margin:0 0 1.3rem}
+.tb{background:var(--code-bg);border:1px solid var(--border);border-radius:7px;
+  padding:0.4rem 0.75rem;font-size:0.78rem;color:var(--text-dim);font-family:var(--mono)}
+.tb b{color:var(--accent);font-weight:700}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ PATH BUILDER (LAB) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+/* goal picker */
+.priors{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.4rem}
+.prior{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.8rem 0.9rem;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.prior:hover{border-color:var(--accent)}
+.prior.sel{border-color:var(--accent2);background:rgba(108,99,255,0.12)}
+.prior b{display:block;font-size:0.9rem;color:var(--text-bright);font-weight:750;margin-bottom:0.2rem}
+.prior span{font-size:0.75rem;color:var(--text-dim);line-height:1.45;display:block}
+@media(max-width:640px){.priors{grid-template-columns:1fr}}
+.priors.five{grid-template-columns:repeat(5,1fr)}
+@media(max-width:760px){.priors.five{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:420px){.priors.five{grid-template-columns:repeat(2,1fr)}}
+
+/* capability self-assessment */
+.cap{border:1px solid var(--border);border-radius:9px;padding:0.8rem 0.95rem;
+  margin-bottom:0.6rem;background:var(--bg2)}
+.cap .cq{font-size:0.88rem;color:var(--text);margin-bottom:0.55rem;line-height:1.6}
+.cap .cq b{color:var(--text-bright)}
+.cap .cs{font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.4rem}
+.cap-opts{display:flex;gap:0.35rem;flex-wrap:wrap}
+.cap-opt{font-size:0.72rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.cap-opt:hover{border-color:var(--accent);color:var(--accent)}
+.cap-opt.sel-y{background:rgba(152,195,121,0.2);border-color:var(--green);color:var(--green)}
+.cap-opt.sel-p{background:rgba(229,192,123,0.2);border-color:var(--yellow);color:var(--yellow)}
+.cap-opt.sel-n{background:rgba(224,108,117,0.2);border-color:var(--red);color:var(--red)}
+
+/* result */
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+.field ul{margin:0 0 0.7rem 1.2rem}
+.field li{margin-bottom:0.3rem}
+
+/* schedule rows */
+.sched{margin:1rem 0}
+.srow{display:grid;grid-template-columns:auto 1fr auto;gap:0.8rem;align-items:baseline;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:0.65rem 0.9rem;margin-bottom:0.45rem;border-left:3px solid var(--border-light)}
+.srow.now{border-left-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.srow.done{opacity:0.45;border-left-color:var(--green)}
+.srow .sw{font-family:var(--mono);font-size:0.76rem;color:var(--text-dim);white-space:nowrap}
+.srow .sn{font-size:0.88rem;color:var(--text-bright);font-weight:650}
+.srow .sn em{display:block;font-style:normal;font-size:0.78rem;color:var(--text-dim);
+  font-weight:400;margin-top:0.15rem;line-height:1.5}
+.srow .sh{font-family:var(--mono);font-size:0.76rem;color:var(--accent);white-space:nowrap}
+@media(max-width:640px){.srow{grid-template-columns:1fr;gap:0.25rem}}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">The Actual Path</div>
+    <div class="nav-prog" id="nav-prog">0 / 11</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>Intermediate to Advanced AI</h1>
+  <p class="sub">A roundup of "best AI courses for 2026" ends by offering to build you a path
+  and then doesn't. This is the path. It starts with an audit of what that list actually points
+  at &mdash; two of its recommendations are dead, one now resolves to a job board &mdash; then
+  teaches the five things you have to understand, in the order the dependencies force, with an
+  honest test for each stage that is harder to fake than finishing a video.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>11</span> modules</div>
+    <div class="hero-badge"><span>13</span> resources audited</div>
+    <div class="hero-badge"><span>5</span> stages</div>
+    <div class="hero-badge"><span>8</span> papers</div>
+    <div class="hero-badge"><span>~90</span> min</div>
+    <div class="hero-badge"><span>28 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Every link checked on 28 August 2026 &middot;
+  <a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener">CS336</a> &middot;
+  <a href="https://huggingface.co/learn" target="_blank" rel="noopener">HF Learn</a> &middot;
+  <a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a> &middot;
+  <a href="https://rlhfbook.com/" target="_blank" rel="noopener">RLHF Book</a> &middot;
+  <a href="https://github.com/gpu-mode/lectures" target="_blank" rel="noopener">GPU MODE</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>The source is a good list written by someone who knows the field. Its failure is not taste,
+  it is <strong>time</strong>: several entries carry a 2026 recommendation over material that
+  stopped moving between 2017 and 2023, and it does not say so. A link list with no freshness
+  dates is a trap, because the reader assumes recency that the writer never claimed.</p>
+  <p>Module 2 grades every entry. The chips mean:
+  <span class="tier t-live">Live</span> actively maintained, use it today.
+  <span class="tier t-ok">Current&#8209;ish</span> good, with a known lag you should know about.
+  <span class="tier t-dated">Dated</span> not wrong, but aimed at a world that has moved.
+  <span class="tier t-frozen">Frozen</span> abandoned but still useful as an archive.
+  <span class="tier t-dead">Dead</span> gone; do not send anyone to the link.</p>
+  <p><strong>Modules 4&ndash;8 are the actual course.</strong> Each one teaches a concept in
+  plain language first, points at the best external resource second, and ends with a
+  <em>clearing test</em> &mdash; something you can do unaided, or cannot. Watching the videos is
+  not the test. <strong>Module 11 builds you a dated schedule</strong> from your real weekly hours
+  and an honest self-assessment. It will tell you to start further back than you want to.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">The missing ingredient is sequence<span class="tag">The problem</span></a></li>
+    <li><a href="#m2">Currency audit<span class="tag">Every link, graded</span></a></li>
+    <li><a href="#m3">What the list leaves out<span class="tag">The 2026 gap</span></a></li>
+    <li><a href="#m4">Stage 1 &mdash; The mechanism<span class="tag">Teach + test</span></a></li>
+    <li><a href="#m5">Stage 2 &mdash; The training stack<span class="tag">Teach + test</span></a></li>
+    <li><a href="#m6">Stage 3 &mdash; Post-training<span class="tag">Teach + test</span></a></li>
+    <li><a href="#m7">Stage 4 &mdash; Evals<span class="tag">Teach + test</span></a></li>
+    <li><a href="#m8">Stage 5 &mdash; Inference economics<span class="tag">Teach + test</span></a></li>
+    <li><a href="#m9">The paper ladder<span class="tag">8 papers, in order</span></a></li>
+    <li><a href="#m10">Reading this as a curriculum<span class="tag">The CPTO lens</span></a></li>
+    <li><a href="#m11">Build your path<span class="tag">Interactive</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>The missing ingredient is sequence</h2>
+  <div class="mt">Why a good list of resources is not a curriculum &mdash; and why nobody ships the ordering</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to say precisely what a list of resources cannot do that an ordering can</li>
+  <li>Know the dependency graph that forces the order of the five stages in this course</li>
+  <li>Understand why "one paper a week" is good advice that almost nobody survives, and what fixes it</li>
+</ul></div>
+
+<h3>The list is right about the parts and silent about the assembly</h3>
+
+<p>Read the source list again and notice what it does. It names good things. Karpathy's videos
+really are the best mid-to-advanced LLM content available for free. The Hugging Face courses really
+are excellent and hands-on. Reading papers really is the advanced curriculum. Every individual
+judgement is defensible.</p>
+
+<p>Then look at its closing recommendation: <em>Karpathy's videos &rarr; Hugging Face NLP/agents
+course &rarr; pick one paper a week and reimplement it.</em> That is three items, and the arrow
+between the second and third is doing an enormous amount of unearned work. There is a chasm between
+"I completed a course where the fine-tuning script was written for me" and "I can read a paper cold
+and rebuild its central claim." The list gestures across that chasm with an arrow.</p>
+
+<div class="callout c-steel"><span class="lbl">What an ordering does that a list cannot</span>
+<p>A list optimises for <strong>coverage</strong>: did I mention the good things? An ordering
+optimises for <strong>the next action</strong>: given where you are, what do you do on Tuesday
+evening? Those are different products with different failure modes.</p>
+<p>A list fails silently &mdash; you bookmark eleven things, open two, finish none, and conclude
+you lack discipline. An ordering fails loudly &mdash; you get stuck at step four and you know
+exactly which step four is. <strong>Loud failure is the feature.</strong> It converts "I'm not
+making progress" into "I don't understand backward passes," which is a solvable problem.</p>
+</div>
+
+<h3>The dependency graph</h3>
+
+<p>The order in this course is not a taste preference. It falls out of what genuinely depends on
+what. Four dependencies do most of the work:</p>
+
+<ul>
+  <li><strong>You cannot reason about training without the mechanism.</strong> Every training
+  decision &mdash; learning rate, batch size, what a loss spike means &mdash; is a statement about
+  gradients flowing through a specific architecture. Without the forward and backward pass in your
+  hands, training advice is folklore you are memorising.</li>
+  <li><strong>You cannot post-train without training.</strong> SFT, DPO and GRPO are all
+  gradient descent on a modified objective. If the base loop is a black box, the modification is
+  a black box wrapped in an acronym.</li>
+  <li><strong>You cannot evaluate what you cannot change.</strong> Evals are only useful when
+  they are attached to a lever. Learning evals before you can move a model produces
+  someone who writes excellent dashboards for systems they cannot improve.</li>
+  <li><strong>You cannot optimise inference before you know what the model does at inference.</strong>
+  KV caching, batching and speculative decoding are all consequences of one fact about the decode
+  loop, and that fact is invisible until you have written the loop.</li>
+</ul>
+
+<p>Which gives the spine: <b>mechanism &rarr; training &rarr; post-training &rarr; evals &rarr;
+inference</b>. Evals sit fourth rather than last, which surprises people, because by that point you
+have a model you can actually change &mdash; and because everything after it is optimisation, and you
+should not optimise a system you cannot measure.</p>
+
+<div class="callout c-dissent"><span class="lbl">The one place the list's own advice backfires</span>
+<p><em>"Pick one paper a week and reimplement it"</em> is the best sentence in the source list and
+the one most likely to end your project. Here is the arithmetic nobody does. A genuine
+reimplementation of a systems paper &mdash; say FlashAttention &mdash; is 15 to 40 hours for someone
+competent who has not written a GPU kernel before. At five hours a week that is a
+<strong>two-month</strong> paper, not a one-week paper.</p>
+<p>So week one you pick something hard, get 40% through, and week two arrives with its own paper.
+Now you have a graveyard. Three weeks later you stop, and the story you tell yourself is about
+discipline rather than about scheduling.</p>
+<p>The fix is not to try harder. It is to <strong>size the papers to the hours</strong> and to define
+what "done" means before you start, so that a partial reimplementation is a completed rung rather
+than an abandoned one. Module 9 does exactly that: eight papers, ordered, each with a stated
+reproduction target and an hour estimate.</p>
+</div>
+
+<h3>What "advanced" actually means here</h3>
+
+<p>Worth defining, because the word is doing unexamined work in the source list. Three candidate
+definitions circulate, and only one of them is a curriculum:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Definition</th><th>Test</th><th>Is it teachable in order?</th></tr></thead>
+<tbody>
+<tr><td><b>Breadth</b> &mdash; you know what all the terms mean</td><td>Can hold a conversation about MoE, RLHF, MCP</td><td>Yes, but it is not advanced. This is well-read.</td></tr>
+<tr><td><b>Credential</b> &mdash; you finished the hard courses</td><td>Certificates, completed playlists</td><td>Yes, and it correlates weakly with capability. This is the failure mode the list inherits.</td></tr>
+<tr><td><b>Unaided construction</b> &mdash; you can build the thing without the tutorial</td><td>Blank editor, paper on one screen, working code on the other</td><td><b>Yes, and it is the only one that survives contact with a real problem.</b></td></tr>
+</tbody></table></div>
+
+<p>This course uses the third. That is why every stage ends with a clearing test phrased as
+<em>"you can do X unaided"</em> rather than <em>"you completed module Y."</em> The difference is not
+rhetorical. Finishing a course is something that happens to you; doing a thing unaided is something
+you do.</p>
+
+<div class="callout c-warn"><span class="lbl">The honest caveat about the tests</span>
+<p>Self-assessed clearing tests have a known bug: the people least able to pass them are the least
+able to tell. That is not a reason to abandon them, but it is a reason to make them
+<strong>artefact-producing</strong> rather than introspective. Every test in this course produces
+something &mdash; a file, a number, a benchmark &mdash; that either exists or does not. "I understand
+attention" is unfalsifiable. "Here is my transformer, trained, in a repo, that I wrote without
+looking" is not.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 1 takeaways</div>
+<ul>
+  <li>The list optimises for coverage; you need an ordering, which optimises for your next action.</li>
+  <li>The dependency graph forces mechanism &rarr; training &rarr; post-training &rarr; evals &rarr; inference.</li>
+  <li>"One paper a week" is unaffordable at real hours; papers must be sized and given a done-condition.</li>
+  <li>Advanced means unaided construction, and every clearing test therefore produces an artefact.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>Currency audit</h2>
+  <div class="mt">Every entry on the list, checked on 28 August 2026, with the date it stopped moving</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know which four entries are still excellent, which four are dated, and which three are dead</li>
+  <li>Know specifically <em>why</em> each dated one is dated &mdash; the world it was aimed at, and what changed</li>
+  <li>Have a replacement for every dead link</li>
+</ul></div>
+
+<p>Scan this first. It is the compressed version of the module, and the rows that need explaining
+get it below.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Resource</th><th>Last moved</th><th>Status</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><b>Hugging Face courses</b></td><td>Rolling, 2026</td><td><span class="tier t-live">Live</span></td><td>Best-maintained thing on the list. Now 12 courses.</td></tr>
+<tr><td><b>CS229</b> (Stanford ML)</td><td>Spring 2026</td><td><span class="tier t-live">Live</span></td><td>Current lectures free on YouTube. Genuinely up to date.</td></tr>
+<tr><td><b>Kaggle</b></td><td>Rolling, 2026</td><td><span class="tier t-live">Live</span></td><td>Alive, but it is a different proving ground than in 2019.</td></tr>
+<tr><td><b>Karpathy's series</b></td><td>Feb 2025 video; Mar 2026 code</td><td><span class="tier t-ok">Current&#8209;ish</span></td><td>Excellent and finished. No more is coming &mdash; he joined Anthropic.</td></tr>
+<tr><td><b>CS224n</b> (NLP)</td><td>Course Winter 2026; free video Spring 2024</td><td><span class="tier t-ok">Current&#8209;ish</span></td><td>Two-year lag on the free video. Acceptable, with gaps.</td></tr>
+<tr><td><b>DeepLearning.AI</b></td><td>Short courses rolling; specialisation 2017</td><td><span class="tier t-dated">Dated</span></td><td>The short courses are the live part. The famous specialisation is not.</td></tr>
+<tr><td><b>CS231n</b> (vision)</td><td>Course Spring 2026; free video 2017</td><td><span class="tier t-dated">Dated</span></td><td>The syllabus is modern. The free videos predate ViTs entirely.</td></tr>
+<tr><td><b>fast.ai</b></td><td>2022</td><td><span class="tier t-dated">Dated</span></td><td>Still the best pedagogy in the field. Four years of stale API surface.</td></tr>
+<tr><td><b>Full Stack DL / LLM Bootcamp</b></td><td>Spring 2023</td><td><span class="tier t-frozen">Frozen</span></td><td>Good archive. Its evals and RAG material has aged badly.</td></tr>
+<tr><td><b>Papers with Code</b></td><td>Sunset 24 Jul 2025</td><td><span class="tier t-dead">Dead</span></td><td>Domain now redirects. Leaderboards did not survive.</td></tr>
+<tr><td><b>arXiv-sanity</b></td><td>Taken down early 2025</td><td><span class="tier t-dead">Dead</span></td><td><b>Domain is now a job board.</b> Do not visit the old link.</td></tr>
+</tbody></table></div>
+
+<h3>Still excellent &mdash; use these today</h3>
+
+<div class="ledger">
+
+<div class="lrow live">
+<div class="lc"><span class="tier t-live">Live</span>Hugging Face courses &mdash; and the list undersells them</div>
+<div class="lv">The list says "Hugging Face courses + smol course." That was accurate for 2024. As of
+today <a href="https://huggingface.co/learn" target="_blank" rel="noopener">HF Learn</a> carries
+<b>twelve</b> courses. The ones that matter here: the <b>LLM Course</b> (the old NLP course,
+expanded to twelve chapters and re-pointed at LLMs &mdash; the later chapters cover fine-tuning,
+dataset curation and building reasoning models), the <b>Agents Course</b>, an <b>MCP Course</b> built
+in partnership with Anthropic, the <b>smol course</b> (instruction tuning, evaluation, preference
+alignment, vision-language models, with RL and synthetic data units rolling out), and a new
+<b>Context Course</b> on context engineering for code agents &mdash; skills, MCP, plugins,
+sub-agents, hooks, and building a minimal agent harness from scratch.
+<div class="verdict-line"><b>Verdict: use it, and use more of it than the list suggests.</b>
+The smol course is the single best free post-training resource in existence, and it is the answer to
+one of the three gaps in Module 3. The Context Course did not exist when the list was written.</div>
+</div></div>
+
+<div class="lrow live">
+<div class="lc"><span class="tier t-live">Live</span>CS229 &mdash; and this is the surprise of the audit</div>
+<div class="lv">Received wisdom is that the free CS229 on YouTube is the Summer 2019 Anand Avati
+recording, which is now seven years old. That playlist does still exist. But
+<b>Stanford has published the Spring 2026 lectures publicly on YouTube</b>, including a lecture on
+transformers and in-context learning &mdash; material that did not exist in the 2019 version.
+There is also a separate Summer 2026 offering running.
+<div class="verdict-line"><b>Verdict: excellent, and current. Watch the Spring 2026 playlist,
+not the 2019 one.</b> This is the one place the list's recommendation is more current than the list
+itself realises. If you only ever fix the classical-ML gap once, this is where.</div>
+</div></div>
+
+<div class="lrow live">
+<div class="lc"><span class="tier t-live">Live</span>Kaggle &mdash; alive, but not the proving ground it was</div>
+<div class="lv">The question worth asking is not "is Kaggle dead" &mdash; it plainly is not. It hosted
+<b>68 competitions with roughly $3.67M in prizes in 2025</b> and remains the dominant platform by a
+wide margin across an ecosystem of 390+ competitions and $16M+ in total prize money. The question is
+whether it still <em>proves</em> what it used to.
+<p style="margin-top:0.6rem">Three shifts. First, the format changed: competitions moved from
+upload-based to code-execution-based over the last several years, which broke the old leaderboard
+games but also means a medal now certifies something different. Second, the frontier moved &mdash;
+2026's marquee events are agent and reasoning competitions: <b>ARC Prize 2026</b> with a $1M+ pool,
+Pokémon TCG agent challenges in the $240K&ndash;$300K range, a Game Arena where models play chess
+and poker against each other as a benchmark. Third, and most telling: a March 2026 Playground
+competition was won by a workflow in which frontier LLMs generated 600,000+ lines of code across
+850 experiments. The bottleneck moved from <em>modelling insight</em> to <em>experiment
+orchestration</em>.</p>
+<div class="verdict-line"><b>Verdict: still the best applied proving ground, but for a different
+skill.</b> If your goal is a signal that you can drive an empirical loop hard, it works better than
+ever. If your goal was "prove I can hand-craft a winning gradient-boosted model," that skill is
+now a smaller part of a bigger game. For someone on this path, Kaggle is a good place to
+<em>pressure-test</em> Stage 4 and 5, not a place to learn Stages 1&ndash;3.</div>
+</div></div>
+
+<h3>Current-ish &mdash; good, with a lag you should know about</h3>
+
+<div class="lrow ok">
+<div class="lc"><span class="tier t-ok">Current&#8209;ish</span>Karpathy &mdash; the series is finished, and that matters</div>
+<div class="lv">The list says "his newer LLM walkthroughs," implying an ongoing stream. Here is what
+actually exists, dated:
+<ul style="margin:0.5rem 0 0.5rem 1.2rem">
+  <li><b>Neural Networks: Zero to Hero</b> &mdash; eight lectures, ending at "Let's build the GPT
+  Tokenizer." The syllabus page still says "ongoing..." It has not been added to since early 2024.</li>
+  <li><b>"Let's reproduce GPT-2 (124M)"</b> &mdash; 2024, four hours, and still the best single
+  artefact for Stage 2.</li>
+  <li><b>"Deep Dive into LLMs like ChatGPT"</b> &mdash; February 2025, 3h31m, general-audience but
+  the best free map of the whole training stack that exists.</li>
+  <li><b>nanochat</b> &mdash; released 13 October 2025, the code capstone. <b>57.6k stars, commits
+  through March 2026</b>, and a README that now claims a GPT-2-capability model for <b>$48</b> of
+  8&times;H100 time, against roughly $43,000 in 2019.</li>
+</ul>
+<p style="margin-top:0.6rem">Two structural facts the list does not know. <b>LLM101n &mdash; the
+17-chapter course Eureka Labs was building &mdash; was archived read-only on 1 August 2024</b> with a
+README saying the course does not yet exist. It never shipped. And in <b>May 2026 Karpathy joined
+Anthropic's pre-training team</b>, pausing Eureka Labs after 22 months.</p>
+<div class="verdict-line"><b>Verdict: excellent, complete, and closed.</b> Treat it as a finished
+textbook rather than a subscription. Practically, this changes one thing: stop waiting for the next
+video and start on nanochat, which is the live artefact and is being maintained by contributors.</div>
+</div></div>
+
+<div class="lrow ok">
+<div class="lc"><span class="tier t-ok">Current&#8209;ish</span>CS224n &mdash; two-year lag on the free video</div>
+<div class="lv">The course is running (Winter 2026, taught by Diyi Yang and Yejin Choi) and the
+syllabus is modern: pretraining, post-training, efficient adaptation, agents and RAG, benchmarking,
+reasoning. But the current lectures are behind Stanford's Canvas.
+<b>The most recent freely available playlist is Spring 2024</b> &mdash; the course page says so
+directly, and explains that making enrolled-quarter video public is not possible.
+<div class="verdict-line"><b>Verdict: watch the 2024 playlist, read the 2026 syllabus.</b>
+The 2024 version already covers transformers, pretraining and RLHF properly, so the lag costs you
+the reasoning-model and agent material rather than the foundations. Use the current syllabus page as
+a reading list to patch the delta &mdash; it is public even when the video is not.</div>
+</div></div>
+
+<h3>Dated &mdash; not wrong, but aimed at a world that moved</h3>
+
+<div class="lrow dated">
+<div class="lc"><span class="tier t-dated">Dated</span>CS231n &mdash; the course is modern, the free video is 2017</div>
+<div class="lv">This is the most misleading entry on the list, and the reason is a split between two
+things that share a name. <b>The course is alive and genuinely current.</b> Spring 2026, taught by
+Fei-Fei Li, Ehsan Adeli and Justin Johnson among others, and the schedule covers exactly what you
+would want: ViTs under "Attention and transformers," video understanding, large-scale distributed
+training, self-supervised learning, generative models across VAE/GAN/autoregressive and then
+diffusion, 3D vision, vision-and-language, and world modeling.
+<p style="margin-top:0.6rem">But the lecture videos are on Canvas. <b>The famous free CS231n YouTube
+playlist is the 2017 offering.</b> That is the version most people mean when they recommend it, and
+it is a historical artifact in a specific and important way: it predates the Vision Transformer
+paper by three years. Its entire architecture story ends at ResNet. It has no diffusion, no CLIP, no
+multimodal models, no video generation. It is not <em>wrong</em> &mdash; convolutions still work and
+backprop has not changed &mdash; but it teaches computer vision as a discipline with its own
+architectures, at a moment when computer vision has largely been absorbed into the transformer
+stack and the interesting questions are multimodal.</p>
+<div class="verdict-line"><b>Verdict: skip the 2017 videos as a course; use the 2026 schedule as a
+reading list.</b> If you need vision specifically, the schedule page gives you the topic order and
+the paper set for free, and you can read the primary sources. If you do not need vision specifically
+&mdash; and on this path you do not &mdash; drop it entirely and take the transformer material from
+CS336 instead, where it is taught as the general mechanism it now is.</div>
+</div></div>
+
+<div class="lrow dated">
+<div class="lc"><span class="tier t-dated">Dated</span>fast.ai &mdash; last refreshed in 2022</div>
+<div class="lv">The list flags fast.ai as "great for going from intermediate to genuinely capable,"
+and on pedagogy that is still true &mdash; the top-down method, where you train a working model in
+lesson one and only then descend into what it was doing, remains the best teaching design in this
+field and nobody has improved on it. <b>But Practical Deep Learning for Coders is still the 2022
+recording</b>, and Part 2 &mdash; <em>Deep Learning Foundations to Stable Diffusion</em>, 30+ hours
+&mdash; is from the same era. The course has been through long gaps before, and it is in one now.
+<p style="margin-top:0.6rem">What that costs you is specific. The <em>concepts</em> hold: transfer
+learning, learning-rate finding, the training loop, data ethics. The <em>surface</em> does not:
+library versions, the fastai API's relationship to current PyTorch, and above all the framing, which
+treats fine-tuning a vision model as the central skill at a moment when the central skill is
+post-training a language model. Part 2's Stable Diffusion focus was cutting-edge in 2022 and is now
+a specialised corner rather than the main road.</p>
+<div class="verdict-line"><b>Verdict: worth it for the method, not for the currency.</b> If you have
+never learned deep learning top-down, spend the hours &mdash; the mental model transfers. If you
+already have working intuitions, skip it; the four-year lag means you will spend real time
+debugging environment issues that teach you nothing.</div>
+</div></div>
+
+<div class="lrow dated">
+<div class="lc"><span class="tier t-dated">Dated</span>DeepLearning.AI &mdash; two different products under one name</div>
+<div class="lv">The list names "especially the Deep Learning Specialization and MLOps courses." The
+<b>Deep Learning Specialization dates to 2017</b>, and while its core content is genuinely
+framework-agnostic &mdash; backprop does not change &mdash; it teaches an era in which the job was
+training networks from scratch. Most production AI work in 2026 is not that.
+<p style="margin-top:0.6rem">The <b>short courses are the live part</b> of DeepLearning.AI and are
+added continuously, including 2026 material on adaptive agents. They are genuinely good for fast
+conceptual coverage. The caveat: several of the older short courses still demonstrate against
+long-superseded model versions and API patterns, so check the date on the individual course rather
+than trusting the brand.</p>
+<div class="verdict-line"><b>Verdict: skip the specialisation, browse the short courses by date.</b>
+On this path the specialisation is redundant &mdash; CS229 covers the theory better and Stage 1
+covers the practice better.</div>
+</div></div>
+
+<h3>Frozen &mdash; good archive, no longer maintained</h3>
+
+<div class="lrow frozen">
+<div class="lc"><span class="tier t-frozen">Frozen</span>Full Stack Deep Learning / LLM Bootcamp</div>
+<div class="lv">The list credits it with covering "evals, RAG, deployment," which was a fair
+description in 2023 and is why it is on the list. <b>The LLM Bootcamp is Spring 2023. The deep
+learning course is 2022.</b> Those are the most recent offerings; the instructors &mdash; Charles
+Frye, Josh Tobin, Sergey Karayev &mdash; have moved on to other work.
+<p style="margin-top:0.6rem">Being frozen at Spring 2023 is unusually costly for this particular
+material, because that is precisely the material that changed most. Its RAG content predates the
+long-context era and treats retrieval as the default answer to context limits. Its evals content
+predates the error-analysis-first practice that has since become standard. Its agent content
+predates tool-use as a first-class model capability, and predates MCP entirely.</p>
+<div class="verdict-line"><b>Verdict: skip, except as history.</b> The one enduring thing is its
+framing of the production stack as a whole system rather than a model &mdash; that framing is
+correct and still rare. If you want that framing with 2026 content, read Chip Huyen's
+<em>AI Engineering</em> instead.</div>
+</div></div>
+
+<h3>Dead &mdash; do not send anyone to these links</h3>
+
+<div class="lrow dead">
+<div class="lc"><span class="tier t-dead">Dead</span>Papers with Code &mdash; sunset July 2025</div>
+<div class="lv">Meta, which had operated it since acquiring it in 2019, <b>sunset Papers with Code on
+24 July 2025</b>. The next day Hugging Face announced a partnership with Meta to carry the
+function forward. Today <code>paperswithcode.com</code> issues a 302 redirect to
+<a href="https://huggingface.co/papers/trending" target="_blank" rel="noopener">huggingface.co/papers/trending</a>
+&mdash; verified.
+<p style="margin-top:0.6rem">The important nuance is that <b>the replacement is not a replacement.</b>
+HF Papers is a good trending-papers feed with community discussion. What did not survive was the
+thing Papers with Code was actually uniquely for: task-by-task state-of-the-art leaderboards linked
+to code, which let you answer "what is the current best method for X, and where is the
+implementation." Researchers said so loudly at the time. That capability currently has no
+first-class home.</p>
+<div class="verdict-line"><b>Replacement:</b> HF Papers for discovery;
+<a href="https://www.semanticscholar.org/" target="_blank" rel="noopener">Semantic Scholar</a> for
+citation-graph work; <a href="https://www.alphaxiv.org/" target="_blank" rel="noopener">alphaXiv</a>
+for annotated reading of arXiv preprints. For "what is SOTA on task X," accept that you now have to
+read a recent survey or the last three papers, because the leaderboard that answered it is gone.</div>
+</div></div>
+
+<div class="lrow dead">
+<div class="lc"><span class="tier t-dead">Dead</span>arXiv-sanity &mdash; and the domain is now a job board</div>
+<div class="lv">This is the one to actually act on. Karpathy took arxiv-sanity-lite down in early
+2025 and said in the project's own issue tracker that he is no longer interested in maintaining it.
+The GitHub repo survives and is still runnable if you want to self-host.
+<p style="margin-top:0.6rem"><b>The domain did not survive as itself.</b> As of today,
+<code>arxiv-sanity-lite.com</code> serves a commercial job board &mdash; "Verified US &amp; UK
+Careers, Executive &amp; Healthcare Jobs," with a 2026 copyright line and listings for cloud
+architects and ICU nurses. A community deployment at <code>arxiv-sanity.org</code> was announced in
+March 2025; it no longer resolves at all.</p>
+<div class="verdict-line"><b>Verdict: dead, and the link is now actively misleading.</b> Anyone
+following the source list will land on a squatted domain that looks nothing like what was promised.
+<b>Replacement:</b> the <a href="https://huggingface.co/papers" target="_blank" rel="noopener">HF
+Papers</a> daily feed, arXiv's own subject listings with an RSS reader, or self-host the
+arxiv-sanity-lite repo &mdash; it is a small codebase and the SVM-over-TF-IDF recommender still
+works fine.</div>
+</div></div>
+
+</div>
+
+<div class="callout c-warn"><span class="lbl">The general lesson, which outlives these specific rows</span>
+<p>Nine of eleven entries were accurate when written. The list's failure is not error, it is
+<strong>the absence of dates</strong>. "Stanford CS231n (lectures free on YouTube)" is a true
+sentence that leads a reader to 2017 material under a 2026 headline, and the writer never lied.</p>
+<p>The practical habit: <strong>before you commit twenty hours to any resource, find its last-updated
+date and its author's current employer.</strong> Both took under two minutes for every entry here, and
+both mattered. Karpathy joining an AI lab tells you the series is finished. FSDL's instructors
+scattering tells you the bootcamp is not coming back. That is not gossip; it is the maintenance
+signal, and for free educational material it is usually the only one available.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 2 takeaways</div>
+<ul>
+  <li>Still excellent: Hugging Face (12 courses now), CS229 (Spring 2026 free on YouTube), Kaggle.</li>
+  <li>Current-ish with known lag: Karpathy (finished, not ongoing), CS224n (free video is Spring 2024).</li>
+  <li>Dated: CS231n's free videos are 2017 and predate ViTs; fast.ai is 2022; the DL Specialization is 2017.</li>
+  <li>Frozen: Full Stack Deep Learning stopped at Spring 2023, in exactly the areas that changed most.</li>
+  <li>Dead: Papers with Code (sunset 24 Jul 2025) and arXiv-sanity &mdash; whose domain is now a job board.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>What the list leaves out</h2>
+  <div class="mt">Evals, inference optimisation, post-training &mdash; and the course that replaces half the list</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the three areas where most 2026 practice lives and the list is nearly silent</li>
+  <li>Have a named, current, checked resource for each</li>
+  <li>Know why CS336 is the single biggest omission and what it costs you to miss it</li>
+</ul></div>
+
+<h3>The shape of the gap</h3>
+
+<p>Look at the list's implicit model of the job. It has fundamentals (fast.ai, Stanford), it has
+building with LLMs (Hugging Face, Karpathy), it has production-adjacent (FSDL), and it has papers.
+That is a 2023 map of the work. It is missing the three things that consume most of the effort in
+an AI organisation in 2026, and they are missing for a structural reason: <strong>they are the parts
+that only become visible after you have something in production.</strong> Course-shaped content
+lags them, because courses are written by people teaching the building, and these three are about
+the keeping-it-working.</p>
+
+<div class="split">
+<div class="l"><div class="h">What the list optimises for</div>
+<p>Getting a model to exist and do something impressive. Training, architecture, fine-tuning, the
+demo.</p>
+<p>This is roughly the 2019&ndash;2023 shape of the job, and it is where nearly all free
+educational material still points.</p></div>
+<div class="r"><div class="h">Where the 2026 hours actually go</div>
+<p>Knowing whether it works (evals). Making it work better without retraining (post-training).
+Making it affordable at volume (inference).</p>
+<p>Roughly: measurement, alignment, and unit economics. None of the three is on the list.</p></div>
+</div>
+
+<h3>Gap 1 &mdash; Evals</h3>
+
+<p>The list mentions evals exactly once, inside the FSDL entry &mdash; that is, inside the frozen
+2023 resource, whose evals material predates current practice. So in effect the gap is total.</p>
+
+<p>This is the most consequential omission because <strong>evals are the bottleneck discipline.</strong>
+Nearly every organisation that fails to ship an AI feature fails at the point where someone asks
+"is it good enough?" and there is no defensible answer. Module 7 teaches the discipline. The
+resources, all checked:</p>
+
+<ul>
+  <li><a href="https://maven.com/parlance-labs/evals" target="_blank" rel="noopener"><b>AI Evals
+  for Engineers &amp; PMs</b></a> &mdash; Hamel Husain and Shreya Shankar. Paid, cohort-based on
+  Maven, and the material was <b>completely refreshed for the September 2026 cohort</b>. They have
+  taken 2,000+ engineers and PMs through it, including teams at OpenAI and Anthropic. It is the
+  closest thing the field has to a canonical evals curriculum.</li>
+  <li><a href="https://hamel.dev/blog/posts/evals-faq/" target="_blank" rel="noopener"><b>Hamel's
+  evals FAQ and blog</b></a> &mdash; free, and covers most of the intellectual content of the course
+  without the cohort. Start here before you pay for anything.</li>
+  <li><a href="https://inspect.aisi.org.uk/" target="_blank" rel="noopener"><b>Inspect</b></a>
+  &mdash; the UK AI Security Institute's open-source eval framework, MIT-licensed. It has become the
+  de facto standard for frontier-grade evaluation, with one interface across all major providers plus
+  local vLLM/Ollama, and sandboxing for agentic evals that execute untrusted code. The companion
+  <a href="https://github.com/UKGovernmentBEIS/inspect_evals" target="_blank" rel="noopener">inspect_evals</a>
+  repo is a large community collection across coding, maths, cybersecurity and reasoning.</li>
+</ul>
+
+<h3>Gap 2 &mdash; Inference optimisation</h3>
+
+<p>The list mentions vLLM and llama.cpp once, in passing, as repos worth rebuilding. It does not say
+what you would learn or in what order, and it treats inference as an implementation detail rather
+than a discipline.</p>
+
+<p>It is not a detail. For any product at volume, <strong>inference cost is the dominant line item
+and the thing that decides whether the feature has a business</strong>. It is also where the most
+transferable systems knowledge in modern ML lives, because the constraints are legible: memory
+bandwidth, cache size, batch scheduling. Module 8 teaches it. Resources:</p>
+
+<ul>
+  <li><b>CS336 Lecture 10 (Inference)</b> &mdash; free on YouTube, and the best single hour on the
+  subject at the right level of abstraction.</li>
+  <li><a href="https://github.com/gpu-mode/lectures" target="_blank" rel="noopener"><b>GPU MODE</b></a>
+  &mdash; over 100 lectures with code, actively maintained, covering CUDA fundamentals, memory
+  architecture and profiling, Triton, FlashAttention, Ring Attention, quantization, NCCL multi-GPU
+  communication, speculative decoding and kernel fusion. This is the deep end and it is free. There
+  is an active Discord and a YouTube channel.</li>
+  <li><a href="https://docs.vllm.ai/" target="_blank" rel="noopener"><b>vLLM docs</b></a> &mdash; read
+  them as a text on serving architecture, not as an API reference. The PagedAttention design is the
+  clearest available worked example of applying an OS idea to an ML problem.</li>
+</ul>
+
+<h3>Gap 3 &mdash; Post-training</h3>
+
+<p>The list gets closest here &mdash; it names RLHF inside the Hugging Face entry. But it treats
+post-training as one item among several rather than as the stage where most of the observable
+quality of a modern model is created. Everything you experience as a model's helpfulness, format
+discipline, refusal behaviour and reasoning ability is post-training.</p>
+
+<ul>
+  <li><a href="https://rlhfbook.com/" target="_blank" rel="noopener"><b>The RLHF Book</b></a>
+  &mdash; Nathan Lambert. <b>Free web version, print edition published by Manning in July 2026.</b>
+  It covers instruction tuning, reward modelling, rejection sampling, RL, direct alignment
+  algorithms and on-policy distillation. This is the reference text for Module 6.</li>
+  <li><a href="https://huggingface.co/learn/smol-course" target="_blank" rel="noopener"><b>HF smol
+  course</b></a> &mdash; the hands-on complement. Instruction tuning, evaluation, preference
+  alignment, vision-language models, with RL and synthetic-data units rolling out.</li>
+  <li><a href="https://sebastianraschka.com/reasoning-from-scratch/" target="_blank" rel="noopener"><b>Build a Reasoning Model (From Scratch)</b></a>
+  &mdash; Sebastian Raschka, out in 2026. Starts from a pretrained model and works through
+  evaluation, inference-time scaling, RL and distillation on a small Qwen3 base. The natural
+  successor to his <em>Build a Large Language Model (From Scratch)</em>, which passed 100,000 GitHub
+  stars.</li>
+</ul>
+
+<h3>The biggest omission is a whole course</h3>
+
+<div class="callout c-steel"><span class="lbl">CS336: Language Modeling from Scratch</span>
+<p>Stanford's <a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener">CS336</a>,
+taught by Tatsunori Hashimoto and Percy Liang. <b>The Spring 2026 lectures are published publicly on
+YouTube</b> &mdash; verified, with lectures dated April through June 2026 covering tokenization,
+PyTorch, architectures, GPUs and TPUs, kernels and Triton, parallelism, scaling laws, inference,
+evaluation, data, and alignment.</p>
+<p>The five assignments are the point. <b>A1</b>: build the tokenizer, the transformer and the
+optimiser, and train a small LM. <b>A2</b>: profile it, implement FlashAttention-2 in Triton, build
+a memory-efficient distributed version. <b>A3</b>: fit your own scaling laws through a training API.
+<b>A4</b>: turn raw Common Crawl into pretraining data with filtering and deduplication.
+<b>A5</b>: supervised finetuning plus RL for mathematical reasoning, with an optional DPO safety
+section.</p>
+<p>The course page describes it as "very implementation-heavy," with a Python workload
+<em>at least an order of magnitude</em> greater than other classes. That is a warning and also the
+recommendation: <strong>this is the only free resource that makes you build the whole stack</strong>,
+and it covers, in one place, three of the five stages in this course plus two of the three gaps.</p>
+<p><b>Why the list misses it:</b> the list is organised by fame, and CS336 is newer than the courses
+it displaces. CS231n and CS224n have a decade of brand equity. CS336 is the one that is actually
+about what people build now.</p>
+</div>
+
+<h3>One more, for the exec reading</h3>
+
+<p>Chip Huyen's <a href="https://www.oreilly.com/library/view/ai-engineering/9781098166298/" target="_blank" rel="noopener"><b>AI Engineering</b></a>
+(O'Reilly, December 2024) is not on the list and should be. It is the one book that treats
+foundation-model applications as an engineering discipline with a full chapter each on
+<em>evaluation methodology</em> and <em>inference optimisation</em> &mdash; two of the three gaps.
+It will not make you able to build any of it, which is why it is not a substitute for Stages 1&ndash;5.
+It will make you able to ask the right question in a design review, which is a different and also
+useful thing.</p>
+
+<div class="takeaways"><div class="t">Module 3 takeaways</div>
+<ul>
+  <li>The list has a 2023 map of the job: it covers building, not measuring, aligning or serving.</li>
+  <li>Evals is the bottleneck discipline and the list's only mention is inside its frozen entry.</li>
+  <li>Inference optimisation is where the unit economics live; GPU MODE and CS336 L10 are the free path.</li>
+  <li>Post-training deserves its own stage; the RLHF Book plus smol course is the current pairing.</li>
+  <li>CS336 is the single biggest omission &mdash; public 2026 video, and it covers three of five stages.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>Stage 1 &mdash; The mechanism</h2>
+  <div class="mt">What a transformer actually is, and why the residual stream is the idea people miss</div>
+</div></div>
+<div class="module-body">
+
+<div class="timebar">
+  <div class="tb">Budget <b>~30 hours</b></div>
+  <div class="tb">At 5 h/week <b>6 weeks</b></div>
+  <div class="tb">Prerequisite <b>Python, some PyTorch</b></div>
+  <div class="tb">Compute cost <b>$0</b></div>
+</div>
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to explain attention as a soft dictionary lookup, and say why it beat recurrence</li>
+  <li>Understand the residual stream, which is the part that explains interpretability and layer ablation</li>
+  <li>Know the division of labour between attention and MLPs, and where the parameters live</li>
+  <li>Have a clearing test that produces a file, not a feeling</li>
+</ul></div>
+
+<h3>Attention is a soft dictionary lookup</h3>
+
+<p>Start with something you already know. A Python dictionary takes a key, finds the one entry whose
+key matches exactly, and returns its value. Hard match, one winner, no gradient.</p>
+
+<p>Attention is the same operation made differentiable. Every position in the sequence emits three
+vectors. The <strong>query</strong> is what this position is looking for. The <strong>key</strong> is
+what this position offers as a label. The <strong>value</strong> is what this position will hand over
+if selected. To compute the output at position <em>i</em>, you take its query, dot it against every
+key in the sequence to get a similarity score, softmax those scores into weights that sum to one,
+and return the weighted average of all the values.</p>
+
+<p>So instead of "find the one matching entry," you get "return a blend of all entries, weighted by
+how well each matches." Hard lookup becomes soft lookup. That single change is what makes it
+trainable: gradients flow back through the softmax to every position, so the model can learn what to
+look for and what to advertise.</p>
+
+<p>The scaling factor &mdash; dividing by the square root of the head dimension before the softmax
+&mdash; exists for a boring and important reason. Dot products of high-dimensional vectors have
+variance proportional to the dimension. Without the scale, the scores get large, the softmax
+saturates into a near-one-hot distribution, and the gradient vanishes. It is not a
+theoretical nicety; it is the difference between a model that trains and one that does not.</p>
+
+<div class="callout c-steel"><span class="lbl">Why it beat recurrence &mdash; and it is not what you think</span>
+<p>The usual story is that RNNs "forget" and attention "remembers everything." That is a real
+advantage but it is secondary. <strong>The primary reason attention won is hardware.</strong></p>
+<p>An RNN computes position <em>t</em> from position <em>t</em>&minus;1. That is a sequential
+dependency by construction: you cannot start step 500 until step 499 finishes. A GPU with tens of
+thousands of cores can therefore do almost nothing in parallel across the sequence dimension, and
+sits mostly idle.</p>
+<p>In attention, every position's output depends only on the full input sequence &mdash; not on any
+other position's <em>output</em>. So all positions compute simultaneously, as one big matrix
+multiply, which is precisely the operation GPUs are built for. The paper's title is
+<em>Attention Is All You Need</em>; the subtitle should have been <em>and it parallelises</em>.</p>
+<p>This matters beyond trivia. It tells you the field's architecture choices are jointly determined
+by mathematics and by silicon, which is the mental model that makes Stage 2 and Stage 5 make sense.
+Once you hold it, a lot of otherwise arbitrary-seeming design becomes legible.</p>
+</div>
+
+<h3>The residual stream &mdash; the idea most explanations skip</h3>
+
+<p>Almost every diagram of a transformer draws it as a stack: input goes in the bottom, gets
+transformed by block 1, that output gets transformed by block 2, and so on. <strong>That picture is
+wrong and it will mislead you.</strong></p>
+
+<p>Because of the residual connections, each block does not transform its input. It <em>reads</em>
+its input, computes something, and <em>adds</em> the result back. Written plainly, a block is:</p>
+
+<pre><code><span class="c"># not: x = block(x)  — a pipeline of transformations</span>
+x = x + attention(layernorm(x))   <span class="c"># read, compute, add back</span>
+x = x + mlp(layernorm(x))         <span class="c"># read, compute, add back</span></code></pre>
+
+<p>So there is a single vector per position &mdash; call it the <strong>residual stream</strong>
+&mdash; that runs unbroken from the embedding all the way to the output head. Every block is a
+side-channel that reads from the stream and writes an increment back into it. Nothing ever replaces
+the stream; things are only ever added to it.</p>
+
+<p>Three things follow immediately, and each one is a question people otherwise find mysterious:</p>
+
+<ul>
+  <li><strong>Why can you delete a middle layer and get graceful degradation?</strong> Because you
+  removed one contribution from a sum, not a stage from a pipeline. Deleting stage 7 of a pipeline
+  breaks everything downstream. Deleting one addend from a sum of forty makes the sum slightly
+  wrong.</li>
+  <li><strong>Why does activation steering work?</strong> Because if you can find a direction in the
+  residual stream that corresponds to a concept, adding a multiple of that vector is exactly the
+  same kind of operation the model's own blocks perform. You are not hacking it; you are writing to
+  the stream in its native format.</li>
+  <li><strong>Why does depth buy refinement rather than re-representation?</strong> Because later
+  layers see an accumulated draft rather than a foreign encoding. The model is doing successive
+  editing, not successive translation.</li>
+</ul>
+
+<p>If you take one idea from Stage 1, take this one. It is the load-bearing intuition for
+interpretability, for fine-tuning behaviour, and for why LoRA works at all.</p>
+
+<h3>Attention routes; the MLP knows things</h3>
+
+<p>The last piece of the mechanism is the division of labour, and it is cleaner than people expect.</p>
+
+<div class="split">
+<div class="l"><div class="h">Attention &mdash; movement between positions</div>
+<p>The only component that lets information travel from one token position to another. It is
+routing. It decides <em>what to fetch from where</em>.</p>
+<p>Roughly a third of the parameters.</p></div>
+<div class="r"><div class="h">MLP &mdash; computation at a position</div>
+<p>Operates on each position independently &mdash; it cannot see other tokens at all. It transforms
+whatever is currently in that position's residual stream.</p>
+<p>Roughly two-thirds of the parameters. This is where learned knowledge predominantly lives.</p></div>
+</div>
+
+<p>Say it as one sentence: <strong>attention moves information between positions; the MLP transforms
+information at a position.</strong> Once you hold that, a lot of empirical results stop being
+surprising &mdash; that factual recall localises to MLP layers, that mixture-of-experts routes MLPs
+rather than attention heads, and that context-length work is almost entirely attention work.</p>
+
+<h3>And the training objective is embarrassingly simple</h3>
+
+<p>Worth stating plainly because it is easy to over-mystify. The pretraining loss is
+<strong>next-token cross-entropy and nothing else</strong>. Show the model a prefix, ask for a
+distribution over the next token, penalise it by the negative log probability it assigned to the
+token that actually came next. Average over every position in every document.</p>
+
+<p>There is no auxiliary objective for reasoning, no term for truthfulness, no supervision signal for
+helpfulness. Everything that later looks like capability is a side effect of compressing a very
+large corpus under that one objective. Holding this clearly is what stops you from believing the
+model was <em>taught</em> anything in pretraining, and it is what makes Stage 3 comprehensible &mdash;
+post-training exists precisely because next-token prediction gives you a document completer, not an
+assistant.</p>
+
+<h3>What to actually watch and read</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Resource</th><th>Hours</th><th>Why this one</th></tr></thead>
+<tbody>
+<tr><td><b>Karpathy, "Let's build GPT: from scratch"</b></td><td>~2 + 6 doing</td><td>Still the single best artefact for this stage. Type it yourself, do not watch it.</td></tr>
+<tr><td><b>Karpathy, "Let's build the GPT Tokenizer"</b></td><td>~2 + 3 doing</td><td>Tokenization is where most confusing model behaviour originates. Skipping it costs you later.</td></tr>
+<tr><td><b>CS336 Lectures 1&ndash;3</b> (tokenization, PyTorch/einops, architectures)</td><td>~4</td><td>The rigorous version of the same material, plus modern architecture variants.</td></tr>
+<tr><td><b>Attention Is All You Need</b> (Vaswani et al., 2017)</td><td>~3</td><td>Read it <em>after</em> the videos. Then it is short and mostly familiar, which is the correct experience.</td></tr>
+<tr><td>Optional: <b>fast.ai Part 1</b></td><td>~25</td><td>Only if you have never learned deep learning top-down. Great method, 2022 surface.</td></tr>
+</tbody></table></div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 1</span>
+<p><strong>Open a blank editor. Write a decoder-only transformer forward pass in PyTorch from
+memory</strong> &mdash; token and position embeddings, causal multi-head self-attention, MLP,
+residual connections with pre-norm layernorm, tied output head. Train it on a text file small enough
+to overfit. Watch the loss go to near zero and sample from it.</p>
+<p>Then answer these three without looking anything up. <b>(1)</b> State the shape of every tensor at
+every step, given batch size B, sequence length T, model dimension C and H heads. <b>(2)</b> Explain
+what specifically breaks if you remove the causal mask, and why the training loss would drop rather
+than rise. <b>(3)</b> Point at the line where the residual stream is written to, and say what the
+model loses if you replace <code>x = x + attn(...)</code> with <code>x = attn(...)</code>.</p>
+<p class="neg"><b>Not the test:</b> having watched the video. Having a working repo you followed
+along with. Being able to describe attention in words. The failure mode of this stage is fluency
+without construction &mdash; you can explain queries and keys beautifully and still not be able to
+produce the code, and only one of those is load-bearing.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 4 takeaways</div>
+<ul>
+  <li>Attention is a differentiable dictionary lookup; the scale factor exists to keep the softmax from saturating.</li>
+  <li>It beat recurrence primarily because it parallelises across the sequence &mdash; a hardware argument.</li>
+  <li>The residual stream is the through-line; blocks add to it rather than transform it.</li>
+  <li>Attention routes between positions; MLPs (two-thirds of parameters) compute at a position.</li>
+  <li>Pretraining optimises next-token cross-entropy and nothing else. Everything else is Stage 3.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>Stage 2 &mdash; The training stack</h2>
+  <div class="mt">Scaling laws as unit economics, and why training is a memory-bandwidth problem</div>
+</div></div>
+<div class="module-body">
+
+<div class="timebar">
+  <div class="tb">Budget <b>~45 hours</b></div>
+  <div class="tb">At 5 h/week <b>9 weeks</b></div>
+  <div class="tb">Prerequisite <b>Stage 1 cleared</b></div>
+  <div class="tb">Compute cost <b>~$50&ndash;100</b></div>
+</div>
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to derive a compute-optimal model size from a FLOP budget &mdash; and say why you'd deliberately ignore it</li>
+  <li>Understand arithmetic intensity, which is the concept that explains FlashAttention in one sentence</li>
+  <li>Know the four kinds of parallelism and which resource each one trades</li>
+  <li>Have trained a real model end to end for roughly the price of a dinner</li>
+</ul></div>
+
+<h3>Scaling laws are a unit-economics argument in disguise</h3>
+
+<p>The Chinchilla result is usually taught as a fact about model quality. It is more useful taught as
+a fact about budgets.</p>
+
+<p>Start with the approximation that makes the whole thing tractable: training a dense transformer
+costs roughly <strong>C &asymp; 6ND</strong> FLOPs, where N is parameters and D is training tokens.
+(The 6 is two for the forward pass and four for the backward, per parameter per token &mdash;
+approximately, and the approximation is good enough to plan with.)</p>
+
+<p>Now fix C, because in practice you fix C &mdash; you have a cluster for a month. You are choosing
+a point on a hyperbola: a big model on few tokens, or a small model on many. Both cost the same.
+The empirical finding is that loss is minimised near the middle, and specifically at roughly
+<strong>20 tokens per parameter</strong>. Before that result, the field systematically built models
+that were too large and trained them on too little data.</p>
+
+<div class="callout c-dissent"><span class="lbl">And then everyone deliberately stopped following it</span>
+<p>Here is the part that gets left out of the explanation and is the most useful part for anyone
+making product decisions. <strong>Chinchilla-optimal is training-optimal. It says nothing about
+serving.</strong></p>
+<p>The derivation minimises loss for a fixed <em>training</em> budget. But if you are going to serve
+that model a trillion times, training is a one-off and inference is forever. And inference cost
+scales with N &mdash; a model twice the size costs roughly twice as much per token, permanently.</p>
+<p>So the correct move for a production model is to <strong>go smaller than Chinchilla-optimal and
+train far longer</strong>. You pay more up front for a worse loss-per-training-FLOP, and you buy a
+permanently cheaper serving cost at a given quality. That is why essentially every production model
+since roughly 2023 is deliberately "over-trained" by Chinchilla's standard &mdash; 100 or more tokens
+per parameter rather than 20. It is not that the labs forgot the result. It is that they are solving
+a different optimisation problem than the one the paper solved.</p>
+<p>If you carry one thing from Stage 2 into a boardroom, carry this: <strong>the size of a served
+model is an inference-cost decision wearing a research-result costume.</strong></p>
+</div>
+
+<h3>Arithmetic intensity, or: why your GPU is mostly waiting</h3>
+
+<p>This is the concept that makes systems work click, and it is a ratio.</p>
+
+<p>A modern accelerator can do on the order of a thousand trillion floating-point operations per
+second. It can read from its high-bandwidth memory at a few terabytes per second. Divide those and
+you get an awkward number: the chip can perform hundreds of arithmetic operations in the time it
+takes to fetch a single number from memory.</p>
+
+<p>So for any kernel, the question that decides its speed is <strong>how many FLOPs do you do per
+byte you read?</strong> That ratio is arithmetic intensity. High intensity &mdash; a big dense matrix
+multiply, where each loaded value participates in many multiply-accumulates &mdash; and you are
+compute-bound, which is the good case: the expensive silicon is busy. Low intensity &mdash; an
+elementwise operation, where you read a number, do one thing to it, write it back &mdash; and you
+are memory-bandwidth-bound, and the FLOPs sit idle no matter how many you paid for.</p>
+
+<div class="callout c-steel"><span class="lbl">FlashAttention in one sentence</span>
+<p>Naive attention materialises the full T&times;T attention matrix in HBM: you write it, then read it
+back for the softmax, write again, read again for the value multiply. For a 4,096-token sequence
+that is a 16-million-entry matrix being shuttled to and from memory several times per head per
+layer.</p>
+<p><strong>FlashAttention does not reduce the FLOPs at all.</strong> It tiles the computation so the
+attention matrix is never written to HBM &mdash; it is built block by block in on-chip SRAM,
+consumed immediately, and discarded, using an online-softmax trick to keep the normalisation correct
+without ever seeing all the scores at once.</p>
+<p>Same arithmetic, far fewer memory round trips, several times faster. This is why the paper's
+central claim is about IO-awareness rather than about attention, and why understanding arithmetic
+intensity means you could have predicted the result.</p>
+</div>
+
+<h3>The four parallelisms, and what each one costs</h3>
+
+<p>When one device is not enough, you split. There are four axes and confusing them is a common
+source of nonsense in design discussions:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Kind</th><th>What is split</th><th>What it buys</th><th>What it costs</th></tr></thead>
+<tbody>
+<tr><td><b>Data</b></td><td>The batch. Every device holds the whole model.</td><td>Simplest, near-linear throughput scaling.</td><td>Nothing on memory &mdash; every device still needs the full model. Gradient all-reduce each step.</td></tr>
+<tr><td><b>Tensor</b></td><td>Individual weight matrices, within a layer.</td><td>Fits a layer too big for one device.</td><td>Communication <em>inside</em> every forward pass. Needs a fast interconnect; falls apart across nodes.</td></tr>
+<tr><td><b>Pipeline</b></td><td>Layers across devices.</td><td>Fits a model too deep for one device, with modest communication.</td><td>Bubbles &mdash; devices idle waiting for the stage ahead. Micro-batching mitigates, never eliminates.</td></tr>
+<tr><td><b>Sequence / context</b></td><td>The sequence dimension.</td><td>Long contexts that would blow up attention memory.</td><td>Attention needs all positions, so this requires a ring-style exchange of keys and values.</td></tr>
+</tbody></table></div>
+
+<p>Real systems compose them &mdash; tensor parallel within a node where the interconnect is fast,
+pipeline parallel across nodes where it is not, data parallel over the whole thing. The rule of
+thumb worth memorising: <strong>tensor parallelism inside a node, pipeline parallelism between
+nodes, data parallelism everywhere.</strong></p>
+
+<h3>What to actually do</h3>
+
+<p>This is the stage with a real compute bill, and it is small. The centrepiece is
+<a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener"><b>nanochat</b></a>:
+tokenizer, pretraining, midtraining, SFT, evaluation, inference and a web UI, in one legible
+repository. The README currently claims a <b>GPT-2-capability model for about $48</b> of 8&times;H100
+time &mdash; roughly two hours &mdash; against something like $43,000 for the equivalent in 2019. Run
+the cheap tier once, end to end, and you will have done something most people talking about this
+have not.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Resource</th><th>Hours</th><th>Why this one</th></tr></thead>
+<tbody>
+<tr><td><b>nanochat</b> &mdash; run the full pipeline</td><td>~10 + wait</td><td>The end-to-end experience. Do not read it; run it, break it, change one thing.</td></tr>
+<tr><td><b>Karpathy, "Let's reproduce GPT-2 (124M)"</b></td><td>~4 + 8 doing</td><td>Four hours that cover the whole training loop including the unglamorous parts.</td></tr>
+<tr><td><b>CS336 Lectures 4&ndash;9</b> (GPUs/TPUs, kernels &amp; Triton, parallelism, scaling laws)</td><td>~8</td><td>The systems core. Lecture 6 on Triton is where arithmetic intensity becomes concrete.</td></tr>
+<tr><td><b>CS336 Assignment 2</b></td><td>~20</td><td>FlashAttention-2 in Triton plus distributed training. Hard. This is the stage's real work.</td></tr>
+<tr><td><b>CS229 Spring 2026</b> (selectively)</td><td>~6</td><td>Only if your classical-ML foundations are shaky. Bias/variance and optimisation still matter.</td></tr>
+</tbody></table></div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 2</span>
+<p><strong>Three artefacts.</strong> <b>(1)</b> A model you trained end to end from raw text to
+working chat interface, with the wall-clock time and the dollar cost written down. <b>(2)</b> A
+profile of that training run in which you identify the top three time-consuming kernels and state,
+for each, whether it is compute-bound, memory-bandwidth-bound or communication-bound &mdash; and what
+you would do about it. <b>(3)</b> A hand-written estimate: given a budget of 10&sup2;&sup2; FLOPs,
+your recommended (parameters, tokens) pair, the Chinchilla answer, and a paragraph on why you would
+deviate from it for a model you intend to serve at scale.</p>
+<p>Then the sanity question: <strong>your loss spikes at step 4,000 and does not recover. Name five
+candidate causes, ranked, and the cheapest diagnostic for each.</strong> If you have actually trained
+something, you will have opinions. If you have only read about training, you will produce a list you
+memorised.</p>
+<p class="neg"><b>Not the test:</b> having run <code>train.py</code> to completion. The distinguishing
+capability at this stage is <em>diagnosis</em> &mdash; being handed a run that is behaving badly and
+having a next move.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 5 takeaways</div>
+<ul>
+  <li>C &asymp; 6ND, and Chinchilla puts the optimum near 20 tokens per parameter for a fixed training budget.</li>
+  <li>Production models are deliberately over-trained because inference cost is forever and training is once.</li>
+  <li>Arithmetic intensity &mdash; FLOPs per byte read &mdash; decides whether your expensive silicon is busy.</li>
+  <li>FlashAttention saves memory round trips, not FLOPs. That is the whole idea.</li>
+  <li>Tensor parallel inside a node, pipeline between nodes, data parallel over everything.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Stage 3 &mdash; Post-training</h2>
+  <div class="mt">How a document completer becomes an assistant, and why reward moved from taste to checking</div>
+</div></div>
+<div class="module-body">
+
+<div class="timebar">
+  <div class="tb">Budget <b>~30 hours</b></div>
+  <div class="tb">At 5 h/week <b>6 weeks</b></div>
+  <div class="tb">Prerequisite <b>Stage 2 cleared</b></div>
+  <div class="tb">Compute cost <b>~$20&ndash;60</b></div>
+</div>
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know what each post-training stage actually buys, and what it cannot buy</li>
+  <li>Be able to explain in two sentences why DPO needs no reward model &mdash; without hand-waving</li>
+  <li>Understand the shift from learned reward to verified reward, which is what made RL on LLMs work</li>
+  <li>Have improved a model on a preference set you built yourself</li>
+</ul></div>
+
+<h3>The problem post-training solves</h3>
+
+<p>A pretrained model is a document completer. Ask it "What is the capital of France?" and a
+faithful next-token predictor might reasonably continue with "What is the capital of Germany?"
+&mdash; because in its training corpus, that string most often appeared in a list of quiz questions.
+It is not confused. It is doing exactly what it was optimised to do.</p>
+
+<p>Post-training is everything that turns that object into something that answers. It is
+conventionally three moves, and it is worth being precise about what each one can and cannot do.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Stage</th><th>What it teaches</th><th>Data</th><th>What it cannot do</th></tr></thead>
+<tbody>
+<tr><td><b>Instruction tuning (SFT)</b></td><td>Format and task shape: when you see a question, produce an answer.</td><td>Thousands to low hundreds of thousands of demonstrations.</td><td><b>Add knowledge.</b> If it was not in pretraining, SFT teaches the model to state it confidently, not to know it.</td></tr>
+<tr><td><b>Preference optimisation</b></td><td>Ranking among acceptable answers: which of two good replies is better.</td><td>Pairwise comparisons, human or model-generated.</td><td>Fix a capability the base model lacks. It reweights what exists.</td></tr>
+<tr><td><b>RL with verifiable rewards</b></td><td>Getting to a checkable right answer, and the search behaviour that finds it.</td><td>Problems with automatic verifiers &mdash; maths, code, tests.</td><td>Work in domains where correctness cannot be checked programmatically.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">The most expensive misconception in applied AI</span>
+<p><strong>Fine-tuning does not add knowledge.</strong> It is the single most costly wrong belief in
+enterprise AI programmes, and it produces the same project over and over: fine-tune the model on our
+documents so it knows our business. What you get is a model that has learned the <em>register</em> of
+your documents and will now hallucinate in your house style, with more confidence than before.</p>
+<p>Knowledge goes in through pretraining (expensive, rarely yours to do) or through context at
+inference time (retrieval, tools, long context). Fine-tuning changes behaviour, format and
+preference. If someone proposes fine-tuning to fix a factual problem, that is the moment to ask what
+exactly they expect the gradient to be teaching.</p>
+</div>
+
+<h3>RLHF classic, and then the simplification</h3>
+
+<p>The original recipe has three steps. Collect human comparisons of model outputs. Train a
+<strong>reward model</strong> &mdash; a network that takes a response and returns a scalar &mdash; to
+predict which one a human would prefer. Then use reinforcement learning, usually PPO, to update the
+policy to maximise that predicted reward, with a KL penalty against the original model so it does
+not drift into gibberish that happens to score well.</p>
+
+<p>It works and it is a nuisance: three models in memory at once (policy, reward, reference), an RL
+loop that needs online sampling, and enough hyperparameter sensitivity that reproducing someone
+else's result is a project.</p>
+
+<div class="callout c-steel"><span class="lbl">Why DPO can skip the reward model &mdash; the actual reason</span>
+<p>The two-sentence version, which is worth being able to give: <strong>for the KL-constrained reward
+objective RLHF optimises, the optimal policy has a closed form &mdash; it is the reference policy
+reweighted by the exponentiated reward. You can therefore invert that relation to express the reward
+as a function of the policy, substitute it into the preference likelihood, and optimise the policy
+directly on preference pairs with no reward model and no sampling loop.</strong></p>
+<p>Concretely: the reward for a response reduces to the log-ratio between your policy's probability
+and the reference model's probability for it, times a temperature. Maximising the likelihood that the
+preferred response outscores the rejected one becomes a plain classification loss over pairs. Two
+forward passes per example, no rollouts, no third model.</p>
+<p>What you give up is real and worth naming. The closed form assumes your preference data is
+consistent with a Bradley-Terry model, and because DPO is off-policy it optimises against a fixed
+dataset rather than against responses the current policy actually produces. On-policy methods still
+win on the hardest problems. But DPO's simplicity is why it is where you should learn this: you can
+implement it in a weekend and see it work.</p>
+</div>
+
+<h3>The change that actually mattered: reward stopped being taste</h3>
+
+<p>The most important shift in post-training between 2023 and 2026 is not an algorithm. It is where
+the reward signal comes from.</p>
+
+<div class="split">
+<div class="l"><div class="h">Learned reward (RLHF, 2022&ndash;2023)</div>
+<p>A neural network predicts what humans prefer. It is an approximation of taste, and like any
+approximation it can be gamed &mdash; the policy finds inputs where the reward model is wrong and
+exploits them. This is reward hacking, and it puts a hard ceiling on how far you can push.</p></div>
+<div class="r"><div class="h">Verified reward (RLVR, 2024&ndash;)</div>
+<p>A program checks the answer. Did the maths come out right? Do the tests pass? There is nothing to
+hack, because the reward is not a model &mdash; it is a fact. You can now optimise hard and long
+without the signal degrading.</p></div>
+</div>
+
+<p>That is what unlocked the reasoning-model generation. Once the reward is a verifier rather than a
+critic, you can afford enormous numbers of rollouts, and the model discovers behaviours &mdash;
+checking its work, backtracking, trying a second approach &mdash; that nobody demonstrated, because
+those behaviours raise the probability of passing the check.</p>
+
+<p><strong>GRPO</strong> is the algorithmic simplification that goes with it. PPO needs a learned
+value network to estimate the baseline for the advantage. GRPO drops it: sample a group of
+completions for the same prompt, score them all with the verifier, and use the group's mean as the
+baseline. Advantage becomes "how much better than my siblings was this attempt." One fewer network,
+and it suits the setting exactly, because generating a group of samples for one prompt is cheap when
+you are already sampling.</p>
+
+<p>The strategic read, which is the part worth carrying into a product conversation:
+<strong>a capability is amenable to RL exactly to the degree that you can write a checker for
+it.</strong> That is a sharper predictor of what models will get good at next than any parameter
+count. Domains with cheap verifiers race ahead; domains where quality is a matter of judgement move
+at the pace of preference data.</p>
+
+<h3>What to actually do</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Resource</th><th>Hours</th><th>Why this one</th></tr></thead>
+<tbody>
+<tr><td><b>The RLHF Book</b> &mdash; Nathan Lambert (free web)</td><td>~10</td><td>The reference text. Instruction tuning through direct alignment and on-policy distillation.</td></tr>
+<tr><td><b>HF smol course</b>, Units 1&ndash;3</td><td>~12</td><td>Hands-on instruction tuning, evaluation and preference alignment. The practical complement.</td></tr>
+<tr><td><b>CS336 Assignment 5</b></td><td>~15</td><td>SFT plus RL for mathematical reasoning, with an optional DPO section. The rigorous version.</td></tr>
+<tr><td><b>Raschka, <em>Build a Reasoning Model (From Scratch)</em></b></td><td>~15</td><td>2026. Evaluation, inference-time scaling, RL and distillation on a small Qwen3 base.</td></tr>
+<tr><td>Papers: <b>InstructGPT</b>, <b>DPO</b>, <b>DeepSeek-R1</b></td><td>~6</td><td>The three that define the arc: learned reward, no reward model, verified reward.</td></tr>
+</tbody></table></div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 3</span>
+<p><strong>Take a small base model and make it measurably better, twice, by two different
+mechanisms.</strong> First, write your own SFT loop &mdash; not TRL's &mdash; and produce an
+instruction-following version. Second, write your own DPO loss from the paper and improve it further
+on a preference set <em>you constructed</em>, with a held-out split you never trained on.</p>
+<p>Report a number with an honest error bar, and be able to answer: <b>(1)</b> Why does the KL
+penalty exist, and what specifically happens as you take it to zero? <b>(2)</b> Where is the
+reward model in your DPO implementation, and why is that question a trick? <b>(3)</b> Name a
+capability in your product domain that <em>is</em> amenable to verified reward, and one that is not,
+and say what makes the difference.</p>
+<p class="neg"><b>Not the test:</b> running a TRL example script. TRL is excellent and you should use
+it in production &mdash; but the point of this stage is that you have written the loss function once
+by hand, so that when a run misbehaves you are debugging code you understand rather than a library
+you trust.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 6 takeaways</div>
+<ul>
+  <li>SFT teaches format, preference optimisation teaches ranking, RL teaches getting to a checkable answer.</li>
+  <li>Fine-tuning does not add knowledge. It teaches your model to hallucinate in your house style.</li>
+  <li>DPO drops the reward model because the KL-constrained optimum has a closed form you can invert.</li>
+  <li>Reward moved from learned taste to program verification; that is what made hard RL work.</li>
+  <li>A capability is RL-amenable exactly to the degree you can write a checker for it.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>Stage 4 &mdash; Evals</h2>
+  <div class="mt">The bottleneck discipline: error analysis first, metrics second, and judges you have validated</div>
+</div></div>
+<div class="module-body">
+
+<div class="timebar">
+  <div class="tb">Budget <b>~25 hours</b></div>
+  <div class="tb">At 5 h/week <b>5 weeks</b></div>
+  <div class="tb">Prerequisite <b>A system with real traffic</b></div>
+  <div class="tb">Compute cost <b>~$20</b></div>
+</div>
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to state the difference between a benchmark and an eval, and why almost all published material is about the wrong one</li>
+  <li>Know the error-analysis-first workflow, and why picking a metric early is the standard failure</li>
+  <li>Be able to validate an LLM judge properly &mdash; separately on both error types &mdash; and correct a headline number using its measured rates</li>
+</ul></div>
+
+<h3>A benchmark is not an eval</h3>
+
+<p>These get used interchangeably and they answer different questions.</p>
+
+<div class="split">
+<div class="l"><div class="h">Benchmark</div>
+<p>How does <em>this model</em> rank against <em>other models</em> on <em>someone else's</em>
+distribution? MMLU, SWE-bench, GPQA.</p>
+<p>Useful for procurement and for research. Nearly worthless for deciding whether your feature
+ships, because your traffic does not look like the benchmark and your failure modes are not its
+failure modes.</p></div>
+<div class="r"><div class="h">Eval</div>
+<p>Does <em>my system</em> do <em>my job</em> on <em>my traffic</em>?</p>
+<p>Almost all of the value is here. Almost all of the published material is on the other side, which
+is why teams arrive at production with a strong opinion about which model is best and no way to tell
+whether their thing works.</p></div>
+</div>
+
+<p>An eval is also not a model property. It measures the <em>system</em> &mdash; prompt, retrieval,
+tools, parsing, fallbacks, and the model. Swapping to a better-benchmarked model routinely makes a
+system worse, because the prompt was fitted to the old one. If your eval cannot detect that, it is
+measuring the wrong object.</p>
+
+<h3>The workflow that works, in the order it works in</h3>
+
+<p>Most teams start by choosing metrics. That is the error. The sequence that actually produces
+improvement inverts it:</p>
+
+<ol>
+  <li><strong>Look at data.</strong> Read 100 real traces end to end. Not summaries, not aggregates
+  &mdash; the actual conversations, with what the user asked and what the system did.</li>
+  <li><strong>Open-code the failures.</strong> For every trace that went wrong, write one plain
+  sentence describing what went wrong. Do not categorise yet. Do not reach for a taxonomy someone
+  else wrote. Just describe, in your own words, one line per failure.</li>
+  <li><strong>Axial-code into a taxonomy.</strong> Now group your sentences. The categories emerge
+  from your data rather than from a blog post, which is the whole point &mdash; you will find failure
+  modes specific to your domain that no generic rubric contains.</li>
+  <li><strong>Count.</strong> Frequency per category. This is usually the moment the project changes
+  direction, because the thing everyone was arguing about turns out to be 3% of failures and the
+  thing nobody mentioned is 40%.</li>
+  <li><strong>Build a targeted eval for the biggest bucket.</strong> Now, and only now, do you write
+  a metric. It measures one specific failure mode you have evidence matters.</li>
+  <li><strong>Fix, re-measure, repeat.</strong></li>
+</ol>
+
+<div class="callout c-warn"><span class="lbl">Why teams skip step 1, and what it costs</span>
+<p>Reading 100 traces takes a focused afternoon and feels like not-working. Choosing metrics feels
+like working: it produces a document, it can be delegated, it survives a status update.</p>
+<p>So the standard path is to adopt a generic rubric &mdash; helpfulness, harmlessness, groundedness,
+each scored 1&ndash;5 by a judge &mdash; and instrument it before anyone has read the failures. Six
+weeks later you have a dashboard with three numbers hovering around 3.8 that nobody can act on,
+because a rubric written before you looked at your data measures the failure modes of a
+<em>generic</em> system, and yours is not generic. <strong>The 100 traces are not preparation for the
+work. They are the work.</strong></p>
+</div>
+
+<h3>LLM-as-judge is a classifier you have not validated</h3>
+
+<p>Using a model to grade outputs is the only way to evaluate open-ended generation at volume, and it
+is fine. What is not fine is treating the judge's output as ground truth. <strong>A judge is a
+classifier. You would not ship an unvalidated classifier, and this is one.</strong></p>
+
+<p>Validate it the way you would validate any classifier, with one wrinkle that matters:</p>
+
+<ul>
+  <li><strong>Label a stratified sample yourself.</strong> Not your intern &mdash; you, or whoever
+  owns the product definition of "good." A few hundred examples, deliberately including hard and
+  borderline cases rather than a uniform random draw.</li>
+  <li><strong>Measure both error rates separately.</strong> Not "agreement" &mdash; that single number
+  hides everything. Measure the true positive rate (of the outputs you called good, how many does the
+  judge call good) and the true negative rate (of the outputs you called bad, how many does the judge
+  catch) as two separate numbers. Judges are systematically lenient: they pass things they should
+  fail, which shows up catastrophically in TNR and barely at all in overall agreement.</li>
+  <li><strong>Correct your headline number using those rates.</strong> If your judge passes 80% of
+  traffic, but you measured its TPR at 0.95 and TNR at 0.70, the raw 80% is not your success rate.
+  You can back out a corrected estimate from the observed pass rate and the two measured rates &mdash;
+  and the corrected number is the one you take to a review.</li>
+  <li><strong>Re-validate when anything changes.</strong> New judge model, new prompt, drifted traffic
+  &mdash; your rates are stale and so is every number computed from them.</li>
+</ul>
+
+<div class="callout c-steel"><span class="lbl">Binary beats Likert, and it is not close</span>
+<p>The instinct is to ask the judge for a 1&ndash;5 quality score. Resist it, for three reasons.
+<b>Reliability:</b> the boundary between 3 and 4 is not stable across runs, across judges, or across
+your own two human labellers, so most of the variance in the number is noise.
+<b>Validation:</b> you cannot cleanly compute a true positive rate for a five-point scale, so you
+cannot do the correction above. <b>Actionability:</b> "groundedness went from 3.6 to 3.8" tells you
+nothing you can act on.</p>
+<p>Replace it with several specific binary questions, each of which names a failure mode from
+<em>your</em> taxonomy: <em>Did it cite a source that exists in the retrieved context? Did it answer
+the question that was asked? Did it refuse a request it should have handled?</em> Each is
+individually validatable, individually correctable, and individually fixable. A dashboard of eight
+binaries is worth more than any composite score.</p>
+</div>
+
+<h3>What to actually do</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Resource</th><th>Hours</th><th>Why this one</th></tr></thead>
+<tbody>
+<tr><td><b>Hamel Husain's evals FAQ and blog</b></td><td>~5</td><td>Free, and carries most of the intellectual content. Start here before paying for anything.</td></tr>
+<tr><td><b>AI Evals for Engineers &amp; PMs</b> (Maven, paid)</td><td>~20</td><td>Refreshed for the September 2026 cohort; 2,000+ alumni including OpenAI and Anthropic teams.</td></tr>
+<tr><td><b>Inspect</b> (UK AISI) &mdash; build one real eval</td><td>~8</td><td>Learn the framework the frontier labs actually use. Sandboxing matters once you evaluate agents.</td></tr>
+<tr><td><b>Chip Huyen, <em>AI Engineering</em></b> &mdash; evaluation chapters</td><td>~4</td><td>The systematic treatment, and the best version for framing this to a leadership audience.</td></tr>
+<tr><td><b>CS336 Lecture on evaluation</b></td><td>~1.5</td><td>The research-side view: what benchmarks measure and how they get gamed.</td></tr>
+</tbody></table></div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 4</span>
+<p><strong>Take a real LLM feature with real traffic &mdash; yours or a colleague's &mdash; and
+produce four things.</strong> <b>(1)</b> A failure taxonomy derived from at least 100 traces you
+coded yourself, with counts per category. <b>(2)</b> An LLM judge for your largest category, with
+its true positive and true negative rates measured against your own labels on a stratified sample.
+<b>(3)</b> A single headline number, corrected using those rates, that you would defend to a board
+&mdash; including the sentence explaining why the raw judge pass rate is not that number.
+<b>(4)</b> A shipped change, and the same number measured afterwards, moved.</p>
+<p>The fourth is the one that makes this a clearing test rather than an exercise. Anyone can build a
+measurement. The capability is <em>closing the loop</em> &mdash; measure, change, re-measure, and
+have the confidence that the movement is real rather than noise.</p>
+<p class="neg"><b>Not the test:</b> a dashboard. An eval suite with no attached decision. A judge you
+did not validate. If you cannot state your judge's false-negative rate, you do not have an eval, you
+have a vibe with a number attached.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 7 takeaways</div>
+<ul>
+  <li>Benchmarks rank models on someone else's data; evals tell you whether your system does your job.</li>
+  <li>Error analysis comes first. Choosing metrics before reading 100 traces is the standard failure.</li>
+  <li>An LLM judge is an unvalidated classifier until you measure its TPR and TNR separately.</li>
+  <li>Correct your headline number using those rates, and re-validate whenever anything changes.</li>
+  <li>Several specific binaries beat one Likert composite on reliability, validation and actionability.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>Stage 5 &mdash; Inference economics</h2>
+  <div class="mt">Two phases with opposite bottlenecks, and why nearly every optimisation is a bandwidth trade</div>
+</div></div>
+<div class="module-body">
+
+<div class="timebar">
+  <div class="tb">Budget <b>~25 hours</b></div>
+  <div class="tb">At 5 h/week <b>5 weeks</b></div>
+  <div class="tb">Prerequisite <b>Stage 2 cleared</b></div>
+  <div class="tb">Compute cost <b>~$20&ndash;40</b></div>
+</div>
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Understand why prefill and decode have opposite bottlenecks, which explains every optimisation below</li>
+  <li>Know why the KV cache, not the weights, is usually the binding constraint on serving capacity</li>
+  <li>Be able to look at a deployment and predict which lever will help before you try it</li>
+  <li>Have the exec version: the three things that move an inference bill by 5&times; rather than 20%</li>
+</ul></div>
+
+<h3>One fact explains almost everything</h3>
+
+<p>Generation has two phases, and they could hardly be more different.</p>
+
+<div class="split">
+<div class="l"><div class="h">Prefill &mdash; processing the prompt</div>
+<p>The whole prompt goes through the model at once. Every token is a column in a big matrix multiply,
+so each weight you load from memory gets used across hundreds or thousands of tokens.</p>
+<p><b>High arithmetic intensity. Compute-bound. The GPU is genuinely busy.</b></p></div>
+<div class="r"><div class="h">Decode &mdash; generating tokens</div>
+<p>One token at a time, each depending on the last. To produce a <em>single</em> token you must read
+<em>every parameter in the model</em> from memory.</p>
+<p><b>Terrible arithmetic intensity. Memory-bandwidth-bound. The FLOPs sit idle.</b></p></div>
+</div>
+
+<p>Sit with the decode case, because it is the one that costs money. A 70-billion-parameter model in
+16-bit is 140 GB of weights. Every generated token requires reading all 140 GB. At a few terabytes
+per second, that is a hard floor of tens of milliseconds per token per sequence, and it is set by
+memory bandwidth, not by arithmetic. You could double the chip's FLOPs and change nothing.</p>
+
+<p><strong>So: nearly every inference optimisation is an attempt to get more useful work out of each
+byte read from memory.</strong> That sentence organises the rest of the module, and once you have it,
+you can usually derive the technique rather than memorise it.</p>
+
+<h3>The four levers, all of them the same lever</h3>
+
+<h4>1. Batching &mdash; amortise the read</h4>
+<p>If reading the weights once produces one token, that read costs you a token. If you have 64
+sequences in flight and read the weights once to advance all 64, the same read produces 64 tokens.
+You have divided the bandwidth cost per token by 64, for free, because the FLOPs were idle anyway.
+This is why batching is the first and largest lever, and why a serving system with low batch
+occupancy is burning money in a way that no amount of model optimisation will fix.</p>
+
+<p><strong>Continuous batching</strong> is the refinement that matters. Naive batching runs a batch
+to completion, so a batch of 32 in which 31 sequences finish early runs at 1/32 utilisation until the
+straggler finishes. Continuous batching schedules at <em>token</em> granularity: as soon as a
+sequence emits its stop token, its slot is freed and a queued request takes it on the very next step.
+Same hardware, several times the throughput.</p>
+
+<h4>2. The KV cache &mdash; the constraint you did not budget for</h4>
+<p>To avoid recomputing attention over the whole prefix at every step, you cache the keys and values
+for every previous token. That cache is what makes decoding tractable. It is also, in production,
+usually <em>the thing that runs out</em>.</p>
+
+<p>It grows with batch size &times; sequence length &times; layers &times; heads, it lives in the same
+HBM as the weights, and at long contexts and high batch sizes it can exceed the model itself. Your
+maximum concurrency is therefore usually set by KV cache capacity, not by weights and not by compute.</p>
+
+<div class="callout c-steel"><span class="lbl">PagedAttention: an operating-systems idea, borrowed</span>
+<p>The naive implementation allocates a contiguous buffer per sequence, sized for the maximum possible
+length. A request that might generate 2,000 tokens but stops at 100 has reserved &mdash; and wasted
+&mdash; the other 1,900 slots for its whole lifetime. Across a busy server this wastes the majority of
+your KV memory to internal fragmentation and over-reservation.</p>
+<p>PagedAttention does what virtual memory does. Allocate the cache in small fixed-size blocks, keep
+a per-sequence block table mapping logical positions to physical blocks, and hand out blocks on
+demand. Sequences no longer need contiguous memory, waste drops to at most one partial block each,
+and two sequences sharing a prompt prefix can literally share the same physical blocks &mdash; which
+is what makes prompt caching cheap.</p>
+<p>This is the clearest example in modern ML of a solved systems problem being recognised in a new
+costume. It is worth internalising as a pattern, not just a technique.</p>
+</div>
+
+<h4>3. Speculative decoding &mdash; buy k tokens for one read</h4>
+<p>A small draft model proposes the next k tokens cheaply. The large model then verifies all k
+<em>in a single forward pass</em>, because verification is a prefill-shaped operation &mdash; you are
+scoring a known sequence, not generating one. Accepted prefixes are kept; the first rejection
+resets. You have paid one big-model memory read for up to k tokens instead of k reads. Another
+bandwidth trade, and the acceptance rate is what determines whether it pays.</p>
+
+<h4>4. Quantization &mdash; smaller bytes, same count</h4>
+<p>Moving weights from 16-bit to 8-bit halves the bytes you read per token, so it roughly halves your
+decode bandwidth cost. Note the consequence people get wrong: <strong>quantization helps decode far
+more than prefill</strong>, because prefill was compute-bound and you did not shrink the FLOPs. If
+someone reports a 2&times; speedup from quantization on a prefill-heavy workload, ask what else
+changed. FP8 has become the practical default in serving stacks, generally landing within a fraction
+of a percent of BF16 quality on benchmarks while roughly doubling throughput.</p>
+
+<h3>The exec version</h3>
+
+<div class="callout c-fact"><span class="lbl">If you only carry one slide from Stage 5</span>
+<p>Your inference bill is approximately <b>(tokens generated) &times; (model size) &divide; (batch
+efficiency)</b>, and the three terms are not equally movable.</p>
+<ul>
+  <li><b>Batch efficiency</b> &mdash; continuous batching, sensible admission control, prefix caching
+  for shared prompts. Routinely <b>5&ndash;10&times;</b>, and mostly a configuration and scheduling
+  problem rather than a research one.</li>
+  <li><b>Model size</b> &mdash; routing easy requests to a small model and hard ones to a large one.
+  <b>Often 3&ndash;5&times;</b> on mixed traffic, and it needs Stage 4, because you cannot route
+  safely without a working eval to tell you when the small model is sufficient.</li>
+  <li><b>Tokens generated</b> &mdash; shorter outputs, tighter prompts, not re-sending context you
+  could cache. Unglamorous, frequently <b>2&times;</b>.</li>
+  <li><b>Switching vendor for a lower per-token price</b> &mdash; typically <b>10&ndash;20%</b>, and
+  it is usually the first thing proposed.</li>
+</ul>
+<p>The ordering is the point. The largest lever is a scheduling decision, the second-largest is
+gated on your eval quality, and the one that gets executive attention is the smallest.</p>
+</div>
+
+<h3>What to actually do</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Resource</th><th>Hours</th><th>Why this one</th></tr></thead>
+<tbody>
+<tr><td><b>CS336 Lecture 10 (Inference)</b></td><td>~1.5</td><td>The best single hour on this at the right altitude. Free on YouTube.</td></tr>
+<tr><td><b>vLLM docs + the PagedAttention paper</b></td><td>~6</td><td>Read the docs as an architecture text. The paper is short and the idea is clean.</td></tr>
+<tr><td><b>GPU MODE</b> &mdash; profiling, quantization, speculative decoding lectures</td><td>~10</td><td>100+ lectures with code, actively maintained. The deep end, free.</td></tr>
+<tr><td><b>Chip Huyen, <em>AI Engineering</em></b> &mdash; inference optimisation chapter</td><td>~3</td><td>The latency/cost trade-off framing, in the form you would present it.</td></tr>
+<tr><td><b>Serve something yourself</b> and load-test it</td><td>~8</td><td>Non-negotiable. Numbers you measured beat numbers you read.</td></tr>
+</tbody></table></div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 5</span>
+<p><strong>Build a toy serving loop with a block-based KV cache and continuous batching</strong> &mdash;
+a few hundred lines, no vLLM. Measure tokens per second against a naive implementation that
+pre-allocates contiguous cache and batches to completion. Report the throughput difference and the
+memory utilisation difference, and explain which of the two changes produced most of the gain.</p>
+<p>Then the diagnosis question, which is the real test. <strong>Given a deployment &mdash; model size,
+average prompt length, average completion length, concurrency, hardware &mdash; say whether it is
+prefill-bound or decode-bound, predict which of batching, prefix caching, quantization or speculative
+decoding will help most, and by roughly how much. Then run it and check.</strong> Being right for
+the right reason is the capability. Being right because you tried everything is not.</p>
+<p class="neg"><b>Not the test:</b> deploying vLLM successfully. vLLM is very good at hiding exactly
+the mechanics this stage is about, which is a virtue in production and a problem for learning. Build
+the bad version first so the good version means something.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 8 takeaways</div>
+<ul>
+  <li>Prefill is compute-bound; decode is memory-bandwidth-bound. That one fact explains the rest.</li>
+  <li>Every generated token requires reading every parameter &mdash; so batching is the primary lever.</li>
+  <li>The KV cache, not the weights, usually sets your maximum concurrency.</li>
+  <li>PagedAttention is virtual memory applied to the KV cache, and it makes prefix sharing cheap.</li>
+  <li>Batch efficiency moves the bill 5&ndash;10&times;; switching vendors moves it 10&ndash;20%.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>The paper ladder</h2>
+  <div class="mt">Eight papers, in order, each with a stated reproduction target &mdash; and a definition of "reimplemented"</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a working definition of "I reimplemented it" that is falsifiable</li>
+  <li>Have eight papers in dependency order with hour estimates that match a real weekly budget</li>
+  <li>Know what to do when you get stuck, which is the part that decides whether the habit survives</li>
+</ul></div>
+
+<h3>What "reimplemented it" has to mean</h3>
+
+<p>The source list's best advice is "pick one paper a week and reimplement it," and it never says
+what that means. Without a definition, the word collapses into whatever you did, which is how people
+end up with eight repos and no capability.</p>
+
+<div class="split">
+<div class="l"><div class="h">Does not count</div>
+<p>Read it and understood it. Ran the authors' repo. Read the authors' repo and wrote something
+similar. Had a model write it and reviewed the output. Implemented the equations without ever
+running them at a scale where they could be wrong.</p></div>
+<div class="r"><div class="h">Counts</div>
+<p><b>From the paper alone, you wrote code that reproduces the paper's central claim at a scale you
+can afford, and you can point at the specific figure or table your run corresponds to.</b> Then you
+diffed against the reference implementation and can explain every difference you found.</p></div>
+</div>
+
+<p>Three properties make that definition work. It is <strong>falsifiable</strong> &mdash; either your
+number matches the trend or it does not. It is <strong>affordable</strong> &mdash; "at a scale you
+can afford" means a 10-million-parameter model reproducing a shape, not a 70-billion-parameter model
+reproducing a value. And it includes the <strong>diff step</strong>, which is where most of the
+learning actually happens, because the gap between your version and theirs is a list of things you
+did not know mattered.</p>
+
+<div class="callout c-warn"><span class="lbl">The one question that proves you have it</span>
+<p>After a real reimplementation, you can answer: <strong>what result would have falsified this
+paper's claim, and would my run have shown it?</strong></p>
+<p>That question is unanswerable from reading and trivial after building, which makes it the cleanest
+available test. If your reproduction could not have come out the other way, you did not reproduce the
+claim &mdash; you illustrated it.</p>
+</div>
+
+<h3>The ladder</h3>
+
+<p>Ordered by dependency, not by publication date or by fame. Each rung assumes the ones before it.
+Hours assume you have cleared the relevant stage.</p>
+
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Paper</th><th>Reproduction target &mdash; what "done" is</th><th>Hrs</th><th>Stage</th></tr></thead>
+<tbody>
+<tr>
+<td><b>1</b></td>
+<td><b>Attention Is All You Need</b><br><span style="color:var(--text-dim);font-size:0.9em">Vaswani et al., 2017</span></td>
+<td>A decoder-only transformer written from the paper, trained on a small corpus, that beats a bigram baseline. Ablate the positional encoding and show the loss gets worse &mdash; that is your falsification check.</td>
+<td>12</td><td>1</td>
+</tr>
+<tr>
+<td><b>2</b></td>
+<td><b>Language Models are Unsupervised Multitask Learners</b> (GPT-2)<br><span style="color:var(--text-dim);font-size:0.9em">Radford et al., 2019</span></td>
+<td>Load the real released GPT-2 weights into <em>your own</em> implementation and match HuggingFace's logits to within floating-point noise. Ruthless: any architectural misunderstanding shows up immediately as a numerical mismatch.</td>
+<td>15</td><td>1&rarr;2</td>
+</tr>
+<tr>
+<td><b>3</b></td>
+<td><b>LoRA</b><br><span style="color:var(--text-dim);font-size:0.9em">Hu et al., 2021</span></td>
+<td>Your own low-rank adapters, fine-tuning a small model on a task, matching PEFT's result within noise while training under 1% of the parameters. Sweep the rank and show where quality saturates.</td>
+<td>10</td><td>2</td>
+</tr>
+<tr>
+<td><b>4</b></td>
+<td><b>Scaling Laws / Chinchilla</b><br><span style="color:var(--text-dim);font-size:0.9em">Kaplan et al. 2020; Hoffmann et al. 2022</span></td>
+<td>Train a ladder of six to eight tiny models across sizes and token counts, fit your own scaling curve, then <b>predict a held-out run's loss before you run it</b> and check. Predicting beats fitting.</td>
+<td>18</td><td>2</td>
+</tr>
+<tr>
+<td><b>5</b></td>
+<td><b>FlashAttention</b><br><span style="color:var(--text-dim);font-size:0.9em">Dao et al., 2022</span></td>
+<td>A tiled attention kernel in Triton that matches PyTorch SDPA numerically and beats naive attention on wall-clock at 4k+ context. The hardest rung. CS336 Assignment 2 is this, scaffolded.</td>
+<td>30</td><td>2</td>
+</tr>
+<tr>
+<td><b>6</b></td>
+<td><b>Direct Preference Optimization</b><br><span style="color:var(--text-dim);font-size:0.9em">Rafailov et al., 2023</span></td>
+<td>Your own DPO loss beating an SFT baseline on a preference set you built, measured on a held-out split. Sweep the KL temperature and show the degradation at both extremes.</td>
+<td>14</td><td>3</td>
+</tr>
+<tr>
+<td><b>7</b></td>
+<td><b>PagedAttention / vLLM</b><br><span style="color:var(--text-dim);font-size:0.9em">Kwon et al., 2023</span></td>
+<td>A block-allocated KV cache with continuous batching in a toy server. Report throughput and memory waste against a contiguous pre-allocated baseline. You should see the fragmentation loss the paper describes.</td>
+<td>20</td><td>5</td>
+</tr>
+<tr>
+<td><b>8</b></td>
+<td><b>DeepSeek-R1 / GRPO</b><br><span style="color:var(--text-dim);font-size:0.9em">2025</span></td>
+<td>A GRPO loop with a verifiable reward on a small maths set, improving held-out accuracy over the SFT baseline. Log the average completion length &mdash; watching it grow as the model learns to check its work is the observation worth having.</td>
+<td>25</td><td>3&rarr;5</td>
+</tr>
+</tbody></table></div>
+
+<p><strong>Total: roughly 144 hours.</strong> At five hours a week that is about seven months
+&mdash; which is the honest number, and it is why "one paper a week" was never going to survive
+contact with a calendar. Eight papers properly reimplemented over seven months will take you further
+than fifty papers read.</p>
+
+<div class="callout c-steel"><span class="lbl">The rule that keeps the habit alive</span>
+<p>You will get stuck. The habit dies at the moment you get stuck and quietly stop, so decide the
+policy in advance rather than in the moment:</p>
+<p><strong>Two hours genuinely stuck &rarr; look at the reference implementation for the specific
+thing you are stuck on, and only that thing.</strong> Then write down what you missed, in one
+sentence, in a running file. That file is the actual artefact of this whole exercise. After eight
+papers it is a list of every assumption you did not know you were making, and it will be more useful
+to you than any of the repos.</p>
+<p>What is <em>not</em> allowed is opening the reference implementation before you are stuck. The
+value is entirely in the gap between what you built and what they built, and you only get that gap
+if you build first.</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">On using a model to help</span>
+<p>An obvious question in 2026, and the honest answer has a boundary rather than a rule.</p>
+<p>Use a model freely for anything that is not the claim: environment setup, plotting, data loading,
+explaining an unfamiliar notation, debugging a stack trace. That is friction, and friction is not
+what you are here to learn.</p>
+<p>Do not let it write the mechanism. If a model writes your attention implementation, your DPO loss
+or your Triton kernel, you have obtained a working repo and skipped the entire point &mdash; and the
+gap will be invisible to you, because working code feels like understanding. <strong>The test is
+whether you could rewrite it from a blank file tomorrow.</strong> If not, you did not learn it, and
+you will find out at the worst possible moment, which is when something breaks in production and the
+model's suggestion does not fix it.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 9 takeaways</div>
+<ul>
+  <li>"Reimplemented" means: from the paper alone, reproduced the central claim at affordable scale, then diffed.</li>
+  <li>The proving question is what would have falsified the claim, and whether your run could have shown it.</li>
+  <li>Eight papers, ~144 hours, roughly seven months at five hours a week. That is the real number.</li>
+  <li>Two hours stuck, then look &mdash; and write down what you missed. That file is the real output.</li>
+  <li>Use models for friction, never for the mechanism. Working code feels like understanding and isn't.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 10 ============================ -->
+<section class="module" id="m10">
+<div class="module-header"><div class="num">10</div><div>
+  <h2>Reading this as a curriculum</h2>
+  <div class="mt">What is gradeable, what is not, what it costs, and why nobody shipped the sequence</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know which stages are auto-gradeable at scale and which require judgement</li>
+  <li>Have the compute cost line for a course of this shape, per learner</li>
+  <li>Understand the structural reason curated lists never become sequences</li>
+</ul></div>
+
+<p>If you are reading this partly as a product person rather than only as a learner, this module is
+for that. The path above is one learner's plan. The interesting question is what happens if you try
+to run it for fifty thousand people.</p>
+
+<h3>The gradeability gradient</h3>
+
+<p>The clearing tests in Modules 4&ndash;8 were written to be artefact-producing, which was a
+pedagogical choice. It is also a product choice, because artefacts are gradeable and feelings are
+not. But they are not equally gradeable, and the gradient is the design constraint:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Stage</th><th>Gradeable how</th><th>Marginal cost</th><th>Failure mode at scale</th></tr></thead>
+<tbody>
+<tr><td><b>1 &mdash; Mechanism</b></td><td>Fully automatic. Shape assertions, gradient checks, a loss threshold on a fixed corpus, sampling quality. This is a unit test.</td><td>Near zero</td><td>Solution sharing. Mitigate with per-learner seeds and randomised corpora.</td></tr>
+<tr><td><b>2 &mdash; Training</b></td><td>Mostly automatic for the systems half &mdash; a kernel either matches SDPA numerically and beats the baseline on wall clock, or it does not. Needs real GPUs.</td><td>Compute-bound</td><td>Hardware variance makes wall-clock thresholds unfair across devices. Grade on ratio to a baseline run on the same device.</td></tr>
+<tr><td><b>3 &mdash; Post-training</b></td><td>Semi-automatic. Held-out preference accuracy is a number. Whether the learner understood the KL term is not.</td><td>Compute + some review</td><td>Learners tune to the grader's eval set. Hold out a private one.</td></tr>
+<tr><td><b>4 &mdash; Evals</b></td><td><b>Judgement-heavy.</b> A failure taxonomy is good or bad in ways no rubric fully captures. This is the one that resists automation.</td><td>Human review</td><td>Automating it teaches the opposite of the lesson: that measurement is a checkbox.</td></tr>
+<tr><td><b>5 &mdash; Inference</b></td><td>Fully automatic. Throughput and memory numbers against a reference baseline. Cleanest test in the course.</td><td>Compute-bound</td><td>Learners optimise the benchmark rather than the system. Vary the workload profile at grading time.</td></tr>
+</tbody></table></div>
+
+<p>So four of five stages are largely machine-gradeable, and the fifth &mdash; evals &mdash; is the
+one where a cohort earns its price. That is a clean product decomposition: self-paced with automated
+grading for 1, 2, 3 and 5; cohort-based with human review for 4. It also happens to be the honest
+one, since evals is the stage where the skill genuinely is taste developed against feedback.</p>
+
+<h3>The compute line, which is smaller than people assume</h3>
+
+<p>The obvious objection to a course like this is that it needs GPUs and therefore cannot scale
+economically. The numbers say otherwise, and the change is recent:</p>
+
+<div class="mgrid">
+  <div class="mcell good"><b>~$48</b><span>nanochat, GPT-2 capability, per full run</span></div>
+  <div class="mcell good"><b>~$43k</b><span>Equivalent in 2019, per the same README</span></div>
+  <div class="mcell"><b>~$150</b><span>Est. total compute per learner, all five stages</span></div>
+  <div class="mcell warn"><b>1&ndash;3&times;</b><span>Re-runs to expect from failed attempts</span></div>
+</div>
+
+<p>A few hundred dollars of compute per learner for a course that produces a demonstrably capable
+engineer is not an unusual cost structure &mdash; it is comparable to a lab science course, and far
+below a bootcamp. The thing that changed is the denominator: the same capstone cost roughly a
+thousand times more seven years ago. <strong>A course that was economically impossible in 2019 is
+now merely expensive</strong>, and that shift has not yet been absorbed by most curriculum planning.</p>
+
+<p>The second-order design question is who holds the budget. Learner-pays makes failure feel
+expensive, which is the wrong incentive on a path where failed runs are the curriculum.
+Platform-pays with a per-learner cap is better pedagogy and a harder P&amp;L conversation. Worth
+having the conversation with the number in hand rather than the vibe.</p>
+
+<h3>Why nobody ships the sequence</h3>
+
+<div class="callout c-dissent"><span class="lbl">The structural answer, and it is not laziness</span>
+<p>The source list ends by offering to build a path and does not build it. That is not an oversight;
+it is the equilibrium, and it is worth naming precisely because it is the gap you would be filling.</p>
+<p><strong>A list is unfalsifiable and a sequence is not.</strong> If I recommend eleven good
+resources and you do not become an expert, that is about your discipline. If I tell you to do these
+five things in this order over seven months and you do them and it does not work, I was wrong, and
+the failure is legible and attributable.</p>
+<p>The same asymmetry explains the rest of the shape. Lists never go stale in a way anyone notices,
+because no one audits a bookmark &mdash; which is exactly how a 2017 CS231n playlist survives under a
+2026 headline. Sequences go stale loudly, because step three stops working and someone opens a
+ticket. Lists are cheap to produce and infinitely extensible. Sequences require you to <em>cut</em>,
+and every cut is an argument with someone whose favourite thing you dropped.</p>
+<p>So the market produces lists. Which means the sequence is the scarce good, and the barrier is not
+knowledge &mdash; everything in this course was publicly available and free to check in an
+afternoon. <strong>The barrier is the willingness to be wrong in public on a schedule.</strong>
+That is a strategy observation more than a curriculum one.</p>
+</div>
+
+<h3>Three things that transfer to any curriculum</h3>
+
+<ul>
+  <li><strong>Date every resource, visibly.</strong> Half of this course's value came from checking
+  last-modified dates that took two minutes each. A catalogue that surfaces "last refreshed" next to
+  every item would prevent most of what Module 2 documents &mdash; and note that it is a metadata
+  problem, not a content problem, which makes it unusually cheap to fix.</li>
+  <li><strong>Completion is the wrong unit; capability is the unit.</strong> "You can do X unaided"
+  is harder to instrument than "watched 87% of the video," and it is the only claim a learner can
+  take to an employer. The clearing tests here are all artefact-producing precisely so that the claim
+  is checkable by someone who does not trust the platform.</li>
+  <li><strong>Sequence is the product; content is the commodity.</strong> Everything in Modules
+  4&ndash;8 points at free external material. The value added is the ordering, the dependency
+  reasoning, the honest time budget and the tests. That is a defensible position and it does not
+  require owning any of the underlying content &mdash; which is a different business than most
+  catalogue thinking assumes.</li>
+</ul>
+
+<div class="takeaways"><div class="t">Module 10 takeaways</div>
+<ul>
+  <li>Four of five stages are largely machine-gradeable; evals is the one that needs human judgement.</li>
+  <li>That split is a natural product boundary: self-paced for 1/2/3/5, cohort for 4.</li>
+  <li>Total compute is roughly $150/learner &mdash; a course that was impossible in 2019 is now just expensive.</li>
+  <li>Nobody sequences lists because sequences are falsifiable and lists are not. That is why sequence is scarce.</li>
+  <li>Date every resource; grade capability not completion; sell the ordering, not the content.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 11 ============================ -->
+<section class="module" id="m11">
+<div class="module-header"><div class="num">11</div><div>
+  <h2>Build your path</h2>
+  <div class="mt">Commit to where you think you are, then answer eleven questions honestly and find out</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a dated week-by-week schedule built from your real weekly hours</li>
+  <li>Know the single capability gap that is actually gating you</li>
+  <li>Know whether your instinct about your own level survived contact with specific questions</li>
+</ul></div>
+
+<p>The tool asks you to commit to an entry stage <em>before</em> it computes one. That ordering is
+deliberate. If you see the answer first, you will find reasons to agree with it, and the most useful
+output of this exercise is the case where your guess and your answers disagree.</p>
+
+<div id="lab">
+  <div class="lab-top">
+    <span class="lab-pill">Interactive</span>
+    <h3>Path Builder</h3>
+    <span class="lab-step" id="lab-step">Stage 1 of 3</span>
+  </div>
+  <div class="lab-body">
+
+    <!-- STAGE 1 -->
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">Commit</div>
+        <div class="st" id="s1-st">Open</div></div>
+      <p class="hint">Two commitments, both before you see any output.</p>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">What are you actually trying to become able to do?</span></div>
+        <div class="priors" id="goal-pick">
+          <button class="prior" data-g="build"><b>Build it</b><span>You want to be the person who writes the training loop and the kernel. Full depth, all five stages.</span></button>
+          <button class="prior" data-g="lead"><b>Lead the people who build it</b><span>You need enough depth to judge the work, set direction and call bad plans. Depth where it changes decisions.</span></button>
+          <button class="prior" data-g="assess"><b>Judge it from outside</b><span>Diligence, investment, buy-versus-build. You need to evaluate claims, not produce them.</span></button>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Hours per week you will actually spend</span>
+          <span class="cv" id="v-hrs">5</span></div>
+        <input type="range" id="r-hrs" min="1" max="20" step="1" value="5">
+        <div class="cd" id="d-hrs"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Where do you think you'll come out? Guess before you answer the questions.</span></div>
+        <div class="priors five" id="stage-pick">
+          <button class="prior" data-s="1"><b>Stage 1</b><span>Mechanism</span></button>
+          <button class="prior" data-s="2"><b>Stage 2</b><span>Training</span></button>
+          <button class="prior" data-s="3"><b>Stage 3</b><span>Post-training</span></button>
+          <button class="prior" data-s="4"><b>Stage 4</b><span>Evals</span></button>
+          <button class="prior" data-s="5"><b>Stage 5</b><span>Inference</span></button>
+        </div>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="s1-go" disabled>Lock it in</button>
+        <span class="gate-msg" id="s1-gate">Pick a goal and an entry-stage guess.</span>
+      </div>
+    </div>
+
+    <!-- STAGE 2 -->
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">The honest assessment</div>
+        <div class="st" id="s2-st">Locked</div></div>
+      <p class="hint">Eleven capabilities. <b>Unaided</b> means blank file, no reference, no model
+      writing it for you &mdash; you could do it tomorrow. <b>With help</b> means you could get there
+      with documentation or a tutorial open. <b>No</b> is a perfectly good answer and choosing it
+      accurately is the entire value of this exercise.</p>
+      <div id="cap-list"></div>
+      <div class="lab-btns">
+        <button class="act" id="s2-go" disabled>Build my path</button>
+        <button class="act ghost" id="s2-reset">Reset</button>
+        <span class="gate-msg" id="s2-gate"></span>
+      </div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div id="out"></div>
+
+  </div>
+</div>
+
+<div id="m11after" class="hid">
+<div class="callout c-warn"><span class="lbl">What this tool is and is not</span>
+<p>The stage hour budgets come from Modules 4&ndash;8 and are my estimates for a competent engineer
+who is not doing this full time. They are not measured across a population, and individual variance
+on the systems stages in particular is large &mdash; someone who has written CUDA before will clear
+Stage 2 in half the time, and someone who has not may take double.</p>
+<p>The compute cost figures are grounded: nanochat's own README currently states roughly $48 for a
+GPT-2-capability run. The rest of the per-stage compute estimates are extrapolated from that and
+should be treated as order-of-magnitude.</p>
+<p>The thing the tool cannot see is the only thing that reliably predicts whether this works: whether
+you have a real problem you are trying to solve. Everyone who finishes something like this was
+solving something. Nobody finishes it as self-improvement.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 11 takeaways</div>
+<ul>
+  <li>Commit to your entry stage before computing one, or the tool just ratifies your instinct.</li>
+  <li>The gating capability matters more than the stage number &mdash; it is the thing to fix first.</li>
+  <li>Below three hours a week the path does not work; pick one stage instead of the sequence.</li>
+  <li>Claiming Stage 4 or 5 while missing Stage 1 is the most common and most costly inversion.</li>
+</ul></div>
+</div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Built 28 August 2026. Every resource link checked the same day.</p>
+  <p style="margin-top:0.6rem">
+    <a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener">CS336</a>
+    <a href="https://cs231n.stanford.edu/schedule.html" target="_blank" rel="noopener">CS231n schedule</a>
+    <a href="https://web.stanford.edu/class/cs224n/" target="_blank" rel="noopener">CS224n</a>
+    <a href="https://cs229.stanford.edu/" target="_blank" rel="noopener">CS229</a>
+    <a href="https://huggingface.co/learn" target="_blank" rel="noopener">HF Learn</a>
+    <a href="https://github.com/karpathy/nanochat" target="_blank" rel="noopener">nanochat</a>
+    <a href="https://rlhfbook.com/" target="_blank" rel="noopener">RLHF Book</a>
+    <a href="https://github.com/gpu-mode/lectures" target="_blank" rel="noopener">GPU MODE</a>
+    <a href="https://inspect.aisi.org.uk/" target="_blank" rel="noopener">Inspect</a>
+    <a href="https://hamel.dev/blog/posts/evals-faq/" target="_blank" rel="noopener">Evals FAQ</a>
+    <a href="https://huggingface.co/papers/trending" target="_blank" rel="noopener">HF Papers</a>
+  </p>
+  <p style="margin-top:0.8rem;font-size:0.78rem">Currency claims decay. If CS231n publishes its
+  current lectures publicly, if fast.ai ships a 2026 refresh, or if Papers with Code's leaderboards
+  find a new home, Module 2 is out of date on those rows and the live page supersedes it. The
+  arXiv-sanity domain finding is the one worth re-checking before you pass this on.</p>
+</div>
+
+</div>
+
+<script>
+/* ────────── nav, progress, active-module tracking ────────── */
+(function(){
+'use strict';
+var N = 11;
+var links = document.getElementById('nav-links');
+var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a);
+  secs.push(document.getElementById('m' + i));
+}
+
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  var pct = Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100)));
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) {
+    if (!secs[i]) continue;
+    if (secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  }
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) {
+    var el = document.getElementById('nl' + i);
+    if (el) el.className = (i === active) ? 'done' : '';
+  }
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href'));
+    if (!t) return;
+    e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+})();
+</script>
+
+<script>
+/* ═══════════ MODULE 11 — PATH BUILDER ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab')) return;
+
+/* ---------- state ---------- */
+var hrs = 5;
+var goal = null;
+var guess = null;
+var built = false;
+
+/* ---------- stage definitions ---------- */
+var STAGES = [
+  { id:1, name:'The mechanism',        hours:30, cost:0,   mod:'#m4',
+    what:'Transformer forward pass, residual stream, attention as soft lookup' },
+  { id:2, name:'The training stack',   hours:45, cost:75,  mod:'#m5',
+    what:'Scaling laws, arithmetic intensity, parallelism, an end-to-end trained model' },
+  { id:3, name:'Post-training',        hours:30, cost:40,  mod:'#m6',
+    what:'SFT, preference optimisation, verified reward and GRPO' },
+  { id:4, name:'Evals',                hours:25, cost:20,  mod:'#m7',
+    what:'Error analysis, failure taxonomies, validated LLM judges' },
+  { id:5, name:'Inference economics',  hours:25, cost:30,  mod:'#m8',
+    what:'Prefill vs decode, KV cache, continuous batching, the cost model' }
+];
+
+/* ---------- capability statements ---------- */
+var CAPS = [
+  { s:1, q:'Write a <b>causal multi-head self-attention block</b> in PyTorch from a blank file, with no reference open.' },
+  { s:1, q:'Say what specifically breaks if you <b>remove the causal mask</b> &mdash; and why the training loss would <i>fall</i> rather than rise.' },
+  { s:2, q:'Given a FLOP budget, produce a defensible <b>(parameters, tokens)</b> pair &mdash; and argue for deliberately deviating from it.' },
+  { s:2, q:'Profile a training run and say whether it is <b>compute-, memory-bandwidth-, or communication-bound</b>, and name the fix.' },
+  { s:2, q:'You have <b>trained a model end to end</b>, from raw text to a working chat interface, and know what it cost.' },
+  { s:3, q:'Write a <b>DPO loss from the paper</b> and explain in two sentences why it needs no reward model.' },
+  { s:3, q:'Explain what <b>fine-tuning cannot do</b>, and what to reach for instead &mdash; to someone who has just proposed it.' },
+  { s:4, q:'You have built a <b>failure taxonomy from 100+ traces you coded yourself</b>, with counts per category.' },
+  { s:4, q:'You have measured an LLM judge’s <b>true positive and true negative rates</b> against your own labels, and corrected a headline number using them.' },
+  { s:5, q:'Look at a serving deployment and predict whether <b>batching, caching, quantization or speculation</b> helps most &mdash; and be right for the right reason.' },
+  { s:5, q:'You have implemented a <b>block-based KV cache with continuous batching</b> and measured the gain over a naive baseline.' }
+];
+
+var picks = new Array(CAPS.length).fill(null);
+
+/* ---------- goal profiles ---------- */
+var GOALS = {
+  build: { label:'Build it',
+    mult: [1, 1, 1, 1, 1],
+    note:'Full depth on all five. No trimming &mdash; you are trying to be the person who writes the kernel.' },
+  lead: { label:'Lead the people who build it',
+    mult: [1, 0.7, 1, 1, 1],
+    note:'Stage 2 is trimmed to the systems reasoning without the full Triton assignment. Everything else stays at full depth, and Stage 1 stays at <b>100%</b> deliberately &mdash; every judgement you will make about the other four rests on the mechanism, and this is the stage senior people most often skip and most often regret.' },
+  assess: { label:'Judge it from outside',
+    mult: [1, 0.5, 0.6, 1, 1],
+    note:'Stages 2 and 3 are trimmed to what you need to read a claim rather than produce one. Stages 4 and 5 stay at full depth, because evals and inference economics are where nearly every diligence question actually lands.' }
+};
+
+/* ---------- hours descriptor ---------- */
+function hrsDesc(v){
+  if (v <= 2) return 'Below the threshold where sequenced study works. At this budget the context you lose between sessions costs more than the session gains. The tool will tell you what to do instead.';
+  if (v <= 4) return 'Real but tight. Workable if you protect the same two evenings every week. Expect the systems stages to feel slow.';
+  if (v <= 7) return 'The realistic budget for someone with a demanding job. Everything in this course was costed against five.';
+  if (v <= 12) return 'Substantial. You will move roughly twice as fast as the default schedule. Verify this against last month’s calendar rather than against your intentions.';
+  return 'This is a second job. Genuinely achievable during a gap between roles, and almost never sustainable alongside one. If you are between things, this is the right number.';
+}
+
+/* ---------- stage 1 wiring ---------- */
+$('r-hrs').addEventListener('input', function(){
+  hrs = +this.value;
+  $('v-hrs').textContent = hrs;
+  $('d-hrs').textContent = hrsDesc(hrs);
+});
+$('d-hrs').textContent = hrsDesc(5);
+
+Array.prototype.forEach.call($('goal-pick').querySelectorAll('.prior'), function(b){
+  b.addEventListener('click', function(){
+    goal = b.dataset.g;
+    Array.prototype.forEach.call($('goal-pick').querySelectorAll('.prior'), function(x){
+      x.className = 'prior' + (x === b ? ' sel' : '');
+    });
+    gate1();
+  });
+});
+Array.prototype.forEach.call($('stage-pick').querySelectorAll('.prior'), function(b){
+  b.addEventListener('click', function(){
+    guess = +b.dataset.s;
+    Array.prototype.forEach.call($('stage-pick').querySelectorAll('.prior'), function(x){
+      x.className = 'prior' + (x === b ? ' sel' : '');
+    });
+    gate1();
+  });
+});
+
+function gate1(){
+  var ready = !!goal && !!guess;
+  $('s1-go').disabled = !ready;
+  $('s1-gate').textContent = ready ? 'Ready.' :
+    (!goal ? 'Pick a goal and an entry-stage guess.' : 'Now guess your entry stage.');
+}
+
+$('s1-go').addEventListener('click', function(){
+  $('s1-st').textContent = 'Locked';
+  $('s1-st').className = 'st ok';
+  $('s1-go').disabled = true;
+  $('r-hrs').disabled = true;
+  Array.prototype.forEach.call($('lab').querySelectorAll('.prior'), function(b){
+    b.style.pointerEvents = 'none';
+    if (!b.classList.contains('sel')) b.style.opacity = '0.4';
+  });
+  $('s2').className = 'stage';
+  $('s2-st').textContent = 'Open';
+  $('lab-step').textContent = 'Stage 2 of 3';
+  renderCaps();
+  try { $('s2').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+/* ---------- stage 2: capability assessment ---------- */
+function renderCaps(){
+  var box = $('cap-list');
+  box.innerHTML = CAPS.map(function(c, i){
+    var opts = [['y','Unaided'],['p','With help'],['n','No']];
+    return '<div class="cap"><span class="cs">Stage ' + c.s + ' &middot; ' + STAGES[c.s-1].name +
+      '</span><div class="cq">' + (i+1) + '. ' + c.q + '</div><div class="cap-opts">' +
+      opts.map(function(o){
+        var cls = 'cap-opt' + (picks[i] === o[0] ? ' sel-' + o[0] : '');
+        return '<button class="' + cls + '" data-i="' + i + '" data-v="' + o[0] + '"' +
+               (built ? ' disabled' : '') + '>' + o[1] + '</button>';
+      }).join('') + '</div></div>';
+  }).join('');
+
+  if (!built) {
+    Array.prototype.forEach.call(box.querySelectorAll('.cap-opt'), function(b){
+      b.addEventListener('click', function(){
+        picks[+b.dataset.i] = b.dataset.v;
+        renderCaps();
+      });
+    });
+  }
+  gate2();
+}
+
+function gate2(){
+  var n = picks.filter(function(p){ return p; }).length;
+  var ready = n === CAPS.length;
+  $('s2-go').disabled = !ready || built;
+  $('s2-gate').textContent = built ? '' :
+    (ready ? 'Ready.' : 'Answered ' + n + ' of ' + CAPS.length + '.');
+}
+
+$('s2-reset').addEventListener('click', function(){
+  picks = new Array(CAPS.length).fill(null);
+  built = false;
+  $('out').innerHTML = '';
+  $('m11after').className = 'hid';
+  $('s2-st').textContent = 'Open';
+  $('s2-st').className = 'st';
+  $('lab-step').textContent = 'Stage 2 of 3';
+  renderCaps();
+});
+
+/* ---------- scoring ---------- */
+function val(p){ return p === 'y' ? 2 : p === 'p' ? 1 : 0; }
+
+function stageScores(){
+  return STAGES.map(function(st){
+    var idx = [], i;
+    for (i = 0; i < CAPS.length; i++) if (CAPS[i].s === st.id) idx.push(i);
+    var sum = idx.reduce(function(a, i){ return a + val(picks[i]); }, 0);
+    return { id: st.id, mean: sum / idx.length, idx: idx };
+  });
+}
+
+/* a stage is cleared at >=1.7 (essentially all unaided), partial at >=1.0 */
+function statusOf(m){ return m >= 1.7 ? 'clear' : (m >= 1.0 ? 'partial' : 'open'); }
+
+function fmtDate(d){
+  var M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + M[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+/* ---------- build ---------- */
+$('s2-go').addEventListener('click', function(){
+  built = true;
+  renderCaps();
+
+  var sc = stageScores();
+  var g = GOALS[goal];
+
+  /* entry stage = first not cleared */
+  var entry = 6;
+  for (var i = 0; i < sc.length; i++) {
+    if (statusOf(sc[i].mean) !== 'clear') { entry = sc[i].id; break; }
+  }
+
+  /* per-stage hours after status discount and goal multiplier */
+  var plan = [];
+  sc.forEach(function(s, i){
+    var st = STAGES[i];
+    var stat = statusOf(s.mean);
+    if (stat === 'clear') { plan.push({ st:st, stat:stat, hours:0, cost:0 }); return; }
+    var f = (stat === 'partial') ? 0.6 : 1;
+    var h = Math.round(st.hours * f * g.mult[i]);
+    var c = Math.round(st.cost * f * g.mult[i]);
+    plan.push({ st:st, stat:stat, hours:h, cost:c });
+  });
+
+  var totalH = plan.reduce(function(a, p){ return a + p.hours; }, 0);
+  var totalC = plan.reduce(function(a, p){ return a + p.cost; }, 0);
+  var totalW = Math.ceil(totalH / hrs);
+
+  /* schedule with dates */
+  var cursor = new Date();
+  var sched = [], wk = 1;
+  plan.forEach(function(p){
+    if (p.hours === 0) { sched.push({ p:p, w:null, start:null, weeks:0 }); return; }
+    var w = Math.max(1, Math.ceil(p.hours / hrs));
+    var start = new Date(cursor.getTime());
+    sched.push({ p:p, w:wk, start:start, weeks:w });
+    wk += w;
+    cursor = new Date(cursor.getTime() + w * 7 * 86400000);
+  });
+  var finish = new Date(cursor.getTime());
+
+  /* gating capability: lowest-scoring item inside the entry stage, earliest first */
+  var gating = null;
+  if (entry <= 5) {
+    var eIdx = sc[entry-1].idx;
+    for (var k = 0; k < eIdx.length; k++) {
+      if (picks[eIdx[k]] === 'n') { gating = eIdx[k]; break; }
+    }
+    if (gating === null) {
+      for (var k2 = 0; k2 < eIdx.length; k2++) {
+        if (picks[eIdx[k2]] === 'p') { gating = eIdx[k2]; break; }
+      }
+    }
+  }
+
+  /* papers relevant to the entry stage onward */
+  var PAPERS = [
+    { n:1, t:'Attention Is All You Need', s:1, h:12 },
+    { n:2, t:'GPT-2 (weight-loading reproduction)', s:1, h:15 },
+    { n:3, t:'LoRA', s:2, h:10 },
+    { n:4, t:'Scaling Laws / Chinchilla', s:2, h:18 },
+    { n:5, t:'FlashAttention', s:2, h:30 },
+    { n:6, t:'Direct Preference Optimization', s:3, h:14 },
+    { n:7, t:'PagedAttention / vLLM', s:5, h:20 },
+    { n:8, t:'DeepSeek-R1 / GRPO', s:3, h:25 }
+  ];
+  var nextPapers = PAPERS.filter(function(p){ return p.s >= entry; }).slice(0, 3);
+
+  /* ---------- render ---------- */
+  var h = '<div class="stage"><div class="stage-h"><div class="n">&#10003;</div>' +
+          '<div class="ttl">Your path</div><div class="st ok">Built</div></div>';
+
+  /* headline metrics */
+  h += '<div class="mgrid">' +
+    '<div class="mcell' + (entry <= 2 ? '' : ' good') + '"><b>Stage ' + (entry > 5 ? '&mdash;' : entry) +
+      '</b><span>' + (entry > 5 ? 'All five cleared' : STAGES[entry-1].name) + '</span></div>' +
+    '<div class="mcell"><b>' + totalH + ' h</b><span>Remaining work</span></div>' +
+    '<div class="mcell' + (totalW > 40 ? ' warn' : '') + '"><b>' + totalW + ' wk</b><span>At ' + hrs + ' h/week</span></div>' +
+    '<div class="mcell"><b>' + (totalH ? fmtDate(finish) : '&mdash;') + '</b><span>Projected finish</span></div>' +
+    '<div class="mcell"><b>~$' + totalC + '</b><span>Compute cost</span></div>' +
+    '</div>';
+
+  /* the low-hours override comes first because it changes the advice entirely */
+  if (hrs <= 2 && totalH > 0) {
+    h += '<div class="verdict v-miss"><span class="vl">Stop &mdash; the sequence will not work at ' + hrs + ' h/week</span>' +
+      '<p>At this budget the schedule above runs to <b>' + totalW + ' weeks</b>, which is long enough that ' +
+      'you will forget Stage 1 before you reach Stage 3. Worse, most of each session goes to reloading ' +
+      'context rather than to new work. This is not a discipline problem and trying harder will not fix it.</p>' +
+      '<p><b>Do this instead.</b> Abandon the sequence and take <b>one</b> stage. Given your goal ' +
+      '(<i>' + g.label + '</i>), take <b>Stage ' + (goal === 'build' ? '1 &mdash; the mechanism' : '4 &mdash; evals') +
+      '</b>, which is the one that pays back fastest on its own and does not strictly require the others. ' +
+      'Finish it properly, then decide whether to continue. A single cleared stage is worth more than ' +
+      'four abandoned ones, and it is the only version of this that survives a real calendar.</p></div>';
+  }
+
+  /* prior comparison */
+  if (entry > 5) {
+    h += '<div class="verdict v-hit"><span class="vl">You cleared all five &mdash; so here is the harder question</span>' +
+      '<p>You answered <b>unaided</b> on essentially everything. Either that is true, in which case this ' +
+      'course has nothing for you and you should go to Module 9 and start the paper ladder at ' +
+      'FlashAttention &mdash; or it is not, in which case the specific thing to check is this: ' +
+      '<b>pick the capability you were least sure about and actually do it this week, from a blank file.</b> ' +
+      'Not think about doing it. Do it.</p>' +
+      '<p>The reason to check is that these questions were written to be answerable honestly by someone ' +
+      'who has done the work and comfortably by someone who has read about it. That is a known weakness ' +
+      'of self-assessment and the only fix is an artefact.</p></div>';
+  } else if (guess === entry) {
+    h += '<div class="verdict v-hit"><span class="vl">Your guess held</span>' +
+      '<p>You guessed <b>Stage ' + guess + '</b> and your answers agree. That is worth something &mdash; ' +
+      'calibration about your own level is rarer than the capability itself, and it means the schedule ' +
+      'below is probably close to right.</p>' +
+      '<p>One caution: agreement between your instinct and your self-report is not independent evidence. ' +
+      'Both came from the same place. The gating capability below is the thing to test against reality.</p></div>';
+  } else if (guess > entry) {
+    h += '<div class="verdict v-miss"><span class="vl">You start further back than you thought</span>' +
+      '<p>You guessed <b>Stage ' + guess + '</b>. Your answers put you at <b>Stage ' + entry +
+      ' &mdash; ' + STAGES[entry-1].name + '</b>.</p>' +
+      '<p>This is the most common result and it is usually right rather than harsh. The overshoot ' +
+      'almost always comes from the same place: <b>familiarity reads as capability</b>. You have ' +
+      'read about the material, sat in reviews where it was discussed, and can hold the conversation ' +
+      '&mdash; and none of that is the blank-file test. The gap between "I could follow a tutorial on ' +
+      'this" and "I could write it cold" is the entire distance this course covers.</p>' +
+      '<p>The schedule below starts at Stage ' + entry + '. Do not skip forward to where you guessed. ' +
+      'The dependencies in Module 1 are real, and the cost of skipping shows up two stages later as ' +
+      'inexplicable confusion rather than as an obvious gap.</p></div>';
+  } else {
+    h += '<div class="verdict v-miss"><span class="vl">You are further ahead than you guessed</span>' +
+      '<p>You guessed <b>Stage ' + guess + '</b> but your answers clear you through to <b>Stage ' + entry +
+      '</b>. Under-rating yourself is less common than over-rating and it has a specific cost: it makes ' +
+      'you redo work you have already done, which is the fastest way to abandon a plan out of boredom.</p>' +
+      '<p>Before accepting it, check one thing. Re-read the capabilities you marked <b>unaided</b> in the ' +
+      'stages you cleared and confirm you meant <i>blank file, no reference</i> and not <i>I have done ' +
+      'something like this</i>. If you meant the second, re-answer. If you meant the first, start at ' +
+      'Stage ' + entry + ' and trust it.</p></div>';
+  }
+
+  /* inversion check: later stages claimed, earlier ones not */
+  var inverted = [];
+  sc.forEach(function(s, i){
+    if (statusOf(s.mean) === 'clear' && s.id > entry) inverted.push(s.id);
+  });
+  if (inverted.length && entry <= 3) {
+    h += '<div class="verdict v-miss"><span class="vl">Flag: the inversion</span>' +
+      '<p>You cleared <b>Stage ' + inverted.join(' and Stage ') + '</b> while Stage ' + entry +
+      ' is still open. That pattern is extremely common in people who came to this through applied ' +
+      'work &mdash; you have shipped things, so you have real evals and serving instincts, but the ' +
+      'mechanism underneath was always someone else’s library.</p>' +
+      '<p>It is not a problem to fix by reordering. It is a reason to <b>compress rather than skip</b> ' +
+      'the early stages: you will move through Stage ' + entry + ' faster than a beginner because you ' +
+      'know what it is for, and the payoff is that your existing Stage ' + inverted[0] + ' judgement ' +
+      'stops being pattern-matching and starts being reasoning. The schedule below already accounts ' +
+      'for this &mdash; cleared stages are zeroed out and you keep the credit.</p></div>';
+  }
+
+  /* gating capability */
+  if (gating !== null) {
+    h += '<div class="field"><span class="lbl">Your gating capability &mdash; fix this one first</span>' +
+      '<p style="font-size:0.95rem">' + CAPS[gating].q + '</p>' +
+      '<p>This is the earliest thing in your first open stage that you cannot currently do unaided. ' +
+      'Everything downstream is blocked on it, and it is more useful to you as a target than the ' +
+      'stage number is. <b>If you do one thing after closing this page, make it this.</b></p>' +
+      '<p>Go to <a href="' + STAGES[entry-1].mod + '">Module ' + (entry + 3) + '</a> for the concept ' +
+      'and the resource list, and treat the clearing test there as the definition of done.</p></div>';
+  }
+
+  /* the schedule */
+  h += '<div class="field"><span class="lbl">Your schedule &mdash; ' + g.label + ', ' + hrs + ' h/week</span>' +
+       '<p style="margin-bottom:0.8rem">' + g.note + '</p></div>';
+  h += '<div class="sched">';
+  sched.forEach(function(row){
+    if (row.p.hours === 0) {
+      h += '<div class="srow done"><span class="sw">cleared</span>' +
+           '<span class="sn">Stage ' + row.p.st.id + ' &mdash; ' + row.p.st.name +
+           '<em>You already do this unaided. Skipped.</em></span>' +
+           '<span class="sh">0 h</span></div>';
+      return;
+    }
+    var isNow = row.p.st.id === entry;
+    h += '<div class="srow' + (isNow ? ' now' : '') + '">' +
+      '<span class="sw">wk ' + row.w + '&ndash;' + (row.w + row.weeks - 1) + '<br>' + fmtDate(row.start) + '</span>' +
+      '<span class="sn">Stage ' + row.p.st.id + ' &mdash; ' + row.p.st.name +
+        (row.p.stat === 'partial' ? ' <span style="color:var(--yellow);font-size:0.8em">(partial credit)</span>' : '') +
+      '<em>' + row.p.st.what + '</em></span>' +
+      '<span class="sh">' + row.p.hours + ' h</span></div>';
+  });
+  h += '</div>';
+
+  /* papers */
+  if (nextPapers.length) {
+    h += '<div class="field"><span class="lbl">Your first three rungs on the paper ladder</span><ul>';
+    nextPapers.forEach(function(p){
+      h += '<li><b>' + p.n + '. ' + p.t + '</b> &mdash; ~' + p.h + ' h (' +
+           Math.ceil(p.h / hrs) + ' weeks at your budget)</li>';
+    });
+    h += '</ul><p>Run these <em>alongside</em> the stages rather than after them &mdash; the paper ' +
+      'is where the stage content becomes yours. And hold the definition from Module 9: from the ' +
+      'paper alone, reproduce the central claim at a scale you can afford, then diff against the ' +
+      'reference and write down what you missed.</p></div>';
+  }
+
+  /* sensitivity */
+  if (totalH > 0) {
+    var wLess = Math.ceil(totalH / Math.max(1, hrs - 2));
+    var wMore = Math.ceil(totalH / (hrs + 2));
+    h += '<div class="field"><span class="lbl">Sensitivity &mdash; what two hours a week is worth</span>' +
+      '<p>At <b>' + Math.max(1, hrs - 2) + ' h/week</b> this becomes <b>' + wLess + ' weeks</b>. ' +
+      'At <b>' + (hrs + 2) + ' h/week</b> it becomes <b>' + wMore + ' weeks</b> &mdash; a swing of ' +
+      '<b>' + (wLess - wMore) + ' weeks</b> from four hours of weekly difference.</p>' +
+      '<p>That non-linearity is the single most actionable thing on this page. The decision that ' +
+      'determines whether you finish is not which resources you choose; it is whether you protect ' +
+      'two more hours a week. <b>Put them in the calendar now, as recurring, with a name.</b> ' +
+      'Everything else here is commentary on that.</p></div>';
+  }
+
+  /* over-claiming hours */
+  if (hrs >= 13) {
+    h += '<div class="verdict v-miss"><span class="vl">Flag: check that number against a calendar</span>' +
+      '<p>You set <b>' + hrs + ' hours a week</b>. That is a second job on top of the first, and the ' +
+      'schedule above assumes you sustain it for <b>' + totalW + ' weeks</b>. Almost nobody does ' +
+      'while employed.</p>' +
+      '<p>The failure mode is not that you do less &mdash; it is that a plan built on an unachievable ' +
+      'number produces visible falling-behind, and falling behind ends projects that slow progress ' +
+      'would not have. <b>Go look at the last four weeks and count the hours you actually spent on ' +
+      'anything like this.</b> Use that number instead. If it is genuinely 13+, or you are between ' +
+      'roles, ignore this flag entirely.</p></div>';
+  }
+
+  h += '</div>';
+
+  $('out').innerHTML = h;
+  $('s2-st').textContent = 'Complete';
+  $('s2-st').className = 'st ok';
+  $('lab-step').textContent = 'Stage 3 of 3';
+  $('m11after').className = '';
+  try { $('out').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+/* expose for headless verification */
+window.__lab = {
+  stages: STAGES,
+  caps: CAPS,
+  setHours: function(v){ hrs = v; $('r-hrs').value = v; $('v-hrs').textContent = v; $('d-hrs').textContent = hrsDesc(v); },
+  setGoal: function(g){ goal = g; },
+  setGuess: function(s){ guess = s; },
+  setPicks: function(a){ picks = a.slice(); },
+  scores: stageScores,
+  status: statusOf
+};
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>
