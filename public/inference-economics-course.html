@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inference Economics — Why Decode Is Bandwidth-Bound and What It Costs</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.1rem;overflow-x:auto;margin:1.1rem 0;font-size:0.83rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text)}
+pre .c{color:var(--text-dim)}
+pre .k{color:var(--purple)}
+pre .s{color:var(--green)}
+pre .f{color:var(--blue)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-steel{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-steel .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* CURRENCY STATUS CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-live{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-ok{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-dated{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-frozen{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-dead{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* LEDGER ROWS */
+.ledger{margin:1.3rem 0}
+.lrow{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.05rem;margin-bottom:0.65rem;border-left:3px solid var(--border-light)}
+.lrow.live{border-left-color:var(--green)}
+.lrow.ok{border-left-color:var(--accent)}
+.lrow.dated{border-left-color:var(--yellow)}
+.lrow.frozen{border-left-color:var(--purple)}
+.lrow.dead{border-left-color:var(--red)}
+.lrow .lc{font-size:0.93rem;color:var(--text-bright);font-weight:650;margin-bottom:0.45rem}
+.lrow .lv{font-size:0.86rem;color:var(--text-dim);line-height:1.65}
+.lrow .lv b{color:var(--text)}
+.lrow .lv a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.lrow .verdict-line{margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);
+  font-size:0.85rem;color:var(--text)}
+.lrow .verdict-line b{color:var(--text-bright)}
+
+/* STAGE CLEARING TEST */
+.cleartest{background:linear-gradient(180deg,rgba(108,99,255,0.09),rgba(108,99,255,0.04));
+  border:1px solid rgba(108,99,255,0.34);border-left:3px solid var(--accent2);
+  border-radius:10px;padding:1.15rem 1.3rem;margin:1.5rem 0}
+.cleartest .lbl{font-size:0.7rem;font-weight:800;color:var(--accent2);text-transform:uppercase;
+  letter-spacing:0.08em;display:block;margin-bottom:0.6rem}
+.cleartest p{margin-bottom:0.7rem;font-size:0.93rem}
+.cleartest p:last-child{margin-bottom:0}
+.cleartest .neg{color:var(--text-dim);font-size:0.86rem}
+
+/* TIME BADGE */
+.timebar{display:flex;gap:0.5rem;flex-wrap:wrap;margin:0 0 1.3rem}
+.tb{background:var(--code-bg);border:1px solid var(--border);border-radius:7px;
+  padding:0.4rem 0.75rem;font-size:0.78rem;color:var(--text-dim);font-family:var(--mono)}
+.tb b{color:var(--accent);font-weight:700}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ PATH BUILDER (LAB) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+/* goal picker */
+.priors{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.4rem}
+.prior{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.8rem 0.9rem;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.prior:hover{border-color:var(--accent)}
+.prior.sel{border-color:var(--accent2);background:rgba(108,99,255,0.12)}
+.prior b{display:block;font-size:0.9rem;color:var(--text-bright);font-weight:750;margin-bottom:0.2rem}
+.prior span{font-size:0.75rem;color:var(--text-dim);line-height:1.45;display:block}
+@media(max-width:640px){.priors{grid-template-columns:1fr}}
+.priors.five{grid-template-columns:repeat(5,1fr)}
+@media(max-width:760px){.priors.five{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:420px){.priors.five{grid-template-columns:repeat(2,1fr)}}
+
+/* capability self-assessment */
+.cap{border:1px solid var(--border);border-radius:9px;padding:0.8rem 0.95rem;
+  margin-bottom:0.6rem;background:var(--bg2)}
+.cap .cq{font-size:0.88rem;color:var(--text);margin-bottom:0.55rem;line-height:1.6}
+.cap .cq b{color:var(--text-bright)}
+.cap .cs{font-size:0.72rem;color:var(--text-dim);font-family:var(--mono);
+  text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:0.4rem}
+.cap-opts{display:flex;gap:0.35rem;flex-wrap:wrap}
+.cap-opt{font-size:0.72rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.cap-opt:hover{border-color:var(--accent);color:var(--accent)}
+.cap-opt.sel-y{background:rgba(152,195,121,0.2);border-color:var(--green);color:var(--green)}
+.cap-opt.sel-p{background:rgba(229,192,123,0.2);border-color:var(--yellow);color:var(--yellow)}
+.cap-opt.sel-n{background:rgba(224,108,117,0.2);border-color:var(--red);color:var(--red)}
+
+/* result */
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+.field ul{margin:0 0 0.7rem 1.2rem}
+.field li{margin-bottom:0.3rem}
+
+/* schedule rows */
+.sched{margin:1rem 0}
+.srow{display:grid;grid-template-columns:auto 1fr auto;gap:0.8rem;align-items:baseline;
+  background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:0.65rem 0.9rem;margin-bottom:0.45rem;border-left:3px solid var(--border-light)}
+.srow.now{border-left-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.srow.done{opacity:0.45;border-left-color:var(--green)}
+.srow .sw{font-family:var(--mono);font-size:0.76rem;color:var(--text-dim);white-space:nowrap}
+.srow .sn{font-size:0.88rem;color:var(--text-bright);font-weight:650}
+.srow .sn em{display:block;font-style:normal;font-size:0.78rem;color:var(--text-dim);
+  font-weight:400;margin-top:0.15rem;line-height:1.5}
+.srow .sh{font-family:var(--mono);font-size:0.76rem;color:var(--accent);white-space:nowrap}
+@media(max-width:640px){.srow{grid-template-columns:1fr;gap:0.25rem}}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+
+/* ===== course-5 extras ===== */
+.eq{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;
+  padding:0.8rem 1rem;margin:1rem 0;font-family:var(--mono);font-size:0.83rem;
+  color:var(--text-bright);overflow-x:auto;line-height:2}
+.eq b{color:var(--accent)}
+.eq .cm{color:var(--text-dim)}
+.eq .st{color:var(--accent2);font-weight:700}
+.preset{display:flex;gap:0.45rem;flex-wrap:wrap;margin-bottom:0.6rem}
+.pbtn{background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);
+  border-radius:7px;padding:0.35rem 0.75rem;font-size:0.76rem;font-weight:650;cursor:pointer;
+  font-family:var(--mono);transition:all 0.15s}
+.pbtn:hover{border-color:var(--accent);color:var(--accent)}
+.pbtn.sel{border-color:var(--accent2);background:rgba(108,99,255,0.14);color:var(--text-bright)}
+.roof{margin:1.1rem 0}
+.roofbar{position:relative;height:38px;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:9px;overflow:hidden}
+.roofbar .zone{position:absolute;top:0;bottom:0}
+.roofbar .z-bw{background:rgba(224,108,117,0.16)}
+.roofbar .z-cp{background:rgba(152,195,121,0.14)}
+.roofbar .ridge{position:absolute;top:0;bottom:0;width:2px;background:var(--yellow)}
+.roofbar .you{position:absolute;top:5px;bottom:5px;width:3px;background:var(--text-bright);
+  border-radius:2px;box-shadow:0 0 0 2px rgba(240,246,252,0.25)}
+.roofbar .lb{position:absolute;top:9px;font-size:0.7rem;font-family:var(--mono);color:var(--text-dim)}
+.levers{margin:1rem 0}
+.lev{display:grid;grid-template-columns:1.6rem 1fr auto;gap:0.7rem;align-items:center;
+  background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--border-light);
+  border-radius:8px;padding:0.65rem 0.9rem;margin-bottom:0.5rem}
+.lev.top{border-left-color:var(--green);background:rgba(152,195,121,0.06)}
+.lev.mid{border-left-color:var(--accent)}
+.lev.low{border-left-color:var(--text-dim);opacity:0.8}
+.lev .rk{font-family:var(--mono);font-weight:800;color:var(--text-dim);font-size:0.85rem}
+.lev .ln{font-size:0.88rem;color:var(--text)}
+.lev .ln em{display:block;font-style:normal;font-size:0.78rem;color:var(--text-dim);
+  margin-top:0.15rem;line-height:1.5}
+.lev .lg{font-family:var(--mono);font-weight:800;font-size:0.95rem;color:var(--accent);white-space:nowrap}
+.lev.top .lg{color:var(--green)}
+.lev.low .lg{color:var(--text-dim)}
+.split3{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.2rem 0}
+@media(max-width:700px){.split3{grid-template-columns:1fr}}
+.stack{display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--border);margin:0.5rem 0}
+.stack i{display:block;height:100%;position:relative}
+.stack .s-w{background:var(--accent)}
+.stack .s-k{background:var(--accent2)}
+.stack .s-o{background:var(--border-light)}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">Inference Economics</div>
+    <div class="nav-prog" id="nav-prog">0 / 10</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>Inference Economics</h1>
+  <p class="sub">Stage 5 of the path, and the other one the source list left out. Two phases with
+  opposite bottlenecks, one derivation that tells you your arithmetic intensity <em>is</em> your batch
+  size, and the reason the KV cache rather than the weights usually decides how many users a GPU can
+  serve. Ends with the only cost model you need &mdash; and the ranking of levers, which is not the
+  one that gets executive attention.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>10</span> modules</div>
+    <div class="hero-badge"><span>~25 h</span> stage budget</div>
+    <div class="hero-badge"><span>~$20&ndash;40</span> compute</div>
+    <div class="hero-badge"><span>1</span> interactive tool</div>
+    <div class="hero-badge"><span>~85</span> min read</div>
+    <div class="hero-badge"><span>28 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Stage 5 of five &middot; prerequisite:
+  <a href="training-stack-course.html">The Training Stack</a> &middot;
+  the path is in <a href="ai-path-intermediate-to-advanced-course.html">Intermediate to Advanced AI</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>This stage has the highest ratio of money to understanding of the five. Nearly every serving
+  optimisation is a consequence of <strong>one fact</strong> &mdash; that generating a single token
+  requires reading every parameter from memory &mdash; and once you hold it you can usually derive
+  the technique rather than memorise it. Module 2 is that fact, made quantitative.</p>
+  <p><strong>Every number in the tool is derived from published hardware specifications and the model
+  arithmetic from Stage 1.</strong> Where the simulator makes a simplification that would flatter the
+  result, it says so at that point rather than in a footnote.</p>
+  <p>Two claims in wide circulation are corrected here: that quantization roughly doubles throughput
+  (it halves the bytes, which is not the same thing), and that speculative decoding is a
+  general-purpose speedup (it mostly evaporates at the batch sizes that make serving cheap).</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">Two phases, opposite bottlenecks<span class="tag">The fact</span></a></li>
+    <li><a href="#m2">Your arithmetic intensity is your batch size<span class="tag">Derivation</span></a></li>
+    <li><a href="#m3">The KV cache is the constraint<span class="tag">Not the weights</span></a></li>
+    <li><a href="#m4">Batching, and why it is the primary lever<span class="tag">Continuous</span></a></li>
+    <li><a href="#m5">PagedAttention<span class="tag">Virtual memory, borrowed</span></a></li>
+    <li><a href="#m6">Prefix caching<span class="tag">The free win</span></a></li>
+    <li><a href="#m7">Speculative decoding<span class="tag">And its limits</span></a></li>
+    <li><a href="#m8">Quantization<span class="tag">What it actually buys</span></a></li>
+    <li><a href="#m9">The cost model<span class="tag">Ranked levers</span></a></li>
+    <li><a href="#m10">The Serving Simulator<span class="tag">Interactive</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>Two phases, opposite bottlenecks</h2>
+  <div class="mt">Prefill and decode look like the same computation and behave like different machines</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to say why prefill is compute-bound and decode is not, from the shapes alone</li>
+  <li>Know the two latency metrics that matter and which phase controls each</li>
+  <li>Understand why a single system serving both phases is making a compromise</li>
+</ul></div>
+
+<h3>The same weights, two completely different workloads</h3>
+
+<div class="split">
+<div class="l"><div class="h">Prefill &mdash; processing the prompt</div>
+<p>The whole prompt goes through the model at once. Every token is a column in a large matrix
+multiply, so each weight loaded from memory is used across hundreds or thousands of tokens.</p>
+<p><b>High arithmetic intensity. Compute-bound. The GPU is genuinely busy.</b></p>
+<p>Controls <b>time to first token</b> (TTFT).</p></div>
+<div class="r"><div class="h">Decode &mdash; generating tokens</div>
+<p>One token at a time, each depending on the last. To produce a <em>single</em> token you must read
+<em>every parameter in the model</em> from memory.</p>
+<p><b>Terrible arithmetic intensity. Memory-bandwidth-bound. The FLOPs sit idle.</b></p>
+<p>Controls <b>time per output token</b> (TPOT).</p></div>
+</div>
+
+<p>Sit with the decode case, because it is the one that costs money. A 70-billion-parameter model in
+BF16 is 141 GB of weights. Every generated token requires reading all 141 GB. At an H100's 3.35 TB/s
+that is <b>42 milliseconds of pure memory traffic per token</b> &mdash; set entirely by bandwidth,
+with the arithmetic units almost idle. Double the chip's FLOPs and nothing changes.</p>
+<p>In practice you shard those weights across several GPUs, and the read parallelises: on four H100s
+each device reads its own quarter, so the floor drops to about 10.5 ms. That is a real speedup and it
+does not change the character of the problem &mdash; you are still waiting on memory, just on four
+memory buses at once.</p>
+
+<div class="callout c-steel"><span class="lbl">The sentence that organises the rest of this course</span>
+<p><strong>Nearly every inference optimisation is an attempt to get more useful work out of each byte
+read from memory.</strong></p>
+<p>Batching: read the weights once, produce many tokens. Speculative decoding: read the weights once,
+produce several tokens. Quantization: make the bytes smaller. Prefix caching: skip reading tokens you
+already processed. PagedAttention: stop wasting the memory you would have used for more batch.</p>
+<p>Five techniques, one idea. Once you have it, you can usually derive the technique from the problem
+rather than remember it from a paper, and &mdash; more useful in practice &mdash; you can predict
+which one will help <em>your</em> deployment before you try it.</p>
+</div>
+
+<h3>Why the two phases fight each other</h3>
+
+<p>A server doing both phases at once is making a compromise it cannot escape. A long prefill occupies
+the GPU for tens or hundreds of milliseconds, during which every sequence in the decode batch stalls.
+Users see it as inter-token jitter: fluent output, then a pause, then fluent output.</p>
+
+<p>Two responses are standard, and it is worth knowing both because they represent different
+philosophies:</p>
+
+<ul>
+  <li><strong>Chunked prefill.</strong> Break a long prompt into pieces and interleave them with
+  decode steps, so no single prefill monopolises the GPU. Smooths TPOT at a modest cost to TTFT.
+  Simple, and available in mainstream serving stacks.</li>
+  <li><strong>Disaggregated serving.</strong> Run prefill and decode on <em>separate</em> pools of
+  hardware, shipping the KV cache between them. Each pool is then tuned for one bottleneck &mdash;
+  prefill wants FLOPs, decode wants bandwidth &mdash; instead of compromising for both. It costs a
+  KV-cache transfer over the network per request, which is why it only pays at scale.</li>
+</ul>
+
+<p>Disaggregation is the more interesting of the two, because it is an admission that these are
+different machines' workloads wearing one model's name. If you internalise nothing else from this
+module, internalise that: <strong>"LLM inference" is two jobs, and every design decision downstream
+depends on which one you are optimising.</strong></p>
+
+<div class="takeaways"><div class="t">Module 1 takeaways</div>
+<ul>
+  <li>Prefill is compute-bound and sets TTFT; decode is bandwidth-bound and sets TPOT.</li>
+  <li>Every generated token requires reading every parameter &mdash; 141 GB for a 70B model in BF16.</li>
+  <li>At 3.35 TB/s that is a ~42 ms floor per token for a single sequence, set by bandwidth alone.</li>
+  <li>Almost every optimisation is "more useful work per byte read."</li>
+  <li>Chunked prefill smooths the interference; disaggregation separates the two workloads entirely.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>Your arithmetic intensity is your batch size</h2>
+  <div class="mt">Three lines that tell you exactly how far from efficient your deployment is</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to compute your deployment's arithmetic intensity in your head</li>
+  <li>Know the batch size at which decode becomes compute-bound on your hardware</li>
+  <li>Know why long context prevents you from ever reaching it, which is the non-obvious part</li>
+</ul></div>
+
+<h3>The derivation</h3>
+
+<p>Stage 2 established the ridge point: a kernel is compute-bound above a certain number of FLOPs per
+byte read, and that threshold is peak FLOP/s divided by memory bandwidth. For an H100 SXM at 989.5
+dense BF16 TFLOPS and 3.35 TB/s, the ridge is about <b>295 FLOPs per byte</b>.</p>
+
+<p>Now compute decode's intensity. One decode step, batch size B, model with N parameters at
+<em>bp</em> bytes per parameter, ignoring the KV cache for a moment:</p>
+
+<div class="eq">
+FLOPs = 2 &middot; N &middot; B&nbsp;&nbsp;<span class="cm"># two per parameter per token, from Stage 2</span><br>
+bytes = N &middot; bp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># the weights, read exactly once for the whole batch</span><br>
+<b>intensity = 2B / bp</b>&nbsp;&nbsp;<span class="cm"># in BF16, bp = 2, so intensity = B</span>
+</div>
+
+<p>That is the whole result, and it is worth stopping on. <strong>In BF16, your arithmetic intensity
+during decode is numerically equal to your batch size.</strong> N cancels &mdash; a bigger model does
+not change your position on the roofline at all, it just moves both terms together.</p>
+
+<div class="callout c-fact"><span class="lbl">What that gives you immediately</span>
+<p>The ridge on an H100 is 295. So <strong>you need a batch of roughly 295 concurrent sequences
+before decode stops being bandwidth-bound.</strong> Below that, the arithmetic units are idle in
+direct proportion to how far below you are.</p>
+<p>Batch 1 &mdash; a single user, a local model, an agent loop with no concurrency &mdash; runs at an
+intensity of 1 against a ridge of 295. <strong>You are using roughly a third of one percent of the
+chip's arithmetic capability.</strong> That is not a bug and not something to fix by writing better
+kernels: it is the shape of the problem, and the only fix is more sequences in flight.</p>
+<p>It also tells you why the local-model experience feels the way it does. Your GPU is not working
+hard. It is queuing at the memory bus.</p>
+</div>
+
+<h3>And now the part that stops you reaching the ridge</h3>
+
+<p>The derivation above ignored the KV cache, and at realistic context lengths the KV cache is where
+the bytes are. Put it back in:</p>
+
+<div class="eq">
+intensity = <b>2 &middot; N &middot; B</b> / ( N&middot;bp &nbsp;+&nbsp; <b>B &middot; S &middot; kv_per_token</b> )
+</div>
+
+<p>where S is the average sequence length. Notice what happens as B grows: the numerator grows
+linearly and so does the second term in the denominator. <strong>Intensity saturates.</strong> Past
+the batch size at which KV traffic exceeds weight traffic, adding more sequences stops improving your
+efficiency &mdash; you are now reading more cache per step in exact proportion to the extra tokens
+you produce.</p>
+
+<div class="callout c-dissent"><span class="lbl">Work it for a real deployment, because the number is startling</span>
+<p>Llama 3 70B in BF16 on four H100s. From Stage 1, its KV cache is <b>320 KiB per token</b>. Take
+4,096-token sequences and the largest batch that fits &mdash; Module 3 works this out as about
+<b>125 sequences</b> once you leave room for activations.</p>
+<div class="eq">
+FLOPs&nbsp;&nbsp;&nbsp;&nbsp;= 2 &times; 70.55e9 &times; 125&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1.76 &times; 10<sup>13</sup><br>
+weights&nbsp;&nbsp;= 141.1 GB&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= 1.41 &times; 10<sup>11</sup> bytes<br>
+KV read&nbsp;&nbsp;= 125 &times; 4096 &times; 327,680&nbsp;&nbsp;&nbsp;&nbsp;= 1.68 &times; 10<sup>11</sup> bytes<br>
+<b>intensity = 1.76e13 / 3.09e11 = 57</b>&nbsp;&nbsp;<span class="cm"># against a ridge of 295</span>
+</div>
+<p>Two things fall out, and both are worth carrying. First, <strong>the KV cache is reading more
+bytes than the weights are</strong> &mdash; 168 GB against 141 GB per step. Everyone knows the KV
+cache occupies memory; far fewer people notice it also consumes <em>bandwidth</em>, which is the
+scarcer resource.</p>
+<p>Second, this deployment is at maximum batch and still <strong>more than five times below the
+ridge</strong>. It cannot become compute-bound at this context length, at any batch size, because
+the thing that would let it &mdash; more sequences &mdash; brings its own bandwidth cost.
+<strong>Long context does not merely consume memory; it caps your achievable efficiency.</strong></p>
+</div>
+
+<div class="takeaways"><div class="t">Module 2 takeaways</div>
+<ul>
+  <li>Ignoring KV, decode intensity = 2B/bp, which in BF16 is exactly the batch size. N cancels.</li>
+  <li>You need ~295 concurrent sequences on an H100 before decode stops being bandwidth-bound.</li>
+  <li>Batch 1 runs at ~0.3% of the chip's arithmetic capability. That is the shape of the problem.</li>
+  <li>Including KV, intensity saturates &mdash; more batch buys less and less.</li>
+  <li>A maxed-out 70B deployment at 4K context sits at intensity ~57 and reads more KV bytes than weight bytes.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>The KV cache is the constraint</h2>
+  <div class="mt">Not the weights. The number of users you can serve is set by a cache you did not budget for.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to compute maximum concurrency for any model, hardware and context length</li>
+  <li>Understand why advertised context length and concurrency are in direct competition</li>
+  <li>Know the three architectural choices that shrink the cache and what each costs</li>
+</ul></div>
+
+<h3>Why it exists and what it costs</h3>
+
+<p>Generating token <em>t</em>+1 requires attention over all previous positions. Recomputing every
+key and value from scratch at every step would make decoding quadratic in output length, so you cache
+them. That is what makes generation tractable at all.</p>
+
+<p>From Stage 1, the size is fully determined by the config:</p>
+
+<div class="eq">
+kv_bytes_per_token = <b>2</b> &times; layers &times; kv_heads &times; head_dim &times; bytes_per_element
+<span class="cm">  # the 2 is K and V</span>
+</div>
+
+<p>For Llama 3 70B in BF16: 2 &times; 80 &times; 8 &times; 128 &times; 2 = <b>327,680 bytes</b>, or
+320 KiB, per token. Every token of every sequence in flight.</p>
+
+<h3>The concurrency calculation, which is the whole module</h3>
+
+<div class="eq">
+usable_KV_memory = (GPUs &times; HBM) &minus; weights &minus; activation_headroom<br>
+<b>max_concurrent = usable_KV_memory / ( kv_per_token &times; avg_sequence_length )</b>
+</div>
+
+<p>Four H100s, <b>320 GiB</b> total. Weights take 131.4 GiB (141 GB in decimal units &mdash; the
+simulator in Module 10 reports binary, so the figures here are stated in GiB to match). Leave 32 GiB
+for activations and workspace and you have about <b>157 GiB</b> for KV cache.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Average sequence length</th><th>KV per sequence</th><th>Max concurrent sequences</th></tr></thead>
+<tbody>
+<tr><td>1,024 tokens</td><td>0.31 GiB</td><td><b>~501</b></td></tr>
+<tr><td>4,096 tokens</td><td>1.25 GiB</td><td><b>~125</b></td></tr>
+<tr><td>32,768 tokens</td><td>10.0 GiB</td><td><b>~15</b></td></tr>
+<tr><td>131,072 tokens (advertised max)</td><td>40.0 GiB</td><td><b>3</b></td></tr>
+</tbody></table></div>
+
+<div class="callout c-warn"><span class="lbl">The thing the marketing page does not say</span>
+<p>Advertised context length and achievable concurrency are competing for the same memory, and the
+exchange rate is fixed by a number printed in a public JSON file.</p>
+<p>A model advertised at 128K context, served on four H100s, can hold <strong>three</strong> such
+sequences at once. Not three hundred. Three. Your per-user cost at full context is therefore roughly
+a hundred and seventy times your per-user cost at 1K context, for the same model on the same hardware
+&mdash; and that ratio is arithmetic, not an implementation detail you can engineer away.</p>
+<p>This is the calculation to run before agreeing to a long-context product commitment. It takes
+ninety seconds and it is frequently the difference between a feature and a business.</p>
+</div>
+
+<h3>The three ways to make it smaller</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Technique</th><th>Mechanism</th><th>Saving</th><th>Cost</th></tr></thead>
+<tbody>
+<tr><td><b>Grouped-query attention</b></td><td>Query heads share key-value heads.</td><td>Exactly the sharing ratio &mdash; 8&times; for Llama 3 70B's 64:8.</td><td>A small, generally accepted quality cost. Decided before training; not available to you afterwards.</td></tr>
+<tr><td><b>KV cache quantization</b></td><td>Store K and V in FP8 or INT8 instead of BF16.</td><td>2&times; for 8-bit.</td><td>Available at serving time and cheap. Quality impact is usually small but is workload-dependent &mdash; measure it on your traffic rather than trusting a benchmark.</td></tr>
+<tr><td><b>Eviction / sliding window</b></td><td>Drop or compress cache entries for distant positions.</td><td>Unbounded in principle.</td><td>You are discarding information the model could have attended to. Sometimes free, sometimes silently destructive on tasks needing long-range recall. Needs its own eval.</td></tr>
+</tbody></table></div>
+
+<p>Note that the first is an architecture decision made before training, which is why Stage 1 flagged
+grouped-query attention as an inference-cost choice baked into the model. The second is the one
+available to you today at the lowest risk. The third is where the research is and where the
+unexamined quality regressions live.</p>
+
+<div class="takeaways"><div class="t">Module 3 takeaways</div>
+<ul>
+  <li>KV per token = 2 &times; layers &times; kv_heads &times; head_dim &times; element_bytes. Llama 3 70B: 320 KiB.</li>
+  <li>Max concurrency = leftover memory &divide; (KV per token &times; sequence length).</li>
+  <li>Four H100s serving Llama 3 70B: ~501 sequences at 1K context, three at 128K.</li>
+  <li>Advertised context and concurrency compete directly, at a rate you can compute from the config.</li>
+  <li>GQA is decided before training; KV quantization is your cheapest lever; eviction needs its own eval.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>Batching, and why it is the primary lever</h2>
+  <div class="mt">Read the weights once, produce many tokens. Everything else is a rounding error by comparison.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know why batching is nearly free during decode and expensive during prefill</li>
+  <li>Understand continuous batching and be able to quantify what naive batching wastes</li>
+  <li>Know the latency cost of batching and how to reason about the trade</li>
+</ul></div>
+
+<h3>Why it is nearly free</h3>
+
+<p>Reading 141 GB of weights to produce one token costs you a full memory sweep per token. Reading the
+same 141 GB to advance 64 sequences costs the same sweep and produces 64 tokens. You have divided the
+dominant cost by 64, and the extra arithmetic was going to sit idle anyway.</p>
+
+<p>This is why batching is the first lever and the largest, and why a serving system running at low
+batch occupancy is burning money in a way that no amount of kernel optimisation will recover. It is
+also why the intensity result in Module 2 matters: batching is not one optimisation among many, it
+<em>is</em> the movement along the roofline.</p>
+
+<h3>Continuous batching</h3>
+
+<p>Naive batching runs a batch to completion. Requests arrive at different times and finish at
+different lengths, so a batch of 32 in which 31 sequences finish early runs at 1/32 utilisation
+until the straggler finishes &mdash; and new arrivals queue behind it even though the hardware is
+nearly idle.</p>
+
+<p><strong>Continuous batching</strong> schedules at token granularity. When a sequence emits its stop
+token, its slot is freed and a queued request takes it on the very next step. Same hardware,
+several times the throughput, no change to the model.</p>
+
+<div class="callout c-fact"><span class="lbl">Where it comes from, and what it is really called</span>
+<p>The idea is <a href="https://www.usenix.org/conference/osdi22/presentation/yu" target="_blank"
+rel="noopener">Orca</a> (Yu et al., OSDI 2022), which named it <strong>iteration-level
+scheduling</strong>: the scheduler invokes the engine to run a single iteration on the batch rather
+than a whole request to completion, so the batch can be adjusted between iterations. It pairs with
+<em>selective batching</em>, because not every operation in a transformer can be batched across
+sequences of different lengths &mdash; attention cannot, the rest can.</p>
+<p>"Continuous batching" is the name the idea acquired in industry. Knowing the original terms is
+useful when reading the literature, and the paper is short.</p>
+</div>
+
+<h3>What batching costs, since it is not actually free</h3>
+
+<p>Two real costs, and being clear about them is what separates a serving decision from a slogan.</p>
+
+<ul>
+  <li><strong>Latency for the individual user.</strong> Each decode step now does more work, so
+  time-per-output-token rises with batch size &mdash; slowly while you are bandwidth-bound, then
+  linearly once the KV traffic or the arithmetic starts to bind. Your users experience throughput as
+  <em>slower</em> generation. This is a genuine trade between cost per token and speed per user, and
+  it should be made deliberately with a stated TPOT budget rather than by maximising batch.</li>
+  <li><strong>Memory.</strong> More sequences means more KV cache, and Module 3 showed that is the
+  binding constraint. You cannot batch beyond what the cache allows, which is why PagedAttention
+  &mdash; a memory technique &mdash; is really a throughput technique.</li>
+</ul>
+
+<div class="takeaways"><div class="t">Module 4 takeaways</div>
+<ul>
+  <li>Batching amortises the weight read across sequences; the extra arithmetic was idle anyway.</li>
+  <li>Naive batching runs to completion and wastes slots on stragglers.</li>
+  <li>Continuous batching &mdash; Orca's iteration-level scheduling &mdash; refills slots every step.</li>
+  <li>Batching raises per-user TPOT. Set a latency budget, then maximise batch under it.</li>
+  <li>KV memory caps your batch, which is why memory efficiency is a throughput lever.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>PagedAttention</h2>
+  <div class="mt">A solved operating-systems problem, recognised in a new costume &mdash; with the numbers from the paper</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the three kinds of waste in a naive KV allocator and how much memory they cost</li>
+  <li>Understand block tables as virtual memory, and why sharing follows for free</li>
+  <li>Be able to recognise this pattern when it appears in another guise</li>
+</ul></div>
+
+<h3>The problem: three kinds of waste</h3>
+
+<p>The naive implementation allocates a contiguous chunk of KV cache per request, sized for the
+request's <em>maximum possible</em> sequence length &mdash; because the cache must be contiguous and
+you do not know in advance how long the output will be. The <a
+href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener">PagedAttention paper</a>
+(Kwon et al., 2023) identifies three distinct wastes in that scheme:</p>
+
+<ul>
+  <li><strong>Reserved slots</strong> for tokens not yet generated. This memory does eventually get
+  used, but it is held for the request's whole lifetime, so other requests cannot use it in the
+  meantime.</li>
+  <li><strong>Internal fragmentation</strong> from over-provisioning to the maximum length. A request
+  that could have run to 2,048 tokens and stopped at 100 has wasted the other 1,948 slots, and you
+  only learn this after it finishes.</li>
+  <li><strong>External fragmentation</strong> from the allocator, since pre-allocated chunk sizes
+  differ between requests. This memory is never usable, and that is knowable before the request even
+  starts.</li>
+</ul>
+
+<div class="callout c-dissent"><span class="lbl">How much this costs, from the paper's own profiling</span>
+<p>The paper's Figure 2 profiling of existing systems &mdash; Orca and FasterTransformer &mdash;
+found that <strong>only 20.4% to 38.2% of KV cache memory was being used to store actual token
+states</strong>, and that effective memory "can be as low as 20.4%."</p>
+<p>Read that against Module 3. KV cache capacity sets your maximum concurrency, and up to four fifths
+of it was being thrown away by an allocation strategy. This was not a small optimisation available to
+a tuned system; it was the dominant inefficiency in production LLM serving, and it was a memory
+management problem rather than a machine learning one.</p>
+</div>
+
+<h3>The solution, which you already know</h3>
+
+<p>Do exactly what an operating system does for process memory. Allocate the KV cache in small
+fixed-size <strong>blocks</strong>. Keep a per-sequence <strong>block table</strong> mapping logical
+positions to physical blocks. Hand out blocks on demand as the sequence grows.</p>
+
+<p>Three consequences follow immediately:</p>
+
+<ul>
+  <li><strong>No external fragmentation</strong>, because every block is the same size.</li>
+  <li><strong>Internal waste bounded by one partial block per sequence</strong>, instead of by the
+  gap between actual and maximum length. The paper reports near-zero waste as a result.</li>
+  <li><strong>Sharing becomes trivial.</strong> Two sequences with a common prefix can point their
+  block tables at the <em>same physical blocks</em>. Nothing is copied. This is the mechanism behind
+  prompt caching and behind cheap parallel sampling from one prompt, and it was not designed in
+  &mdash; it fell out of the indirection.</li>
+</ul>
+
+<p>The reported result is 2&ndash;4&times; throughput at the same latency against FasterTransformer
+and Orca, with larger gains for longer sequences and larger models &mdash; which is what you would
+predict, since those are the cases where the wasted cache was largest.</p>
+
+<div class="callout c-steel"><span class="lbl">The pattern, which is the transferable part</span>
+<p>Variable-length objects with unknown lifetimes, allocated contiguously in a fixed pool, causing
+fragmentation. Solved by indirection: fixed-size blocks plus a translation table, which additionally
+enables sharing.</p>
+<p>That is virtual memory, and it was solved in the 1960s. The contribution of PagedAttention is not
+inventing paging; it is <em>recognising the shape of the problem</em>. This is the clearest recent
+example in ML systems of a large win coming from knowing what an adjacent field already solved, and
+the reason to internalise it as a pattern rather than a technique is that the next such win will look
+different and rhyme.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 5 takeaways</div>
+<ul>
+  <li>Naive KV allocation wastes memory three ways: reservation, internal and external fragmentation.</li>
+  <li>The paper measured only 20.4&ndash;38.2% of KV memory holding real token state in prior systems.</li>
+  <li>Fixed-size blocks plus a per-sequence block table removes external fragmentation and bounds internal waste to one block.</li>
+  <li>Prefix sharing falls out of the indirection for free &mdash; it is what makes prompt caching cheap.</li>
+  <li>Reported 2&ndash;4&times; throughput at equal latency, more on longer sequences.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Prefix caching</h2>
+  <div class="mt">The cheapest win available, and it is sitting in your system prompt right now</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know exactly what prefix caching does and does not save</li>
+  <li>Be able to identify the workloads where it is transformative rather than marginal</li>
+  <li>Know the one prompt-design rule that determines whether you get the benefit at all</li>
+</ul></div>
+
+<h3>What it saves</h3>
+
+<p>If two requests share a prefix &mdash; the same system prompt, the same few-shot examples, the same
+retrieved document, the same conversation so far &mdash; then the keys and values for that prefix are
+<em>identical</em>. They depend only on the tokens and their positions, both of which match.</p>
+
+<p>So compute them once and reuse them. Thanks to PagedAttention's block tables, "reuse" means
+pointing a second sequence's block table at the same physical blocks. Nothing is copied and no extra
+memory is consumed.</p>
+
+<p>Be precise about the saving, because it is often overstated. <strong>Prefix caching eliminates
+prefill work for the shared portion. It does nothing for decode.</strong> If your workload is a
+2,000-token system prompt and a 500-token answer, prefill was a meaningful fraction of the cost and
+you have just removed most of it. If it is a 100-token prompt and a 2,000-token answer, you have
+saved almost nothing, because decode was always the bill.</p>
+
+<div class="callout c-fact"><span class="lbl">Where it is transformative</span>
+<ul>
+  <li><b>Multi-turn conversation.</b> Turn <em>n</em> shares the entire history with turn
+  <em>n</em>&minus;1. Without caching, a 20-turn conversation re-processes the whole transcript on
+  every turn &mdash; quadratic total prefill in the number of turns. With caching it is linear. This
+  is the single largest structural saving available in chat.</li>
+  <li><b>Agent loops.</b> Same system prompt, same tool definitions, same scratchpad, on every step of
+  a long trajectory. Agents are the workload prefix caching was made for, and an agent framework
+  without it is paying for its own instructions dozens of times per task.</li>
+  <li><b>Any large fixed system prompt.</b> Long instructions and few-shot examples, identical across
+  every user, on every request.</li>
+  <li><b>Batch classification.</b> One long rubric plus a short item, repeated thousands of times.</li>
+</ul>
+</div>
+
+<div class="callout c-warn"><span class="lbl">The one rule that decides whether you get any of this</span>
+<p>Matching is on the <strong>token prefix</strong>. It is a literal prefix match, from position zero.
+Anything that varies must come <em>after</em> everything that is shared.</p>
+<p>Which means a timestamp, a request ID, a user's name or an A/B flag placed near the top of the
+system prompt <strong>destroys the cache for every request</strong>. Nothing errors, nothing is
+logged, and your prefill cost silently reverts to uncached. This is a genuinely common and expensive
+mistake, and it is invisible unless you are watching your cache hit rate.</p>
+<p><b>Order your prompt: fixed content first, then slowly-varying content, then per-request
+content, then user input.</b> That single ordering rule is worth more than most prompt engineering,
+and it is the sort of thing that never appears in a prompting guide because it is a systems
+consideration wearing a prompting costume.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 6 takeaways</div>
+<ul>
+  <li>Shared prefixes have identical keys and values, so they can be computed once and shared by pointer.</li>
+  <li>It eliminates prefill for the shared portion and does nothing for decode.</li>
+  <li>Multi-turn chat and agent loops are where it turns quadratic prefill into linear.</li>
+  <li>Matching is a literal token prefix from position zero.</li>
+  <li>A timestamp at the top of your system prompt silently disables it. Order: fixed, slow, per-request, user.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>Speculative decoding</h2>
+  <div class="mt">Buy several tokens for one weight read &mdash; and understand why it stops working exactly where you need it most</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Understand the mechanism and why the output distribution is provably unchanged</li>
+  <li>Be able to compute the expected speedup from an acceptance rate</li>
+  <li>Know the condition under which it stops helping, which is the part usually omitted</li>
+</ul></div>
+
+<h3>The mechanism</h3>
+
+<p>A small, cheap draft model proposes the next <em>k</em> tokens. The large target model then
+verifies all <em>k</em> in a <em>single</em> forward pass &mdash; because verification is a
+prefill-shaped operation: you are scoring a known sequence, not generating one. Accepted prefixes are
+kept; at the first rejection you resample that position from a corrected distribution and discard the
+rest.</p>
+
+<p>You have paid <strong>one</strong> read of the large model's weights and received up to
+<em>k</em>+1 tokens instead of one. Another bandwidth trade, and the cleanest one in the catalogue.</p>
+
+<div class="callout c-steel"><span class="lbl">The output distribution is provably unchanged &mdash; that is the whole trick</span>
+<p>This is not an approximation and it is worth understanding why. The acceptance test uses a
+modified rejection-sampling scheme: accept a drafted token with probability min(1, p_target/p_draft),
+and on rejection sample from a specific residual distribution. The construction guarantees the
+resulting samples are drawn from exactly the target model's distribution.</p>
+<p><a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener">Leviathan, Kalman and
+Matias (ICML 2023)</a> report 2&times;&ndash;3&times; acceleration on T5-XXL with, in their words,
+identical outputs. <strong>A speedup with no quality cost is rare enough to be worth being suspicious
+of, and in this case the suspicion does not survive the proof.</strong> The draft model's quality
+affects only <em>how often</em> you accept, never <em>what</em> you produce.</p>
+</div>
+
+<h3>The arithmetic of the speedup</h3>
+
+<p>With acceptance rate &alpha; and a draft of <em>k</em> tokens, the expected number of tokens
+accepted per verification pass is the geometric sum</p>
+
+<div class="eq">
+E[tokens] = (1 &minus; &alpha;<sup>k+1</sup>) / (1 &minus; &alpha;)
+</div>
+
+<p>At &alpha; = 0.7 and <em>k</em> = 4 that is about <b>2.8 tokens per verification</b>. Subtract the
+draft model's cost &mdash; typically a few percent of the target's per token &mdash; and you have a
+roughly 2.3&times; speedup for a single sequence.</p>
+
+<p>The acceptance rate is where the engineering is. It rises with draft-model quality and with how
+predictable the text is &mdash; boilerplate, code with strong conventions and formatting are drafted
+well; genuinely novel reasoning is not. This is also why self-speculative approaches, n-gram lookup
+against the prompt, and Medusa-style extra heads all exist: they are different bets about where cheap
+predictability lives.</p>
+
+<div class="callout c-dissent"><span class="lbl">And here is why it may do nothing for your production deployment</span>
+<p>Speculative decoding converts <strong>idle FLOPs</strong> into tokens. Verifying <em>k</em>+1
+tokens per sequence costs roughly (<em>k</em>+1) times the arithmetic of a normal decode step, while
+costing about the same bandwidth. That is a wonderful trade when the arithmetic units are idle.</p>
+<p><strong>Module 2 told you exactly when they stop being idle: at a batch size approaching the ridge
+point.</strong> A high-throughput server already running at large batch is much closer to
+compute-bound, and multiplying its arithmetic by (<em>k</em>+1) makes compute the binding constraint.
+The speedup shrinks, and at sufficiently large batch it inverts &mdash; you are now doing five times
+the arithmetic for 2.8 times the tokens.</p>
+<p>So the honest summary: <strong>speculative decoding is a latency technique for low-concurrency
+serving, not a throughput technique for high-concurrency serving.</strong> It is superb for a single
+user on local hardware, for interactive coding assistants, for latency-sensitive agent loops. It is
+often close to worthless on a busy multi-tenant endpoint that is already batching well &mdash; which
+is precisely the deployment whose bill you were trying to reduce.</p>
+<p>The simulator in Module 10 lets you watch the speedup collapse as you raise the batch size. It is
+the most counterintuitive result in the tool and the one most worth generating yourself.</p>
+</div>
+
+<div class="takeaways"><div class="t">Module 7 takeaways</div>
+<ul>
+  <li>A draft model proposes k tokens; the target verifies them in one forward pass.</li>
+  <li>The rejection-sampling scheme provably preserves the target's output distribution.</li>
+  <li>E[tokens per verify] = (1&minus;&alpha;<sup>k+1</sup>)/(1&minus;&alpha;) &mdash; about 2.8 at &alpha;=0.7, k=4.</li>
+  <li>It spends idle FLOPs, so it helps most at low batch and fades as you approach the ridge.</li>
+  <li>A latency technique for low concurrency, not a throughput technique for high concurrency.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>Quantization</h2>
+  <div class="mt">Smaller bytes, same count &mdash; and the throughput claim that does not follow</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know why quantization helps decode far more than prefill, from the roofline</li>
+  <li>Know what the independent evidence says about quality at each precision</li>
+  <li>Be able to correct the most common overstatement about what it buys</li>
+</ul></div>
+
+<h3>The mechanism, from Module 2's formula</h3>
+
+<p>Decode is bandwidth-bound and the dominant traffic is the weights. Halve the bytes per parameter
+and you halve the bytes read per token, so you halve the decode bandwidth floor. Recall the intensity
+formula: <b>intensity = 2B/bp</b>. Dropping from BF16 to FP8 doubles your arithmetic intensity at the
+same batch size, moving you along the roofline for free.</p>
+
+<p>Two consequences follow immediately, and the second is the one people get wrong:</p>
+
+<ul>
+  <li><strong>Weights take half the memory</strong>, which leaves more for KV cache, which raises
+  maximum concurrency, which raises throughput again. Quantization's second-order effect through the
+  memory budget is frequently larger than its first-order effect on bandwidth, and it is almost never
+  the one quoted.</li>
+  <li><strong>Prefill barely improves.</strong> Prefill was compute-bound, and quantizing weights does
+  not reduce the FLOPs. On hardware with native low-precision arithmetic &mdash; H100 does FP8
+  matrix multiply at roughly twice its BF16 rate &mdash; prefill does speed up, but through a
+  different mechanism that requires the <em>activations</em> to be quantized too, not just the
+  weights.</li>
+</ul>
+
+<div class="callout c-warn"><span class="lbl">Correcting a claim in wide circulation</span>
+<p>You will read that FP8 "roughly doubles throughput." That does not follow from the mechanism and
+it is usually an overstatement.</p>
+<p>Halving the bytes halves the <em>weight-read</em> term. But at any useful batch size the KV cache
+is also consuming bandwidth (Module 2: 180 GB against 141 GB in the worked example), and quantizing
+the weights does nothing for it unless you quantize the KV cache too. Meanwhile prefill, scheduling
+overhead and the sampling step do not shrink at all. <strong>End-to-end throughput gains are real and
+typically well below 2&times;</strong>, with the exact figure depending on your prompt-to-output
+ratio and your batch size.</p>
+<p>Three cases, and conflating them is where the overstatement comes from:</p>
+<ul>
+  <li><b>Weights only, KV left at 16-bit</b> (the W4A16 case, and many W8A8 deployments): you halve
+  or quarter one of two decode-bandwidth terms. At the batch sizes where the KV cache dominates
+  &mdash; which Module 2 showed is most of them &mdash; the gain is well under 2&times;.</li>
+  <li><b>Weights <em>and</em> KV cache</b> at FP8, on a purely decode-bandwidth-bound deployment:
+  every byte halves, so decode throughput really can approach 2&times;. The simulator's FP8 setting is
+  this case, and it will show you a number close to 2 for exactly that reason.</li>
+  <li><b>End to end</b>, counting prefill, scheduling and sampling: less again, because those terms
+  did not shrink.</li>
+</ul>
+<p>The right way to state it: <em>FP8 halves the bytes you quantize, and separately frees memory that
+raises your batch ceiling.</em> Whether that reaches 2&times; depends on whether you quantized the KV
+cache too and on how decode-dominated your workload is &mdash; both of which you can check in the
+simulator rather than assume.</p>
+</div>
+
+<h3>What the quality evidence actually says</h3>
+
+<p>Quantization quality claims are usually made by whoever is selling the throughput, so the
+independent work matters. The largest public study is <a href="https://arxiv.org/abs/2411.02355"
+target="_blank" rel="noopener">"Give Me BF16 or Give Me Death"? Accuracy-Performance Trade-Offs in
+LLM Quantization</a>, which evaluated the whole Llama-3.1 family across more than 500,000 evaluations
+on academic benchmarks and real-world tasks. Its findings:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Format</th><th>Reported quality</th><th>What it buys</th></tr></thead>
+<tbody>
+<tr><td><b>FP8</b> (W8A8-FP)</td><td>"Effectively lossless across all model scales."</td><td>Half the weight bytes; native FP8 matmul on H100-class hardware.</td></tr>
+<tr><td><b>INT8</b> (W8A8-INT)</td><td>Well-tuned INT8 shows 1&ndash;3% accuracy degradation.</td><td>Half the weight bytes on hardware without FP8 support.</td></tr>
+<tr><td><b>INT4 weights</b> (W4A16)</td><td>Competitive with the 8-bit approaches.</td><td>Quarter the weight bytes. Activations stay 16-bit, so compute does not speed up.</td></tr>
+</tbody></table></div>
+
+<p>The practical reading: <strong>FP8 is close to a free lunch on hardware that supports it and
+should probably be your default.</strong> INT4 weight-only is the right choice when memory is the
+binding constraint &mdash; fitting a larger model on fewer GPUs, or freeing memory for KV cache
+&mdash; and note that it does not accelerate compute, so it helps decode and not prefill.</p>
+
+<p>One caveat the study's framing invites and does not remove: benchmark-average quality is not your
+quality. If your task is unusual, or safety-critical, or has a long tail that benchmarks do not probe,
+run your own eval &mdash; which is Stage 4, and this is one of the cleanest cases for why Stage 4
+comes before Stage 5 in the path.</p>
+
+<div class="takeaways"><div class="t">Module 8 takeaways</div>
+<ul>
+  <li>Halving bytes per parameter halves the weight-read term and doubles decode arithmetic intensity.</li>
+  <li>The second-order effect &mdash; freed memory raising your batch ceiling &mdash; is often the larger one.</li>
+  <li>Prefill barely improves unless activations are quantized too and the hardware has native support.</li>
+  <li>"FP8 doubles throughput" holds only when you quantize the KV cache too and decode dominates; weight-only quantization gains much less.</li>
+  <li>Independent evidence: FP8 effectively lossless, well-tuned INT8 within 1&ndash;3%, W4A16 competitive.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>The cost model</h2>
+  <div class="mt">Four terms, ranked by how much they move &mdash; and the ranking is not the one that gets attention</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a cost model you can write on a napkin</li>
+  <li>Know the rough magnitude of each lever and why the ordering is what it is</li>
+  <li>Know which lever is gated on Stage 4, and why that dependency is the real curriculum argument</li>
+</ul></div>
+
+<h3>The model</h3>
+
+<div class="eq">
+cost &asymp; ( tokens_generated &times; model_size ) / batch_efficiency
+</div>
+
+<p>Every serving optimisation moves one of those three terms. Being explicit about which one, and by
+how much, is what turns a list of techniques into a decision.</p>
+
+<div class="levers">
+<div class="lev top"><span class="rk">1</span>
+  <span class="ln"><b>Batch efficiency</b>
+  <em>Continuous batching, admission control, prefix caching for shared prompts, right-sized
+  parallelism. Mostly a scheduling and configuration problem rather than a research one.</em></span>
+  <span class="lg">5&ndash;10&times;</span></div>
+<div class="lev mid"><span class="rk">2</span>
+  <span class="ln"><b>Model size &mdash; routing</b>
+  <em>Send easy requests to a small model, hard ones to a large one. Gated on Stage 4: you cannot
+  route safely without an eval that tells you when the small model was sufficient.</em></span>
+  <span class="lg">3&ndash;5&times;</span></div>
+<div class="lev mid"><span class="rk">3</span>
+  <span class="ln"><b>Tokens generated</b>
+  <em>Shorter outputs, tighter prompts, not re-sending context you could cache. Unglamorous, and
+  usually available immediately.</em></span>
+  <span class="lg">~2&times;</span></div>
+<div class="lev low"><span class="rk">4</span>
+  <span class="ln"><b>Switching vendor for a lower per-token price</b>
+  <em>The one that gets executive attention and generates the most meetings.</em></span>
+  <span class="lg">10&ndash;20%</span></div>
+</div>
+
+<p><strong>The ordering is the point.</strong> The largest lever is a scheduling decision. The
+second-largest is gated on your eval quality. The one that reliably gets a meeting is the smallest by
+an order of magnitude.</p>
+
+<div class="callout c-steel"><span class="lbl">Why lever 2 is the argument for the whole path's ordering</span>
+<p>Routing is where inference economics and evals meet, and it is the cleanest justification for why
+this course is Stage 5 and evals are Stage 4.</p>
+<p>To route, you must decide per request whether the cheap model is good enough. That is a
+classifier, and it has the same two error rates as any other. Route too aggressively and quality
+falls in ways your users notice and your dashboard does not. Route too conservatively and you have
+built a complicated system that saves nothing.</p>
+<p>The width of that safe operating band <em>is</em> the quality of your eval. A team with a validated
+judge and a corrected quality number can find the routing threshold empirically and defend it. A team
+without one is guessing, and will either give the saving back or damage the product. <strong>You
+cannot capture the second-largest lever in inference economics without having done Stage 4.</strong></p>
+</div>
+
+<h3>Two caveats on the magnitudes</h3>
+
+<p>These figures are order-of-magnitude guidance rather than measurements, and the honest framing
+matters. The <b>5&ndash;10&times;</b> for batch efficiency is what you see moving from a naive
+implementation to a well-configured modern serving stack &mdash; and it is consistent with the
+published numbers behind it: 2&ndash;4&times; from PagedAttention alone against systems that already
+did continuous batching, on top of what continuous batching bought over naive batching. If you are
+already running a well-tuned vLLM-class stack, most of that has been collected and your remaining
+headroom is much smaller.</p>
+
+<p>The <b>3&ndash;5&times;</b> for routing depends entirely on your traffic mix. If 80% of requests
+are easy, routing is transformative. If your traffic is uniformly hard, it is worth nothing, and no
+amount of engineering changes that. <strong>Measure your mix before planning around this number</strong>
+&mdash; which, again, requires Stage 4.</p>
+
+<div class="takeaways"><div class="t">Module 9 takeaways</div>
+<ul>
+  <li>cost &asymp; tokens &times; model_size &divide; batch_efficiency. Every technique moves one term.</li>
+  <li>Batch efficiency 5&ndash;10&times;; routing 3&ndash;5&times;; token reduction ~2&times;; vendor switching 10&ndash;20%.</li>
+  <li>The biggest lever is scheduling; the smallest gets the most executive attention.</li>
+  <li>Routing is gated on eval quality &mdash; you cannot capture lever 2 without Stage 4.</li>
+  <li>If you already run a tuned modern stack, most of lever 1 is already collected.</li>
+</ul></div>
+
+</div>
+</section>
+
+<!-- ============================ MODULE 10 ============================ -->
+<section class="module" id="m10">
+<div class="module-header"><div class="num">10</div><div>
+  <h2>The Serving Simulator</h2>
+  <div class="mt">Predict which lever helps, then watch the arithmetic agree or disagree with you</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have predicted a deployment's bottleneck and been graded on it</li>
+  <li>Have seen speculative decoding's speedup collapse as batch size rises</li>
+  <li>Know the cost per million tokens for a configuration you chose, and why it is that number</li>
+</ul></div>
+
+<p>Commit to a prediction before the simulator runs. That is the clearing test for this stage
+&mdash; being right <em>for the right reason</em>, before you measure &mdash; and this is a cheap
+place to practise it.</p>
+
+<div id="lab">
+  <div class="lab-top">
+    <span class="lab-pill">Interactive</span>
+    <h3>Serving Simulator</h3>
+    <span class="lab-step" id="lab-step">Stage 1 of 3</span>
+  </div>
+  <div class="lab-body">
+
+    <!-- STAGE 1 -->
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">The deployment</div>
+        <div class="st" id="s1-st">Open</div></div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Model</span></div>
+        <div class="preset" id="mdl"></div>
+        <div class="cd" id="d-mdl"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Hardware</span></div>
+        <div class="preset" id="hw"></div>
+        <div class="cd" id="d-hw"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">GPUs in the tensor-parallel group</span><span class="cv" id="v-tp">4</span></div>
+        <input type="range" id="r-tp" min="1" max="16" step="1" value="4">
+        <div class="cd" id="d-tp"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Average prompt length</span><span class="cv" id="v-pl">2,048</span></div>
+        <input type="range" id="r-pl" min="0" max="100" step="1" value="45">
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Average output length</span><span class="cv" id="v-ol">512</span></div>
+        <input type="range" id="r-ol" min="0" max="100" step="1" value="35">
+        <div class="cd" id="d-shape"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Weight precision</span></div>
+        <div class="preset" id="q"></div>
+        <div class="cd" id="d-q"></div>
+      </div>
+
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Before you look: which lever will help this deployment most?</span></div>
+        <div class="priors" id="guess">
+          <button class="prior" data-g="batch"><b>More batch</b><span>Raise concurrency &mdash; more sequences sharing each weight read.</span></button>
+          <button class="prior" data-g="prefix"><b>Prefix caching</b><span>Skip prefill for a shared system prompt.</span></button>
+          <button class="prior" data-g="quant"><b>Quantization</b><span>Fewer bytes per parameter.</span></button>
+          <button class="prior" data-g="spec"><b>Speculative decoding</b><span>Several tokens per weight read.</span></button>
+        </div>
+      </div>
+
+      <div class="lab-btns">
+        <button class="act" id="s1-go" disabled>Simulate</button>
+        <span class="gate-msg" id="s1-gate">Pick a lever you think will win.</span>
+      </div>
+    </div>
+
+    <!-- STAGE 2 -->
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">Where this deployment sits</div>
+        <div class="st" id="s2-st">Locked</div></div>
+      <div id="out2"></div>
+    </div>
+
+    <!-- STAGE 3 -->
+    <div class="stage locked" id="s3">
+      <div class="stage-h"><div class="n">3</div><div class="ttl">Turn the knobs</div>
+        <div class="st" id="s3-st">Locked</div></div>
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Concurrent sequences</span><span class="cv" id="v-b">&mdash;</span></div>
+        <input type="range" id="r-b" min="1" max="100" step="1" value="100">
+        <div class="cd" id="d-b"></div>
+      </div>
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Fraction of the prompt that is a shared prefix</span><span class="cv" id="v-pf">0%</span></div>
+        <input type="range" id="r-pf" min="0" max="99" step="1" value="0">
+      </div>
+      <div class="ctrl">
+        <div class="cl"><span class="cn">Speculative decoding &mdash; acceptance rate &alpha;</span><span class="cv" id="v-al">off</span></div>
+        <input type="range" id="r-al" min="0" max="95" step="5" value="0">
+        <div class="cd">Zero disables it. Draft length is fixed at k = 4 and the draft model is
+        charged at 5% of the target's arithmetic per token.</div>
+      </div>
+      <div id="out3"></div>
+      <div class="lab-btns" style="margin-top:0.9rem">
+        <button class="act ghost" id="reset">Start over</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="m10after" class="hid">
+
+<div class="callout c-warn"><span class="lbl">What this simulator is and is not</span>
+<p><b>Derived, not fitted:</b> parameter counts and KV-cache sizes come from the published configs
+and reproduce the model cards. Peak FLOPS are the <em>dense</em> datasheet figures, not the sparsity
+numbers. Decode time is max(bandwidth time, compute time) with both terms computed explicitly, which
+is what produces the compute-bound transition at high batch rather than assuming it.</p>
+<p><b>Optimistic:</b> it assumes perfect batching with no queueing delay, perfect tensor-parallel
+scaling with no communication cost, and a fixed MFU that does not degrade at small batch. Real
+systems are worse than this on every axis. Treat the absolute numbers as a floor and the
+<em>ratios</em> &mdash; which lever wins, by how much &mdash; as the useful output.</p>
+<p><b>Not modelled:</b> request arrival variance and the queueing that follows, preemption, chunked
+prefill interleaving, MoE routing (which changes decode economics substantially, since only the
+active experts are read but all of them must be resident), and the cost of the draft model's own KV
+cache under speculative decoding.</p>
+<p><b>Prices:</b> the $3/GPU-hour used for cost figures is nanochat's stated anchor. Rental prices
+move constantly; scale the cost line accordingly.</p>
+</div>
+
+<div class="cleartest"><span class="lbl">Clearing test &mdash; Stage 5</span>
+<p><strong>Build a toy serving loop with a block-based KV cache and continuous batching</strong>
+&mdash; a few hundred lines, no vLLM. Measure tokens per second against a naive implementation that
+pre-allocates a contiguous cache sized to the maximum length and batches to completion. Report the
+throughput difference <em>and</em> the memory-utilisation difference, and say which of the two
+changes produced most of the gain.</p>
+<p>Then the diagnosis, which is the real test:</p>
+<p><strong>Given a deployment &mdash; model size, average prompt length, average completion length,
+concurrency, hardware &mdash; say whether it is prefill-bound or decode-bound, predict which of
+batching, prefix caching, quantization or speculative decoding will help most and by roughly how
+much. Then run it and check.</strong></p>
+<p><b>You have cleared Stage 5 when you are right for the right reason.</b> Being right because you
+tried everything is not the capability. The specific things you should be able to answer unaided:</p>
+<ul>
+  <li>What is your deployment's arithmetic intensity, and how far is it from your hardware's ridge?</li>
+  <li>What sets your maximum concurrency &mdash; and can you compute it from the config?</li>
+  <li>At your batch size, does speculative decoding help? Why or why not?</li>
+  <li>What is your cost per million output tokens, and which single change would move it most?</li>
+</ul>
+<p class="neg"><b>Not the test:</b> deploying vLLM successfully. vLLM is excellent and it is very good
+at hiding exactly the mechanics this stage is about &mdash; a virtue in production and a problem for
+learning. Build the bad version first, so the good version means something.</p>
+</div>
+
+<div class="callout c-fact"><span class="lbl">Where to go for the depth</span>
+<ul>
+  <li><a href="https://stanford-cs336.github.io/spring2025/" target="_blank" rel="noopener"><b>CS336
+  Lecture 10 (Inference)</b></a> &mdash; the best single hour on this at the right altitude, free.</li>
+  <li><a href="https://docs.vllm.ai/" target="_blank" rel="noopener"><b>vLLM documentation</b></a>
+  read as an architecture text, plus <a href="https://arxiv.org/abs/2309.06180" target="_blank"
+  rel="noopener">the PagedAttention paper</a> &mdash; short, and the idea is clean. ~6 hours.</li>
+  <li><a href="https://github.com/gpu-mode/lectures" target="_blank" rel="noopener"><b>GPU MODE</b></a>
+  &mdash; profiling, quantization and speculative decoding lectures with code. Actively maintained,
+  free, and the deep end.</li>
+  <li><b>Chip Huyen, <em>AI Engineering</em></b> &mdash; the inference optimisation chapter, in the
+  form you would present to a leadership audience.</li>
+  <li><b>Serve something yourself and load-test it.</b> Non-negotiable, ~8 hours. Numbers you
+  measured beat numbers you read, including all of the ones on this page.</li>
+</ul>
+</div>
+
+<div class="takeaways"><div class="t">Module 10 takeaways</div>
+<ul>
+  <li>Which lever wins is computable in advance from the shape of your workload.</li>
+  <li>Speculative decoding's gain collapses as batch rises &mdash; generate that result yourself.</li>
+  <li>KV cache sets concurrency; concurrency sets intensity; intensity sets your cost per token.</li>
+  <li>Be right for the right reason. That is the whole clearing test.</li>
+</ul></div>
+</div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Stage 5 of five &mdash; the last stage of the path. Built 28 August 2026; every figure derived or
+  cited the same day.</p>
+  <p style="margin-top:0.6rem">
+    <a href="ai-path-intermediate-to-advanced-course.html">The path</a>
+    <a href="transformer-mechanism-course.html">Stage 1 &mdash; Mechanism</a>
+    <a href="training-stack-course.html">Stage 2 &mdash; Training stack</a>
+    <a href="post-training-course.html">Stage 3 &mdash; Post-training</a>
+    <a href="llm-evals-error-analysis-course.html">Stage 4 &mdash; Evals</a>
+  </p>
+  <p style="margin-top:0.6rem">
+    <a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener">PagedAttention</a>
+    <a href="https://www.usenix.org/conference/osdi22/presentation/yu" target="_blank" rel="noopener">Orca</a>
+    <a href="https://arxiv.org/abs/2211.17192" target="_blank" rel="noopener">Speculative decoding</a>
+    <a href="https://arxiv.org/abs/2411.02355" target="_blank" rel="noopener">Quantization trade-offs</a>
+    <a href="https://github.com/gpu-mode/lectures" target="_blank" rel="noopener">GPU MODE</a>
+  </p>
+  <p style="margin-top:0.8rem;font-size:0.78rem">Hardware specifications and rental prices are the
+  fastest-decaying figures here. The structural results &mdash; that decode intensity equals batch
+  size, that KV cache sets concurrency, that speculative decoding fades at high batch &mdash; are
+  arithmetic and will outlast the hardware. Mixture-of-experts models change the decode economics
+  materially and are noted as out of scope in the simulator rather than approximated.</p>
+</div>
+
+</div>
+
+<script>
+(function(){
+'use strict';
+var N = 10;
+var links = document.getElementById('nav-links'); var secs = [];
+for (var i = 1; i <= N; i++) {
+  var a = document.createElement('a');
+  a.href = '#m' + i; a.textContent = i; a.id = 'nl' + i;
+  links.appendChild(a); secs.push(document.getElementById('m' + i));
+}
+function onScroll(){
+  var doc = document.documentElement;
+  var max = (doc.scrollHeight - window.innerHeight) || 1;
+  document.getElementById('progress-bar').style.width =
+    Math.min(100, Math.max(0, Math.round(window.pageYOffset / max * 100))) + '%';
+  var active = 0, i;
+  for (i = 0; i < secs.length; i++) if (secs[i] && secs[i].getBoundingClientRect().top <= 120) active = i + 1;
+  document.getElementById('nav-prog').textContent =
+    active ? ('Module ' + active + ' of ' + N) : ('' + N + ' modules');
+  for (i = 1; i <= N; i++) { var el = document.getElementById('nl' + i); if (el) el.className = (i === active) ? 'done' : ''; }
+}
+window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+document.querySelectorAll('a[href^="#m"]').forEach(function(an){
+  an.addEventListener('click', function(e){
+    var t = document.querySelector(this.getAttribute('href')); if (!t) return; e.preventDefault();
+    window.scrollTo({ top: t.getBoundingClientRect().top + window.pageYOffset - 66, behavior: 'smooth' });
+  });
+});
+})();
+</script>
+
+<script>
+/* ═══════════ MODULE 10 — SERVING SIMULATOR ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab')) return;
+
+/* published configs; N reproduces the model cards (checked in Stage 1) */
+var MODELS = {
+  l8:  { label:'Llama 3 8B',  N:8.03e9,  L:32, kvh:8, hd:128,
+         note:'32 layers, 8 key-value heads, head dim 128 — 128 KiB of KV cache per token in BF16.' },
+  l70: { label:'Llama 3 70B', N:70.55e9, L:80, kvh:8, hd:128,
+         note:'80 layers, 8 key-value heads, head dim 128 — 320 KiB per token. The worked example in Modules 2 and 3.' },
+  l405:{ label:'Llama 3 405B',N:405e9,   L:126,kvh:8, hd:128,
+         note:'126 layers, 8 key-value heads — 504 KiB per token, and 810 GB of BF16 weights before you store any cache at all.' }
+};
+/* dense BF16 peak (NOT the sparsity datasheet figure), FP8 dense peak, bandwidth, memory */
+var HW = {
+  h100:{ label:'H100 SXM', f16:989.5e12, f8:1979e12, bw:3.35e12, mem:80*1073741824, price:3.0,
+         note:'80 GB HBM3, 3.35 TB/s, 989.5 dense BF16 TFLOPS. Ridge point 295 FLOPs/byte.' },
+  h200:{ label:'H200 SXM', f16:989.5e12, f8:1979e12, bw:4.8e12,  mem:141*1073741824, price:4.0,
+         note:'Same Hopper compute, 141 GB HBM3e at 4.8 TB/s. More memory <em>and</em> more bandwidth — it changes decode economics far more than it changes prefill. Ridge point 206.' },
+  a100:{ label:'A100 80GB',f16:312e12,   f8:312e12,  bw:2.039e12,mem:80*1073741824, price:1.5,
+         note:'80 GB HBM2e, 2.039 TB/s, 312 dense BF16 TFLOPS. No native FP8, so quantization here saves bytes but not arithmetic. Ridge point 153.' }
+};
+var QUANT = {
+  bf16:{ label:'BF16', bp:2,   kvbp:2, fp8:false, note:'The baseline. Two bytes per parameter and two per KV element.' },
+  fp8: { label:'FP8',  bp:1,   kvbp:1, fp8:true,  note:'Weights and KV cache at one byte. Reported by the largest independent study as effectively lossless across model scales, with native matmul support on Hopper.' },
+  int4:{ label:'INT4 weights', bp:0.5, kvbp:2, fp8:false, note:'W4A16: quarter-size weights, 16-bit activations and KV. Halves decode bandwidth again and frees a lot of memory — but the arithmetic still runs at 16-bit, so prefill does not speed up.' }
+};
+
+var mdl='l70', hw='h100', q='bf16', tp=4, PL=2048, OL=512, guess=null, built=false;
+var batch=0, prefixFrac=0, alpha=0, K=4, DRAFT=0.05;
+var MFU_PREFILL=0.5, MFU_DECODE=0.6;
+
+function lenFromSlider(v){ return Math.max(64, Math.round(Math.pow(2, 6 + (v/100)*11) / 64) * 64); }
+function sliderFromLen(x){ return Math.round((Math.log2(x) - 6) / 11 * 100); }
+function fmtB(b){
+  if (b >= 1099511627776) return (b/1099511627776).toFixed(2)+' TiB';
+  if (b >= 1073741824) return (b/1073741824).toFixed(1)+' GiB';
+  if (b >= 1048576) return (b/1048576).toFixed(1)+' MiB';
+  if (b >= 1024) return (b/1024).toFixed(0)+' KiB';
+  return b.toFixed(0)+' B';
+}
+function comma(n){ return Math.round(n).toLocaleString('en-US'); }
+
+function model(){
+  var M=MODELS[mdl], H=HW[hw], Q=QUANT[q];
+  var kvPerTok = 2 * M.L * M.kvh * M.hd * Q.kvbp;
+  var weightBytes = M.N * Q.bp;
+  var totalMem = tp * H.mem;
+  var headroom = tp * 8 * 1073741824;              /* activations + workspace */
+  var kvAvail = Math.max(0, totalMem - weightBytes - headroom);
+  var seq = PL + OL;
+  var maxBatch = Math.max(0, Math.floor(kvAvail / (kvPerTok * seq)));
+  var peak = (Q.fp8 && H.f8) ? H.f8 : H.f16;
+  var ridge = H.f16 / H.bw;                        /* stated in BF16 terms */
+  return { M:M, H:H, Q:Q, kvPerTok:kvPerTok, weightBytes:weightBytes, kvAvail:kvAvail,
+           seq:seq, maxBatch:maxBatch, peak:peak, ridge:ridge, fits: weightBytes + headroom < totalMem };
+}
+
+function sim(B, pf, al){
+  var m = model();
+  if (!m.fits || m.maxBatch < 1) return null;
+  B = Math.max(1, Math.min(B, m.maxBatch));
+  var M=m.M, H=m.H;
+
+  /* prefill: 2NT + 2*L*T^2*C  (C ≈ heads*head_dim is not stored; use the attention term via L,seq) */
+  var effPL = PL * (1 - pf);
+  var Cdim = M.N / 1e9 > 0 ? (M.L ? (2 * M.L * effPL * effPL * (M.kvh * M.hd * 8)) : 0) : 0;
+  var prefillFlops = 2 * M.N * effPL + Cdim;
+  var prefillTime = prefillFlops / (tp * m.peak * MFU_PREFILL);
+
+  /* decode step */
+  var specOn = al > 0;
+  var tokPerVerify = specOn ? (1 - Math.pow(al, K+1)) / (1 - al) : 1;
+  var draftCost = specOn ? K * DRAFT : 0;
+  var verifyTokens = specOn ? (K + 1) : 1;
+
+  var bytesW = m.weightBytes / tp;
+  var bytesKV = (B * m.seq * m.kvPerTok) / tp;
+  var tBW = (bytesW + bytesKV) * (1 + draftCost) / H.bw;
+  var flopsStep = 2 * M.N * B * verifyTokens;
+  var tCOMP = flopsStep / (tp * m.peak * MFU_DECODE);
+  var tStep = Math.max(tBW, tCOMP);
+
+  var tokensPerStep = B * tokPerVerify;
+  var tps = tokensPerStep / tStep;                 /* aggregate output tokens/sec */
+  var tpot = tStep / tokPerVerify;                 /* per-user seconds per token */
+  var intensity = flopsStep / ((bytesW + bytesKV) * tp);   /* aggregate FLOPs per aggregate byte */
+
+  var hourly = tp * H.price;
+  var perSec = hourly / 3600;
+  var costOut = perSec * 1e6 / tps;
+  /* prefill throughput: prompts per second across the group */
+  var promptsPerSec = 1 / prefillTime;
+  var costIn = perSec * 1e6 / (promptsPerSec * Math.max(effPL,1));
+
+  return { B:B, m:m, prefillTime:prefillTime, tBW:tBW, tCOMP:tCOMP, tStep:tStep,
+           tps:tps, tpot:tpot, intensity:intensity, costOut:costOut, costIn:costIn,
+           bytesW:bytesW, bytesKV:bytesKV, tokPerVerify:tokPerVerify,
+           bound: tCOMP > tBW ? 'compute' : 'bandwidth',
+           totalTime: prefillTime + OL * tpot };
+}
+
+/* ---------- wiring ---------- */
+function chips(id, obj, sel, cb){
+  $(id).innerHTML = Object.keys(obj).map(function(k){
+    return '<button class="pbtn'+(k===sel?' sel':'')+'" data-k="'+k+'">'+obj[k].label+'</button>';
+  }).join('');
+  Array.prototype.forEach.call($(id).querySelectorAll('.pbtn'), function(b){
+    b.addEventListener('click', function(){ if (built) return; cb(b.dataset.k); });
+  });
+}
+function redrawChips(){
+  chips('mdl', MODELS, mdl, function(k){ mdl=k; $('d-mdl').textContent=MODELS[k].note; redrawChips(); tpDesc(); });
+  chips('hw', HW, hw, function(k){ hw=k; $('d-hw').innerHTML=HW[k].note; redrawChips(); tpDesc(); });
+  chips('q', QUANT, q, function(k){ q=k; $('d-q').textContent=QUANT[k].note; redrawChips(); tpDesc(); });
+}
+function tpDesc(){
+  var m = model();
+  var s = 'Weights at ' + QUANT[q].label + ': <b>' + fmtB(m.weightBytes) + '</b> across ' + tp + ' × ' +
+          HW[hw].label + ' (' + fmtB(tp*HW[hw].mem) + ' total). ';
+  if (!m.fits) s += '<b style="color:var(--red)">The weights plus activation headroom do not fit. Add GPUs or quantize.</b>';
+  else if (m.maxBatch < 1) s += '<b style="color:var(--red)">Weights fit but there is no room left for a single sequence’s KV cache at this context length.</b>';
+  else s += 'Leaves <b>' + fmtB(m.kvAvail) + '</b> for KV cache — room for <b>' + comma(m.maxBatch) +
+       '</b> concurrent sequences at ' + comma(m.seq) + ' tokens each.';
+  $('d-tp').innerHTML = s;
+}
+function shapeDesc(){
+  var r = PL / Math.max(OL,1);
+  if (r > 8) return 'Prompt-heavy (' + r.toFixed(1) + ':1). Classification, extraction, RAG over long documents — prefill is a large share of the work, so prefix caching has room to matter.';
+  if (r > 1.5) return 'Balanced-to-prompt-heavy (' + r.toFixed(1) + ':1). Typical assistant and RAG traffic.';
+  if (r > 0.4) return 'Balanced (' + r.toFixed(2) + ':1).';
+  return 'Output-heavy (' + r.toFixed(2) + ':1). Long-form generation and reasoning traces — decode dominates, and almost nothing but batching and quantization will help.';
+}
+$('r-tp').addEventListener('input', function(){ tp=+this.value; $('v-tp').textContent=tp; tpDesc(); });
+$('r-pl').addEventListener('input', function(){ PL=lenFromSlider(+this.value); $('v-pl').textContent=comma(PL); $('d-shape').textContent=shapeDesc(); tpDesc(); });
+$('r-ol').addEventListener('input', function(){ OL=lenFromSlider(+this.value); $('v-ol').textContent=comma(OL); $('d-shape').textContent=shapeDesc(); tpDesc(); });
+Array.prototype.forEach.call($('guess').querySelectorAll('.prior'), function(b){
+  b.addEventListener('click', function(){
+    if (built) return;
+    guess = b.dataset.g;
+    Array.prototype.forEach.call($('guess').querySelectorAll('.prior'), function(x){
+      x.className = 'prior' + (x===b ? ' sel' : '');
+    });
+    $('s1-go').disabled = false; $('s1-gate').textContent = 'Ready.';
+  });
+});
+
+$('s1-go').addEventListener('click', function(){
+  var m = model();
+  if (!m.fits || m.maxBatch < 1) { tpDesc(); return; }
+  built = true;
+  $('s1-st').textContent='Locked'; $('s1-st').className='st ok'; $('s1-go').disabled=true;
+  ['r-tp','r-pl','r-ol'].forEach(function(i){ $(i).disabled=true; });
+  Array.prototype.forEach.call($('lab').querySelectorAll('.pbtn, .prior'), function(b){
+    b.style.pointerEvents='none'; if(!b.classList.contains('sel')) b.style.opacity='0.35';
+  });
+  $('s2').className='stage'; $('s2-st').textContent='Open';
+  $('s3').className='stage'; $('s3-st').textContent='Open';
+  $('lab-step').textContent='Stage 2 of 3';
+  batch = m.maxBatch;
+  $('r-b').value = 100; $('v-b').textContent = comma(batch);
+  renderMain(); renderKnobs();
+  $('m10after').className='';
+  try { $('s2').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+function roofline(intensity, ridge){
+  var maxI = Math.max(ridge * 1.6, intensity * 1.25);
+  function X(v){ return Math.min(100, (v / maxI) * 100); }
+  var rx = X(ridge), yx = X(intensity);
+  return '<div class="roof"><div class="roofbar">' +
+    '<div class="zone z-bw" style="left:0;width:' + rx.toFixed(1) + '%"></div>' +
+    '<div class="zone z-cp" style="left:' + rx.toFixed(1) + '%;right:0"></div>' +
+    '<div class="ridge" style="left:' + rx.toFixed(1) + '%"></div>' +
+    '<div class="you" style="left:' + yx.toFixed(1) + '%"></div>' +
+    '<div class="lb" style="left:6px">bandwidth-bound</div>' +
+    '<div class="lb" style="left:' + Math.min(rx+2, 78).toFixed(1) + '%">compute-bound</div>' +
+    '</div><div class="ciAx" style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.7rem;color:var(--text-dim);margin-top:0.3rem">' +
+    '<span>0 FLOP/byte</span><span>ridge ' + ridge.toFixed(0) + '</span><span>' + maxI.toFixed(0) + '</span></div></div>';
+}
+
+function renderMain(){
+  var r = sim(batch, 0, 0);
+  if (!r) { $('out2').innerHTML = '<div class="verdict v-miss"><span class="vl">This configuration does not fit</span><p>Add GPUs, quantize, or shorten the context.</p></div>'; return; }
+  var m = r.m;
+  var prefillShare = r.prefillTime / r.totalTime;
+
+  var h = '<div class="mgrid">' +
+    '<div class="mcell"><b>' + comma(m.maxBatch) + '</b><span>max concurrent sequences</span></div>' +
+    '<div class="mcell' + (r.bound==='bandwidth' ? ' warn' : ' good') + '"><b>' + r.intensity.toFixed(0) +
+      '</b><span>arithmetic intensity vs ridge ' + m.ridge.toFixed(0) + '</span></div>' +
+    '<div class="mcell"><b>' + (r.prefillTime*1000).toFixed(0) + ' ms</b><span>TTFT (prefill)</span></div>' +
+    '<div class="mcell"><b>' + (r.tpot*1000).toFixed(1) + ' ms</b><span>TPOT per user</span></div>' +
+    '<div class="mcell"><b>$' + r.costOut.toFixed(3) + '</b><span>per 1M output tokens</span></div>' +
+    '</div>';
+
+  h += '<div class="field"><span class="lbl">Where you sit on the roofline</span>' + roofline(r.intensity, m.ridge) +
+    '<p>At maximum batch this deployment runs at an arithmetic intensity of <b>' + r.intensity.toFixed(0) +
+    '</b> against a ridge of <b>' + m.ridge.toFixed(0) + '</b>, so decode is <b>' + r.bound + '-bound</b>. ' +
+    (r.bound === 'bandwidth'
+      ? 'The arithmetic units are idle roughly ' + (100 - Math.min(100, r.intensity/m.ridge*100)).toFixed(0) +
+        '% of the time during decode — which is normal, and is what every technique in this course is trying to fix.'
+      : 'You have batched your way past the ridge, which is unusual and means further batching buys ' +
+        'little. From here, reducing arithmetic — a smaller model, or routing — is the lever.') + '</p></div>';
+
+  /* byte breakdown */
+  var wPct = r.bytesW / (r.bytesW + r.bytesKV) * 100;
+  h += '<div class="field"><span class="lbl">Where the decode bytes go, per step per GPU</span>' +
+    '<div class="stack"><i class="s-w" style="width:' + wPct.toFixed(1) + '%"></i>' +
+    '<i class="s-k" style="width:' + (100-wPct).toFixed(1) + '%"></i></div>' +
+    '<div class="clegend" style="display:flex;gap:1rem;flex-wrap:wrap;font-size:0.75rem;color:var(--text-dim)">' +
+    '<span><i style="width:9px;height:9px;border-radius:2px;display:inline-block;background:var(--accent)"></i> weights ' +
+    fmtB(r.bytesW) + ' (' + wPct.toFixed(0) + '%)</span>' +
+    '<span><i style="width:9px;height:9px;border-radius:2px;display:inline-block;background:var(--accent2)"></i> KV cache ' +
+    fmtB(r.bytesKV) + ' (' + (100-wPct).toFixed(0) + '%)</span></div>' +
+    (wPct < 50
+      ? '<p style="margin-top:0.7rem"><b>The KV cache is reading more bytes than the weights are.</b> ' +
+        'Everyone knows the cache occupies memory; far fewer notice it also consumes bandwidth, which is ' +
+        'the scarcer resource. At this point, KV quantization is worth more to you than weight ' +
+        'quantization, and shortening context is worth more than either.</p>'
+      : '<p style="margin-top:0.7rem">Weights still dominate the byte traffic, so weight quantization ' +
+        'is the direct lever and raising batch further will keep paying until the KV term catches up.</p>') +
+    '</div>';
+
+  /* prefill vs decode share */
+  h += '<div class="field"><span class="lbl">Where the time goes for one request</span>' +
+    '<p>Prefill <b>' + (r.prefillTime*1000).toFixed(0) + ' ms</b>, decode <b>' +
+    (OL*r.tpot*1000).toFixed(0) + ' ms</b> for ' + comma(OL) + ' output tokens — prefill is <b>' +
+    (prefillShare*100).toFixed(0) + '%</b> of end-to-end latency.</p>' +
+    (prefillShare > 0.3
+      ? '<p>Prefill is a large share, so <b>prefix caching has real headroom here</b> — anything you can ' +
+        'avoid re-processing comes straight off that number.</p>'
+      : '<p>Prefill is a small share, so <b>prefix caching will barely move your bill</b> however well it ' +
+        'works. Decode was always the cost. This is the calculation to run before building a caching layer.</p>') +
+    '</div>';
+
+  $('out2').innerHTML = h;
+}
+
+function bDesc(){
+  var m = model();
+  var frac = batch / Math.max(m.maxBatch,1);
+  if (frac > 0.95) return 'At the memory ceiling. You cannot batch further without shortening context, quantizing the KV cache, or adding GPUs.';
+  if (frac > 0.5) return 'Well batched. Each weight read is amortised across ' + comma(batch) + ' sequences.';
+  if (batch <= 4) return 'Near batch 1 — the local-model regime. Arithmetic intensity is roughly your batch size, so the chip is almost entirely idle. This is where speculative decoding shines.';
+  return 'Under-batched relative to what memory allows. This is the single largest saving available to you and it is a scheduling change, not a model change.';
+}
+
+function renderKnobs(){
+  var m = model();
+  batch = Math.max(1, Math.round(m.maxBatch * (+$('r-b').value/100)));
+  $('v-b').textContent = comma(batch);
+  $('d-b').textContent = bDesc();
+  prefixFrac = +$('r-pf').value/100;
+  alpha = +$('r-al').value/100;
+  $('v-al').textContent = alpha > 0 ? alpha.toFixed(2) : 'off';
+  $('v-pf').textContent = Math.round(prefixFrac*100) + '%';
+
+  var base = sim(m.maxBatch, 0, 0);
+  var cur  = sim(batch, prefixFrac, alpha);
+  if (!base || !cur) return;
+
+  /* lever comparison, each measured against the CURRENT configuration */
+  var levBatch = sim(m.maxBatch, prefixFrac, alpha);
+  var specAlt  = alpha > 0 ? Math.min(0.95, alpha + 0.15) : 0.7;
+  var levSpec  = sim(batch, prefixFrac, specAlt);
+  var qSave = QUANT[q].bp > 1 ? 2 : (QUANT[q].bp === 1 ? 2 : 1);
+  var levPrefix = sim(batch, Math.max(prefixFrac, 0.8), alpha);
+
+  function gain(x){ return x && cur ? x.tps / cur.tps : 1; }
+  function totalGain(x){ return x && cur ? cur.totalTime / x.totalTime : 1; }
+
+  var levers = [
+    { k:'batch',  n:'Raise batch to the memory ceiling',
+      d:'From ' + comma(batch) + ' to ' + comma(m.maxBatch) + ' concurrent sequences. A scheduler setting.',
+      g: gain(levBatch) },
+    { k:'prefix', n:'Prefix caching at 80% shared prompt',
+      d:'Removes prefill for the shared portion. Affects TTFT and end-to-end latency, not decode throughput.',
+      g: totalGain(levPrefix) },
+    { k:'quant',  n:'Quantize weights and KV one step further',
+      d: QUANT[q].bp <= 0.5 ? 'Already at the lowest precision modelled.' : 'Halves the bytes per parameter read every step.',
+      g: QUANT[q].bp <= 0.5 ? 1 : estQuantGain() },
+    { k:'spec',   n:'Speculative decoding at ' + (alpha > 0 ? 'α = ' + specAlt.toFixed(2) + ' instead of ' + alpha.toFixed(2) : 'α = 0.7, k = 4'),
+      d:'Verifies ' + (K+1) + ' tokens per weight read. Spends idle FLOPs — so it depends entirely on where you are on the roofline.',
+      g: gain(levSpec) }
+  ];
+  levers.sort(function(a,b){ return b.g - a.g; });
+
+  function estQuantGain(){
+    var savedQ = q; 
+    q = (QUANT[q].bp === 2) ? 'fp8' : 'int4';
+    var alt = sim(Math.min(batch, model().maxBatch), prefixFrac, alpha);
+    q = savedQ;
+    return alt && cur ? alt.tps / cur.tps : 1;
+  }
+
+  var h = '<div class="mgrid">' +
+    '<div class="mcell"><b>' + comma(cur.tps) + '</b><span>output tokens/sec, group</span></div>' +
+    '<div class="mcell' + (cur.bound==='bandwidth'?' warn':' good') + '"><b>' + cur.intensity.toFixed(0) +
+      '</b><span>intensity vs ridge ' + m.ridge.toFixed(0) + '</span></div>' +
+    '<div class="mcell"><b>' + (cur.tpot*1000).toFixed(1) + ' ms</b><span>TPOT (' + (1/cur.tpot).toFixed(0) + ' tok/s per user)</span></div>' +
+    '<div class="mcell"><b>' + (cur.prefillTime*1000).toFixed(0) + ' ms</b><span>TTFT</span></div>' +
+    '<div class="mcell"><b>$' + cur.costOut.toFixed(3) + '</b><span>per 1M output tokens</span></div>' +
+    '</div>';
+
+  h += '<div class="field"><span class="lbl">What each lever is worth from here</span><div class="levers">';
+  levers.forEach(function(l, i){
+    var cls = i === 0 ? 'top' : (l.g > 1.08 ? 'mid' : 'low');
+    h += '<div class="lev ' + cls + '"><span class="rk">' + (i+1) + '</span>' +
+      '<span class="ln"><b>' + l.n + '</b><em>' + l.d + '</em></span>' +
+      '<span class="lg">' + (l.g >= 1.005 ? l.g.toFixed(2) + '×' : '—') + '</span></div>';
+  });
+  h += '</div></div>';
+
+  /* guess grading */
+  var winner = levers[0].k;
+  var NAMES = { batch:'more batch', prefix:'prefix caching', quant:'quantization', spec:'speculative decoding' };
+  var yourRank = levers.findIndex(function(l){ return l.k === guess; }) + 1;
+  h += '<div class="verdict ' + (guess === winner ? 'v-hit' : 'v-miss') + '"><span class="vl">' +
+    (guess === winner ? 'Your prediction was right' : 'You predicted ' + NAMES[guess] + '; the arithmetic says ' + NAMES[winner]) +
+    '</span>';
+  if (guess === winner) {
+    h += '<p>And the reason matters more than the answer. ' +
+      (winner === 'batch' ? 'You are below the memory ceiling and bandwidth-bound, so amortising the weight read across more sequences is pure gain.'
+       : winner === 'spec' ? 'You are far below the ridge, so the arithmetic units are idle and speculative decoding converts them into tokens for free.'
+       : winner === 'quant' ? 'Weight bytes dominate your decode traffic, so halving them halves the dominant term.'
+       : 'Prefill is a large share of your end-to-end latency, so removing shared prefill work comes straight off the total.') +
+      ' Now change one thing — the batch slider is the most instructive — and see whether your reasoning still predicts the ranking.</p>';
+  } else {
+    h += '<p>Your pick ranks <b>' + (yourRank || 4) + 'th</b> here at <b>' +
+      (levers.find(function(l){return l.k===guess;}) || {g:1}).g.toFixed(2) + '×</b>. ' +
+      (guess === 'spec' && winner === 'batch'
+        ? 'Speculative decoding spends idle FLOPs, and at this batch size the FLOPs are not idle enough for it to matter — Module 7’s point. Drop the batch slider towards 1 and watch the ranking invert.'
+        : guess === 'prefix' && cur.prefillTime / cur.totalTime < 0.3
+        ? 'Prefix caching only removes prefill work, and prefill is just ' +
+          (cur.prefillTime/cur.totalTime*100).toFixed(0) + '% of your end-to-end latency here. Raise the prompt length and lower the output length, and it becomes the top lever.'
+        : guess === 'quant' && cur.bytesKV > cur.bytesW
+        ? 'Weight quantization is competing against a KV cache that is already reading more bytes than the weights are, so halving the weight term moves less than you would expect.'
+        : 'Read the byte breakdown and the roofline position above — between them they determine the ranking, and both are computable before you try anything.') + '</p>';
+  }
+  h += '</div>';
+
+  /* speculative decoding special case */
+  if (alpha > 0) {
+    var noSpec = sim(batch, prefixFrac, 0);
+    var sp = cur.tps / noSpec.tps;
+    var lowB = sim(Math.max(1, Math.round(m.maxBatch*0.02)), prefixFrac, alpha);
+    var lowNo = sim(Math.max(1, Math.round(m.maxBatch*0.02)), prefixFrac, 0);
+    var spLow = lowB.tps / lowNo.tps;
+    h += '<div class="field"><span class="lbl">Speculative decoding, at this batch and at low batch</span>' +
+      '<p>At <b>' + comma(batch) + '</b> concurrent sequences, &alpha; = ' + alpha.toFixed(2) +
+      ' and k = 4 gives <b>' + sp.toFixed(2) + '×</b>. At <b>' + comma(Math.max(1,Math.round(m.maxBatch*0.02))) +
+      '</b> sequences the same settings give <b>' + spLow.toFixed(2) + '×</b>.</p>' +
+      '<p>The expected tokens per verification is <b>' + cur.tokPerVerify.toFixed(2) +
+      '</b> either way — the draft model does not know your batch size. What changes is whether the ' +
+      'extra arithmetic is free. At low batch the FLOPs were idle and you get nearly the full ' +
+      'geometric-sum speedup; at high batch you are paying ' + (K+1) + '× the arithmetic and ' +
+      (cur.bound === 'compute'
+        ? '<b>compute has become the binding constraint</b>, so most of the gain is gone.'
+        : 'approaching the point where it will.') + '</p>' +
+      '<p><b>This is the result worth generating yourself</b>, because it contradicts how speculative ' +
+      'decoding is usually described. It is a latency technique for low concurrency, not a throughput ' +
+      'technique for a busy endpoint.</p></div>';
+  }
+
+  $('out3').innerHTML = h;
+}
+
+['r-b','r-pf','r-al'].forEach(function(id){ $(id).addEventListener('input', renderKnobs); });
+
+$('reset').addEventListener('click', function(){
+  built=false; guess=null;
+  $('out2').innerHTML=''; $('out3').innerHTML=''; $('m10after').className='hid';
+  $('s2').className='stage locked'; $('s2-st').textContent='Locked';
+  $('s3').className='stage locked'; $('s3-st').textContent='Locked';
+  $('s1-st').textContent='Open'; $('s1-st').className='st';
+  $('s1-go').disabled=true; $('s1-gate').textContent='Pick a lever you think will win.';
+  $('lab-step').textContent='Stage 1 of 3';
+  ['r-tp','r-pl','r-ol'].forEach(function(i){ $(i).disabled=false; });
+  Array.prototype.forEach.call($('lab').querySelectorAll('.pbtn, .prior'), function(b){
+    b.style.pointerEvents=''; b.style.opacity='';
+  });
+  Array.prototype.forEach.call($('guess').querySelectorAll('.prior'), function(x){ x.className='prior'; });
+  try { $('s1').scrollIntoView({behavior:'smooth', block:'start'}); } catch(e){}
+});
+
+/* init */
+redrawChips();
+$('d-mdl').textContent = MODELS[mdl].note;
+$('d-hw').innerHTML = HW[hw].note;
+$('d-q').textContent = QUANT[q].note;
+$('r-pl').value = sliderFromLen(2048); PL = lenFromSlider(+$('r-pl').value); $('v-pl').textContent = comma(PL);
+$('r-ol').value = sliderFromLen(512);  OL = lenFromSlider(+$('r-ol').value); $('v-ol').textContent = comma(OL);
+$('d-shape').textContent = shapeDesc();
+tpDesc();
+
+window.__srv = {
+  model: model, sim: sim,
+  set: function(o){ if(o.mdl)mdl=o.mdl; if(o.hw)hw=o.hw; if(o.q)q=o.q; if(o.tp)tp=o.tp;
+    if(o.PL)PL=o.PL; if(o.OL)OL=o.OL; }
+};
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>
