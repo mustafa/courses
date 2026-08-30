@@ -1,0 +1,1428 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>The AI-Native SDLC, Audited — Interactive Course</title><link rel="stylesheet" href="course-framework.css"><style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a; --bg2:#0d1424; --bg3:#111827; --code-bg:#131a2b;
+  --accent:#4ea8de; --accent2:#6c63ff; --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9; --text-bright:#f0f6fc; --text-dim:#8b949e;
+  --border:#1e2d40; --border-light:#2a3f5a;
+  --green:#98c379; --purple:#c678dd; --blue:#61afef; --orange:#d19a66;
+  --red:#e06c75; --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:16px;line-height:1.7;min-height:100vh}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 0.4s ease}
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+/* CODE */
+.code-label{display:inline-block;background:var(--accent-dim);color:var(--text-bright);font-size:11px;font-weight:700;padding:3px 11px;border-radius:5px 5px 0 0;font-family:var(--mono);letter-spacing:0.03em}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:0 8px 8px 8px;padding:1rem 1.1rem;overflow-x:auto;margin-bottom:1.2rem;font-size:0.85rem;line-height:1.6}
+pre code{background:none;padding:0;color:var(--text);font-size:1em}
+.kw{color:#ff7b72}.fn{color:#d2a8ff}.str{color:#a5d6ff}.cm{color:#8b949e;font-style:italic}
+.nu{color:#79c0ff}.vr{color:#ffa657}.cl{color:#7ee787}.bad{color:var(--red)}.good{color:var(--green)}
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-play{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-play .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}.split .r .h{color:var(--red)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'\25B8 ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'\25BE '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+/* ================= THE CONTROL BOARD (SIM) ================= */
+.hid{display:none!important}
+#board{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.b-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.b-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.b-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.b-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.b-body{padding:1.3rem}
+.bq{display:flex;gap:0.35rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.bq i{width:26px;height:5px;border-radius:3px;background:var(--border);transition:background 0.3s}
+.bq i.on{background:var(--accent)}.bq i.cur{background:var(--accent2)}
+#paperbox{background:rgba(224,108,117,0.05);border:1px solid rgba(224,108,117,0.22);border-radius:9px;padding:0.8rem 1rem;margin-bottom:1.2rem}
+#paperbox .lbl{font-size:0.7rem;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.45rem;display:block}
+#paperlist{list-style:none;margin:0;font-size:0.83rem}
+#paperlist li{margin-bottom:0.25rem;color:var(--text)}
+#paperlist li.empty{color:var(--text-dim);font-style:italic}
+.req{background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:8px;padding:1rem 1.2rem;margin-bottom:1.2rem}
+.req .from{font-size:0.7rem;font-weight:800;color:var(--orange);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.45rem}
+.req h4{color:var(--text-bright);font-size:1rem;margin:0 0 0.55rem;font-weight:700}
+.req p{font-size:0.9rem;margin-bottom:0.5rem;color:var(--text)}
+.req p:last-child{margin-bottom:0}
+.req .facts{display:flex;gap:1.2rem;flex-wrap:wrap;margin-top:0.8rem;padding-top:0.7rem;border-top:1px solid var(--border)}
+.req .facts div{font-size:0.75rem;color:var(--text-dim)}
+.req .facts b{display:block;font-family:var(--mono);font-size:0.9rem;color:var(--text-bright);font-weight:700}
+.opts{display:grid;gap:0.5rem;margin-bottom:1rem}
+.opt{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;cursor:pointer;transition:all 0.15s;display:flex;gap:0.7rem;align-items:flex-start;font-size:0.9rem;text-align:left;color:var(--text);font-family:inherit;line-height:1.55;width:100%}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--bg2)}
+.opt .dot{width:15px;height:15px;border:2px solid var(--border-light);border-radius:50%;flex-shrink:0;margin-top:0.2rem;transition:all 0.15s}
+.opt.sel{border-color:var(--accent2);background:rgba(108,99,255,0.08)}
+.opt.sel .dot{border-color:var(--accent2);background:var(--accent2);box-shadow:inset 0 0 0 3px var(--bg3)}
+.opt:disabled{cursor:default;opacity:0.75}
+.opt .ok{margin-left:auto;font-size:0.7rem;font-weight:800;letter-spacing:0.05em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;flex-shrink:0}
+.why-wrap{margin-bottom:1rem}
+.why-wrap label{display:block;font-size:0.78rem;font-weight:700;color:var(--text-dim);margin-bottom:0.4rem}
+#why{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.65rem 0.9rem;color:var(--text);font-family:inherit;font-size:0.88rem;resize:vertical;min-height:54px;line-height:1.55}
+#why:focus{outline:none;border-color:var(--accent)}#why:disabled{opacity:0.7}
+.b-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap}
+button.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.4rem;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+button.act:hover:not(:disabled){filter:brightness(1.15)}
+button.act:disabled{background:var(--bg3);color:var(--text-dim);cursor:not-allowed}
+button.ghost{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+button.ghost:hover:not(:disabled){color:var(--text-bright);border-color:var(--border-light);filter:none}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+#result{margin-top:1.3rem;border-top:1px solid var(--border);padding-top:1.2rem}
+#result .rhead{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.7rem}
+.cmp{display:grid;gap:0.4rem;margin-bottom:1.1rem}
+.cmp .row{display:flex;gap:0.8rem;align-items:flex-start;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.85rem;font-size:0.85rem}
+.cmp .row.you{border-color:var(--accent2);background:rgba(108,99,255,0.07)}
+.cmp .lab{flex:1}
+.cmp .lab b{display:block;color:var(--text-bright);margin-bottom:0.15rem}
+.cmp .lab span.youtag{background:var(--accent2);color:#fff;font-size:0.62rem;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:0.5rem;text-transform:uppercase;letter-spacing:0.05em;vertical-align:middle}
+.cmp .sc{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;flex-shrink:0;padding-top:0.15rem}
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);border-radius:9px;padding:0.95rem 1.15rem;font-size:0.9rem}
+.field .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.5rem;display:block}
+.field p{margin-bottom:0.7rem}.field p:last-child{margin-bottom:0}
+#ledger{margin-top:1.2rem;border-top:1px solid var(--border);padding-top:1rem}
+#ledger .rhead{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);margin-bottom:0.7rem}
+.led{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:0.6rem 0.85rem;margin-bottom:0.4rem}
+.led .h{display:flex;gap:0.6rem;align-items:center;font-size:0.8rem;margin-bottom:0.3rem}
+.led .n{font-family:var(--mono);font-weight:800;color:var(--accent2)}
+.led .c{color:var(--text-bright);font-weight:650}
+.led .w{font-size:0.83rem;color:var(--text-dim);font-style:italic}
+#transfer{background:var(--bg2);border:1px solid var(--yellow);border-radius:12px;padding:1.4rem 1.5rem;margin:1.6rem 0}
+#transfer h4{color:var(--yellow);margin-top:0}
+.tq{margin:1rem 0}
+.tq .q{font-size:0.9rem;color:var(--text-bright);margin-bottom:0.45rem;font-weight:650}
+.tq textarea{width:100%;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;color:var(--text);font-family:inherit;font-size:0.88rem;resize:vertical;min-height:52px;line-height:1.55}
+.tq textarea:focus{outline:none;border-color:var(--yellow)}
+</style></head><body>
+<nav id="top-nav"><div class="nav-inner">
+  <div class="nav-title">The AI-Native SDLC, Audited</div>
+  <div class="nav-prog" id="nav-prog">0 / 10</div>
+  <div class="nav-links" id="nav-links"></div>
+</div></nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+<div class="container">
+
+<div class="hero">
+  <h1>The AI-Native SDLC, Audited</h1>
+  <p class="sub">Anthropic's stage-by-stage playbook is the spine of this course &mdash; and the
+  measurement literature, the DORA panel, and the playbook's own quietest sentence are the audit.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>10</span> modules</div>
+    <div class="hero-badge"><span>1</span> control simulator</div>
+    <div class="hero-badge"><span>~95</span> min</div>
+    <div class="hero-badge"><span>Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Spine text:
+  <a href="https://claude.com/blog/the-ai-native-sdlc-playbook" target="_blank" rel="noopener">The AI-Native SDLC playbook</a>
+  &mdash; Louis Claxton, Anthropic Applied AI, 21 August 2026</p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>This is not a summary. The playbook is the <strong>spine</strong> &mdash; its plays are stated
+  as written and clearly attributed. But it is a vendor document written by the team that sells the
+  agent, and a course that only restates it teaches you to adopt rather than to decide.</p>
+  <p>So every module carries three kinds of block.
+  <strong style="color:var(--accent2)">The playbook's position</strong> is what it actually says.
+  <strong style="color:var(--red)">The audit</strong> is sourced pushback &mdash; from METR's RCT,
+  the DORA panel, GitClear's longitudinal corpus, the automated-review literature, and in two places
+  from the playbook contradicting itself.
+  <strong style="color:var(--green)">Verified</strong> marks numbers checked against primary sources
+  in August 2026.</p>
+  <p>Module 5 is a simulator. Do it before you read modules 6&ndash;10. It forces you to commit to a
+  control decision and write down why before it shows you anything, because <em>choosing the
+  enforcement mechanism</em> is the single skill this whole document is really about.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">The claim the whole document rests on<span class="tag">Premise</span></a></li>
+    <li><a href="#m2">The artifact chain &mdash; the actually portable idea<span class="tag">Core</span></a></li>
+    <li><a href="#m3">Plan and Design: old discipline, new price<span class="tag">Stages 1&ndash;2</span></a></li>
+    <li><a href="#m4">Build: CLAUDE.md, skills, and one sentence you must not skim<span class="tag">Stage 3</span></a></li>
+    <li><a href="#m5">The Control Board<span class="tag">Simulator</span></a></li>
+    <li><a href="#m6">Test: the highest-ROI play in the document<span class="tag">Stage 4</span></a></li>
+    <li><a href="#m7">Deploy: correlated blind spots and the anchored reviewer<span class="tag">Stage 5</span></a></li>
+    <li><a href="#m8">Governance as configuration, line by line<span class="tag">Controls</span></a></li>
+    <li><a href="#m9">Measurement: why these indicators are gameable<span class="tag">Metrics</span></a></li>
+    <li><a href="#m10">Adoption order &mdash; Monday, and never<span class="tag">Synthesis</span></a></li>
+  </ol>
+</div>
+
+<!-- ============================ MODULE 1 ============================ -->
+<section class="module" id="m1"><div class="module-header"><div class="num">1</div><div>
+  <h2>The claim the whole document rests on</h2>
+  <div class="mt">"Code is no longer the bottleneck" &mdash; load-bearing, and the least evidenced sentence in the playbook</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>State the playbook's premise precisely, and identify what it would take to falsify it</li>
+  <li>Cite the strongest measured evidence <em>against</em> a naive reading of it</li>
+  <li>Distinguish "build got faster" from "the system got faster" &mdash; the distinction the playbook makes and most readers drop</li>
+  <li>Explain why the premise being partly wrong makes the playbook <em>more</em> useful, not less</li>
+</ul></div>
+
+<h3>What is actually being claimed</h3>
+
+<div class="callout c-play"><span class="lbl">The playbook's position</span>
+<blockquote>"Organizations have started using AI to write code at a speed unthinkable one year ago, yet the
+processes around the code haven't changed at the same pace. [&hellip;] <strong>Build is no longer the
+constraint &mdash; the human-speed steps around it are.</strong>"</blockquote>
+<p>Three consequences follow, and they are stated crisply: the bottleneck moves left and right of
+build; the controls "stop matching reality" because reviewing every line by hand "can't keep up once
+agents write most of the diff"; and governance costs rise because exceptions still route through
+committees that meet weekly.</p>
+</div>
+
+<p>Read carefully, this is a claim about <strong>queueing</strong>, not about productivity. It says
+one station in the line got faster and the others didn't, so work now piles up in front of the slow
+stations. That is a modest, testable, and largely correct claim about where inventory accumulates.</p>
+
+<p>The trouble is that almost nobody reads it that way. It gets read as "AI made engineering fast,
+now fix your process to collect the winnings." That reading is not supported by the best available
+measurements, and the gap matters because the playbook's recommended remedies cost real money.</p>
+
+<h3>The audit: three findings the playbook does not cite</h3>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; measured, not asserted</span>
+<p><strong>1. The direct RCT points the other way.</strong> METR randomised 16 experienced open-source
+developers across 246 real tasks in repositories they averaged five years of experience in. Forecast
+before the task: AI would cut completion time <strong>24%</strong>. Measured result: completion time
+rose <strong>19%</strong>. And after finishing &mdash; after living through the slowdown &mdash;
+participants still estimated AI had sped them up by about 20%. That is a roughly 40-point calibration
+error <em>with the direction reversed</em>
+(<a href="https://arxiv.org/abs/2507.09089" target="_blank" rel="noopener">arXiv:2507.09089</a>).</p>
+<p><strong>2. The panel data says faster and less stable, simultaneously.</strong> DORA's 2025 report
+found AI adoption positively correlated with throughput &mdash; a reversal from 2024 &mdash; while
+<em>continuing</em> to correlate negatively with delivery stability: more change failures, more rework,
+longer time to restore. DORA's own framing is that
+<strong>AI is an amplifier, not a fix</strong>: it magnifies whatever the organisation already was
+(<a href="https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report" target="_blank" rel="noopener">2025 DORA report</a>).</p>
+<p><strong>3. The code itself is drifting.</strong> GitClear's 2026 corpus &mdash; 623 million changes,
+2023&ndash;2026 &mdash; reports refactoring line-moves down <strong>70%</strong>, cross-file function
+calls (a reuse proxy) down <strong>35%</strong>, duplicated code blocks up <strong>81%</strong>,
+error-masking constructs up <strong>47%</strong>, and two-week churn up <strong>15%</strong>
+(<a href="https://www.gitclear.com/the_ai_code_quality_maintainability_gap" target="_blank" rel="noopener">The Maintainability Gap</a>).</p>
+</div>
+
+<div class="callout c-warn"><span class="lbl">Handle these numbers honestly</span>
+<p>None of the three is a knockout, and a course that pretends otherwise is doing the same thing the
+playbook does in the other direction.</p>
+<ul>
+<li><strong>METR</strong> is n=16 on <em>mature repos the developers already knew intimately</em>, using
+early-2025 tooling. That is close to the worst case for AI assistance and the authors say so. It is
+not evidence that AI slows down greenfield work or unfamiliar codebases.</li>
+<li><strong>DORA</strong> is survey-based and correlational. "AI adoption correlates with instability"
+is also exactly what you would see if the teams with the worst delivery pain adopted AI hardest.</li>
+<li><strong>GitClear</strong> measures diffs, not defects. Duplication is a maintainability proxy, not
+an outcome. And their own 2026 finding that heavy AI users out-produce non-users 4&ndash;10&times;
+<em>but most of that gap pre-dated AI</em> is a selection-effect warning aimed at their own data.</li>
+</ul>
+</div>
+
+<h3>The position this course takes</h3>
+
+<p><strong>The premise is right about queueing and wrong about celebration.</strong> Build did get
+faster. The evidence that the <em>system</em> got faster is weak, and the evidence that it got less
+stable is the most consistent signal in the field. Those two facts together do not undermine the
+playbook &mdash; they are the strongest possible argument for it. If AI amplifies whatever your
+delivery system already is, then the playbook's real subject is not speed. It is
+<strong>building the control system that makes the amplification survivable</strong>.</p>
+
+<p>Read the whole document with that substitution and it improves considerably. Every play that
+tightens a feedback loop or converts a habit into an enforced constraint is load-bearing. Every play
+that mainly removes a human handoff is a throughput play, and throughput without the control system is
+precisely the DORA failure mode.</p>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; the honest one-line summary</span>
+<p>DORA 2025: 90% of technology professionals now use AI at work and 80%+ believe it raised their
+productivity; roughly <strong>30% report little or no trust in AI output</strong>. Both halves of that
+sentence are true of the same population at the same time. Any strategy that assumes uniform trust or
+uniform distrust is modelling a workforce that does not exist.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The premise is a queueing claim. Treat it as one and it is defensible; treat it as a productivity claim and the RCT contradicts it.</li>
+  <li>Practitioners' self-reported speedup is not evidence. METR's participants were wrong about the sign, not just the size.</li>
+  <li>The stability half of the DORA finding is the durable one and it is what the playbook is actually a remedy for.</li>
+  <li>Substituting "control system" for "speed" as the document's subject makes it a better document.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 2 ============================ -->
+<section class="module" id="m2"><div class="module-header"><div class="num">2</div><div>
+  <h2>The artifact chain &mdash; the actually portable idea</h2>
+  <div class="mt">intent.md &rarr; spec.md &rarr; plan.md &rarr; diff &rarr; PR &rarr; incident record</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>State the artifact chain and what each link buys that a ticket does not</li>
+  <li>Explain why "the chain of commits is the audit trail" is the document's single best sentence</li>
+  <li>Identify what is genuinely new here versus what is a 1990s idea with the cost removed</li>
+  <li>Choose a source-of-truth configuration when a legacy tracker already owns the record</li>
+</ul></div>
+
+<h3>The chain</h3>
+
+<div class="callout c-play"><span class="lbl">The playbook's position</span>
+<blockquote>"Each stage ends by writing one to version control (including <code>intent.md</code>,
+<code>spec.md</code>, <code>plan.md</code>, the diff and its tests, the PR with its review findings, and
+the incident record) and the next stage begins by reading it. [&hellip;]
+<strong>The chain of commits is also the audit trail: who asked for what, what the agent produced, and
+who approved it.</strong>"</blockquote>
+<p>And the trigger discipline that goes with it: an accepted <code>intent.md</code> fires the design
+pass, an approved <code>spec.md</code> fires plan mode, a merged PR fires the pipeline, a breached
+control band in production writes the next <code>intent.md</code>.</p>
+</div>
+
+<p>Strip the AI framing and ask what this structure does. It gives you, for any change in production,
+a single <code>git log</code> that answers: what problem was claimed, what was specified, what was
+planned, what was built, what review found, who approved. Every one of those is timestamped by an
+authority nobody in the process controls.</p>
+
+<h3>What is new, and what is not</h3>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; this is a very old idea</span>
+<p>Requirements traceability &mdash; a linked chain from stated need to design to implementation to
+test evidence &mdash; is the oldest idea in regulated software engineering. RUP had it. CMMI required
+it. DO-178C, IEC 62304 and ISO 26262 mandate versions of it today. The traceability matrix is not an
+Anthropic invention and the playbook does not claim it is.</p>
+<p>What changed is <strong>price</strong>. Traceability failed in practice for thirty years for exactly
+one reason: producing and maintaining the artifacts cost more than the artifacts were worth to the
+people producing them, so they were written after the fact to satisfy an auditor and were therefore
+fiction. An agent that drafts <code>intent.md</code> in ten minutes from a conversation, and a
+<code>plan.md</code> generated before any code exists, collapse that cost.</p>
+<p><strong>So the correct claim is not "AI enables traceability." It is "AI made traceability cheap
+enough to be true rather than performed."</strong> That is a smaller claim and a much more defensible
+one, and it generalises: it holds whether or not any of the productivity numbers in Module 1 hold.</p>
+</div>
+
+<div class="callout c-warn"><span class="lbl">The failure mode the playbook does not name</span>
+<p>Cheap artifacts are cheap to fake. A <code>plan.md</code> generated after the diff, or an
+<code>intent.md</code> back-filled to make a merged change look governed, produces a chain that reads
+perfectly and certifies nothing &mdash; the same fiction as the old traceability matrix, now with a
+convincing timestamp.</p>
+<p>The defence is ordering, not content: the value of the chain comes entirely from
+<code>plan.md</code> being committed <em>before</em> the diff exists. That is checkable
+mechanically &mdash; compare commit timestamps &mdash; and it is the one property of the whole chain
+worth enforcing with a hook. The playbook comes close (it suggests a hook to keep plan and
+implementation synchronised) but never says the ordering itself is the control.</p>
+</div>
+
+<h3>Source of truth when a tracker already owns the record</h3>
+
+<p>The playbook's sidebar on legacy systems is unglamorous and is the most immediately practical page
+in it. Three configurations, pick one <em>per artifact</em>:</p>
+
+<div class="tw"><table><thead><tr><th>Configuration</th><th>Mechanism</th><th>When it is right</th></tr></thead><tbody>
+<tr><td><strong>Repo is truth</strong></td><td>Markdown artifacts are authoritative; Jira/ServiceNow reference commits</td><td>Engineering-led orgs. One timestamp authority, one tool. Cleanest, hardest to sell to a change board.</td></tr>
+<tr><td><strong>Legacy is truth</strong></td><td>Tracker holds the record; markdown are working copies; Claude reads and writes back over MCP in-session</td><td>Regulated environments where the auditor already accepts the tracker. Costs you the single timestamp authority.</td></tr>
+<tr><td><strong>Linkage only</strong></td><td>Artifacts carry the record ID; records carry the commit SHA</td><td>The honest starting point. Two sources of truth, explicitly acknowledged rather than accidentally created.</td></tr>
+</tbody></table></div>
+
+<p><strong>Position:</strong> start at linkage, and be suspicious of anyone who wants to start at
+"repo is truth" in an organisation with a functioning change board. The migration cost is not
+technical &mdash; it is convincing an auditor to accept a new evidence store, and that is a
+twelve-month conversation you should not begin in week one of an AI programme.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The artifact chain is the most transferable idea in the playbook and survives every criticism in Module 1.</li>
+  <li>It is traceability with the cost removed &mdash; not a new concept, a newly affordable one.</li>
+  <li>The only property worth enforcing mechanically is <em>ordering</em>: plan before diff, checkable from timestamps.</li>
+  <li>Pick a source of truth per artifact. Linkage first; do not fight the change board in week one.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 3 ============================ -->
+<section class="module" id="m3"><div class="module-header"><div class="num">3</div><div>
+  <h2>Plan and Design: old discipline, new price</h2>
+  <div class="mt">Stages 1&ndash;2 &mdash; who writes the spec, and who is accountable when it is wrong</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Describe the intent&rarr;spec collapse and the accountability question it raises</li>
+  <li>Judge the "survival rate" metric the playbook proposes and find its gaming path</li>
+  <li>Argue both sides of "the product owner reviews the spec but doesn't write it"</li>
+</ul></div>
+
+<h3>The collapse of requirements and design into one session</h3>
+
+<div class="callout c-play"><span class="lbl">The playbook's position</span>
+<blockquote>"Both phases happen in a single prompted session. Claude takes <code>intent.md</code> and
+produces a requirements and design spec, constrained by the organization's skills, with areas of
+concern flagged. [&hellip;] <strong>The product owner reviews that spec, but doesn't write it.</strong>"</blockquote>
+<p>The prompt it recommends is worth quoting because the last clause does most of the work:
+"Describe clearly any areas of concern, <strong>especially where you cannot satisfy contradicting
+policies</strong>."</p>
+</div>
+
+<p>That last clause is the good part. An analyst's real job was never transcription &mdash; it was
+noticing that the security standard and the UX standard cannot both be satisfied here, and escalating
+before anyone builds. Asking explicitly for the contradictions is asking the model to do the part that
+was actually valuable, and it is cheap to add to any prompt you already run.</p>
+
+<h3>The audit: reviewing is a weaker act than writing</h3>
+
+<div class="callout c-dissent"><span class="lbl">The audit</span>
+<p>"Reviews but doesn't write" assumes review catches what authorship would have caught. It does not,
+and the effect is measurable in the adjacent literature: when reviewers are handed an automated
+review, they <strong>concentrate on the locations the automation commented on</strong> and attend less
+to everything else
+(<a href="https://arxiv.org/pdf/2412.18531" target="_blank" rel="noopener">Automated Code Review In Practice</a>).
+The generated spec sets the agenda for its own review. A concern the model did not flag is a concern
+the product owner is now statistically less likely to raise, because the flagged list looks like the
+list.</p>
+<p>The systematic-review number on automation bias generally &mdash; erroneous automated advice
+followed at a <strong>26% higher rate</strong> when automated recommendations are present &mdash;
+points the same direction.</p>
+<p>This is not an argument against the play. It is an argument that <strong>the flagged-concerns list
+must never be the only prompt for the reviewer</strong>. The cheap countermeasure: have the product
+owner write down, before opening the spec, the two or three things they expect to be hard. Then read.
+Anything on their list that is absent from the spec's list is the finding.</p>
+</div>
+
+<h3>The metric, and how it will be gamed</h3>
+
+<div class="callout c-warn"><span class="lbl">Read this metric adversarially</span>
+<p>The playbook proposes <strong>survival rate</strong> as the lagging indicator for Plan: the share
+of <code>intent.md</code> files a product owner accepts into Design rather than closes.</p>
+<p>Think about which direction is "good." A high survival rate could mean intent is being captured
+well. It could equally mean the product owner has stopped filtering &mdash; which is exactly what
+happens when the queue triples in size and closing an item now requires writing a justification that
+the originator will read. A metric whose failure mode and success mode move the same direction is not
+a metric.</p>
+<p>The repair is to pair it: survival rate <em>and</em> the playbook's other Plan indicator &mdash;
+edits to <code>intent.md</code> made after the first <code>spec.md</code> commit. Rising survival with
+rising post-spec churn means the filter broke. Rising survival with flat churn means it is working.
+Neither number means anything alone, and the playbook lists them separately without saying so.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Ask for contradictions explicitly &mdash; it is the highest-value clause in the design prompt and costs nothing.</li>
+  <li>A generated flagged-concerns list anchors its own reviewer. Write your expectations before you read the spec.</li>
+  <li>Survival rate is ambiguous alone; it only carries signal paired with post-spec churn.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 4 ============================ -->
+<section class="module" id="m4"><div class="module-header"><div class="num">4</div><div>
+  <h2>Build: CLAUDE.md, skills, and one sentence you must not skim</h2>
+  <div class="mt">Stage 3 &mdash; where the playbook quietly tells you its own controls are advisory</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Distinguish CLAUDE.md, skills, hooks and managed settings by <em>enforcement strength</em>, not by feature</li>
+  <li>Quote the playbook's own admission about skills and state what follows from it</li>
+  <li>Apply the "twice = write it down" rule and know why keeping CLAUDE.md short is a technical constraint</li>
+</ul></div>
+
+<h3>CLAUDE.md: the cheapest play in the document</h3>
+
+<p>Run <code>/init</code>, cut the output down to what a new joiner needs on day one, commit it at the
+repo root. Build, test and lint commands with an example of healthy output; the conventions that
+matter; the mistakes the team keeps seeing. The working rule the playbook gives is the whole play:
+<strong>when Claude makes the same mistake twice, the correction goes into CLAUDE.md</strong>.</p>
+
+<div class="callout c-warn"><span class="lbl">Why "keep it under a page" is not style advice</span>
+<p>CLAUDE.md is read in full at the start of every session. Every stale line is context spent on
+nothing, in a budget that the actual task also needs. A 400-line CLAUDE.md is not a thorough
+CLAUDE.md; it is a tax levied on every session in the repository forever. Prune it like you would
+prune a cache, not like you would prune a wiki.</p>
+</div>
+
+<h3>The sentence</h3>
+
+<div class="callout c-play"><span class="lbl">The playbook's position &mdash; read this twice</span>
+<blockquote>"A skill is a control, though an advisory one. It makes Claude likely to apply the policy
+while the code is written, and <strong>nothing forces a session to comply with it</strong>. A policy
+that must always hold needs something deterministic behind the skill, such as a hook that blocks the
+action or a review pass that re-checks the policy at the PR. <strong>The skill makes violations rare
+and the hook makes them close to impossible.</strong>"</blockquote>
+</div>
+
+<p>That paragraph is buried in the middle of the Build stage, and it is the most important thing in
+the document. It says, in a vendor's own words, that the mechanism most organisations will reach for
+first &mdash; write the policy as a skill &mdash; <strong>is not a control in the sense a compliance
+function means the word</strong>.</p>
+
+<p>Take it seriously and a hierarchy falls out. This table is the spine of the simulator in Module 5.</p>
+
+<div class="tw"><table><thead><tr><th>Mechanism</th><th>Enforcement</th><th>Defeated by</th><th>Use it for</th></tr></thead><tbody>
+<tr><td>Prompt instruction</td><td><span class="bad">None</span></td><td>The next session</td><td>One-off steering. Never policy.</td></tr>
+<tr><td><code>CLAUDE.md</code></td><td><span class="bad">Advisory</span></td><td>Context pressure; the model simply not doing it</td><td>Conventions, commands, repeated mistakes</td></tr>
+<tr><td>Skill</td><td><span class="bad">Advisory</span></td><td>Not triggering; drifting from the real policy</td><td>Institutional knowledge applied consistently &mdash; <em>and only that</em></td></tr>
+<tr><td>Hook (project <code>settings.json</code>)</td><td><span class="good">Deterministic</span></td><td>An engineer editing the file; a command the matcher misses</td><td>Guardrails a team owns and can be trusted to keep</td></tr>
+<tr><td>Managed settings (MDM/admin)</td><td><span class="good">Deterministic, unfalsifiable locally</span></td><td>Nothing on the engineer's machine</td><td>Non-negotiable organisational policy</td></tr>
+<tr><td>Sandbox / network policy</td><td><span class="good">OS-level</span></td><td>Nothing in-process</td><td>Egress, credential and filesystem boundaries</td></tr>
+<tr><td>Branch protection + code owners</td><td><span class="good">Deterministic, external</span></td><td>Admin override (which is logged)</td><td>Separation of duties. The agent cannot approve its own work.</td></tr>
+<tr><td>CI required check</td><td><span class="good">Deterministic, external</span></td><td>Check being made non-required</td><td>Anything expensive enough to belong at the PR, not the keystroke</td></tr>
+</tbody></table></div>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; the rule most teams will get wrong</span>
+<p>The temptation is to write a skill for every policy, because a skill is a markdown file and a hook
+is a shell script that has to be maintained. That produces a control library that reads like a
+compliance programme and enforces nothing. It will pass an internal review, because internal reviews
+read documents.</p>
+<p><strong>The test: could the policy be violated by a session that simply did not load the skill?</strong>
+If yes, and the policy must always hold, you do not have a control &mdash; you have documentation with
+good intentions. Skills are for making the right thing likely and legible. Hooks, managed settings,
+sandboxing and branch protection are for making the wrong thing impossible. Most policies need both,
+and the playbook says so; the sentence is just easy to read past.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Classify every control by enforcement strength before you write it. Advisory and deterministic are different categories, not different intensities.</li>
+  <li>A skill that carries a must-always-hold policy without a deterministic backstop is a paper control.</li>
+  <li>CLAUDE.md brevity is a context-budget constraint, not an aesthetic preference.</li>
+  <li>Next module: you will make eight of these calls yourself, and you will not be shown the answer until you commit.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 5 ============================ -->
+<section class="module" id="m5"><div class="module-header"><div class="num">5</div><div>
+  <h2>The Control Board</h2>
+  <div class="mt">Simulator &mdash; five requirements land on your desk. Pick the mechanism. Commit the reasoning. Then the audit.</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Map a stated policy requirement onto the weakest sufficient enforcement mechanism</li>
+  <li>Recognise a paper control while you are writing it, not during an audit</li>
+  <li>Predict how a string-matching guardrail fails on an infinite command space</li>
+  <li>Transfer the reasoning to a surface where hooks do not exist</li>
+</ul></div>
+
+<h3>Now make the calls yourself</h3>
+
+<p>Reading the enforcement table in Module 4 is not the same as choosing from it under pressure with a
+policy owner waiting. Below is a simulator. It gives you five requirements of the kind that actually
+arrive, and it will not show you any consequence until you have committed to a mechanism
+<em>and written down why</em>.</p>
+
+<p>It is not a quiz &mdash; in most scenarios more than one option is defensible, and the reveal shows
+what <em>every</em> option would have done, not just yours. But it keeps a <strong>paper-control
+ledger</strong>. Every time you satisfy a must-always-hold requirement with an advisory mechanism, it
+lands there. In scenario five a regulator arrives, and the finding is scaled to what you actually
+accrued. That second-order effect is the part the playbook leaves out.</p>
+
+<div id="board">
+  <div class="b-top">
+    <span class="b-pill">Simulator</span>
+    <h3>The Control Board</h3>
+    <span class="b-step" id="b-step">Scenario 1 of 5</span>
+  </div>
+  <div class="b-body">
+    <div class="bq" id="b-bq"></div>
+    <div id="paperbox">
+      <span class="lbl">Paper controls on the books <span id="b-papern">0</span></span>
+      <ul id="paperlist"><li class="empty">None yet. Any must-hold policy you satisfy with an advisory mechanism lands here.</li></ul>
+    </div>
+    <div class="req" id="b-req">
+      <div class="from" id="b-from"></div>
+      <h4 id="b-title"></h4>
+      <div id="b-brief"></div>
+      <div class="facts" id="b-facts"></div>
+    </div>
+    <div class="opts" id="b-opts"></div>
+    <div class="why-wrap">
+      <label for="why">Your reasoning &mdash; one line, required before you can ship it</label>
+      <textarea id="why" placeholder="Why this mechanism, and what are you accepting in exchange?"></textarea>
+    </div>
+    <div class="b-btns">
+      <button class="act" id="b-run" disabled>Ship it &mdash; audit in 90 days</button>
+      <button class="act ghost hid" id="b-next">Next requirement &rarr;</button>
+      <button class="act ghost" id="b-reset">Reset</button>
+      <span class="gate-msg" id="b-gate">Pick a mechanism and write one line of reasoning to unlock.</span>
+    </div>
+    <div id="result" class="hid"></div>
+    <div id="ledger" class="hid">
+      <div class="rhead">Your decision ledger</div>
+      <div id="ledlist"></div>
+    </div>
+  </div>
+</div>
+
+<div id="transfer" class="hid">
+  <h4>Transfer check &mdash; a surface the simulator never showed you</h4>
+  <p style="font-size:0.9rem">Every scenario above assumed a repository, a Claude Code session, and a
+  hook runtime. This one deliberately removes all three, and the mechanism involved was never
+  demonstrated to you. Answer from the principles, not from pattern-matching. Write your answers
+  first &mdash; the reveal is below them.</p>
+
+  <div class="tq"><div class="q">1. Stage 1 of the playbook puts non-engineers on claude.ai or Cowork,
+  writing <code>intent.md</code> and committing it through a GitHub connector. Your privacy policy says
+  no customer PII may enter an intent artifact. There is no repo checkout on their machine, no
+  <code>CLAUDE.md</code>, and no hook runtime. Where does the control live?</div>
+  <textarea placeholder="Your answer..."></textarea></div>
+
+  <div class="tq"><div class="q">2. Name the entire control <em>class</em> from Module 4's table that
+  simply does not exist on this surface, and say why.</div>
+  <textarea placeholder="Your answer..."></textarea></div>
+
+  <div class="tq"><div class="q">3. State the residual risk you must accept and write it down for the
+  policy owner &mdash; the thing that no mechanism on this surface closes.</div>
+  <textarea placeholder="Your answer..."></textarea></div>
+
+  <details class="reveal"><summary>Reveal &mdash; and where this is still genuinely argued</summary>
+  <p><strong>1. When you cannot control the runtime, control the destination.</strong> The artifact has
+  to cross a boundary you own: the connector writes to the intent repository, and that repository is
+  yours. So the control is a <em>required CI check on the intent repo</em> that scans incoming
+  <code>intent.md</code> for PII patterns and fails the PR, with branch protection meaning the
+  connector cannot merge directly. Two organisational controls sit behind it &mdash; the managed MCP
+  allowlist decides which connectors exist at all, and the plugin marketplace restriction decides which
+  skills those users can load. The advisory layer (a shared intent template encoded as a skill) still
+  earns its place: it makes the violation rare. The CI check makes it not ship.</p>
+  <p><strong>2. Hooks.</strong> A hook is a script that runs on the machine where the agent's tools
+  execute, immediately before or after a tool call. On a hosted chat surface there is no such machine
+  under your control and no tool-call boundary you can interpose on. Everything else in the table has an
+  analogue &mdash; advisory controls port as skills, deterministic controls port to the destination
+  repo and to admin settings &mdash; but the per-action deterministic gate is gone. Recognising that a
+  control class is <em>absent</em> rather than merely inconvenient is the whole skill here.</p>
+  <p><strong>3. The residual risk is context, not artifacts.</strong> Every control named above acts on
+  what gets <em>committed</em>. None of them act on what the originator <em>typed into the
+  conversation</em> to get there. If a claims handler pastes a real customer record in while
+  brainstorming, your CI check on the resulting <code>intent.md</code> can be perfectly clean and the
+  PII has still left the boundary. That is closed by data-handling policy, admin retention settings and
+  training &mdash; not by anything in the SDLC. Write it down as accepted risk with a named owner, or it
+  will be discovered for you.</p>
+  <p><strong>Where reasonable people split:</strong> some security teams argue the correct answer to
+  question 1 is "don't put non-engineers on this surface at all" &mdash; keep intent capture inside the
+  engineering perimeter and accept the handoff cost the playbook is trying to delete. That is a coherent
+  position and it is the one most regulated firms will actually take in year one. It trades the entire
+  benefit of Stage 1 for a control boundary that already has an auditor's signature on it, and whether
+  that trade is right depends on your data classification, not on your enthusiasm.</p>
+  </details>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Match enforcement strength to the words in the requirement. "Should" takes a skill; "must always" takes something deterministic.</li>
+  <li>String-matching guardrails fail on an infinite command space. Constrain the capability, not the phrasing.</li>
+  <li>A verifier that runs the artifact the agent was allowed to weaken verifies nothing.</li>
+  <li>Paper controls are invisible until an auditor asks for evidence, and then they are all visible at once.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 6 ============================ -->
+<section class="module" id="m6"><div class="module-header"><div class="num">6</div><div>
+  <h2>Test: the highest-ROI play in the document</h2>
+  <div class="mt">Stage 4 &mdash; the feedback loop, and why config needs regression tests</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Explain why the feedback loop directly addresses the DORA stability finding</li>
+  <li>Set a verification target that is checkable without you</li>
+  <li>State what an eval suite actually protects and what breaks it</li>
+</ul></div>
+
+<div class="callout c-play"><span class="lbl">The playbook's position</span>
+<blockquote>"Always give Claude a way to verify its own work, whether tests, a build, or a screenshot
+diff. [&hellip;] Claude iterates until the check passes, so what reaches the engineer has already
+passed it."</blockquote>
+<p>Prerequisites: <em>none</em>. Infrastructure: a test suite and a build that each run with one
+command. That is the entire cost.</p>
+</div>
+
+<h3>Why this one first</h3>
+
+<p>Module 1 established the one durable empirical finding: throughput up, stability down. The feedback
+loop is the only play in the document that attacks that finding directly and has no prerequisites.
+Everything else &mdash; the artifact chain, review passes, hooks, the autonomous loop &mdash; either
+depends on something or improves a different quantity.</p>
+
+<p>Three details in the play carry most of the value and are easy to skip past:</p>
+
+<ul>
+<li><strong>A quantifiable target.</strong> "All tests in <code>test_status.py</code> pass," or "the
+endpoint returns 200 with the new field." Not "make sure it works." The target has to be something the
+session can evaluate without asking you, or you are still the loop.</li>
+<li><strong>Failing test first, for bug fixes.</strong> Reproduce the bug as a test, confirm it fails
+for the reason you expect, <em>commit it</em>, then ask for the fix without editing the test. A test
+that existed before the fix and could not be rewritten is the only proof that the bug is gone.</li>
+<li><strong>Example of healthy output in CLAUDE.md.</strong> Listing <code>make test</code> is worth
+much less than listing what a passing run looks like. Without it, "all green" is the model's judgment;
+with it, it is a comparison.</li>
+</ul>
+
+<h3>Evals: the only thing that regression-tests your configuration</h3>
+
+<p>The eval play is framed as "the AI-native equivalent of stage-gate QA," and that framing undersells
+it. Once you adopt CLAUDE.md, skills and hooks, you have shipped a body of configuration that
+<strong>steers every session in the organisation and that nothing else tests</strong>. Code has tests.
+Infrastructure has plans. Your <code>.claude/</code> directory has a code review and hope. The eval
+suite is the test suite for that directory, which is why the playbook triggers it on
+<code>paths: ['CLAUDE.md', '.claude/**']</code>. That trigger is the point of the play; the schedule
+is secondary.</p>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; three things the play understates</span>
+<p><strong>20&ndash;50 tasks is thin, and the playbook half-admits it.</strong> It says cases stop
+discriminating as models improve and new ones must be added from ongoing monitoring. That is a
+maintenance commitment, not a one-off build, and it is the reason most eval suites die in month four.
+Budget the ongoing curation or do not start.</p>
+<p><strong>A pass-rate merge gate creates the Module 5 scenario-3 pressure, one level up.</strong> If a
+skill change drops the pass rate and the gate blocks the merge, the cheapest path to green is to
+weaken the eval case. Protect the eval directory with code owners drawn from a different team than the
+one that owns the configuration, or you have built a gate that grades its own homework.</p>
+<p><strong>A model swap invalidates the baseline in both directions.</strong> A higher pass rate after
+a model change is not evidence your configuration improved; it is evidence the cases got easier. Keep
+the model version in the run record and never compare across it without saying so.</p>
+</div>
+
+<p><strong>The best single line in the stage:</strong> "Each production incident gets an eval, written
+by the team that owned the incident." That is a post-mortem action item that cannot rot into a wiki
+page, because it lives in a suite that runs. If you adopt one sentence from Stage 4, adopt that one.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>The feedback loop is the first thing to build: no prerequisites, and it attacks the one finding that replicates.</li>
+  <li>A verification target the session cannot evaluate alone leaves you inside the loop.</li>
+  <li>Evals are the regression tests for configuration. Nothing else tests <code>.claude/</code>.</li>
+  <li>Different owners for the eval suite and the configuration it grades.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 7 ============================ -->
+<section class="module" id="m7"><div class="module-header"><div class="num">7</div><div>
+  <h2>Deploy: correlated blind spots and the anchored reviewer</h2>
+  <div class="mt">Stage 5 &mdash; separation of duties is preserved formally, and not epistemically</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Distinguish formal separation of duties from independence of judgment</li>
+  <li>Cite the self-preference and anchoring evidence and say what each implies for review design</li>
+  <li>Write a REVIEW.md that does not drown its reader</li>
+</ul></div>
+
+<div class="callout c-play"><span class="lbl">The playbook's position</span>
+<blockquote>"Separation of duties is preserved, because <strong>the agent that wrote the code has no way
+to approve it.</strong> The review policy in REVIEW.md is applied to all PRs [&hellip;] Approval comes
+from a human through branch protection, informed by the findings."</blockquote>
+<p>And the throughput claim: "All PRs get an identical set of review passes, with findings ranked by
+severity. Human attention moves up a level."</p>
+</div>
+
+<p>The formal claim is correct and important. An agent cannot dismiss branch protection, so the
+control that matters &mdash; a human code owner approves &mdash; genuinely survives. Uniform review
+coverage is also a real gain: the playbook is right that human review quality varies with reviewer
+load, and a pass that runs identically on every PR removes a real source of variance.</p>
+
+<h3>The audit: two independent failure modes stack here</h3>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; correlated blind spots</span>
+<p>Separation of duties assumes the reviewer's errors are <em>independent</em> of the author's. When
+the same model family writes the code and reviews it, they are not. The LLM-as-judge literature
+documents self-preference bias directly: judges systematically favour outputs from themselves or their
+own family, and the effect is tied to <strong>self-recognition</strong> &mdash; the model's ability to
+identify its own generations
+(<a href="https://arxiv.org/pdf/2410.21819" target="_blank" rel="noopener">Self-Preference Bias in LLM-as-a-Judge</a>;
+<a href="https://www.matsprogram.org/research/llm-evaluators-recognize-and-favor-their-own-generations" target="_blank" rel="noopener">LLM Evaluators Recognize and Favor Their Own Generations</a>).
+A complementary finding: judges over-reward low-perplexity text &mdash; that is, text that looks
+familiar to them.</p>
+<p>Translated to code review: the failure modes most likely to be missed are exactly the ones the
+generating model finds natural. Not random misses &mdash; <em>systematically the same misses</em>.
+Twenty review passes on twenty PRs by the same model is one opinion applied twenty times, and a
+control whose errors are perfectly correlated does not compose with itself.</p>
+<p><strong>What follows:</strong> where the stake justifies the cost, run the review pass on a
+different model family than the one that authored, and treat agreement between them as signal rather
+than treating a single pass as coverage. Where it does not justify the cost, be honest in the control
+description: this is a <em>recall improvement on known classes</em>, not independent assurance.</p>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; the anchored human</span>
+<p>The second failure mode lands on the human the playbook is relying on. Reviewers given an automated
+review <strong>focus on the locations the automation commented on</strong>
+(<a href="https://arxiv.org/pdf/2412.18531" target="_blank" rel="noopener">Automated Code Review In Practice</a>),
+and erroneous automated advice is followed at materially higher rates when automation is present.
+So the finding list does not merely inform the human &mdash; it redistributes their attention, away
+from the unflagged 90% of the diff.</p>
+<p>Now stack the two. The model misses a class of defect because it authored in that style; the human
+misses the same class because nothing flagged it. The playbook's promise that "human attention moves up
+a level" is the right ambition and the mechanism actively works against it unless you design for it:
+require the reviewer to state what the change is <em>supposed</em> to do before reading findings, and
+check the diff against <code>plan.md</code> rather than against the finding list.</p>
+</div>
+
+<h3>REVIEW.md, and the one play to decline</h3>
+
+<p>The REVIEW.md pattern is good and the nit cap is the reason. "Report at most five nits per review;
+summarize the rest as a count" is a load-management control, and it is the difference between a review
+a human reads and a review a human scrolls. The monthly tuning ritual &mdash; rate findings, exclude
+generated paths, exclude what CI already enforces &mdash; is the maintenance that keeps it that way.</p>
+
+<div class="callout c-warn"><span class="lbl">Where to draw the line</span>
+<p>The playbook suggests letting Claude "babysit the PR to merge" &mdash; a slash command that sweeps
+unresolved review comments and failing checks, pushes fixes, and repeats until the PR is green and
+waiting only on code-owner approval.</p>
+<p>That is the highest-risk paragraph in the document, because "green" is now produced by the same
+system that produced the code, in a loop optimising for green, with the human's attention arriving only
+at the end and anchored by a clean board. It is not that the loop is wrong &mdash; it is that it should
+not be adopted before the Stage 4 protections exist (committed failing tests, a hook preventing test
+edits, evals owned by another team). Adopt the fix loop; adopt it <em>last</em>.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Formal separation of duties holds. Independence of judgment does not, when author and reviewer share a model family.</li>
+  <li>Cross-family review where the stake justifies it; otherwise describe the control honestly as recall, not assurance.</li>
+  <li>The finding list reallocates human attention. Check the diff against plan.md, not against the findings.</li>
+  <li>Cap the nits. Adopt the auto-fix-to-green loop last, or not yet.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 8 ============================ -->
+<section class="module" id="m8"><div class="module-header"><div class="num">8</div><div>
+  <h2>Governance as configuration, line by line</h2>
+  <div class="mt">The managed-settings block &mdash; what each key buys, and the three things none of them buy</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Explain why the sandbox block, not the permissions block, is the load-bearing part</li>
+  <li>Identify the two keys most teams omit and what they cost</li>
+  <li>State three risks that no line in this file addresses</li>
+</ul></div>
+
+<h3>The worked example</h3>
+
+<p>The playbook's regulated-enterprise settings block is the most concrete artifact in the document.
+It is worth walking, because the interesting part is the internal logic: <strong>each layer exists
+because the layer above it has a hole.</strong></p>
+
+<div class="tw"><table><thead><tr><th>Key</th><th>What it buys</th><th>The hole it closes</th></tr></thead><tbody>
+<tr><td><code>permissions.deny</code></td><td>Secrets out of context; no tool-level network egress</td><td>&mdash;</td></tr>
+<tr><td><code>permissions.allow</code></td><td>Pre-approves the safe inner loop</td><td>Stops the deny list becoming prompt fatigue &mdash; a real control failure, since a person clicking through prompts is not approving</td></tr>
+<tr><td><code>disableBypassPermissionsMode</code> + <code>allowManagedPermissionRulesOnly</code></td><td>No engineer, project file or CLI flag can widen the rules</td><td>Local override of team settings</td></tr>
+<tr><td><code>sandbox</code> + <code>network.allowedDomains</code></td><td>OS-level egress allowlist</td><td><strong>A tool-level deny on WebFetch does not stop a shell command reaching the network</strong></td></tr>
+<tr><td><code>failIfUnavailable</code> + <code>allowUnsandboxedCommands:false</code></td><td>Refuses to start without the sandbox; no retry outside it</td><td>The sandbox silently degrading to advisory</td></tr>
+<tr><td><code>sandbox.credentials</code></td><td>Denies <code>~/.ssh</code>, <code>~/.aws/credentials</code>; strips named env vars</td><td><code>permissions.deny</code> governs Claude's <em>file tools</em> &mdash; a sandboxed shell command could still read those paths</td></tr>
+<tr><td><code>allowManagedHooksOnly</code></td><td>Your approval gates are the only hooks that run</td><td>Local hooks adding to or replacing the gates</td></tr>
+<tr><td><code>disableSideloadFlags</code> + <code>strictKnownMarketplaces</code></td><td>Every skill, agent, hook and MCP server arrived via the approved marketplace</td><td>Anything loaded from a home directory</td></tr>
+<tr><td><code>allowManagedMcpServersOnly</code></td><td>The tool surface is a platform-owned allowlist</td><td>Ad-hoc connectors expanding what the agent can reach</td></tr>
+<tr><td><code>requiredMinimumVersion</code></td><td>Refuses to start below an assessed build</td><td>Controls enforced by a version nobody evaluated</td></tr>
+</tbody></table></div>
+
+<div class="callout c-play"><span class="lbl">The playbook's own caveat, and it is the right one</span>
+<blockquote>"Consider the above a starting point to tailor, rather than a recommendation to copy.
+<strong>Every deny trades against capability, and the right balance depends on the data classification
+of the repo.</strong>"</blockquote>
+</div>
+
+<h3>The position: the sandbox block is the control, the permissions block is the ergonomics</h3>
+
+<p>Most teams that adopt this file will tune <code>permissions</code> carefully and treat
+<code>sandbox</code> as advanced configuration to do later. That is backwards, and the playbook's own
+annotation says why twice: the tool-level denies govern the agent's file and fetch tools, and a shell
+command routes around both. <code>permissions</code> shapes what the agent does by default;
+<code>sandbox</code> bounds what any process it spawns <em>can</em> do. Only the second one is a
+boundary in the sense a security review means.</p>
+
+<p>The two keys most often omitted are <code>failIfUnavailable</code> and
+<code>requiredMinimumVersion</code>, and they share a failure mode: without them, the control set
+degrades <em>silently</em> to a weaker one that still looks configured. A sandbox that could not
+initialise and a build predating the key you rely on both produce a machine that reports normal and
+enforces less.</p>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; three things no line in this file buys</span>
+<p><strong>1. Nothing here constrains what happens to data already in context.</strong> Every key is
+about acquisition and egress paths. Once a document is in the session, no setting governs how it is
+used in the output. That is a data-handling and retention question, answered by admin retention
+settings and the Compliance API, not by this file.</p>
+<p><strong>2. Nothing here is a control on the human.</strong> The whole file constrains the agent. The
+engineer steering it retains all their own access, and the playbook's own audit story depends on
+attribution &mdash; each non-interactive run acting under the agent's own identity so the log separates
+agent action from human action. That separation is what makes the log evidence; it is not enforced by
+any key above.</p>
+<p><strong>3. Nothing here proves the control held.</strong> A settings file is a statement of intent
+about the future. The evidence an auditor wants is the OpenTelemetry export with per-decision allow/block
+verdicts and timestamps, plus CI check-run history. Configure the export at the same time as the
+settings or you will have controls and no record of them &mdash; which, as Module 5 scenario 5 shows,
+audits identically to having no controls.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Layer order matters: permissions shape defaults, the sandbox draws the boundary. Do the sandbox first.</li>
+  <li><code>failIfUnavailable</code> and <code>requiredMinimumVersion</code> convert silent degradation into a loud failure. Set both.</li>
+  <li>Ship the telemetry export with the settings. Unevidenced controls audit as absent controls.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 9 ============================ -->
+<section class="module" id="m9"><div class="module-header"><div class="num">9</div><div>
+  <h2>Measurement: why these indicators are gameable</h2>
+  <div class="mt">Twenty-odd metrics, mostly elapsed-time deltas, and the one that should hold veto power</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Classify the playbook's indicators and spot the structural bias in the set</li>
+  <li>Name the veto metric and defend the choice</li>
+  <li>Explain why self-reported speedup is disqualified as evidence</li>
+</ul></div>
+
+<h3>What the playbook measures</h3>
+
+<p>Every play ends with a leading and a lagging indicator, which is more measurement discipline than
+most vendor documents attempt. Collect them and a pattern appears immediately.</p>
+
+<div class="tw"><table><thead><tr><th>Kind</th><th>Examples from the playbook</th><th>Problem</th></tr></thead><tbody>
+<tr><td><strong>Elapsed-time deltas</strong> (most of the leading indicators)</td><td>Time to committed intent.md; intent&rarr;spec commit gap; time to first review; time from band breach to intent.md; time waiting at each approval gate</td><td>These measure the step that just got cheap. They will improve whether or not anything downstream improved, and they will improve most where quality dropped most.</td></tr>
+<tr><td><strong>Volume / rate</strong></td><td>Concurrent sessions per engineer; changes merged per engineer per week; share of pipeline failures triaged without paging</td><td>Throughput without a stability pair. DORA's finding is precisely that these can rise while the system degrades.</td></tr>
+<tr><td><strong>Genuine outcome measures</strong></td><td>Rework cycles per change; first-pass CI success; defects caught before merge vs escaping to production; repeat incidents of the same class; DORA four keys</td><td>These are the real ones and they are outnumbered roughly three to one.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-dissent"><span class="lbl">The audit &mdash; the bias is structural, not accidental</span>
+<p>A document arguing that build got faster and the surrounding stages did not will naturally propose
+indicators that measure the surrounding stages getting faster. Every one of those will move. None of
+them tells you whether the change was good.</p>
+<p>The playbook does list the honest ones &mdash; it names DORA explicitly under CI/CD, it names change
+failure rate, it names repeat incidents. They are simply distributed one per play, so no reader
+assembles them into a scorecard. Assemble them.</p>
+</div>
+
+<h3>The position: one veto metric, one throughput metric, one leading indicator per stage</h3>
+
+<p><strong>Change failure rate is the veto metric.</strong> Not because it is the most informative
+number, but because it is the one that the entire body of external evidence says will move against you:
+DORA finds AI adoption correlating with instability across successive report years, and GitClear's
+maintainability signals point the same way. If throughput rises and change failure rate holds flat, the
+programme is working. If throughput rises and change failure rate rises, you have bought the DORA
+failure mode at speed, and every elapsed-time indicator in the document will be green while you do it.</p>
+
+<p>Two consequences follow, and both are unwelcome:</p>
+
+<ul>
+<li><strong>Baseline before you start.</strong> Change failure rate and time-to-restore, measured for a
+quarter, before the first CLAUDE.md lands. Without a baseline you will be arguing from anecdote in
+month six, and the anecdotes will favour whoever is most enthusiastic.</li>
+<li><strong>Cap the scorecard.</strong> Twenty indicators is not measurement, it is a dashboard nobody
+reads and a menu for whoever needs a good number this quarter. One veto, one throughput, one leading
+indicator for the stage you are currently changing. Retire the leading indicator when you move on.</li>
+</ul>
+
+<div class="callout c-fact"><span class="lbl">Verified &mdash; why self-reported speedup is disqualified</span>
+<p>METR's participants forecast a 24% speedup, measured 19% slower, and
+<strong>still believed they had been sped up after experiencing the slowdown</strong>
+(<a href="https://arxiv.org/abs/2507.09089" target="_blank" rel="noopener">arXiv:2507.09089</a>).
+Meanwhile DORA 2025 finds 80%+ of technology professionals believe AI increased their productivity.
+Both facts can be true, and together they mean one thing for your programme: <strong>developer
+sentiment is a legitimate metric for adoption and retention, and inadmissible as evidence of
+productivity.</strong> Do not let a satisfaction survey settle an argument that a delivery metric can
+settle.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Most of the playbook's leading indicators measure the step that got cheap. They will all go green.</li>
+  <li>Change failure rate holds the veto. Throughput without it is the documented failure mode.</li>
+  <li>Baseline before the first change, or you will never be able to answer the question.</li>
+  <li>Self-reported speedup is adoption evidence, not productivity evidence. METR settles this.</li>
+</ul></div>
+</div></section>
+
+<!-- ============================ MODULE 10 ============================ -->
+<section class="module" id="m10"><div class="module-header"><div class="num">10</div><div>
+  <h2>Adoption order &mdash; Monday, and never</h2>
+  <div class="mt">The playbook gives a dependency graph. It does not rank by return. Here is the ranking.</div>
+</div></div><div class="module-body">
+
+<div class="objectives"><div class="t">Learning objectives</div><ul>
+  <li>Order the plays by return and prerequisite, not by stage number</li>
+  <li>Name what to defer indefinitely and defend the deferral</li>
+  <li>State the one-sentence version of the whole document</li>
+</ul></div>
+
+<p>The playbook is explicit that its stages are not an adoption order &mdash; "the plays are listed
+with stage; the arrows give the order to adopt them in. The two are not the same." It then leaves the
+ranking to you. This is the ranking, with reasons.</p>
+
+<h3>Monday</h3>
+
+<div class="callout c-play"><span class="lbl">Do these this week &mdash; both have zero prerequisites</span>
+<ol>
+<li><strong>The feedback loop (Stage 4).</strong> One command for build, one for test, one for lint,
+each with an example of healthy output in CLAUDE.md, and a stated rule that verification is part of
+"done." Highest return, no dependencies, and the only play that attacks the stability finding head on.</li>
+<li><strong>CLAUDE.md (Stage 3).</strong> <code>/init</code>, cut it to a page, commit it, and adopt the
+twice-is-a-rule discipline. It is the substrate every later play reads.</li>
+</ol>
+<p>Do these before you baseline nothing else &mdash; but do <em>also</em> start the change-failure-rate
+baseline from Module 9 in the same week, because it takes a quarter to be worth anything.</p>
+</div>
+
+<h3>Weeks two to six</h3>
+
+<ol>
+<li><strong>Run the Module 5 exercise for real.</strong> Sit down with your policy owners, list the
+must-always-hold policies, and classify each one against the enforcement table. This costs a
+half-day and it is the difference between a control programme and a document library.</li>
+<li><strong>Hooks for the policies that came out of that exercise</strong> &mdash; and managed settings
+for the subset an engineer must not be able to switch off. Start with the sandbox block.</li>
+<li><strong>plan.md, with ordering enforced.</strong> Plan mode is free; the discipline that makes it
+worth anything is committing the plan before the diff exists.</li>
+<li><strong>Skills, but only now</strong> &mdash; after you can tell which policies have a
+deterministic backstop and which are advisory by design. Writing skills first is how the paper-control
+library gets built.</li>
+</ol>
+
+<h3>The quarter</h3>
+
+<ol>
+<li><strong>Artifact chain at linkage.</strong> intent.md and spec.md in a shared home, record IDs both
+ways, no fight with the change board yet.</li>
+<li><strong>PR review passes with REVIEW.md</strong>, nit cap set, monthly tuning ritual scheduled,
+generated paths excluded. Cross-family review for the highest-stake repositories.</li>
+<li><strong>Evals in CI</strong>, triggered on <code>CLAUDE.md</code> and <code>.claude/**</code>,
+owned by a different team than the one that owns the configuration.</li>
+<li><strong>The @claude fix loop</strong>, last, once the Stage 4 protections exist.</li>
+</ol>
+
+<h3>Defer, and be willing to defer indefinitely</h3>
+
+<div class="callout c-warn"><span class="lbl">Not wrong &mdash; just not yours yet</span>
+<p><strong>Stage 6, the autonomous loop.</strong> A deterministic script watching a control band and
+invoking an agent with no person in the path is a genuinely good design, and the tiering by sigma is
+sound. It is also the play with the longest prerequisite chain in the document: it needs intent.md, PR
+review, hooks as an action boundary, and a rehearsed rollback path. An organisation that has all four
+already has most of the benefit. An organisation that does not will be building an autonomous loop on
+top of controls it has not yet tested, which is the worst possible order.</p>
+<p><strong>Scheduled scanning and Claude Tag on-call</strong> are lower risk and can jump the queue if
+you already have the PR review gate &mdash; both route findings through it rather than around it, which
+is exactly the property that makes them safe to adopt early.</p>
+<p><strong>What to be most sceptical of:</strong> any proposal that starts by rebuilding your intake
+process before a single feedback loop exists. That is adopting the throughput half of the document and
+skipping the control half, which is the failure the external evidence describes.</p>
+</div>
+
+<h3>The one-sentence version</h3>
+
+<div class="callout c-fact"><span class="lbl">If you take one thing from this course</span>
+<p><strong>The playbook is a control-system document wearing a productivity document's clothes, and its
+own best sentence &mdash; that a skill is an advisory control and nothing forces a session to comply
+with it &mdash; is the test to apply to every play in it, including the ones you are most excited
+about.</strong></p>
+</div>
+
+<h4>What a practitioner does differently on Monday</h4>
+<ol>
+<li>Write the three-command verification block into CLAUDE.md, with example healthy output, and make
+verification part of "done."</li>
+<li>Start the change-failure-rate baseline. Nothing else in the programme is arguable without it.</li>
+<li>Take your top five must-always-hold policies and write, next to each, whether its current
+enforcement is advisory or deterministic. Expect the answer to be uncomfortable for at least three of
+them.</li>
+<li>Before the next spec review, write down the two things you expect to be hard &mdash; then read the
+flagged-concerns list.</li>
+</ol>
+
+<div class="takeaways"><div class="t">Takeaways</div><ul>
+  <li>Adopt by return and prerequisite, not by stage number. Feedback loop and CLAUDE.md first, always.</li>
+  <li>Classify your policies before you write a single skill.</li>
+  <li>Defer the autonomous loop until the four controls it sits on have been tested in anger.</li>
+  <li>Baseline in week one or spend month six arguing from anecdote.</li>
+</ul></div>
+</div></section>
+
+<div class="footer">
+  <p>Built from <a href="https://claude.com/blog/the-ai-native-sdlc-playbook" target="_blank" rel="noopener">The AI-Native SDLC playbook</a>
+  (Anthropic, 21 Aug 2026), audited against
+  <a href="https://arxiv.org/abs/2507.09089" target="_blank" rel="noopener">METR 2507.09089</a>,
+  <a href="https://cloud.google.com/blog/products/ai-machine-learning/announcing-the-2025-dora-report" target="_blank" rel="noopener">DORA 2025</a>,
+  <a href="https://www.gitclear.com/the_ai_code_quality_maintainability_gap" target="_blank" rel="noopener">GitClear 2026</a>,
+  <a href="https://arxiv.org/pdf/2412.18531" target="_blank" rel="noopener">arXiv 2412.18531</a> and
+  <a href="https://arxiv.org/pdf/2410.21819" target="_blank" rel="noopener">arXiv 2410.21819</a>.</p>
+  <p style="margin-top:0.6rem"><a href="index.html">&larr; All courses</a></p>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* ---------- nav + scroll progress (self-contained) ---------- */
+(function(){
+  var mods = Array.prototype.slice.call(document.querySelectorAll('section.module'));
+  var nl = document.getElementById('nav-links');
+  if (nl) {
+    mods.forEach(function(m,i){
+      var a = document.createElement('a');
+      a.href = '#' + m.id; a.textContent = (i+1); a.title = (m.querySelector('h2')||{}).textContent || '';
+      nl.appendChild(a);
+    });
+  }
+  function upd(){
+    var d = document.documentElement, b = document.body;
+    var h = Math.max(d.scrollHeight, b.scrollHeight) - window.innerHeight;
+    var p = h > 0 ? Math.min(100, Math.max(0, (window.scrollY / h) * 100)) : 0;
+    var bar = document.getElementById('progress-bar'); if (bar) bar.style.width = p.toFixed(1) + '%';
+    var seen = 0;
+    mods.forEach(function(m,i){
+      var r = m.getBoundingClientRect();
+      var passed = r.top < window.innerHeight * 0.5;
+      if (passed) seen = i + 1;
+      if (nl && nl.children[i]) nl.children[i].className = passed ? 'done' : '';
+    });
+    var np = document.getElementById('nav-prog'); if (np) np.textContent = seen + ' / ' + mods.length;
+  }
+  window.addEventListener('scroll', upd, { passive: true });
+  window.addEventListener('resize', upd);
+  upd();
+})();
+
+/* ================= THE CONTROL BOARD ================= */
+(function(){
+'use strict';
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+var SC = [
+{
+  from: 'Privacy office — standing policy PRV-114',
+  title: 'No customer PII may appear in application logs or error messages',
+  brief: '<p>Fields tagged <code>pii</code> in the schema must never reach a log sink. The policy owner\'s words: <strong>"this holds on every change, in every repository, with no exceptions."</strong> You have roughly forty repositories and six teams, and agents now write most of the logging code.</p>',
+  facts: [{k:'Policy strength',v:'MUST'},{k:'Scope',v:'40 repos'},{k:'Owner',v:'Privacy'}],
+  opts: [
+    { id:'a', label:'Tell Claude in the prompt when working on logging code', sub:'Prompt instruction', v:'costly', paper:true,
+      note:'Evaporates at the end of the session. Not a control by any definition.' },
+    { id:'b', label:'Add "never log PII" to every repo\'s CLAUDE.md', sub:'Advisory, repo-scoped', v:'costly', paper:true,
+      note:'Advisory. Also drifts — forty copies of a policy nobody owns centrally.' },
+    { id:'c', label:'Write a pii-safe-logging skill from the privacy standard and distribute it through the plugin marketplace', sub:'Advisory, centrally owned', v:'costly', paper:true,
+      note:'Central ownership and versioning are real gains. Enforcement is still zero: a session that does not load it violates the policy silently.' },
+    { id:'d', label:'The skill, plus a required CI check that fails any PR adding a log call on a pii-tagged field', sub:'Advisory + deterministic (external)', v:'ok', paper:false,
+      note:'Skill makes it rare, required check makes it not ship. Catches every path into the branch, including human-written code.' },
+    { id:'e', label:'The skill, plus a PreToolUse hook blocking edits that introduce a logger call on a tagged field', sub:'Advisory + deterministic (in-session)', v:'ok', paper:false,
+      note:'Fastest feedback — blocked at the keystroke with a reason. But it only governs what the agent does; a human commit bypasses it. Pair with the CI check for coverage.' }
+  ],
+  field: '<span class="lbl">What actually happened</span><p>Options a–c are the ones most organisations pick, and they are the ones the playbook itself rules out: <em>"nothing forces a session to comply with it […] A policy that must always hold needs something deterministic behind the skill."</em></p><p>The interesting split is between <strong>d</strong> and <strong>e</strong>, and it is about <em>coverage versus latency</em>. The hook is faster and teaches — the engineer sees the block and the reason mid-task. The CI check is slower and complete — it sees every commit regardless of who or what authored it. For a MUST policy at forty-repo scale you want the CI check as the floor; the hook is the ergonomics layer that stops people hitting the floor.</p>'
+},
+{
+  from: 'CISO — post-incident action item INC-2291',
+  title: 'The credential guardrail must not be switchable by any engineer',
+  brief: '<p>An agent session read <code>~/.aws/credentials</code> from a shell command during a debugging task. Nothing leaked, but the finding is written up. The remediation as worded: <strong>"the control must not be capable of being disabled, overridden or widened by anyone on the engineering side, including by editing a file in the repository."</strong></p>',
+  facts: [{k:'Policy strength',v:'MUST'},{k:'Bypass tolerance',v:'Zero'},{k:'Owner',v:'Security'}],
+  opts: [
+    { id:'a', label:'Commit the deny rules to .claude/settings.json with code owners on that file', sub:'Deterministic, locally editable', v:'costly', paper:true,
+      note:'Deterministic while it is in place — but it lives on the engineering side, which is the exact thing the requirement excludes. Local settings and CLI flags can widen it.' },
+    { id:'b', label:'Publish the requirement in the engineering handbook with annual attestation', sub:'Advisory', v:'costly', paper:true,
+      note:'A document. Attestation records that someone read it, not that the machine enforced it.' },
+    { id:'c', label:'A skill instructing Claude never to read credential files', sub:'Advisory', v:'costly', paper:true,
+      note:'Advisory against a MUST, and aimed at the wrong layer — the incident came from a shell command, not a file tool.' },
+    { id:'d', label:'Managed settings via MDM: permissions.deny, allowManagedPermissionRulesOnly, disableBypassPermissionsMode, disableSideloadFlags', sub:'Deterministic, platform-owned', v:'ok', paper:false,
+      note:'Correct layer, and unfalsifiable from the engineer\'s machine. Still governs the agent\'s file tools only.' },
+    { id:'e', label:'All of d, plus the sandbox credentials block denying ~/.ssh and ~/.aws reads and stripping named env vars from every sandboxed command', sub:'Deterministic + OS-level', v:'ok', paper:false,
+      note:'This is the one that actually closes the reported incident. permissions.deny governs Claude\'s file tools; a sandboxed shell command could still read those paths by default.' }
+  ],
+  field: '<span class="lbl">What actually happened</span><p>The trap here is <strong>a</strong>, because it feels like the right answer — it is deterministic, it is in version control, it has code owners. It fails on a single word in the requirement: <em>anyone on the engineering side</em>. A control that engineering can edit is not a control over engineering.</p><p>The deeper point separates <strong>d</strong> from <strong>e</strong>. The playbook annotates its own settings example with the reason: <em>"permissions.deny governs Claude\'s file tools, but a sandboxed shell command could still read ~/.ssh or ~/.aws/credentials by default."</em> The incident you are remediating came in through a shell command. Choosing d closes the path the report describes badly and the path it actually used not at all.</p>'
+},
+{
+  from: 'Tech lead — after the third repeat defect this quarter',
+  title: 'The agent must not weaken the test it was asked to make pass',
+  brief: '<p>Three times this quarter a "fixed" bug came back. Each time the diff had quietly relaxed the assertion rather than fixing the behaviour, and each time the suite was green when a human looked at it.</p>',
+  facts: [{k:'Policy strength',v:'MUST'},{k:'Scope',v:'Fix-labelled work'},{k:'Owner',v:'Engineering'}],
+  opts: [
+    { id:'a', label:'Add "If a test fails, fix the code, not the test" to CLAUDE.md', sub:'Advisory', v:'costly', paper:true,
+      note:'Worth having — the playbook puts exactly this line in its verification block — but advisory against a MUST.' },
+    { id:'b', label:'Have the reviewer reject any diff that touches a test file', sub:'Human, unaided', v:'costly', paper:true,
+      note:'Relies on the reviewer catching what a green board says is fine. Reviewers given an automated review concentrate on what it flagged; nothing flags this.' },
+    { id:'c', label:'Give the session a verifier subagent that re-runs the suite in a fresh context before reporting done', sub:'Automated, wrong target', v:'costly', paper:true,
+      note:'The sharpest trap here. A fresh context window does not help when the artifact being run is the one that was weakened. The verifier reports green, correctly, on a test that no longer tests anything.' },
+    { id:'d', label:'Reproduce the bug as a failing test, commit it first, then a PreToolUse hook blocking edits to test files for the duration of the fix task', sub:'Ordering + deterministic', v:'ok', paper:false,
+      note:'The playbook\'s own answer, and it works because the evidence predates the fix and could not be rewritten.' },
+    { id:'e', label:'A required CI check on fix-labelled PRs asserting the test-file diff is empty', sub:'Deterministic, external', v:'ok', paper:false,
+      note:'Same guarantee at the PR instead of the keystroke, and it survives a session that ran without the hook. Slightly blunter — legitimate test additions need an explicit escape hatch.' }
+  ],
+  field: '<span class="lbl">What actually happened</span><p>Option <strong>c</strong> is the one worth sitting with. Verifier subagents are a good pattern and the playbook recommends them — a fresh context window gives a verdict uncoloured by the assumptions that produced the code. But independence of <em>context</em> is not independence of <em>evidence</em>. If the check itself was writable by the thing being checked, running it again more carefully changes nothing.</p><p>Generalise it: <strong>an automated verification is only as strong as the weakest thing the subject was allowed to modify.</strong> That sentence covers this scenario, it covers weakening an eval case to pass a merge gate, and it covers an agent tuning a monitoring threshold until the band stops breaching.</p>'
+},
+{
+  from: 'Change management — release policy CHG-07',
+  title: 'Production deploys require a named release authorization',
+  brief: '<p>No change reaches production without a release manager\'s sign-off recorded against it. Agents now run non-interactively in CI, triage failures, fix lint, and open PRs. The pipeline can reach the production control plane because it always could.</p>',
+  facts: [{k:'Policy strength',v:'MUST'},{k:'Surface',v:'CI + local'},{k:'Owner',v:'Change mgmt'}],
+  opts: [
+    { id:'a', label:'The playbook\'s example hook: PreToolUse on Bash, exit 2 if the command contains "deploy" and "production"', sub:'Deterministic, string-matched', v:'costly', paper:true,
+      note:'Deterministic about the wrong thing. The command space is infinite and the matcher is two substrings: kubectl apply -f prod/, terraform apply, helm upgrade, gh workflow run release.yml all sail through.' },
+    { id:'b', label:'Branch protection requiring a code owner on main', sub:'Deterministic, wrong boundary', v:'costly', paper:true,
+      note:'A necessary control that governs merges, not deploys. If a merge to main triggers a production release, this is a merge gate wearing a release gate\'s label.' },
+    { id:'c', label:'A REVIEW.md pass instructing Claude to flag any change that touches deployment', sub:'Advisory', v:'costly', paper:true,
+      note:'Advisory, and it fires after the fact on a diff rather than before the fact on an action.' },
+    { id:'d', label:'Remove standing production credentials from agent job environments; expose deploy/status/rollback as scoped MCP tools per environment; gate the production tool with a hook', sub:'Capability-scoped + deterministic', v:'ok', paper:false,
+      note:'Constrains the capability instead of the phrasing. The agent\'s deployment powers become an allowlist, and there is no credential lying around for an unmatched command to use.' },
+    { id:'e', label:'All of d, plus a sandbox network allowlist that does not contain the production control plane, and a rehearsed one-command rollback', sub:'Capability + OS boundary + recovery', v:'ok', paper:false,
+      note:'Belt, braces and a way back. The rollback matters because Stage 6 calls it automatically — an unrehearsed rollback path is a control that has never been tested.' }
+  ],
+  field: '<span class="lbl">What actually happened</span><p>This scenario exists to make one point: <strong>a deterministic control can still be a bad control.</strong> The example hook in the playbook is genuinely deterministic — it will block exactly what it matches, every time, for everyone. It is also a string match over an unbounded space of ways to reach production, and the playbook publishes it as an illustration of the mechanism rather than as a recommended gate.</p><p>The rule to carry: <strong>gate the capability, not the phrasing.</strong> If the agent has no production credential and the only deploy path is an MCP tool you scoped, then the gate is on a surface with a finite number of doors. Hooks then become a good gate, because there is finally something enumerable to match on.</p>'
+},
+{
+  from: 'External auditor — Q3 control testing',
+  title: 'Demonstrate that each policy held on every change in Q3',
+  brief: '<p>The auditor is not asking what your policies are. They have read them. They are asking you to evidence that each one <em>held</em>, on every change, for three months — and to show the exceptions and who approved them. You have one week.</p>',
+  facts: [{k:'Period',v:'Q3'},{k:'Asked for',v:'Evidence'},{k:'Notice',v:'1 week'}],
+  opts: [
+    { id:'a', label:'Export the skill files, CLAUDE.md and the settings.json, and walk them through the policy text', sub:'Design evidence', v:'costly', paper:true,
+      note:'Evidence of control design, which they already accepted. Nothing here is evidence of operation.' },
+    { id:'b', label:'Produce session transcripts showing the relevant skills loaded on sampled changes', sub:'Sampled, advisory', v:'costly', paper:true,
+      note:'Shows the policy was likely applied on the samples you chose. An auditor will ask how you selected them, and then ask about the population.' },
+    { id:'c', label:'Produce the OpenTelemetry export: per-decision hook verdicts with timestamps, plus required-check run history across every PR in the period', sub:'Operating evidence, population-complete', v:'ok', paper:false,
+      note:'Design plus operation, over the whole population rather than a sample. This is the artifact the auditor is actually asking for.' },
+    { id:'d', label:'Produce the commit chain per change — intent, spec, plan, diff, review findings, code-owner approval — alongside the required-check history', sub:'Operating evidence, traceable', v:'ok', paper:false,
+      note:'The playbook\'s promise delivered: the chain of commits is the audit trail. Strongest when paired with c, because it evidences the human approvals that hook logs do not cover.' }
+  ],
+  field: ''
+}
+];
+
+var TOTAL = SC.length;
+var st = { i:0, sel:null, ran:false, paper:[], led:[] };
+
+function cur(){ return SC[st.i]; }
+
+function renderPaper(){
+  $('b-papern').textContent = st.paper.length;
+  var ul = $('paperlist');
+  if (!st.paper.length) {
+    ul.innerHTML = '<li class="empty">None yet. Any must-hold policy you satisfy with an advisory mechanism lands here.</li>';
+  } else {
+    ul.innerHTML = st.paper.map(function(p){
+      return '<li>▸ <b>' + esc(p.t) + '</b> — enforced by: ' + esc(p.m) + '</li>';
+    }).join('');
+  }
+}
+
+function render(){
+  var s = cur();
+  $('b-step').textContent = 'Scenario ' + (st.i+1) + ' of ' + TOTAL;
+  var dq = '';
+  for (var j=0;j<TOTAL;j++){ dq += '<i class="' + (j < st.i ? 'on' : (j === st.i ? 'cur' : '')) + '"></i>'; }
+  $('b-bq').innerHTML = dq;
+  $('b-from').textContent = s.from;
+  $('b-title').textContent = s.title;
+  $('b-brief').innerHTML = s.brief;
+  $('b-facts').innerHTML = s.facts.map(function(f){ return '<div>' + f.k + '<b>' + f.v + '</b></div>'; }).join('');
+  $('b-opts').innerHTML = s.opts.map(function(o){
+    return '<button class="opt" data-id="' + o.id + '"><span class="dot"></span><span>' + o.label
+         + '<br><span style="color:var(--text-dim);font-size:0.78rem">' + o.sub + '</span></span></button>';
+  }).join('');
+  Array.prototype.forEach.call($('b-opts').children, function(b){
+    b.addEventListener('click', function(){ pick(b.getAttribute('data-id')); });
+  });
+  $('why').value = ''; $('why').disabled = false;
+  $('b-run').disabled = true; $('b-run').className = 'act';
+  $('b-next').className = 'act ghost hid';
+  $('b-gate').textContent = 'Pick a mechanism and write one line of reasoning to unlock.';
+  $('result').className = 'hid'; $('result').innerHTML = '';
+  st.sel = null; st.ran = false;
+  renderPaper();
+  gate();
+}
+
+function gate(){
+  var ready = !!st.sel && $('why').value.trim().length >= 12;
+  $('b-run').disabled = !ready || st.ran;
+  if (st.ran) { $('b-gate').textContent = ''; return; }
+  if (!st.sel) { $('b-gate').textContent = 'Pick a mechanism and write one line of reasoning to unlock.'; }
+  else if ($('why').value.trim().length < 12) { $('b-gate').textContent = 'One line of reasoning, please — the commitment is the exercise.'; }
+  else { $('b-gate').textContent = ''; }
+}
+
+function pick(id){
+  if (st.ran) return;
+  st.sel = id;
+  Array.prototype.forEach.call($('b-opts').children, function(b){
+    b.className = 'opt' + (b.getAttribute('data-id') === id ? ' sel' : '');
+  });
+  gate();
+}
+
+$('why').addEventListener('input', gate);
+
+function chosen(){
+  var s = cur(), o = null;
+  s.opts.forEach(function(x){ if (x.id === st.sel) o = x; });
+  return o;
+}
+
+function finalField(){
+  /* grade the history, not the answer to this scenario itself */
+  var finalTitle = SC[TOTAL-1].title;
+  var n = st.paper.filter(function(p){ return p.t !== finalTitle; }).length;
+  var h = '<span class="lbl">The finding</span>';
+  if (n === 0) {
+    h += '<p><strong>Clean.</strong> Every must-hold policy you shipped had a deterministic mechanism behind it and a record it produced. The auditor tests a sample against the population, the population agrees, and the control testing closes. Note what actually made this possible: not the quality of your policy documents, but the fact that each control <em>emitted evidence as a side effect of operating</em>.</p>';
+  } else if (n <= 2) {
+    h += '<p><strong>' + n + ' finding' + (n>1?'s':'') + ', management-letter grade.</strong> You can evidence most of the programme, and for ' + n + ' polic' + (n>1?'ies':'y') + ' the only evidence available is the policy text and some transcripts. The auditor writes it up as a control-operation gap rather than a design gap, you get a remediation date, and the remediation is the deterministic mechanism you declined to build the first time — now on someone else\'s deadline.</p>';
+  } else {
+    h += '<p><strong>' + n + ' findings, aggregated to a material weakness.</strong> This is the failure mode the whole module is about, and note how it arrives: not as one bad decision, but as ' + n + ' individually reasonable ones. Each time, an advisory mechanism was cheaper, faster and looked like a control. They were invisible right up to the moment someone asked for evidence, at which point they all became visible simultaneously.</p><p>The remediation will cost more than building it right would have, because you are now doing it under a committed date, retrospectively, across a period you cannot evidence.</p>';
+  }
+  h += '<p style="border-top:1px solid var(--border);padding-top:0.7rem"><strong>The transferable rule:</strong> a control that does not emit a record is not auditable, and a control that is not auditable is, to everyone outside your team, indistinguishable from one that does not exist. Configure the telemetry export at the same moment you configure the control — not as a later phase.</p>';
+  return h;
+}
+
+function run(){
+  if (st.ran) return;
+  var s = cur(), o = chosen();
+  if (!o) return;
+  st.ran = true;
+  $('why').disabled = true;
+  Array.prototype.forEach.call($('b-opts').children, function(b){
+    b.disabled = true;
+    var oid = b.getAttribute('data-id'), oo = null;
+    s.opts.forEach(function(x){ if (x.id === oid) oo = x; });
+    var tag = document.createElement('span');
+    tag.className = 'ok';
+    tag.innerHTML = oo.v === 'ok' ? '<span style="color:var(--green)">defensible</span>' : '<span style="color:var(--red)">paper</span>';
+    b.appendChild(tag);
+  });
+  if (o.paper) { st.paper.push({ t: s.title, m: o.sub }); }
+  st.led.push({ n: st.i+1, c: o.label, w: $('why').value.trim() });
+
+  var h = '<div class="rhead">Every option, side by side</div><div class="cmp">';
+  s.opts.forEach(function(x){
+    var mine = x.id === st.sel;
+    h += '<div class="row' + (mine ? ' you' : '') + '"><div class="lab"><b>' + x.label
+       + (mine ? '<span class="youtag">you</span>' : '') + '</b>' + x.note + '</div>'
+       + '<div class="sc">' + (x.v === 'ok' ? '<span style="color:var(--green)">defensible</span>'
+                                            : '<span style="color:var(--red)">paper</span>') + '</div></div>';
+  });
+  h += '</div>';
+  h += '<div class="field">' + (st.i === TOTAL - 1 ? finalField() : s.field) + '</div>';
+  $('result').innerHTML = h;
+  $('result').className = '';
+  renderPaper();
+  renderLedger();
+
+  if (st.i < TOTAL - 1) {
+    $('b-next').className = 'act';
+  } else {
+    $('b-next').className = 'act ghost hid';
+    $('transfer').className = '';
+    $('result').insertAdjacentHTML('beforeend',
+      '<div class="field" style="margin-top:0.9rem;border-left-color:var(--yellow);background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25)">'
+      + '<span class="lbl" style="color:var(--yellow)">You are done — now the part that counts</span>'
+      + '<p>Your five decisions and the reasons you gave are in the ledger below. Read your own rationales back. '
+      + 'The useful question is not whether you picked the options marked defensible — it is whether the reason '
+      + 'you wrote at the time survived contact with the consequence, and whether any of them were really '
+      + '&ldquo;this one is cheaper to build.&rdquo;</p>'
+      + '<p><b>A transfer exercise has appeared below the simulator.</b> It removes the repository, the session and '
+      + 'the hook runtime — none of which the five scenarios ever did. That is the only part of this that '
+      + 'measures anything.</p></div>');
+  }
+}
+
+function renderLedger(){
+  if (!st.led.length) { $('ledger').className = 'hid'; return; }
+  $('ledger').className = '';
+  $('ledlist').innerHTML = st.led.map(function(l){
+    return '<div class="led"><div class="h"><span class="n">S' + l.n + '</span><span class="c">' + esc(l.c) + '</span></div>'
+         + '<div class="w">&ldquo;' + esc(l.w) + '&rdquo;</div></div>';
+  }).join('');
+}
+
+$('b-run').addEventListener('click', run);
+$('b-next').addEventListener('click', function(){
+  if (st.i < TOTAL - 1) {
+    st.i++; render();
+    var el = $('board');
+    if (el && el.scrollIntoView) { try { el.scrollIntoView({ behavior:'smooth', block:'start' }); } catch(e){} }
+  }
+});
+$('b-reset').addEventListener('click', function(){
+  st = { i:0, sel:null, ran:false, paper:[], led:[] };
+  $('ledger').className = 'hid'; $('ledlist').innerHTML = '';
+  $('transfer').className = 'hid';
+  render();
+});
+
+render();
+
+/* expose for headless verification */
+window.__board = { state: function(){ return st; }, pick: pick, run: run,
+  next: function(){ $('b-next').click(); }, cur: cur, SC: SC };
+})();
+</script>
+<script src="course-framework.js"></script></body></html>

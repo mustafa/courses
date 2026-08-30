@@ -346,7 +346,7 @@
     <p>Interactive HTML courses on AI, machine learning, infrastructure, product strategy, and more.</p>
     <div class="stats" aria-live="polite">
         <div class="stat">
-            <div class="stat-number" id="stat-courses">47</div>
+            <div class="stat-number" id="stat-courses">48</div>
             <div class="stat-label">Courses</div>
         </div>
         <div class="stat">
@@ -365,7 +365,7 @@
             <h2 class="category-title">AI &amp; Machine Learning</h2>
         </div>
         <div class="grid">
-            <a class="card" href="inference-economics-course.html" data-added="2026-08-28" data-words="10200">
+            <a class="card" href="inference-economics-course.html" data-added="2026-08-28" data-words="7327">
                 <div class="card-title">Inference Economics &mdash; Why Decode Is Bandwidth-Bound and What It Costs</div>
                 <div class="card-desc">Stage 5 of the path, and the other omission from the source roundup. One derivation carries the course: <strong>during decode your arithmetic intensity is numerically your batch size</strong> (parameters cancel), so against an H100's ridge of 295 FLOPs/byte a single user runs at ~0.3% of the chip's arithmetic capability. Then the constraint nobody budgets for &mdash; the KV cache, not the weights, sets concurrency: four H100s serving Llama 3 70B hold ~501 sequences at 1K context and <strong>three</strong> at the advertised 128K, and at high batch the cache reads more bytes per step than the weights do. Includes PagedAttention with the paper's own profiling (only <strong>20.4&ndash;38.2%</strong> of KV memory in prior systems held real token state), the prompt-ordering rule that silently destroys prefix caching, and two widely repeated claims corrected: quantization "doubling throughput" (only if you quantize the KV cache too), and speculative decoding as a general speedup &mdash; it spends <em>idle</em> FLOPs, so it fades exactly where you need it. Ends in the <strong>Serving Simulator</strong>: predict the winning lever, then watch speculative decoding fall from 2.31&times; at batch 2 to 1.05&times; at full batch.</div>
                 <div class="card-footer">
@@ -373,7 +373,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="llm-evals-error-analysis-course.html" data-added="2026-08-28" data-words="10800">
+            <a class="card" href="llm-evals-error-analysis-course.html" data-added="2026-08-28" data-words="7937">
                 <div class="card-title">Evals &mdash; Error Analysis First, and Judges You Have Validated</div>
                 <div class="card-desc">Stage 4 of the path, and one of the two the source roundup omitted entirely. Error-analysis-first practice: read 100 traces and open-code the failures <em>before</em> choosing a metric, because a rubric written first measures the failure modes of a generic system and yours is not generic. Then the technical core &mdash; your LLM judge is an unvalidated classifier, and <strong>the 1978 Rogan-Gladen estimator</strong> turns its pass rate into a number you can defend: a judge passing 80% of traffic with a 95% TPR and 55% TNR means a true quality rate of <strong>70%</strong>, ten points of flattery. Includes the half most treatments skip &mdash; a mediocre judge also divides your standard error by J = Se+Sp&minus;1, so it costs statistical <em>power</em>, and in a same-judge A/B the bias cancels while the noise amplification does not. Plus documented benchmark failures with numbers (57% of MMLU's analysed Virology questions had errors; 68.3% of SWE-bench samples were filtered out to build Verified) and, deliberately left in, <strong>one claim the course could not verify and therefore does not repeat</strong>. Ends in the <strong>Judge Calibrator</strong>: correct a number, price judge quality against sample size, and watch a plausible 4-point improvement fail to clear its own noise floor.</div>
                 <div class="card-footer">
@@ -381,7 +381,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="post-training-course.html" data-added="2026-08-28" data-words="10600">
+            <a class="card" href="post-training-course.html" data-added="2026-08-28" data-words="7185">
                 <div class="card-title">Post-Training &mdash; How a Document Completer Becomes an Assistant</div>
                 <div class="card-desc">Stage 3 of the path. SFT, RLHF, DPO and successors &mdash; with <strong>DPO's closed form derived in four steps</strong> rather than asserted, so you can point at the exact line where the intractable normalising constant cancels (it depends only on the prompt, and Bradley-Terry needs only a reward <em>difference</em>). Then the part most treatments skip: what that closed form <em>costs</em>. It is off-policy, it assumes Bradley-Terry, and it can suffer <strong>likelihood displacement</strong> &mdash; the probability of the response you preferred falling while the margin improves, with mass moving to responses of opposite meaning (Razin et al.: preferring "No" over "Never" can raise "Yes"). Plus why fine-tuning cannot add knowledge, argued from the objective rather than from anecdote; why verified reward removed the ceiling that learned reward models impose; and the part of the DeepSeek-R1 story that gets dropped &mdash; R1-Zero's pure RL also produced language mixing and poor readability, which is why the shipped model has a cold-start SFT stage. Two interactive tools: a <strong>recipe diagnosis</strong> that will tell you to stop, and a <strong>displacement simulator</strong> where you can find the similarity threshold at which preference training starts working against you.</div>
                 <div class="card-footer">
@@ -389,7 +389,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="training-stack-course.html" data-added="2026-08-28" data-words="10100">
+            <a class="card" href="training-stack-course.html" data-added="2026-08-28" data-words="7938">
                 <div class="card-title">The Training Stack &mdash; What It Costs to Make a Model</div>
                 <div class="card-desc">Stage 2 of the path. Scaling laws taught as unit economics rather than as facts about quality, and every number derived in front of you: C &asymp; 6ND checked against Llama 3's published compute to within 0.3%, N = &radic;(C/120) as mental arithmetic, and 16 bytes per parameter of Adam state before you store an activation. Includes the parts usually left out &mdash; that <strong>Chinchilla's headline analysis failed replication in 2024</strong> (the fit was poor, the confidence intervals implausibly tight, and it contradicted the paper's own other two approaches, though the 20:1 rule survived), that Meta's own scaling fit gave ~41 tokens/parameter rather than 20, and that <strong>Llama 3 405B was trained essentially at its predicted optimum</strong> &mdash; a counterexample to "everyone over-trains now." Plus the H100 datasheet trap (1,979 TFLOPS is the sparsity figure; dense is ~989), the arithmetic-intensity ridge point that explains FlashAttention, and PaLM's finding that loss spikes came from a <em>batch-times-parameter-state interaction</em>, not bad data. Ends in the <strong>Training Run Planner</strong>: guess the compute-optimal model size before the tool computes one, then trade tokens-per-parameter against a priced serving bill and a data ceiling.</div>
                 <div class="card-footer">
@@ -397,7 +397,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="transformer-mechanism-course.html" data-added="2026-08-28" data-words="9400">
+            <a class="card" href="transformer-mechanism-course.html" data-added="2026-08-28" data-words="8526">
                 <div class="card-title">The Mechanism &mdash; What a Transformer Actually Computes</div>
                 <div class="card-desc">Stage 1 of the five-stage path. The forward pass with nothing hidden: attention derived from a Python dictionary in four steps, the <strong>residual stream</strong> as a sequence of additive edits rather than a pipeline of transformations, and where the parameters actually live. Includes the arithmetic most explanations skip &mdash; why the familiar "one-third attention, two-thirds MLP" rule is exactly right for GPT-2 and <strong>wrong for every current model</strong> (grouped-query attention and SwiGLU move Llama 3 70B to roughly 18/82), why removing the causal mask makes training loss <em>fall</em>, and what the 1/&radic;d scale factor is actually protecting. Each interpretability claim is stated with its limit: layer deletion degrades gracefully for <em>deeper</em> layers only, and "each head has a job" is not supported for frontier models. Ends in the <strong>Forward Pass Ledger</strong> &mdash; commit to a guess about the parameter split, then get every tensor shape, an exact parameter ledger reproducing four published model sizes, and five ablation switches that show which sabotage changes the numbers and which changes only the behaviour.</div>
                 <div class="card-footer">
@@ -405,7 +405,7 @@
                     <span class="card-arrow">&rarr;</span>
                 </div>
             </a>
-            <a class="card" href="ai-path-intermediate-to-advanced-course.html" data-added="2026-08-28" data-words="15287">
+            <a class="card" href="ai-path-intermediate-to-advanced-course.html" data-added="2026-08-28" data-words="15771">
                 <div class="card-title">Intermediate to Advanced AI &mdash; The Actual Path</div>
                 <div class="card-desc">A widely shared "best AI courses for 2026" roundup offers to build a learning path and never does. This builds it. Opens with a currency audit of all 13 recommendations, checked link by link: <strong>Papers with Code was sunset in July 2025</strong> and its domain now redirects; <strong>arXiv-sanity is dead and its domain is now a job board</strong>; Full Stack Deep Learning froze at Spring 2023; fast.ai is still the 2022 recording; CS231n's free YouTube lectures are the 2017 offering and predate ViTs entirely &mdash; while its Spring 2026 syllabus is genuinely modern. Then the path itself: five stages (mechanism &rarr; training stack &rarr; post-training &rarr; evals &rarr; inference economics), each teaching the concept in plain language before pointing at the best current resource, and each ending in a clearing test phrased as "you can do X unaided." Plus the three areas the list omits &mdash; evals, inference optimisation and post-training &mdash; where most 2026 practice lives, a ladder of 8 papers with a falsifiable definition of "reimplemented it," and a module reading the whole thing as a curriculum design problem. 11 modules, plus a <strong>Path Builder</strong> that makes you guess your entry stage before eleven capability questions compute one, then produces a dated schedule from your real weekly hours.</div>
                 <div class="card-footer">
@@ -859,6 +859,14 @@
             <h2 class="category-title">Engineering Leadership</h2>
         </div>
         <div class="grid">
+            <a class="card" href="ai-native-sdlc-course.html" data-added="2026-08-29" data-words="7926">
+                <div class="card-title">The AI-Native SDLC, Audited</div>
+                <div class="card-desc">Anthropic&rsquo;s stage-by-stage playbook for running plan, design, build, test, deploy and maintain with agents &mdash; taken seriously, then audited against the evidence it doesn&rsquo;t cite. The position: it is a <strong>control-system document wearing a productivity document&rsquo;s clothes</strong>. Its premise (&ldquo;code is no longer the bottleneck&rdquo;) is a defensible queueing claim and an indefensible productivity one &mdash; METR&rsquo;s RCT measured experienced developers <strong>19% slower</strong> while they believed they were 20% faster, DORA 2025 finds throughput up and stability down in the same population, and GitClear&rsquo;s 623M-change corpus shows refactoring down 70% and duplication up 81%. Which makes the playbook <em>more</em> useful, not less. Covers the artifact chain as traceability with the cost removed (and the ordering property that is the only bit worth enforcing), the sentence most readers skim &mdash; <strong>&ldquo;a skill is a control, though an advisory one&rdquo;</strong> &mdash; and what follows from it, correlated blind spots when one model family authors and reviews, why the managed-settings sandbox block is load-bearing and the permissions block is ergonomics, and why most of the playbook&rsquo;s own indicators measure the step that just got cheap. 10 modules, plus <strong>The Control Board</strong>: five real policy requirements where you must pick the enforcement mechanism and commit your reasoning before anything is revealed &mdash; it keeps a paper-control ledger, and in scenario five an auditor arrives.</div>
+                <div class="card-footer">
+                    <span class="card-type">Audited Playbook &middot; SDLC</span>
+                    <span class="card-arrow">&rarr;</span>
+                </div>
+            </a>
             <a class="card" href="forward-deployed-engineer-course.html" data-added="2026-08-28" data-words="8901">
                 <div class="card-title">The Forward Deployed Engineer Wave</div>
                 <div class="card-desc">Seven organisations stood up forward-deployed engineering practices between March and July 2026, four with nine-figure money &mdash; Microsoft's $2.5B Frontier Company, AWS's $1B unit, OpenAI's Deployment Company, Anthropic-backed Ode, plus Accenture and EY. Built from a practitioner's LinkedIn argument that they will all fail the same way, then fact-checked against primary sources: every claim graded Verified, Reported, Assembled, Opinion or Unsupported. Includes the $9B arithmetic taken apart, the rotation premise that no vendor has actually published, an attribution note on the piece's strongest line, and the contract terms a buyer should insist on. 8 modules, plus a <strong>Build / Buy / Embed decision tool</strong> that makes you commit to an answer before it computes one, then tells you which single assumption is carrying your decision.</div>
