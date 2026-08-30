@@ -83,6 +83,13 @@ Capstone — Deploy Your Agent Network
 
 *Significant Anthropic news since this course was written. Newest first; entries older than 8 weeks are pruned.*
 
+### Week of August 30, 2026
+
+-   **Model Hardware Standard — networks reach actuators (August 28):** Anthropic's new research-preview standard lets Claude work with robots, lab instruments, and manufacturing hardware through a standardized interface. For network design, a hardware-facing role is the highest-privilege role you can create: its actions are physical and often irreversible. The pattern from Claude Security applies directly — give that role a narrow output contract, put a human or verifier agent between it and the actuator, and never let it also ingest untrusted web content.
+-   **Claude Code `--restricted` mode (August 28):** A new flag that strips command-execution tools and WebFetch from a session. In a network this gives you least-privilege by construction: run reviewer and summarizer roles restricted, and reserve full tool access for the one executor role your topology actually needs. The same release improves cross-session messaging reliability (private per-user /tmp fallback) — relevant if your agents coordinate via SendMessage on shared machines.
+-   **Claudeforce — Salesforce actions become agent-callable (August 26):** Salesforce data, workflows, and actions accessible from Claude; pilot now, open beta expected September. When a system of record becomes a network endpoint, its write actions belong behind your most constrained role. Google's Gemini Enterprise Agent Platform also went GA this week with per-agent identity credentials and full operation logging — agent-scoped identity, not user-scoped identity, is emerging as the norm across vendors, and the proposed AI AGENT Act (S.5051) points regulation the same way.
+-   **Cost and cadence context:** Sonnet 5's $2/$10 promo ends August 31, reverting to $3/$15 — it hits the tier most networks run at highest volume, so reforecast per-role costs now. Anthropic opened a Claude Team plan for scientists (10,000 free/discounted seats, August 28). Nvidia's Nemotron 3.5 Lightning posted ~30% faster agentic task completion on PinchBench — a reminder that in serial pipelines, per-hop latency compounds and specialist model choice per role is a real lever.
+
 ### Week of August 23, 2026
 
 -   **Skills become a versioned, shared artifact — which is what a network needs (August 19–20):** The Skills API went GA alongside computer use, the browser use tool, and the Files API. The network-relevant part is versioning: a skill is now uploaded once, versioned server-side, attached per request, and executed in Claude's sandbox. In a multi-agent network, shared procedure is the thing that drifts fastest — six specialists each carrying their own copy of "how we file a ticket" diverge within a month. A versioned skill turns that shared procedure into a single artifact with an identity you can pin per role, which means you can upgrade the researcher's methodology without silently changing the reviewer's. Pin versions explicitly per role rather than floating to latest, or you have reintroduced the drift you were solving.
@@ -144,13 +151,6 @@ Capstone — Deploy Your Agent Network
 -   **Claude Cowork goes cloud (July 7):** Cowork is expanding to web and mobile with cloud execution — agent networks can keep running when your devices are offline. Rolling out starting with Max, with doubled usage limits through August 5. This removes the "laptop must be awake" constraint on scheduled-task agent networks.
 -   **Enterprise-managed MCP connectors (beta):** Admins provision connectors once (starting with Okta) with zero-touch user access and centralized authorization across Claude chat, Claude Code, and Cowork — a cleaner way to give every agent in a network consistent, governed access to the same integration layer.
 -   **Microsoft 365 connector write tools:** Claude can now draft and send email, manage calendar events, and create/update files in OneDrive and SharePoint through the M365 connector — expanding what dispatcher and specialist agents can do without custom MCP servers.
-
-### Week of July 5, 2026
-
--   **Claude Sonnet 5 released (June 30):** Anthropic's most agentic Sonnet yet — stronger tool use, coding, and autonomous task handling, native 1M-token context, and $2/$10 per Mtok introductory pricing through August 31. Now the default in Claude Code; a strong candidate for your dispatcher and specialist agents alike.
--   **Fable 5 redeployed globally (July 1):** The June 12 US export-control suspension was lifted; Fable 5 is back on the Claude Platform, Claude.ai, Claude Code, and Cowork. Anthropic also published Fable's cyber-safeguard details and proposed an industry jailbreak-severity framework with Amazon, Microsoft, and Google.
--   **Claude Science launched (June 30):** An AI workbench for researchers with integrated scientific tooling, auditable artifacts, and flexible compute — a production example of the vertical agent-network patterns this course teaches.
--   **Claude GA on Microsoft Azure AI Foundry:** First deployment on NVIDIA GB300 Blackwell Ultra GPUs, adding Azure to AWS and Google Cloud as deployment targets for Claude-based agent networks.
 
 #### Learning Objectives
 

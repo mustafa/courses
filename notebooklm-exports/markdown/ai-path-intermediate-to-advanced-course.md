@@ -1,0 +1,1030 @@
+# Intermediate to Advanced AI — The Actual Path
+
+# Intermediate to Advanced AI
+
+A roundup of "best AI courses for 2026" ends by offering to build you a path and then doesn't. This is the path. It starts with an audit of what that list actually points at — two of its recommendations are dead, one now resolves to a job board — then teaches the five things you have to understand, in the order the dependencies force, with an honest test for each stage that is harder to fake than finishing a video.
+
+11 modules
+
+13 resources audited
+
+5 stages
+
+8 papers
+
+~90 min
+
+28 Aug 2026 verified
+
+Every link checked on 28 August 2026 · [CS336](https://stanford-cs336.github.io/spring2025/) · [HF Learn](https://huggingface.co/learn) · [nanochat](https://github.com/karpathy/nanochat) · [RLHF Book](https://rlhfbook.com/) · [GPU MODE](https://github.com/gpu-mode/lectures)
+
+How to read this course
+
+The source is a good list written by someone who knows the field. Its failure is not taste, it is **time**: several entries carry a 2026 recommendation over material that stopped moving between 2017 and 2023, and it does not say so. A link list with no freshness dates is a trap, because the reader assumes recency that the writer never claimed.
+
+Module 2 grades every entry. The chips mean: Live actively maintained, use it today. Current‑ish good, with a known lag you should know about. Dated not wrong, but aimed at a world that has moved. Frozen abandoned but still useful as an archive. Dead gone; do not send anyone to the link.
+
+**Modules 4–8 are the actual course.** Each one teaches a concept in plain language first, points at the best external resource second, and ends with a *clearing test* — something you can do unaided, or cannot. Watching the videos is not the test. **Module 11 builds you a dated schedule** from your real weekly hours and an honest self-assessment. It will tell you to start further back than you want to.
+
+The five stages now have their own courses
+
+Modules 4–8 below define each stage and set its clearing test. Each one now also has a full course that *teaches* it — original prose, verified numbers, and an interactive tool that produces a result you have to reason about:
+
+-   [**Stage 1 — The Mechanism**](transformer-mechanism-course.html) · the forward pass, the residual stream, and where the parameters actually live. Ends in a Forward Pass Ledger with five ablation switches.
+-   [**Stage 2 — The Training Stack**](training-stack-course.html) · C ≈ 6ND, scaling laws as unit economics, memory, parallelism, loss spikes. Ends in a Training Run Planner that prices training against serving.
+-   [**Stage 3 — Post-Training**](post-training-course.html) · DPO's closed form derived in four steps, and where it bites. Ends in a recipe diagnosis and a likelihood-displacement simulator.
+-   [**Stage 4 — Evals**](llm-evals-error-analysis-course.html) · error analysis first, and the estimator that corrects a judge's pass rate. Ends in a Judge Calibrator.
+-   [**Stage 5 — Inference Economics**](inference-economics-course.html) · why your arithmetic intensity is your batch size, and what actually moves the bill. Ends in a Serving Simulator.
+
+Read this course for the ordering and the honest self-assessment in Module 11. Read those for the depth.
+
+## Course Modules
+
+1.  [The missing ingredient is sequenceThe problem](#m1)
+2.  [Currency auditEvery link, graded](#m2)
+3.  [What the list leaves outThe 2026 gap](#m3)
+4.  [Stage 1 — The mechanismTeach + test](#m4)
+5.  [Stage 2 — The training stackTeach + test](#m5)
+6.  [Stage 3 — Post-trainingTeach + test](#m6)
+7.  [Stage 4 — EvalsTeach + test](#m7)
+8.  [Stage 5 — Inference economicsTeach + test](#m8)
+9.  [The paper ladder8 papers, in order](#m9)
+10.  [Reading this as a curriculumThe CPTO lens](#m10)
+11.  [Build your pathInteractive](#m11)
+
+## Module 1: The missing ingredient is sequence
+
+By the end of this module you will
+
+-   Be able to say precisely what a list of resources cannot do that an ordering can
+-   Know the dependency graph that forces the order of the five stages in this course
+-   Understand why "one paper a week" is good advice that almost nobody survives, and what fixes it
+
+### The list is right about the parts and silent about the assembly
+
+Read the source list again and notice what it does. It names good things. Karpathy's videos really are the best mid-to-advanced LLM content available for free. The Hugging Face courses really are excellent and hands-on. Reading papers really is the advanced curriculum. Every individual judgement is defensible.
+
+Then look at its closing recommendation: *Karpathy's videos → Hugging Face NLP/agents course → pick one paper a week and reimplement it.* That is three items, and the arrow between the second and third is doing an enormous amount of unearned work. There is a chasm between "I completed a course where the fine-tuning script was written for me" and "I can read a paper cold and rebuild its central claim." The list gestures across that chasm with an arrow.
+
+What an ordering does that a list cannot
+
+A list optimises for **coverage**: did I mention the good things? An ordering optimises for **the next action**: given where you are, what do you do on Tuesday evening? Those are different products with different failure modes.
+
+A list fails silently — you bookmark eleven things, open two, finish none, and conclude you lack discipline. An ordering fails loudly — you get stuck at step four and you know exactly which step four is. **Loud failure is the feature.** It converts "I'm not making progress" into "I don't understand backward passes," which is a solvable problem.
+
+### The dependency graph
+
+The order in this course is not a taste preference. It falls out of what genuinely depends on what. Four dependencies do most of the work:
+
+-   **You cannot reason about training without the mechanism.** Every training decision — learning rate, batch size, what a loss spike means — is a statement about gradients flowing through a specific architecture. Without the forward and backward pass in your hands, training advice is folklore you are memorising.
+-   **You cannot post-train without training.** SFT, DPO and GRPO are all gradient descent on a modified objective. If the base loop is a black box, the modification is a black box wrapped in an acronym.
+-   **You cannot evaluate what you cannot change.** Evals are only useful when they are attached to a lever. Learning evals before you can move a model produces someone who writes excellent dashboards for systems they cannot improve.
+-   **You cannot optimise inference before you know what the model does at inference.** KV caching, batching and speculative decoding are all consequences of one fact about the decode loop, and that fact is invisible until you have written the loop.
+
+Which gives the spine: **mechanism → training → post-training → evals → inference**. Evals sit fourth rather than last, which surprises people, because by that point you have a model you can actually change — and because everything after it is optimisation, and you should not optimise a system you cannot measure.
+
+The one place the list's own advice backfires
+
+*"Pick one paper a week and reimplement it"* is the best sentence in the source list and the one most likely to end your project. Here is the arithmetic nobody does. A genuine reimplementation of a systems paper — say FlashAttention — is 15 to 40 hours for someone competent who has not written a GPU kernel before. At five hours a week that is a **two-month** paper, not a one-week paper.
+
+So week one you pick something hard, get 40% through, and week two arrives with its own paper. Now you have a graveyard. Three weeks later you stop, and the story you tell yourself is about discipline rather than about scheduling.
+
+The fix is not to try harder. It is to **size the papers to the hours** and to define what "done" means before you start, so that a partial reimplementation is a completed rung rather than an abandoned one. Module 9 does exactly that: eight papers, ordered, each with a stated reproduction target and an hour estimate.
+
+### What "advanced" actually means here
+
+Worth defining, because the word is doing unexamined work in the source list. Three candidate definitions circulate, and only one of them is a curriculum:
+
+| Definition | Test | Is it teachable in order? |
+| --- | --- | --- |
+| Breadth — you know what all the terms mean | Can hold a conversation about MoE, RLHF, MCP | Yes, but it is not advanced. This is well-read. |
+| Credential — you finished the hard courses | Certificates, completed playlists | Yes, and it correlates weakly with capability. This is the failure mode the list inherits. |
+| Unaided construction — you can build the thing without the tutorial | Blank editor, paper on one screen, working code on the other | Yes, and it is the only one that survives contact with a real problem. |
+
+This course uses the third. That is why every stage ends with a clearing test phrased as *"you can do X unaided"* rather than *"you completed module Y."* The difference is not rhetorical. Finishing a course is something that happens to you; doing a thing unaided is something you do.
+
+The honest caveat about the tests
+
+Self-assessed clearing tests have a known bug: the people least able to pass them are the least able to tell. That is not a reason to abandon them, but it is a reason to make them **artefact-producing** rather than introspective. Every test in this course produces something — a file, a number, a benchmark — that either exists or does not. "I understand attention" is unfalsifiable. "Here is my transformer, trained, in a repo, that I wrote without looking" is not.
+
+Module 1 takeaways
+
+-   The list optimises for coverage; you need an ordering, which optimises for your next action.
+-   The dependency graph forces mechanism → training → post-training → evals → inference.
+-   "One paper a week" is unaffordable at real hours; papers must be sized and given a done-condition.
+-   Advanced means unaided construction, and every clearing test therefore produces an artefact.
+
+## Module 2: Currency audit
+
+By the end of this module you will
+
+-   Know which four entries are still excellent, which four are dated, and which three are dead
+-   Know specifically *why* each dated one is dated — the world it was aimed at, and what changed
+-   Have a replacement for every dead link
+
+Scan this first. It is the compressed version of the module, and the rows that need explaining get it below.
+
+| Resource | Last moved | Status | Verdict |
+| --- | --- | --- | --- |
+| Hugging Face courses | Rolling, 2026 | Live | Best-maintained thing on the list. Now 12 courses. |
+| CS229 (Stanford ML) | Spring 2026 | Live | Current lectures free on YouTube. Genuinely up to date. |
+| Kaggle | Rolling, 2026 | Live | Alive, but it is a different proving ground than in 2019. |
+| Karpathy's series | Feb 2025 video; Mar 2026 code | Current‑ish | Excellent and finished. No more is coming — he joined Anthropic. |
+| CS224n (NLP) | Course Winter 2026; free video Spring 2024 | Current‑ish | Two-year lag on the free video. Acceptable, with gaps. |
+| DeepLearning.AI | Short courses rolling; specialisation 2017 | Dated | The short courses are the live part. The famous specialisation is not. |
+| CS231n (vision) | Course Spring 2026; free video 2017 | Dated | The syllabus is modern. The free videos predate ViTs entirely. |
+| fast.ai | 2022 | Dated | Still the best pedagogy in the field. Four years of stale API surface. |
+| Full Stack DL / LLM Bootcamp | Spring 2023 | Frozen | Good archive. Its evals and RAG material has aged badly. |
+| Papers with Code | Sunset 24 Jul 2025 | Dead | Domain now redirects. Leaderboards did not survive. |
+| arXiv-sanity | Taken down early 2025 | Dead | Domain is now a job board. Do not visit the old link. |
+
+### Still excellent — use these today
+
+LiveHugging Face courses — and the list undersells them
+
+The list says "Hugging Face courses + smol course." That was accurate for 2024. As of today [HF Learn](https://huggingface.co/learn) carries **twelve** courses. The ones that matter here: the **LLM Course** (the old NLP course, expanded to twelve chapters and re-pointed at LLMs — the later chapters cover fine-tuning, dataset curation and building reasoning models), the **Agents Course**, an **MCP Course** built in partnership with Anthropic, the **smol course** (instruction tuning, evaluation, preference alignment, vision-language models, with RL and synthetic data units rolling out), and a new **Context Course** on context engineering for code agents — skills, MCP, plugins, sub-agents, hooks, and building a minimal agent harness from scratch.
+
+**Verdict: use it, and use more of it than the list suggests.** The smol course is the single best free post-training resource in existence, and it is the answer to one of the three gaps in Module 3. The Context Course did not exist when the list was written.
+
+LiveCS229 — and this is the surprise of the audit
+
+Received wisdom is that the free CS229 on YouTube is the Summer 2019 Anand Avati recording, which is now seven years old. That playlist does still exist. But **Stanford has published the Spring 2026 lectures publicly on YouTube**, including a lecture on transformers and in-context learning — material that did not exist in the 2019 version. There is also a separate Summer 2026 offering running.
+
+**Verdict: excellent, and current. Watch the Spring 2026 playlist, not the 2019 one.** This is the one place the list's recommendation is more current than the list itself realises. If you only ever fix the classical-ML gap once, this is where.
+
+LiveKaggle — alive, but not the proving ground it was
+
+The question worth asking is not "is Kaggle dead" — it plainly is not. It hosted **68 competitions with roughly $3.67M in prizes in 2025** and remains the dominant platform by a wide margin across an ecosystem of 390+ competitions and $16M+ in total prize money. The question is whether it still *proves* what it used to.
+
+Three shifts. First, the format changed: competitions moved from upload-based to code-execution-based over the last several years, which broke the old leaderboard games but also means a medal now certifies something different. Second, the frontier moved — 2026's marquee events are agent and reasoning competitions: **ARC Prize 2026** with a $1M+ pool, Pokémon TCG agent challenges in the $240K–$300K range, a Game Arena where models play chess and poker against each other as a benchmark. Third, and most telling: a March 2026 Playground competition was won by a workflow in which frontier LLMs generated 600,000+ lines of code across 850 experiments. The bottleneck moved from *modelling insight* to *experiment orchestration*.
+
+**Verdict: still the best applied proving ground, but for a different skill.** If your goal is a signal that you can drive an empirical loop hard, it works better than ever. If your goal was "prove I can hand-craft a winning gradient-boosted model," that skill is now a smaller part of a bigger game. For someone on this path, Kaggle is a good place to *pressure-test* Stage 4 and 5, not a place to learn Stages 1–3.
+
+### Current-ish — good, with a lag you should know about
+
+Current‑ishKarpathy — the series is finished, and that matters
+
+The list says "his newer LLM walkthroughs," implying an ongoing stream. Here is what actually exists, dated:
+
+-   **Neural Networks: Zero to Hero** — eight lectures, ending at "Let's build the GPT Tokenizer." The syllabus page still says "ongoing..." It has not been added to since early 2024.
+-   **"Let's reproduce GPT-2 (124M)"** — 2024, four hours, and still the best single artefact for Stage 2.
+-   **"Deep Dive into LLMs like ChatGPT"** — February 2025, 3h31m, general-audience but the best free map of the whole training stack that exists.
+-   **nanochat** — released 13 October 2025, the code capstone. **57.6k stars, commits through March 2026**, and a README that now claims a GPT-2-capability model for **$48** of 8×H100 time, against roughly $43,000 in 2019.
+
+Two structural facts the list does not know. **LLM101n — the 17-chapter course Eureka Labs was building — was archived read-only on 1 August 2024** with a README saying the course does not yet exist. It never shipped. And in **May 2026 Karpathy joined Anthropic's pre-training team**, pausing Eureka Labs after 22 months.
+
+**Verdict: excellent, complete, and closed.** Treat it as a finished textbook rather than a subscription. Practically, this changes one thing: stop waiting for the next video and start on nanochat, which is the live artefact and is being maintained by contributors.
+
+Current‑ishCS224n — two-year lag on the free video
+
+The course is running (Winter 2026, taught by Diyi Yang and Yejin Choi) and the syllabus is modern: pretraining, post-training, efficient adaptation, agents and RAG, benchmarking, reasoning. But the current lectures are behind Stanford's Canvas. **The most recent freely available playlist is Spring 2024** — the course page says so directly, and explains that making enrolled-quarter video public is not possible.
+
+**Verdict: watch the 2024 playlist, read the 2026 syllabus.** The 2024 version already covers transformers, pretraining and RLHF properly, so the lag costs you the reasoning-model and agent material rather than the foundations. Use the current syllabus page as a reading list to patch the delta — it is public even when the video is not.
+
+### Dated — not wrong, but aimed at a world that moved
+
+DatedCS231n — the course is modern, the free video is 2017
+
+This is the most misleading entry on the list, and the reason is a split between two things that share a name. **The course is alive and genuinely current.** Spring 2026, taught by Fei-Fei Li, Ehsan Adeli and Justin Johnson among others, and the schedule covers exactly what you would want: ViTs under "Attention and transformers," video understanding, large-scale distributed training, self-supervised learning, generative models across VAE/GAN/autoregressive and then diffusion, 3D vision, vision-and-language, and world modeling.
+
+But the lecture videos are on Canvas. **The famous free CS231n YouTube playlist is the 2017 offering.** That is the version most people mean when they recommend it, and it is a historical artifact in a specific and important way: it predates the Vision Transformer paper by three years. Its entire architecture story ends at ResNet. It has no diffusion, no CLIP, no multimodal models, no video generation. It is not *wrong* — convolutions still work and backprop has not changed — but it teaches computer vision as a discipline with its own architectures, at a moment when computer vision has largely been absorbed into the transformer stack and the interesting questions are multimodal.
+
+**Verdict: skip the 2017 videos as a course; use the 2026 schedule as a reading list.** If you need vision specifically, the schedule page gives you the topic order and the paper set for free, and you can read the primary sources. If you do not need vision specifically — and on this path you do not — drop it entirely and take the transformer material from CS336 instead, where it is taught as the general mechanism it now is.
+
+Datedfast.ai — last refreshed in 2022
+
+The list flags fast.ai as "great for going from intermediate to genuinely capable," and on pedagogy that is still true — the top-down method, where you train a working model in lesson one and only then descend into what it was doing, remains the best teaching design in this field and nobody has improved on it. **But Practical Deep Learning for Coders is still the 2022 recording**, and Part 2 — *Deep Learning Foundations to Stable Diffusion*, 30+ hours — is from the same era. The course has been through long gaps before, and it is in one now.
+
+What that costs you is specific. The *concepts* hold: transfer learning, learning-rate finding, the training loop, data ethics. The *surface* does not: library versions, the fastai API's relationship to current PyTorch, and above all the framing, which treats fine-tuning a vision model as the central skill at a moment when the central skill is post-training a language model. Part 2's Stable Diffusion focus was cutting-edge in 2022 and is now a specialised corner rather than the main road.
+
+**Verdict: worth it for the method, not for the currency.** If you have never learned deep learning top-down, spend the hours — the mental model transfers. If you already have working intuitions, skip it; the four-year lag means you will spend real time debugging environment issues that teach you nothing.
+
+DatedDeepLearning.AI — two different products under one name
+
+The list names "especially the Deep Learning Specialization and MLOps courses." The **Deep Learning Specialization dates to 2017**, and while its core content is genuinely framework-agnostic — backprop does not change — it teaches an era in which the job was training networks from scratch. Most production AI work in 2026 is not that.
+
+The **short courses are the live part** of DeepLearning.AI and are added continuously, including 2026 material on adaptive agents. They are genuinely good for fast conceptual coverage. The caveat: several of the older short courses still demonstrate against long-superseded model versions and API patterns, so check the date on the individual course rather than trusting the brand.
+
+**Verdict: skip the specialisation, browse the short courses by date.** On this path the specialisation is redundant — CS229 covers the theory better and Stage 1 covers the practice better.
+
+### Frozen — good archive, no longer maintained
+
+FrozenFull Stack Deep Learning / LLM Bootcamp
+
+The list credits it with covering "evals, RAG, deployment," which was a fair description in 2023 and is why it is on the list. **The LLM Bootcamp is Spring 2023. The deep learning course is 2022.** Those are the most recent offerings; the instructors — Charles Frye, Josh Tobin, Sergey Karayev — have moved on to other work.
+
+Being frozen at Spring 2023 is unusually costly for this particular material, because that is precisely the material that changed most. Its RAG content predates the long-context era and treats retrieval as the default answer to context limits. Its evals content predates the error-analysis-first practice that has since become standard. Its agent content predates tool-use as a first-class model capability, and predates MCP entirely.
+
+**Verdict: skip, except as history.** The one enduring thing is its framing of the production stack as a whole system rather than a model — that framing is correct and still rare. If you want that framing with 2026 content, read Chip Huyen's *AI Engineering* instead.
+
+### Dead — do not send anyone to these links
+
+DeadPapers with Code — sunset July 2025
+
+Meta, which had operated it since acquiring it in 2019, **sunset Papers with Code on 24 July 2025**. The next day Hugging Face announced a partnership with Meta to carry the function forward. Today `paperswithcode.com` issues a 302 redirect to [huggingface.co/papers/trending](https://huggingface.co/papers/trending) — verified.
+
+The important nuance is that **the replacement is not a replacement.** HF Papers is a good trending-papers feed with community discussion. What did not survive was the thing Papers with Code was actually uniquely for: task-by-task state-of-the-art leaderboards linked to code, which let you answer "what is the current best method for X, and where is the implementation." Researchers said so loudly at the time. That capability currently has no first-class home.
+
+**Replacement:** HF Papers for discovery; [Semantic Scholar](https://www.semanticscholar.org/) for citation-graph work; [alphaXiv](https://www.alphaxiv.org/) for annotated reading of arXiv preprints. For "what is SOTA on task X," accept that you now have to read a recent survey or the last three papers, because the leaderboard that answered it is gone.
+
+DeadarXiv-sanity — and the domain is now a job board
+
+This is the one to actually act on. Karpathy took arxiv-sanity-lite down in early 2025 and said in the project's own issue tracker that he is no longer interested in maintaining it. The GitHub repo survives and is still runnable if you want to self-host.
+
+**The domain did not survive as itself.** As of today, `arxiv-sanity-lite.com` serves a commercial job board — "Verified US & UK Careers, Executive & Healthcare Jobs," with a 2026 copyright line and listings for cloud architects and ICU nurses. A community deployment at `arxiv-sanity.org` was announced in March 2025; it no longer resolves at all.
+
+**Verdict: dead, and the link is now actively misleading.** Anyone following the source list will land on a squatted domain that looks nothing like what was promised. **Replacement:** the [HF Papers](https://huggingface.co/papers) daily feed, arXiv's own subject listings with an RSS reader, or self-host the arxiv-sanity-lite repo — it is a small codebase and the SVM-over-TF-IDF recommender still works fine.
+
+The general lesson, which outlives these specific rows
+
+Nine of eleven entries were accurate when written. The list's failure is not error, it is **the absence of dates**. "Stanford CS231n (lectures free on YouTube)" is a true sentence that leads a reader to 2017 material under a 2026 headline, and the writer never lied.
+
+The practical habit: **before you commit twenty hours to any resource, find its last-updated date and its author's current employer.** Both took under two minutes for every entry here, and both mattered. Karpathy joining an AI lab tells you the series is finished. FSDL's instructors scattering tells you the bootcamp is not coming back. That is not gossip; it is the maintenance signal, and for free educational material it is usually the only one available.
+
+Module 2 takeaways
+
+-   Still excellent: Hugging Face (12 courses now), CS229 (Spring 2026 free on YouTube), Kaggle.
+-   Current-ish with known lag: Karpathy (finished, not ongoing), CS224n (free video is Spring 2024).
+-   Dated: CS231n's free videos are 2017 and predate ViTs; fast.ai is 2022; the DL Specialization is 2017.
+-   Frozen: Full Stack Deep Learning stopped at Spring 2023, in exactly the areas that changed most.
+-   Dead: Papers with Code (sunset 24 Jul 2025) and arXiv-sanity — whose domain is now a job board.
+
+## Module 3: What the list leaves out
+
+By the end of this module you will
+
+-   Know the three areas where most 2026 practice lives and the list is nearly silent
+-   Have a named, current, checked resource for each
+-   Know why CS336 is the single biggest omission and what it costs you to miss it
+
+### The shape of the gap
+
+Look at the list's implicit model of the job. It has fundamentals (fast.ai, Stanford), it has building with LLMs (Hugging Face, Karpathy), it has production-adjacent (FSDL), and it has papers. That is a 2023 map of the work. It is missing the three things that consume most of the effort in an AI organisation in 2026, and they are missing for a structural reason: **they are the parts that only become visible after you have something in production.** Course-shaped content lags them, because courses are written by people teaching the building, and these three are about the keeping-it-working.
+
+What the list optimises for
+
+Getting a model to exist and do something impressive. Training, architecture, fine-tuning, the demo.
+
+This is roughly the 2019–2023 shape of the job, and it is where nearly all free educational material still points.
+
+Where the 2026 hours actually go
+
+Knowing whether it works (evals). Making it work better without retraining (post-training). Making it affordable at volume (inference).
+
+Roughly: measurement, alignment, and unit economics. None of the three is on the list.
+
+### Gap 1 — Evals
+
+The list mentions evals exactly once, inside the FSDL entry — that is, inside the frozen 2023 resource, whose evals material predates current practice. So in effect the gap is total.
+
+This is the most consequential omission because **evals are the bottleneck discipline.** Nearly every organisation that fails to ship an AI feature fails at the point where someone asks "is it good enough?" and there is no defensible answer. Module 7 teaches the discipline. The resources, all checked:
+
+-   [**AI Evals for Engineers & PMs**](https://maven.com/parlance-labs/evals) — Hamel Husain and Shreya Shankar. Paid, cohort-based on Maven, and the material was **completely refreshed for the September 2026 cohort**. They have taken 2,000+ engineers and PMs through it, including teams at OpenAI and Anthropic. It is the closest thing the field has to a canonical evals curriculum.
+-   [**Hamel's evals FAQ and blog**](https://hamel.dev/blog/posts/evals-faq/) — free, and covers most of the intellectual content of the course without the cohort. Start here before you pay for anything.
+-   [**Inspect**](https://inspect.aisi.org.uk/) — the UK AI Security Institute's open-source eval framework, MIT-licensed. It has become the de facto standard for frontier-grade evaluation, with one interface across all major providers plus local vLLM/Ollama, and sandboxing for agentic evals that execute untrusted code. The companion [inspect\_evals](https://github.com/UKGovernmentBEIS/inspect_evals) repo is a large community collection across coding, maths, cybersecurity and reasoning.
+
+### Gap 2 — Inference optimisation
+
+The list mentions vLLM and llama.cpp once, in passing, as repos worth rebuilding. It does not say what you would learn or in what order, and it treats inference as an implementation detail rather than a discipline.
+
+It is not a detail. For any product at volume, **inference cost is the dominant line item and the thing that decides whether the feature has a business**. It is also where the most transferable systems knowledge in modern ML lives, because the constraints are legible: memory bandwidth, cache size, batch scheduling. Module 8 teaches it. Resources:
+
+-   **CS336 Lecture 10 (Inference)** — free on YouTube, and the best single hour on the subject at the right level of abstraction.
+-   [**GPU MODE**](https://github.com/gpu-mode/lectures) — over 100 lectures with code, actively maintained, covering CUDA fundamentals, memory architecture and profiling, Triton, FlashAttention, Ring Attention, quantization, NCCL multi-GPU communication, speculative decoding and kernel fusion. This is the deep end and it is free. There is an active Discord and a YouTube channel.
+-   [**vLLM docs**](https://docs.vllm.ai/) — read them as a text on serving architecture, not as an API reference. The PagedAttention design is the clearest available worked example of applying an OS idea to an ML problem.
+
+### Gap 3 — Post-training
+
+The list gets closest here — it names RLHF inside the Hugging Face entry. But it treats post-training as one item among several rather than as the stage where most of the observable quality of a modern model is created. Everything you experience as a model's helpfulness, format discipline, refusal behaviour and reasoning ability is post-training.
+
+-   [**The RLHF Book**](https://rlhfbook.com/) — Nathan Lambert. **Free web version, print edition published by Manning in July 2026.** It covers instruction tuning, reward modelling, rejection sampling, RL, direct alignment algorithms and on-policy distillation. This is the reference text for Module 6.
+-   [**HF smol course**](https://huggingface.co/learn/smol-course) — the hands-on complement. Instruction tuning, evaluation, preference alignment, vision-language models, with RL and synthetic-data units rolling out.
+-   [**Build a Reasoning Model (From Scratch)**](https://sebastianraschka.com/reasoning-from-scratch/) — Sebastian Raschka, out in 2026. Starts from a pretrained model and works through evaluation, inference-time scaling, RL and distillation on a small Qwen3 base. The natural successor to his *Build a Large Language Model (From Scratch)*, which passed 100,000 GitHub stars.
+
+### The biggest omission is a whole course
+
+CS336: Language Modeling from Scratch
+
+Stanford's [CS336](https://stanford-cs336.github.io/spring2025/), taught by Tatsunori Hashimoto and Percy Liang. **The Spring 2026 lectures are published publicly on YouTube** — verified, with lectures dated April through June 2026 covering tokenization, PyTorch, architectures, GPUs and TPUs, kernels and Triton, parallelism, scaling laws, inference, evaluation, data, and alignment.
+
+The five assignments are the point. **A1**: build the tokenizer, the transformer and the optimiser, and train a small LM. **A2**: profile it, implement FlashAttention-2 in Triton, build a memory-efficient distributed version. **A3**: fit your own scaling laws through a training API. **A4**: turn raw Common Crawl into pretraining data with filtering and deduplication. **A5**: supervised finetuning plus RL for mathematical reasoning, with an optional DPO safety section.
+
+The course page describes it as "very implementation-heavy," with a Python workload *at least an order of magnitude* greater than other classes. That is a warning and also the recommendation: **this is the only free resource that makes you build the whole stack**, and it covers, in one place, three of the five stages in this course plus two of the three gaps.
+
+**Why the list misses it:** the list is organised by fame, and CS336 is newer than the courses it displaces. CS231n and CS224n have a decade of brand equity. CS336 is the one that is actually about what people build now.
+
+### One more, for the exec reading
+
+Chip Huyen's [**AI Engineering**](https://www.oreilly.com/library/view/ai-engineering/9781098166298/) (O'Reilly, December 2024) is not on the list and should be. It is the one book that treats foundation-model applications as an engineering discipline with a full chapter each on *evaluation methodology* and *inference optimisation* — two of the three gaps. It will not make you able to build any of it, which is why it is not a substitute for Stages 1–5. It will make you able to ask the right question in a design review, which is a different and also useful thing.
+
+Module 3 takeaways
+
+-   The list has a 2023 map of the job: it covers building, not measuring, aligning or serving.
+-   Evals is the bottleneck discipline and the list's only mention is inside its frozen entry.
+-   Inference optimisation is where the unit economics live; GPU MODE and CS336 L10 are the free path.
+-   Post-training deserves its own stage; the RLHF Book plus smol course is the current pairing.
+-   CS336 is the single biggest omission — public 2026 video, and it covers three of five stages.
+
+## Module 4: Stage 1 — The mechanism
+
+Budget **~30 hours**
+
+At 5 h/week **6 weeks**
+
+Prerequisite **Python, some PyTorch**
+
+Compute cost **$0**
+
+By the end of this module you will
+
+-   Be able to explain attention as a soft dictionary lookup, and say why it beat recurrence
+-   Understand the residual stream, which is the part that explains interpretability and layer ablation
+-   Know the division of labour between attention and MLPs, and where the parameters live
+-   Have a clearing test that produces a file, not a feeling
+
+### Attention is a soft dictionary lookup
+
+Start with something you already know. A Python dictionary takes a key, finds the one entry whose key matches exactly, and returns its value. Hard match, one winner, no gradient.
+
+Attention is the same operation made differentiable. Every position in the sequence emits three vectors. The **query** is what this position is looking for. The **key** is what this position offers as a label. The **value** is what this position will hand over if selected. To compute the output at position *i*, you take its query, dot it against every key in the sequence to get a similarity score, softmax those scores into weights that sum to one, and return the weighted average of all the values.
+
+So instead of "find the one matching entry," you get "return a blend of all entries, weighted by how well each matches." Hard lookup becomes soft lookup. That single change is what makes it trainable: gradients flow back through the softmax to every position, so the model can learn what to look for and what to advertise.
+
+The scaling factor — dividing by the square root of the head dimension before the softmax — exists for a boring and important reason. Dot products of high-dimensional vectors have variance proportional to the dimension. Without the scale, the scores get large, the softmax saturates into a near-one-hot distribution, and the gradient vanishes. It is not a theoretical nicety; it is the difference between a model that trains and one that does not.
+
+Why it beat recurrence — and it is not what you think
+
+The usual story is that RNNs "forget" and attention "remembers everything." That is a real advantage but it is secondary. **The primary reason attention won is hardware.**
+
+An RNN computes position *t* from position *t*−1. That is a sequential dependency by construction: you cannot start step 500 until step 499 finishes. A GPU with tens of thousands of cores can therefore do almost nothing in parallel across the sequence dimension, and sits mostly idle.
+
+In attention, every position's output depends only on the full input sequence — not on any other position's *output*. So all positions compute simultaneously, as one big matrix multiply, which is precisely the operation GPUs are built for. The paper's title is *Attention Is All You Need*; the subtitle should have been *and it parallelises*.
+
+This matters beyond trivia. It tells you the field's architecture choices are jointly determined by mathematics and by silicon, which is the mental model that makes Stage 2 and Stage 5 make sense. Once you hold it, a lot of otherwise arbitrary-seeming design becomes legible.
+
+### The residual stream — the idea most explanations skip
+
+Almost every diagram of a transformer draws it as a stack: input goes in the bottom, gets transformed by block 1, that output gets transformed by block 2, and so on. **That picture is wrong and it will mislead you.**
+
+Because of the residual connections, each block does not transform its input. It *reads* its input, computes something, and *adds* the result back. Written plainly, a block is:
+
+```
+# not: x = block(x)  — a pipeline of transformations
+x = x + attention(layernorm(x))   # read, compute, add back
+x = x + mlp(layernorm(x))         # read, compute, add back
+```
+
+So there is a single vector per position — call it the **residual stream** — that runs unbroken from the embedding all the way to the output head. Every block is a side-channel that reads from the stream and writes an increment back into it. Nothing ever replaces the stream; things are only ever added to it.
+
+Three things follow immediately, and each one is a question people otherwise find mysterious:
+
+-   **Why can you delete a middle layer and get graceful degradation?** Because you removed one contribution from a sum, not a stage from a pipeline. Deleting stage 7 of a pipeline breaks everything downstream. Deleting one addend from a sum of forty makes the sum slightly wrong.
+-   **Why does activation steering work?** Because if you can find a direction in the residual stream that corresponds to a concept, adding a multiple of that vector is exactly the same kind of operation the model's own blocks perform. You are not hacking it; you are writing to the stream in its native format.
+-   **Why does depth buy refinement rather than re-representation?** Because later layers see an accumulated draft rather than a foreign encoding. The model is doing successive editing, not successive translation.
+
+If you take one idea from Stage 1, take this one. It is the load-bearing intuition for interpretability, for fine-tuning behaviour, and for why LoRA works at all.
+
+### Attention routes; the MLP knows things
+
+The last piece of the mechanism is the division of labour, and it is cleaner than people expect.
+
+Attention — movement between positions
+
+The only component that lets information travel from one token position to another. It is routing. It decides *what to fetch from where*.
+
+Roughly a third of the parameters in the GPT-2 block shape — but under 20% in models with grouped-query attention. Stage 1 derives both.
+
+MLP — computation at a position
+
+Operates on each position independently — it cannot see other tokens at all. It transforms whatever is currently in that position's residual stream.
+
+Roughly two-thirds in the GPT-2 shape, and about 82% in Llama 3 70B once SwiGLU's third matrix is counted. This is where learned knowledge predominantly lives.
+
+Say it as one sentence: **attention moves information between positions; the MLP transforms information at a position.** Once you hold that, a lot of empirical results stop being surprising — that factual recall localises to MLP layers, that mixture-of-experts routes MLPs rather than attention heads, and that context-length work is almost entirely attention work.
+
+### And the training objective is embarrassingly simple
+
+Worth stating plainly because it is easy to over-mystify. The pretraining loss is **next-token cross-entropy and nothing else**. Show the model a prefix, ask for a distribution over the next token, penalise it by the negative log probability it assigned to the token that actually came next. Average over every position in every document.
+
+There is no auxiliary objective for reasoning, no term for truthfulness, no supervision signal for helpfulness. Everything that later looks like capability is a side effect of compressing a very large corpus under that one objective. Holding this clearly is what stops you from believing the model was *taught* anything in pretraining, and it is what makes Stage 3 comprehensible — post-training exists precisely because next-token prediction gives you a document completer, not an assistant.
+
+### What to actually watch and read
+
+| Resource | Hours | Why this one |
+| --- | --- | --- |
+| Karpathy, "Let's build GPT: from scratch" | ~2 + 6 doing | Still the single best artefact for this stage. Type it yourself, do not watch it. |
+| Karpathy, "Let's build the GPT Tokenizer" | ~2 + 3 doing | Tokenization is where most confusing model behaviour originates. Skipping it costs you later. |
+| CS336 Lectures 1–3 (tokenization, PyTorch/einops, architectures) | ~4 | The rigorous version of the same material, plus modern architecture variants. |
+| Attention Is All You Need (Vaswani et al., 2017) | ~3 | Read it after the videos. Then it is short and mostly familiar, which is the correct experience. |
+| Optional: fast.ai Part 1 | ~25 | Only if you have never learned deep learning top-down. Great method, 2022 surface. |
+
+Clearing test — Stage 1
+
+**Open a blank editor. Write a decoder-only transformer forward pass in PyTorch from memory** — token and position embeddings, causal multi-head self-attention, MLP, residual connections with pre-norm layernorm, tied output head. Train it on a text file small enough to overfit. Watch the loss go to near zero and sample from it.
+
+Then answer these three without looking anything up. **(1)** State the shape of every tensor at every step, given batch size B, sequence length T, model dimension C and H heads. **(2)** Explain what specifically breaks if you remove the causal mask, and why the training loss would drop rather than rise. **(3)** Point at the line where the residual stream is written to, and say what the model loses if you replace `x = x + attn(...)` with `x = attn(...)`.
+
+**Not the test:** having watched the video. Having a working repo you followed along with. Being able to describe attention in words. The failure mode of this stage is fluency without construction — you can explain queries and keys beautifully and still not be able to produce the code, and only one of those is load-bearing.
+
+Module 4 takeaways
+
+-   Attention is a differentiable dictionary lookup; the scale factor exists to keep the softmax from saturating.
+-   It beat recurrence primarily because it parallelises across the sequence — a hardware argument.
+-   The residual stream is the through-line; blocks add to it rather than transform it.
+-   Attention routes between positions; MLPs (two-thirds of parameters in GPT-2, ~82% in Llama 3 70B) compute at a position.
+-   Pretraining optimises next-token cross-entropy and nothing else. Everything else is Stage 3.
+
+**Full course for this stage:** [Stage 1 — The Mechanism](transformer-mechanism-course.html) — the concepts taught properly, with an interactive tool and the same clearing test.
+
+## Module 5: Stage 2 — The training stack
+
+Budget **~45 hours**
+
+At 5 h/week **9 weeks**
+
+Prerequisite **Stage 1 cleared**
+
+Compute cost **~$50–100**
+
+By the end of this module you will
+
+-   Be able to derive a compute-optimal model size from a FLOP budget — and say why you'd deliberately ignore it
+-   Understand arithmetic intensity, which is the concept that explains FlashAttention in one sentence
+-   Know the four kinds of parallelism and which resource each one trades
+-   Have trained a real model end to end for roughly the price of a dinner
+
+### Scaling laws are a unit-economics argument in disguise
+
+The Chinchilla result is usually taught as a fact about model quality. It is more useful taught as a fact about budgets.
+
+Start with the approximation that makes the whole thing tractable: training a dense transformer costs roughly **C ≈ 6ND** FLOPs, where N is parameters and D is training tokens. (The 6 is two for the forward pass and four for the backward, per parameter per token — approximately, and the approximation is good enough to plan with.)
+
+Now fix C, because in practice you fix C — you have a cluster for a month. You are choosing a point on a hyperbola: a big model on few tokens, or a small model on many. Both cost the same. The empirical finding is that loss is minimised near the middle, and specifically at roughly **20 tokens per parameter**. Before that result, the field systematically built models that were too large and trained them on too little data.
+
+And then everyone deliberately stopped following it
+
+Here is the part that gets left out of the explanation and is the most useful part for anyone making product decisions. **Chinchilla-optimal is training-optimal. It says nothing about serving.**
+
+The derivation minimises loss for a fixed *training* budget. But if you are going to serve that model a trillion times, training is a one-off and inference is forever. And inference cost scales with N — a model twice the size costs roughly twice as much per token, permanently.
+
+So the correct move for a production model is to **go smaller than Chinchilla-optimal and train far longer**. You pay more up front for a worse loss-per-training-FLOP, and you buy a permanently cheaper serving cost at a given quality. That is why models built for high-volume serving are deliberately "over-trained" by Chinchilla's standard — Llama 3 8B saw roughly 1,875 tokens per parameter, about 94× the ratio. It is not that the labs forgot the result. It is that they are solving a different optimisation problem than the one the paper solved.
+
+**The counterexample worth knowing, because the slogan is too clean:** Meta's own scaling law predicted an optimum of 402B parameters on 16.55T tokens for the Llama 3 405B compute budget, and they trained **405B on 15.6T** — essentially *at* their predicted optimum. Flagship models often are not over-trained, because a flagship's job is to set a capability ceiling and the serving economics are a different product's problem. [Stage 2](training-stack-course.html) works through both cases.
+
+If you carry one thing from Stage 2 into a boardroom, carry this: **the size of a served model is an inference-cost decision wearing a research-result costume.**
+
+### Arithmetic intensity, or: why your GPU is mostly waiting
+
+This is the concept that makes systems work click, and it is a ratio.
+
+A modern accelerator can do on the order of a thousand trillion floating-point operations per second. It can read from its high-bandwidth memory at a few terabytes per second. Divide those and you get an awkward number: the chip can perform hundreds of arithmetic operations in the time it takes to fetch a single number from memory.
+
+So for any kernel, the question that decides its speed is **how many FLOPs do you do per byte you read?** That ratio is arithmetic intensity. High intensity — a big dense matrix multiply, where each loaded value participates in many multiply-accumulates — and you are compute-bound, which is the good case: the expensive silicon is busy. Low intensity — an elementwise operation, where you read a number, do one thing to it, write it back — and you are memory-bandwidth-bound, and the FLOPs sit idle no matter how many you paid for.
+
+FlashAttention in one sentence
+
+Naive attention materialises the full T×T attention matrix in HBM: you write it, then read it back for the softmax, write again, read again for the value multiply. For a 4,096-token sequence that is a 16-million-entry matrix being shuttled to and from memory several times per head per layer.
+
+**FlashAttention does not reduce the FLOPs at all.** It tiles the computation so the attention matrix is never written to HBM — it is built block by block in on-chip SRAM, consumed immediately, and discarded, using an online-softmax trick to keep the normalisation correct without ever seeing all the scores at once.
+
+Same arithmetic, far fewer memory round trips, several times faster. This is why the paper's central claim is about IO-awareness rather than about attention, and why understanding arithmetic intensity means you could have predicted the result.
+
+### The four parallelisms, and what each one costs
+
+When one device is not enough, you split. There are four axes and confusing them is a common source of nonsense in design discussions:
+
+| Kind | What is split | What it buys | What it costs |
+| --- | --- | --- | --- |
+| Data | The batch. Every device holds the whole model. | Simplest, near-linear throughput scaling. | Nothing on memory — every device still needs the full model. Gradient all-reduce each step. |
+| Tensor | Individual weight matrices, within a layer. | Fits a layer too big for one device. | Communication inside every forward pass. Needs a fast interconnect; falls apart across nodes. |
+| Pipeline | Layers across devices. | Fits a model too deep for one device, with modest communication. | Bubbles — devices idle waiting for the stage ahead. Micro-batching mitigates, never eliminates. |
+| Sequence / context | The sequence dimension. | Long contexts that would blow up attention memory. | Attention needs all positions, so this requires a ring-style exchange of keys and values. |
+
+Real systems compose them — tensor parallel within a node where the interconnect is fast, pipeline parallel across nodes where it is not, data parallel over the whole thing. The rule of thumb worth memorising: **tensor parallelism inside a node, pipeline parallelism between nodes, data parallelism everywhere.**
+
+### What to actually do
+
+This is the stage with a real compute bill, and it is small. The centrepiece is [**nanochat**](https://github.com/karpathy/nanochat): tokenizer, pretraining, midtraining, SFT, evaluation, inference and a web UI, in one legible repository. The README currently claims a **GPT-2-capability model for about $48** of 8×H100 time — roughly two hours — against something like $43,000 for the equivalent in 2019. Run the cheap tier once, end to end, and you will have done something most people talking about this have not.
+
+| Resource | Hours | Why this one |
+| --- | --- | --- |
+| nanochat — run the full pipeline | ~10 + wait | The end-to-end experience. Do not read it; run it, break it, change one thing. |
+| Karpathy, "Let's reproduce GPT-2 (124M)" | ~4 + 8 doing | Four hours that cover the whole training loop including the unglamorous parts. |
+| CS336 Lectures 4–9 (GPUs/TPUs, kernels & Triton, parallelism, scaling laws) | ~8 | The systems core. Lecture 6 on Triton is where arithmetic intensity becomes concrete. |
+| CS336 Assignment 2 | ~20 | FlashAttention-2 in Triton plus distributed training. Hard. This is the stage's real work. |
+| CS229 Spring 2026 (selectively) | ~6 | Only if your classical-ML foundations are shaky. Bias/variance and optimisation still matter. |
+
+Clearing test — Stage 2
+
+**Three artefacts.** **(1)** A model you trained end to end from raw text to working chat interface, with the wall-clock time and the dollar cost written down. **(2)** A profile of that training run in which you identify the top three time-consuming kernels and state, for each, whether it is compute-bound, memory-bandwidth-bound or communication-bound — and what you would do about it. **(3)** A hand-written estimate: given a budget of 10²² FLOPs, your recommended (parameters, tokens) pair, the Chinchilla answer, and a paragraph on why you would deviate from it for a model you intend to serve at scale.
+
+Then the sanity question: **your loss spikes at step 4,000 and does not recover. Name five candidate causes, ranked, and the cheapest diagnostic for each.** If you have actually trained something, you will have opinions. If you have only read about training, you will produce a list you memorised.
+
+**Not the test:** having run `train.py` to completion. The distinguishing capability at this stage is *diagnosis* — being handed a run that is behaving badly and having a next move.
+
+Module 5 takeaways
+
+-   C ≈ 6ND, and Chinchilla puts the optimum near 20 tokens per parameter for a fixed training budget.
+-   Production models are deliberately over-trained because inference cost is forever and training is once.
+-   Arithmetic intensity — FLOPs per byte read — decides whether your expensive silicon is busy.
+-   FlashAttention saves memory round trips, not FLOPs. That is the whole idea.
+-   Tensor parallel inside a node, pipeline between nodes, data parallel over everything.
+
+**Full course for this stage:** [Stage 2 — The Training Stack](training-stack-course.html) — the concepts taught properly, with an interactive tool and the same clearing test.
+
+## Module 6: Stage 3 — Post-training
+
+Budget **~30 hours**
+
+At 5 h/week **6 weeks**
+
+Prerequisite **Stage 2 cleared**
+
+Compute cost **~$20–60**
+
+By the end of this module you will
+
+-   Know what each post-training stage actually buys, and what it cannot buy
+-   Be able to explain in two sentences why DPO needs no reward model — without hand-waving
+-   Understand the shift from learned reward to verified reward, which is what made RL on LLMs work
+-   Have improved a model on a preference set you built yourself
+
+### The problem post-training solves
+
+A pretrained model is a document completer. Ask it "What is the capital of France?" and a faithful next-token predictor might reasonably continue with "What is the capital of Germany?" — because in its training corpus, that string most often appeared in a list of quiz questions. It is not confused. It is doing exactly what it was optimised to do.
+
+Post-training is everything that turns that object into something that answers. It is conventionally three moves, and it is worth being precise about what each one can and cannot do.
+
+| Stage | What it teaches | Data | What it cannot do |
+| --- | --- | --- | --- |
+| Instruction tuning (SFT) | Format and task shape: when you see a question, produce an answer. | Thousands to low hundreds of thousands of demonstrations. | Add knowledge. If it was not in pretraining, SFT teaches the model to state it confidently, not to know it. |
+| Preference optimisation | Ranking among acceptable answers: which of two good replies is better. | Pairwise comparisons, human or model-generated. | Fix a capability the base model lacks. It reweights what exists. |
+| RL with verifiable rewards | Getting to a checkable right answer, and the search behaviour that finds it. | Problems with automatic verifiers — maths, code, tests. | Work in domains where correctness cannot be checked programmatically. |
+
+The most expensive misconception in applied AI
+
+**Fine-tuning does not add knowledge.** It is the single most costly wrong belief in enterprise AI programmes, and it produces the same project over and over: fine-tune the model on our documents so it knows our business. What you get is a model that has learned the *register* of your documents and will now hallucinate in your house style, with more confidence than before.
+
+Knowledge goes in through pretraining (expensive, rarely yours to do) or through context at inference time (retrieval, tools, long context). Fine-tuning changes behaviour, format and preference. If someone proposes fine-tuning to fix a factual problem, that is the moment to ask what exactly they expect the gradient to be teaching.
+
+### RLHF classic, and then the simplification
+
+The original recipe has three steps. Collect human comparisons of model outputs. Train a **reward model** — a network that takes a response and returns a scalar — to predict which one a human would prefer. Then use reinforcement learning, usually PPO, to update the policy to maximise that predicted reward, with a KL penalty against the original model so it does not drift into gibberish that happens to score well.
+
+It works and it is a nuisance: three models in memory at once (policy, reward, reference), an RL loop that needs online sampling, and enough hyperparameter sensitivity that reproducing someone else's result is a project.
+
+Why DPO can skip the reward model — the actual reason
+
+The two-sentence version, which is worth being able to give: **for the KL-constrained reward objective RLHF optimises, the optimal policy has a closed form — it is the reference policy reweighted by the exponentiated reward. You can therefore invert that relation to express the reward as a function of the policy, substitute it into the preference likelihood, and optimise the policy directly on preference pairs with no reward model and no sampling loop.**
+
+Concretely: the reward for a response reduces to the log-ratio between your policy's probability and the reference model's probability for it, times a temperature. Maximising the likelihood that the preferred response outscores the rejected one becomes a plain classification loss over pairs. Two forward passes per example, no rollouts, no third model.
+
+What you give up is real and worth naming. The closed form assumes your preference data is consistent with a Bradley-Terry model, and because DPO is off-policy it optimises against a fixed dataset rather than against responses the current policy actually produces. On-policy methods still win on the hardest problems. But DPO's simplicity is why it is where you should learn this: you can implement it in a weekend and see it work.
+
+### The change that actually mattered: reward stopped being taste
+
+The most important shift in post-training between 2023 and 2026 is not an algorithm. It is where the reward signal comes from.
+
+Learned reward (RLHF, 2022–2023)
+
+A neural network predicts what humans prefer. It is an approximation of taste, and like any approximation it can be gamed — the policy finds inputs where the reward model is wrong and exploits them. This is reward hacking, and it puts a hard ceiling on how far you can push.
+
+Verified reward (RLVR, 2024–)
+
+A program checks the answer. Did the maths come out right? Do the tests pass? There is nothing to hack, because the reward is not a model — it is a fact. You can now optimise hard and long without the signal degrading.
+
+That is what unlocked the reasoning-model generation. Once the reward is a verifier rather than a critic, you can afford enormous numbers of rollouts, and the model discovers behaviours — checking its work, backtracking, trying a second approach — that nobody demonstrated, because those behaviours raise the probability of passing the check.
+
+**GRPO** is the algorithmic simplification that goes with it. PPO needs a learned value network to estimate the baseline for the advantage. GRPO drops it: sample a group of completions for the same prompt, score them all with the verifier, and use the group's mean as the baseline. Advantage becomes "how much better than my siblings was this attempt." One fewer network, and it suits the setting exactly, because generating a group of samples for one prompt is cheap when you are already sampling.
+
+The strategic read, which is the part worth carrying into a product conversation: **a capability is amenable to RL exactly to the degree that you can write a checker for it.** That is a sharper predictor of what models will get good at next than any parameter count. Domains with cheap verifiers race ahead; domains where quality is a matter of judgement move at the pace of preference data.
+
+### What to actually do
+
+| Resource | Hours | Why this one |
+| --- | --- | --- |
+| The RLHF Book — Nathan Lambert (free web) | ~10 | The reference text. Instruction tuning through direct alignment and on-policy distillation. |
+| HF smol course, Units 1–3 | ~12 | Hands-on instruction tuning, evaluation and preference alignment. The practical complement. |
+| CS336 Assignment 5 | ~15 | SFT plus RL for mathematical reasoning, with an optional DPO section. The rigorous version. |
+| Raschka, Build a Reasoning Model (From Scratch) | ~15 | 2026. Evaluation, inference-time scaling, RL and distillation on a small Qwen3 base. |
+| Papers: InstructGPT, DPO, DeepSeek-R1 | ~6 | The three that define the arc: learned reward, no reward model, verified reward. |
+
+Clearing test — Stage 3
+
+**Take a small base model and make it measurably better, twice, by two different mechanisms.** First, write your own SFT loop — not TRL's — and produce an instruction-following version. Second, write your own DPO loss from the paper and improve it further on a preference set *you constructed*, with a held-out split you never trained on.
+
+Report a number with an honest error bar, and be able to answer: **(1)** Why does the KL penalty exist, and what specifically happens as you take it to zero? **(2)** Where is the reward model in your DPO implementation, and why is that question a trick? **(3)** Name a capability in your product domain that *is* amenable to verified reward, and one that is not, and say what makes the difference.
+
+**Not the test:** running a TRL example script. TRL is excellent and you should use it in production — but the point of this stage is that you have written the loss function once by hand, so that when a run misbehaves you are debugging code you understand rather than a library you trust.
+
+Module 6 takeaways
+
+-   SFT teaches format, preference optimisation teaches ranking, RL teaches getting to a checkable answer.
+-   Fine-tuning does not add knowledge. It teaches your model to hallucinate in your house style.
+-   DPO drops the reward model because the KL-constrained optimum has a closed form you can invert.
+-   Reward moved from learned taste to program verification; that is what made hard RL work.
+-   A capability is RL-amenable exactly to the degree you can write a checker for it.
+
+**Full course for this stage:** [Stage 3 — Post-Training](post-training-course.html) — the concepts taught properly, with an interactive tool and the same clearing test.
+
+## Module 7: Stage 4 — Evals
+
+Budget **~25 hours**
+
+At 5 h/week **5 weeks**
+
+Prerequisite **A system with real traffic**
+
+Compute cost **~$20**
+
+By the end of this module you will
+
+-   Be able to state the difference between a benchmark and an eval, and why almost all published material is about the wrong one
+-   Know the error-analysis-first workflow, and why picking a metric early is the standard failure
+-   Be able to validate an LLM judge properly — separately on both error types — and correct a headline number using its measured rates
+
+### A benchmark is not an eval
+
+These get used interchangeably and they answer different questions.
+
+Benchmark
+
+How does *this model* rank against *other models* on *someone else's* distribution? MMLU, SWE-bench, GPQA.
+
+Useful for procurement and for research. Nearly worthless for deciding whether your feature ships, because your traffic does not look like the benchmark and your failure modes are not its failure modes.
+
+Eval
+
+Does *my system* do *my job* on *my traffic*?
+
+Almost all of the value is here. Almost all of the published material is on the other side, which is why teams arrive at production with a strong opinion about which model is best and no way to tell whether their thing works.
+
+An eval is also not a model property. It measures the *system* — prompt, retrieval, tools, parsing, fallbacks, and the model. Swapping to a better-benchmarked model routinely makes a system worse, because the prompt was fitted to the old one. If your eval cannot detect that, it is measuring the wrong object.
+
+### The workflow that works, in the order it works in
+
+Most teams start by choosing metrics. That is the error. The sequence that actually produces improvement inverts it:
+
+1.  **Look at data.** Read 100 real traces end to end. Not summaries, not aggregates — the actual conversations, with what the user asked and what the system did.
+2.  **Open-code the failures.** For every trace that went wrong, write one plain sentence describing what went wrong. Do not categorise yet. Do not reach for a taxonomy someone else wrote. Just describe, in your own words, one line per failure.
+3.  **Axial-code into a taxonomy.** Now group your sentences. The categories emerge from your data rather than from a blog post, which is the whole point — you will find failure modes specific to your domain that no generic rubric contains.
+4.  **Count.** Frequency per category. This is usually the moment the project changes direction, because the thing everyone was arguing about turns out to be 3% of failures and the thing nobody mentioned is 40%.
+5.  **Build a targeted eval for the biggest bucket.** Now, and only now, do you write a metric. It measures one specific failure mode you have evidence matters.
+6.  **Fix, re-measure, repeat.**
+
+Why teams skip step 1, and what it costs
+
+Reading 100 traces takes a focused afternoon and feels like not-working. Choosing metrics feels like working: it produces a document, it can be delegated, it survives a status update.
+
+So the standard path is to adopt a generic rubric — helpfulness, harmlessness, groundedness, each scored 1–5 by a judge — and instrument it before anyone has read the failures. Six weeks later you have a dashboard with three numbers hovering around 3.8 that nobody can act on, because a rubric written before you looked at your data measures the failure modes of a *generic* system, and yours is not generic. **The 100 traces are not preparation for the work. They are the work.**
+
+### LLM-as-judge is a classifier you have not validated
+
+Using a model to grade outputs is the only way to evaluate open-ended generation at volume, and it is fine. What is not fine is treating the judge's output as ground truth. **A judge is a classifier. You would not ship an unvalidated classifier, and this is one.**
+
+Validate it the way you would validate any classifier, with one wrinkle that matters:
+
+-   **Label a stratified sample yourself.** Not your intern — you, or whoever owns the product definition of "good." A few hundred examples, deliberately including hard and borderline cases rather than a uniform random draw.
+-   **Measure both error rates separately.** Not "agreement" — that single number hides everything. Measure the true positive rate (of the outputs you called good, how many does the judge call good) and the true negative rate (of the outputs you called bad, how many does the judge catch) as two separate numbers. Judges are systematically lenient: they pass things they should fail, which shows up catastrophically in TNR and barely at all in overall agreement.
+-   **Correct your headline number using those rates.** If your judge passes 80% of traffic, but you measured its TPR at 0.95 and TNR at 0.70, the raw 80% is not your success rate. You can back out a corrected estimate from the observed pass rate and the two measured rates — and the corrected number is the one you take to a review.
+-   **Re-validate when anything changes.** New judge model, new prompt, drifted traffic — your rates are stale and so is every number computed from them.
+
+Binary beats Likert, and it is not close
+
+The instinct is to ask the judge for a 1–5 quality score. Resist it, for three reasons. **Reliability:** the boundary between 3 and 4 is not stable across runs, across judges, or across your own two human labellers, so most of the variance in the number is noise. **Validation:** you cannot cleanly compute a true positive rate for a five-point scale, so you cannot do the correction above. **Actionability:** "groundedness went from 3.6 to 3.8" tells you nothing you can act on.
+
+Replace it with several specific binary questions, each of which names a failure mode from *your* taxonomy: *Did it cite a source that exists in the retrieved context? Did it answer the question that was asked? Did it refuse a request it should have handled?* Each is individually validatable, individually correctable, and individually fixable. A dashboard of eight binaries is worth more than any composite score.
+
+### What to actually do
+
+| Resource | Hours | Why this one |
+| --- | --- | --- |
+| Hamel Husain's evals FAQ and blog | ~5 | Free, and carries most of the intellectual content. Start here before paying for anything. |
+| AI Evals for Engineers & PMs (Maven, paid) | ~20 | Refreshed for the September 2026 cohort; 2,000+ alumni including OpenAI and Anthropic teams. |
+| Inspect (UK AISI) — build one real eval | ~8 | Learn the framework the frontier labs actually use. Sandboxing matters once you evaluate agents. |
+| Chip Huyen, AI Engineering — evaluation chapters | ~4 | The systematic treatment, and the best version for framing this to a leadership audience. |
+| CS336 Lecture on evaluation | ~1.5 | The research-side view: what benchmarks measure and how they get gamed. |
+
+Clearing test — Stage 4
+
+**Take a real LLM feature with real traffic — yours or a colleague's — and produce four things.** **(1)** A failure taxonomy derived from at least 100 traces you coded yourself, with counts per category. **(2)** An LLM judge for your largest category, with its true positive and true negative rates measured against your own labels on a stratified sample. **(3)** A single headline number, corrected using those rates, that you would defend to a board — including the sentence explaining why the raw judge pass rate is not that number. **(4)** A shipped change, and the same number measured afterwards, moved.
+
+The fourth is the one that makes this a clearing test rather than an exercise. Anyone can build a measurement. The capability is *closing the loop* — measure, change, re-measure, and have the confidence that the movement is real rather than noise.
+
+**Not the test:** a dashboard. An eval suite with no attached decision. A judge you did not validate. If you cannot state your judge's false-negative rate, you do not have an eval, you have a vibe with a number attached.
+
+Module 7 takeaways
+
+-   Benchmarks rank models on someone else's data; evals tell you whether your system does your job.
+-   Error analysis comes first. Choosing metrics before reading 100 traces is the standard failure.
+-   An LLM judge is an unvalidated classifier until you measure its TPR and TNR separately.
+-   Correct your headline number using those rates, and re-validate whenever anything changes.
+-   Several specific binaries beat one Likert composite on reliability, validation and actionability.
+
+**Full course for this stage:** [Stage 4 — Evals](llm-evals-error-analysis-course.html) — the concepts taught properly, with an interactive tool and the same clearing test.
+
+## Module 8: Stage 5 — Inference economics
+
+Budget **~25 hours**
+
+At 5 h/week **5 weeks**
+
+Prerequisite **Stage 2 cleared**
+
+Compute cost **~$20–40**
+
+By the end of this module you will
+
+-   Understand why prefill and decode have opposite bottlenecks, which explains every optimisation below
+-   Know why the KV cache, not the weights, is usually the binding constraint on serving capacity
+-   Be able to look at a deployment and predict which lever will help before you try it
+-   Have the exec version: the three things that move an inference bill by 5× rather than 20%
+
+### One fact explains almost everything
+
+Generation has two phases, and they could hardly be more different.
+
+Prefill — processing the prompt
+
+The whole prompt goes through the model at once. Every token is a column in a big matrix multiply, so each weight you load from memory gets used across hundreds or thousands of tokens.
+
+**High arithmetic intensity. Compute-bound. The GPU is genuinely busy.**
+
+Decode — generating tokens
+
+One token at a time, each depending on the last. To produce a *single* token you must read *every parameter in the model* from memory.
+
+**Terrible arithmetic intensity. Memory-bandwidth-bound. The FLOPs sit idle.**
+
+Sit with the decode case, because it is the one that costs money. A 70-billion-parameter model in 16-bit is 140 GB of weights. Every generated token requires reading all 140 GB. At a few terabytes per second, that is a hard floor of tens of milliseconds per token per sequence, and it is set by memory bandwidth, not by arithmetic. You could double the chip's FLOPs and change nothing.
+
+**So: nearly every inference optimisation is an attempt to get more useful work out of each byte read from memory.** That sentence organises the rest of the module, and once you have it, you can usually derive the technique rather than memorise it.
+
+### The four levers, all of them the same lever
+
+#### 1\. Batching — amortise the read
+
+If reading the weights once produces one token, that read costs you a token. If you have 64 sequences in flight and read the weights once to advance all 64, the same read produces 64 tokens. You have divided the bandwidth cost per token by 64, for free, because the FLOPs were idle anyway. This is why batching is the first and largest lever, and why a serving system with low batch occupancy is burning money in a way that no amount of model optimisation will fix.
+
+**Continuous batching** is the refinement that matters. Naive batching runs a batch to completion, so a batch of 32 in which 31 sequences finish early runs at 1/32 utilisation until the straggler finishes. Continuous batching schedules at *token* granularity: as soon as a sequence emits its stop token, its slot is freed and a queued request takes it on the very next step. Same hardware, several times the throughput.
+
+#### 2\. The KV cache — the constraint you did not budget for
+
+To avoid recomputing attention over the whole prefix at every step, you cache the keys and values for every previous token. That cache is what makes decoding tractable. It is also, in production, usually *the thing that runs out*.
+
+It grows with batch size × sequence length × layers × heads, it lives in the same HBM as the weights, and at long contexts and high batch sizes it can exceed the model itself. Your maximum concurrency is therefore usually set by KV cache capacity, not by weights and not by compute.
+
+PagedAttention: an operating-systems idea, borrowed
+
+The naive implementation allocates a contiguous buffer per sequence, sized for the maximum possible length. A request that might generate 2,000 tokens but stops at 100 has reserved — and wasted — the other 1,900 slots for its whole lifetime. Across a busy server this wastes the majority of your KV memory to internal fragmentation and over-reservation.
+
+PagedAttention does what virtual memory does. Allocate the cache in small fixed-size blocks, keep a per-sequence block table mapping logical positions to physical blocks, and hand out blocks on demand. Sequences no longer need contiguous memory, waste drops to at most one partial block each, and two sequences sharing a prompt prefix can literally share the same physical blocks — which is what makes prompt caching cheap.
+
+This is the clearest example in modern ML of a solved systems problem being recognised in a new costume. It is worth internalising as a pattern, not just a technique.
+
+#### 3\. Speculative decoding — buy k tokens for one read
+
+A small draft model proposes the next k tokens cheaply. The large model then verifies all k *in a single forward pass*, because verification is a prefill-shaped operation — you are scoring a known sequence, not generating one. Accepted prefixes are kept; the first rejection resets. You have paid one big-model memory read for up to k tokens instead of k reads. Another bandwidth trade, and the acceptance rate is what determines whether it pays.
+
+#### 4\. Quantization — smaller bytes, same count
+
+Moving weights from 16-bit to 8-bit halves the bytes you read per token, so it roughly halves your decode bandwidth cost. Note the consequence people get wrong: **quantization helps decode far more than prefill**, because prefill was compute-bound and you did not shrink the FLOPs. If someone reports a 2× speedup from quantization on a prefill-heavy workload, ask what else changed. FP8 has become the practical default in serving stacks, and the largest independent study (Llama-3.1 family, 500,000+ evaluations) reports it as effectively lossless. The throughput claim needs more care: halving the bytes halves the *weight-read* term, but the KV cache does not shrink unless you quantize it too, and prefill does not shrink at all. Doubling is the best case, not the typical one — [Stage 5](inference-economics-course.html) separates the three cases.
+
+### The exec version
+
+If you only carry one slide from Stage 5
+
+Your inference bill is approximately **(tokens generated) × (model size) ÷ (batch efficiency)**, and the three terms are not equally movable.
+
+-   **Batch efficiency** — continuous batching, sensible admission control, prefix caching for shared prompts. Routinely **5–10×**, and mostly a configuration and scheduling problem rather than a research one.
+-   **Model size** — routing easy requests to a small model and hard ones to a large one. **Often 3–5×** on mixed traffic, and it needs Stage 4, because you cannot route safely without a working eval to tell you when the small model is sufficient.
+-   **Tokens generated** — shorter outputs, tighter prompts, not re-sending context you could cache. Unglamorous, frequently **2×**.
+-   **Switching vendor for a lower per-token price** — typically **10–20%**, and it is usually the first thing proposed.
+
+The ordering is the point. The largest lever is a scheduling decision, the second-largest is gated on your eval quality, and the one that gets executive attention is the smallest.
+
+### What to actually do
+
+| Resource | Hours | Why this one |
+| --- | --- | --- |
+| CS336 Lecture 10 (Inference) | ~1.5 | The best single hour on this at the right altitude. Free on YouTube. |
+| vLLM docs + the PagedAttention paper | ~6 | Read the docs as an architecture text. The paper is short and the idea is clean. |
+| GPU MODE — profiling, quantization, speculative decoding lectures | ~10 | 100+ lectures with code, actively maintained. The deep end, free. |
+| Chip Huyen, AI Engineering — inference optimisation chapter | ~3 | The latency/cost trade-off framing, in the form you would present it. |
+| Serve something yourself and load-test it | ~8 | Non-negotiable. Numbers you measured beat numbers you read. |
+
+Clearing test — Stage 5
+
+**Build a toy serving loop with a block-based KV cache and continuous batching** — a few hundred lines, no vLLM. Measure tokens per second against a naive implementation that pre-allocates contiguous cache and batches to completion. Report the throughput difference and the memory utilisation difference, and explain which of the two changes produced most of the gain.
+
+Then the diagnosis question, which is the real test. **Given a deployment — model size, average prompt length, average completion length, concurrency, hardware — say whether it is prefill-bound or decode-bound, predict which of batching, prefix caching, quantization or speculative decoding will help most, and by roughly how much. Then run it and check.** Being right for the right reason is the capability. Being right because you tried everything is not.
+
+**Not the test:** deploying vLLM successfully. vLLM is very good at hiding exactly the mechanics this stage is about, which is a virtue in production and a problem for learning. Build the bad version first so the good version means something.
+
+Module 8 takeaways
+
+-   Prefill is compute-bound; decode is memory-bandwidth-bound. That one fact explains the rest.
+-   Every generated token requires reading every parameter — so batching is the primary lever.
+-   The KV cache, not the weights, usually sets your maximum concurrency.
+-   PagedAttention is virtual memory applied to the KV cache, and it makes prefix sharing cheap.
+-   Batch efficiency moves the bill 5–10×; switching vendors moves it 10–20%.
+
+**Full course for this stage:** [Stage 5 — Inference Economics](inference-economics-course.html) — the concepts taught properly, with an interactive tool and the same clearing test.
+
+## Module 9: The paper ladder
+
+By the end of this module you will
+
+-   Have a working definition of "I reimplemented it" that is falsifiable
+-   Have eight papers in dependency order with hour estimates that match a real weekly budget
+-   Know what to do when you get stuck, which is the part that decides whether the habit survives
+
+### What "reimplemented it" has to mean
+
+The source list's best advice is "pick one paper a week and reimplement it," and it never says what that means. Without a definition, the word collapses into whatever you did, which is how people end up with eight repos and no capability.
+
+Does not count
+
+Read it and understood it. Ran the authors' repo. Read the authors' repo and wrote something similar. Had a model write it and reviewed the output. Implemented the equations without ever running them at a scale where they could be wrong.
+
+Counts
+
+**From the paper alone, you wrote code that reproduces the paper's central claim at a scale you can afford, and you can point at the specific figure or table your run corresponds to.** Then you diffed against the reference implementation and can explain every difference you found.
+
+Three properties make that definition work. It is **falsifiable** — either your number matches the trend or it does not. It is **affordable** — "at a scale you can afford" means a 10-million-parameter model reproducing a shape, not a 70-billion-parameter model reproducing a value. And it includes the **diff step**, which is where most of the learning actually happens, because the gap between your version and theirs is a list of things you did not know mattered.
+
+The one question that proves you have it
+
+After a real reimplementation, you can answer: **what result would have falsified this paper's claim, and would my run have shown it?**
+
+That question is unanswerable from reading and trivial after building, which makes it the cleanest available test. If your reproduction could not have come out the other way, you did not reproduce the claim — you illustrated it.
+
+### The ladder
+
+Ordered by dependency, not by publication date or by fame. Each rung assumes the ones before it. Hours assume you have cleared the relevant stage.
+
+| # | Paper | Reproduction target — what "done" is | Hrs | Stage |
+| --- | --- | --- | --- | --- |
+| 1 | Attention Is All You NeedVaswani et al., 2017 | A decoder-only transformer written from the paper, trained on a small corpus, that beats a bigram baseline. Ablate the positional encoding and show the loss gets worse — that is your falsification check. | 12 | 1 |
+| 2 | Language Models are Unsupervised Multitask Learners (GPT-2)Radford et al., 2019 | Load the real released GPT-2 weights into your own implementation and match HuggingFace's logits to within floating-point noise. Ruthless: any architectural misunderstanding shows up immediately as a numerical mismatch. | 15 | 1→2 |
+| 3 | LoRAHu et al., 2021 | Your own low-rank adapters, fine-tuning a small model on a task, matching PEFT's result within noise while training under 1% of the parameters. Sweep the rank and show where quality saturates. | 10 | 2 |
+| 4 | Scaling Laws / ChinchillaKaplan et al. 2020; Hoffmann et al. 2022 | Train a ladder of six to eight tiny models across sizes and token counts, fit your own scaling curve, then predict a held-out run's loss before you run it and check. Predicting beats fitting. | 18 | 2 |
+| 5 | FlashAttentionDao et al., 2022 | A tiled attention kernel in Triton that matches PyTorch SDPA numerically and beats naive attention on wall-clock at 4k+ context. The hardest rung. CS336 Assignment 2 is this, scaffolded. | 30 | 2 |
+| 6 | Direct Preference OptimizationRafailov et al., 2023 | Your own DPO loss beating an SFT baseline on a preference set you built, measured on a held-out split. Sweep the KL temperature and show the degradation at both extremes. | 14 | 3 |
+| 7 | PagedAttention / vLLMKwon et al., 2023 | A block-allocated KV cache with continuous batching in a toy server. Report throughput and memory waste against a contiguous pre-allocated baseline. You should see the fragmentation loss the paper describes. | 20 | 5 |
+| 8 | DeepSeek-R1 / GRPO2025 | A GRPO loop with a verifiable reward on a small maths set, improving held-out accuracy over the SFT baseline. Log the average completion length — watching it grow as the model learns to check its work is the observation worth having. | 25 | 3→5 |
+
+**Total: roughly 144 hours.** At five hours a week that is about seven months — which is the honest number, and it is why "one paper a week" was never going to survive contact with a calendar. Eight papers properly reimplemented over seven months will take you further than fifty papers read.
+
+The rule that keeps the habit alive
+
+You will get stuck. The habit dies at the moment you get stuck and quietly stop, so decide the policy in advance rather than in the moment:
+
+**Two hours genuinely stuck → look at the reference implementation for the specific thing you are stuck on, and only that thing.** Then write down what you missed, in one sentence, in a running file. That file is the actual artefact of this whole exercise. After eight papers it is a list of every assumption you did not know you were making, and it will be more useful to you than any of the repos.
+
+What is *not* allowed is opening the reference implementation before you are stuck. The value is entirely in the gap between what you built and what they built, and you only get that gap if you build first.
+
+On using a model to help
+
+An obvious question in 2026, and the honest answer has a boundary rather than a rule.
+
+Use a model freely for anything that is not the claim: environment setup, plotting, data loading, explaining an unfamiliar notation, debugging a stack trace. That is friction, and friction is not what you are here to learn.
+
+Do not let it write the mechanism. If a model writes your attention implementation, your DPO loss or your Triton kernel, you have obtained a working repo and skipped the entire point — and the gap will be invisible to you, because working code feels like understanding. **The test is whether you could rewrite it from a blank file tomorrow.** If not, you did not learn it, and you will find out at the worst possible moment, which is when something breaks in production and the model's suggestion does not fix it.
+
+Module 9 takeaways
+
+-   "Reimplemented" means: from the paper alone, reproduced the central claim at affordable scale, then diffed.
+-   The proving question is what would have falsified the claim, and whether your run could have shown it.
+-   Eight papers, ~144 hours, roughly seven months at five hours a week. That is the real number.
+-   Two hours stuck, then look — and write down what you missed. That file is the real output.
+-   Use models for friction, never for the mechanism. Working code feels like understanding and isn't.
+
+## Module 10: Reading this as a curriculum
+
+By the end of this module you will
+
+-   Know which stages are auto-gradeable at scale and which require judgement
+-   Have the compute cost line for a course of this shape, per learner
+-   Understand the structural reason curated lists never become sequences
+
+If you are reading this partly as a product person rather than only as a learner, this module is for that. The path above is one learner's plan. The interesting question is what happens if you try to run it for fifty thousand people.
+
+### The gradeability gradient
+
+The clearing tests in Modules 4–8 were written to be artefact-producing, which was a pedagogical choice. It is also a product choice, because artefacts are gradeable and feelings are not. But they are not equally gradeable, and the gradient is the design constraint:
+
+| Stage | Gradeable how | Marginal cost | Failure mode at scale |
+| --- | --- | --- | --- |
+| 1 — Mechanism | Fully automatic. Shape assertions, gradient checks, a loss threshold on a fixed corpus, sampling quality. This is a unit test. | Near zero | Solution sharing. Mitigate with per-learner seeds and randomised corpora. |
+| 2 — Training | Mostly automatic for the systems half — a kernel either matches SDPA numerically and beats the baseline on wall clock, or it does not. Needs real GPUs. | Compute-bound | Hardware variance makes wall-clock thresholds unfair across devices. Grade on ratio to a baseline run on the same device. |
+| 3 — Post-training | Semi-automatic. Held-out preference accuracy is a number. Whether the learner understood the KL term is not. | Compute + some review | Learners tune to the grader's eval set. Hold out a private one. |
+| 4 — Evals | Judgement-heavy. A failure taxonomy is good or bad in ways no rubric fully captures. This is the one that resists automation. | Human review | Automating it teaches the opposite of the lesson: that measurement is a checkbox. |
+| 5 — Inference | Fully automatic. Throughput and memory numbers against a reference baseline. Cleanest test in the course. | Compute-bound | Learners optimise the benchmark rather than the system. Vary the workload profile at grading time. |
+
+So four of five stages are largely machine-gradeable, and the fifth — evals — is the one where a cohort earns its price. That is a clean product decomposition: self-paced with automated grading for 1, 2, 3 and 5; cohort-based with human review for 4. It also happens to be the honest one, since evals is the stage where the skill genuinely is taste developed against feedback.
+
+### The compute line, which is smaller than people assume
+
+The obvious objection to a course like this is that it needs GPUs and therefore cannot scale economically. The numbers say otherwise, and the change is recent:
+
+**~$48**nanochat, GPT-2 capability, per full run
+
+**~$43k**Equivalent in 2019, per the same README
+
+**~$150**Est. total compute per learner, all five stages
+
+**1–3×**Re-runs to expect from failed attempts
+
+A few hundred dollars of compute per learner for a course that produces a demonstrably capable engineer is not an unusual cost structure — it is comparable to a lab science course, and far below a bootcamp. The thing that changed is the denominator: the same capstone cost roughly a thousand times more seven years ago. **A course that was economically impossible in 2019 is now merely expensive**, and that shift has not yet been absorbed by most curriculum planning.
+
+The second-order design question is who holds the budget. Learner-pays makes failure feel expensive, which is the wrong incentive on a path where failed runs are the curriculum. Platform-pays with a per-learner cap is better pedagogy and a harder P&L conversation. Worth having the conversation with the number in hand rather than the vibe.
+
+### Why nobody ships the sequence
+
+The structural answer, and it is not laziness
+
+The source list ends by offering to build a path and does not build it. That is not an oversight; it is the equilibrium, and it is worth naming precisely because it is the gap you would be filling.
+
+**A list is unfalsifiable and a sequence is not.** If I recommend eleven good resources and you do not become an expert, that is about your discipline. If I tell you to do these five things in this order over seven months and you do them and it does not work, I was wrong, and the failure is legible and attributable.
+
+The same asymmetry explains the rest of the shape. Lists never go stale in a way anyone notices, because no one audits a bookmark — which is exactly how a 2017 CS231n playlist survives under a 2026 headline. Sequences go stale loudly, because step three stops working and someone opens a ticket. Lists are cheap to produce and infinitely extensible. Sequences require you to *cut*, and every cut is an argument with someone whose favourite thing you dropped.
+
+So the market produces lists. Which means the sequence is the scarce good, and the barrier is not knowledge — everything in this course was publicly available and free to check in an afternoon. **The barrier is the willingness to be wrong in public on a schedule.** That is a strategy observation more than a curriculum one.
+
+### Three things that transfer to any curriculum
+
+-   **Date every resource, visibly.** Half of this course's value came from checking last-modified dates that took two minutes each. A catalogue that surfaces "last refreshed" next to every item would prevent most of what Module 2 documents — and note that it is a metadata problem, not a content problem, which makes it unusually cheap to fix.
+-   **Completion is the wrong unit; capability is the unit.** "You can do X unaided" is harder to instrument than "watched 87% of the video," and it is the only claim a learner can take to an employer. The clearing tests here are all artefact-producing precisely so that the claim is checkable by someone who does not trust the platform.
+-   **Sequence is the product; content is the commodity.** Everything in Modules 4–8 points at free external material. The value added is the ordering, the dependency reasoning, the honest time budget and the tests. That is a defensible position and it does not require owning any of the underlying content — which is a different business than most catalogue thinking assumes.
+
+Module 10 takeaways
+
+-   Four of five stages are largely machine-gradeable; evals is the one that needs human judgement.
+-   That split is a natural product boundary: self-paced for 1/2/3/5, cohort for 4.
+-   Total compute is roughly $150/learner — a course that was impossible in 2019 is now just expensive.
+-   Nobody sequences lists because sequences are falsifiable and lists are not. That is why sequence is scarce.
+-   Date every resource; grade capability not completion; sell the ordering, not the content.
+
+## Module 11: Build your path
+
+By the end of this module you will
+
+-   Have a dated week-by-week schedule built from your real weekly hours
+-   Know the single capability gap that is actually gating you
+-   Know whether your instinct about your own level survived contact with specific questions
+
+The tool asks you to commit to an entry stage *before* it computes one. That ordering is deliberate. If you see the answer first, you will find reasons to agree with it, and the most useful output of this exercise is the case where your guess and your answers disagree.
+
+Interactive
+
+### Path Builder
+
+Stage 1 of 3
+
+1
+
+Commit
+
+Open
+
+Two commitments, both before you see any output.
+
+What are you actually trying to become able to do?
+
+Hours per week you will actually spend 5
+
+Where do you think you'll come out? Guess before you answer the questions.
+
+Pick a goal and an entry-stage guess.
+
+2
+
+The honest assessment
+
+Locked
+
+Eleven capabilities. **Unaided** means blank file, no reference, no model writing it for you — you could do it tomorrow. **With help** means you could get there with documentation or a tutorial open. **No** is a perfectly good answer and choosing it accurately is the entire value of this exercise.
+
+What this tool is and is not
+
+The stage hour budgets come from Modules 4–8 and are my estimates for a competent engineer who is not doing this full time. They are not measured across a population, and individual variance on the systems stages in particular is large — someone who has written CUDA before will clear Stage 2 in half the time, and someone who has not may take double.
+
+The compute cost figures are grounded: nanochat's own README currently states roughly $48 for a GPT-2-capability run. The rest of the per-stage compute estimates are extrapolated from that and should be treated as order-of-magnitude.
+
+The thing the tool cannot see is the only thing that reliably predicts whether this works: whether you have a real problem you are trying to solve. Everyone who finishes something like this was solving something. Nobody finishes it as self-improvement.
+
+Module 11 takeaways
+
+-   Commit to your entry stage before computing one, or the tool just ratifies your instinct.
+-   The gating capability matters more than the stage number — it is the thing to fix first.
+-   Below three hours a week the path does not work; pick one stage instead of the sequence.
+-   Claiming Stage 4 or 5 while missing Stage 1 is the most common and most costly inversion.
+
+Built 28 August 2026. Every resource link checked the same day.
+
+[Stage 1](transformer-mechanism-course.html) [Stage 2](training-stack-course.html) [Stage 3](post-training-course.html) [Stage 4](llm-evals-error-analysis-course.html) [Stage 5](inference-economics-course.html)
+
+[CS336](https://stanford-cs336.github.io/spring2025/) [CS231n schedule](https://cs231n.stanford.edu/schedule.html) [CS224n](https://web.stanford.edu/class/cs224n/) [CS229](https://cs229.stanford.edu/) [HF Learn](https://huggingface.co/learn) [nanochat](https://github.com/karpathy/nanochat) [RLHF Book](https://rlhfbook.com/) [GPU MODE](https://github.com/gpu-mode/lectures) [Inspect](https://inspect.aisi.org.uk/) [Evals FAQ](https://hamel.dev/blog/posts/evals-faq/) [HF Papers](https://huggingface.co/papers/trending)
+
+Currency claims decay. If CS231n publishes its current lectures publicly, if fast.ai ships a 2026 refresh, or if Papers with Code's leaderboards find a new home, Module 2 is out of date on those rows and the live page supersedes it. The arXiv-sanity domain finding is the one worth re-checking before you pass this on.

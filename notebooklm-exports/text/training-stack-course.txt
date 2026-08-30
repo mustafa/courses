@@ -1,0 +1,1129 @@
+THE TRAINING STACK — WHAT IT COSTS TO MAKE A MODEL
+==================================================
+
+==================
+THE TRAINING STACK
+==================
+
+
+  Stage 2 of the path. The arithmetic of a training run — what a FLOP budget
+  buys, why scaling laws are a unit-economics argument rather than a fact about quality, what
+  actually occupies the GPU, why your expensive silicon is idle most of the time, and what to do when
+  a run starts misbehaving at four in the morning.
+
+    10 modules
+    ~45 h stage budget
+    ~$50–100 compute
+    1 interactive tool
+    ~85 min read
+    28 Aug 2026 verified
+
+  Stage 2 of five · prerequisite:
+  The Mechanism ·
+  the path is in Intermediate to Advanced AI
+
+
+  How to read this course
+  Stage 1 was about what the model computes. This stage is about what it costs to make
+  one, and almost every idea here is an economic argument wearing a research costume. That
+  is not a criticism — it is the most useful frame available, and it is the one that makes the
+  decisions legible.
+  Every number in this course is either derived in front of you or cited. Where a
+  widely repeated figure turns out to be contested — and one of the most famous ones in the
+  field is — the course says so rather than quietly picking a side. Two claims here are
+  extrapolations from a single published data point, and both are labelled.
+  The prerequisite is real. If you cannot write the forward pass from a blank file,
+  go back to Stage 1 — the memory accounting
+  in Module 5 and the parallelism trade-offs in Module 7 are meaningless without it.
+
+
+
+--------------
+Course Modules
+--------------
+
+
+
+      1. The arithmetic of a training runC ≈ 6ND
+
+      2. Scaling laws as unit economicsChinchilla
+
+      3. Why nobody follows ChinchillaAnd one who did
+
+      4. Data, and the tokenizer decision15 trillion tokens
+
+      5. What is actually on the GPU16 bytes/param
+
+      6. Arithmetic intensity and the rooflineThe key concept
+
+      7. The four parallelismsWhat each costs
+
+      8. When the run goes wrongDiagnosis
+
+      9. MFU — the number that grades youEfficiency
+
+      10. The Training Run PlannerInteractive
+
+
+
+
+------------------------------------------
+Module 1: The arithmetic of a training run
+------------------------------------------
+
+
+By the end of this module you will
+
+    * Know where C ≈ 6ND comes from, term by term
+
+    * Be able to convert between FLOPs, GPU-days and dollars in either direction
+
+    * Have checked the approximation against a real published training run and seen it hold
+
+
+Six FLOPs per parameter per token
+---------------------------------
+
+
+The single most useful fact in this stage is that the cost of training a dense transformer is
+approximately
+
+C ≈ 6 · N · D  FLOPs, where N = parameters and D = training tokens
+
+The six is not magic and you should be able to derive it. Consider a single weight in a matrix
+multiply, processing a single token.
+
+
+    * Forward pass: 2 FLOPs. The weight is multiplied by an activation and the
+  result is added into an accumulator. One multiply, one add.
+
+    * Backward pass: 4 FLOPs. Backpropagation through a matrix multiply computes
+  two things, not one — the gradient with respect to the input, so the signal can
+  continue backwards, and the gradient with respect to the weight, so it can be updated.
+  Each is a multiply-accumulate of the same shape. Two operations at two FLOPs each.
+
+
+Two plus four is six, per parameter, per token. Multiply by all parameters and all tokens and you
+have the run. This is why the backward pass costs roughly twice the forward pass — a ratio
+worth carrying, because it is also why inference is so much cheaper per token than training, and why
+gradient-free methods look tempting until you count the samples they need.
+
+Check it against a real run
+Meta published both the size and the compute for Llama 3 405B, which lets us test the
+approximation rather than trust it. The paper states the flagship was pre-trained on
+15.6T tokens with 405B parameters, using 3.8 × 1025 FLOPs.
+6 × 405e9 × 15.6e12 = 3.79 × 1025  vs 3.8 × 1025 reported
+Within a quarter of a percent, on a run that cost a nine-figure sum. The approximation ignores
+attention's quadratic term, all normalisation, every activation function and the embeddings, and it
+still lands on the published number — because at frontier scale the dense matrix multiplies
+genuinely are everything else rounded to zero.
+Source: The Llama 3 Herd
+of Models (Grattafiori et al., 2024).
+
+
+Converting to time and money
+----------------------------
+
+
+A FLOP count is not a plan. Three more lines turn it into one.
+
+
+achieved_FLOP/s = n_gpus × peak_FLOP/s × MFU
+seconds         = C / achieved_FLOP/s
+dollars         = n_gpus × hours × $/gpu-hour
+
+
+The only term here that is not a number you can look up is MFU — model FLOPs
+utilisation, the fraction of the hardware's advertised peak you actually achieve. Module 9 is about
+that number specifically. For now, know that large well-engineered runs land in the
+30–50% range, and that assuming 100% will make you wrong by a factor of two to three
+in the direction that gets people fired.
+
+The peak-FLOPS number on the spec sheet is probably not the one you want
+NVIDIA's H100 datasheet lists BFLOAT16 Tensor Core performance as 1,979 TFLOPS for the SXM
+part, with an asterisk. The footnote reads: "Shown with sparsity. Specifications 1/2 lower
+without sparsity."
+Structured sparsity requires a model whose weights have been pruned into a 2:4 pattern. Standard
+dense training does not qualify. The number you should plan against is about 989 TFLOPS,
+half the headline.
+This is the most commonly misquoted specification in the field, it appears in vendor decks and
+capacity plans, and it makes every downstream estimate wrong by exactly 2×. When someone quotes
+a peak-FLOPS figure, the useful question is not whether it is right but whether it includes
+sparsity.
+
+
+Module 1 takeaways
+
+    * C ≈ 6ND: two FLOPs forward, four backward, per parameter per token.
+
+    * The backward pass costs twice the forward because it computes two gradients, not one.
+
+    * The approximation reproduces Llama 3 405B's published compute to within 0.3%.
+
+    * Time and money need one extra term: MFU, realistically 30–50%.
+
+    * H100 dense BF16 is ~989 TFLOPS. The 1,979 on the datasheet is the sparsity number.
+
+
+----------------------------------------
+Module 2: Scaling laws as unit economics
+----------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to derive compute-optimal model size from a FLOP budget in two lines
+
+    * Know what the 20-tokens-per-parameter rule is and is not evidence for
+
+    * Know that the paper's headline analysis failed replication, what was wrong, and how it resolved
+
+
+The trade you are actually making
+---------------------------------
+
+
+Chinchilla is usually taught as a fact about model quality. It is more useful taught as a fact
+about budgets, because that is the decision it informs.
+
+Fix C, because in practice C is what is fixed — you have a cluster for a month. Since
+C ≈ 6ND, holding C constant makes N and D inversely proportional. You are choosing a point on a
+hyperbola: a large model on few tokens, or a small model on many. Both cost identically. The question
+is which point minimises loss.
+
+The empirical answer from Hoffmann et al. (2022) is that the two should scale in roughly equal proportion,
+which for their setting put the optimum near 20 tokens per parameter. Substituting
+D = 20N into C = 6ND gives a formula you can use directly:
+
+
+C = 6 · N · 20N = 120N²  →  N = √(C / 120),   D = 20N
+
+
+Check it on the paper's own model. Chinchilla is 70B parameters trained on 1.4T tokens, so
+C = 6 × 70e9 × 1.4e12 = 5.88 × 1023. Then
+√(5.88e23 / 120) = 7.0 × 1010 — 70B. The formula reproduces the model
+it came from, which is the least it should do.
+
+The result mattered because the field had been getting this badly wrong in one direction.
+GPT-3 was 175B parameters on 300B tokens — 1.7 tokens per parameter, more than a factor of ten
+away from optimal. Chinchilla demonstrated that a 70B model trained properly beat it, using the same
+compute. An enormous amount of money had been spent on models that were too large and too
+under-trained, and the correction was worth having.
+
+The part that is usually left out: the headline analysis did not replicate
+Hoffmann et al. estimated their scaling law three ways. Approaches 1 and 2 agreed on roughly
+equal scaling of N and D. Approach 3 — fitting a parametric loss surface, and the one whose
+coefficients get quoted — did not survive scrutiny.
+Besiroglu, Erdil,
+Barnett and You (2024) reconstructed the data from the paper's own plots and found three
+problems. The published fit fits that data poorly. Its confidence intervals are
+implausibly narrow — narrow enough to require orders of magnitude more
+experiments than were run. And the scaling policy it implies is inconsistent with the
+paper's own other two approaches and with the 20-tokens-per-parameter rule the same paper
+recommends.
+The resolution is reassuring rather than scandalous. Once optimiser and rounding issues in the
+fitting procedure are corrected, Approach 3 becomes consistent with Approaches 1 and 2 and with the
+scaling policy actually used to train Chinchilla. The 20:1 headline stands; the published
+parametric coefficients did not.
+Two lessons, and the second is the important one. First, if you are using Chinchilla's fitted
+coefficients for anything load-bearing, use the corrected ones. Second: the most cited empirical
+result in this field had a reproducible error in it for two years, in the analysis whose numbers
+everyone quoted. Extend the appropriate scepticism to the next chart someone shows you,
+including the ones in this course.
+
+
+What the rule is not evidence for
+---------------------------------
+
+
+Three limits worth stating, because the 20:1 number gets applied well outside where it was
+measured.
+
+
+    * It is a fit, not a constant. The optimal ratio depends on the architecture,
+  the data distribution, the optimiser and the compute scale. Meta fitted their own IsoFLOPs curves
+  for Llama 3 and, at roughly 100× Chinchilla's compute, extrapolated an optimum of
+  402B parameters on 16.55T tokens — about 41 tokens per parameter, twice Chinchilla's
+  ratio. Two careful teams, two different answers, and neither is wrong.
+
+    * It optimises loss, not capability. Loss is a proxy. Downstream benchmark
+  performance and loss are strongly related but not identical, and the mapping is not something the
+  scaling law predicts.
+
+    * It is silent about inference entirely, which is the subject of the next
+  module and the reason almost nobody follows it.
+
+
+Module 2 takeaways
+
+    * Fixing C makes N and D inversely proportional; Chinchilla says put the optimum near D = 20N.
+
+    * N = √(C/120), D = 20N. The formula reproduces Chinchilla's own 70B from its own compute.
+
+    * GPT-3 was ~1.7 tokens per parameter — more than 10× away from optimal.
+
+    * The paper's third estimation approach failed replication in 2024; the corrected fit agrees with the other two.
+
+    * The 20:1 ratio is a fit, not a constant. Meta's own extrapolation at 100× the compute gave ~41:1.
+
+
+---------------------------------------
+Module 3: Why nobody follows Chinchilla
+---------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to explain over-training as an inference-cost decision, in one sentence, to a non-technical audience
+
+    * Know the counterexample that stops this from being a slogan
+
+    * Understand what over-training actually costs you, since it is not free
+
+
+The optimisation problem the paper did not solve
+----------------------------------------
+
+
+Chinchilla minimises loss for a fixed training budget. That is the right objective for a
+research lab establishing a scaling result and the wrong one for anybody shipping a product.
+
+If you serve a model a trillion times, training is a one-off capital expense and inference is an
+operating cost that never stops. And — this is the connection to Stage 5 — inference cost
+during generation scales with N, because producing one token requires reading every parameter from
+memory. A model twice the size costs roughly twice as much per token, permanently.
+
+So the correct move for a model you intend to serve is to go smaller than
+Chinchilla-optimal and train much longer. You accept a worse loss-per-training-FLOP and buy
+a permanently cheaper serving cost at a given quality level. The exchange rate is excellent whenever
+the deployment is large, and it gets better the more you serve.
+
+The arithmetic, on models you can look up
+Llama 3 8B was trained on the same ~15T-token corpus as its larger siblings. That is roughly
+1,875 tokens per parameter — about 94× Chinchilla's ratio. Nobody made an
+error. An 8B model trained to 15T tokens is a deliberately different product from a 750B model
+trained to 160B tokens at the same compute: it is worse per training FLOP and vastly cheaper to
+serve, and the second property is the one that pays for a consumer deployment.
+Say it in one line for a boardroom: the size of a served model is an inference-cost
+decision wearing a research-result costume.
+
+
+And here is the counterexample, because the slogan is too clean
+"Everyone over-trains now" is the version of this that circulates, and the flagship model of the
+family just cited is a counterexample.
+Meta's scaling-law extrapolation for their 3.8×1025 FLOP budget predicted an
+optimum of 402B parameters on 16.55T tokens. They trained 405B on 15.6T —
+essentially on their own predicted optimum, and they say so, noting that the IsoFLOPs curves flatten
+near the minimum at large budgets so the exact choice was not very sensitive.
+So the honest statement is narrower than the slogan. Models intended for high-volume
+serving are heavily over-trained; frontier flagship models often are not, because a
+flagship's job is to establish a capability ceiling, and the serving economics are a different
+product's problem. Which regime you are in changes the answer completely, and "over-train, always"
+is advice that would have produced a worse Llama 3 405B.
+
+
+What over-training costs, since it is not free
+----------------------------------------
+
+
+Three costs, in increasing order of how often they are forgotten.
+
+
+    * You pay more compute for the same loss. By construction — you moved off
+  the optimum. The question is only whether serving savings repay it, which depends entirely on
+  volume.
+
+    * Returns diminish, sharply. Loss falls roughly as a power law in tokens, so the
+  hundredth trillion tokens buys far less than the first. Past some point you are spending real money
+  for a change you cannot measure downstream.
+
+    * You may run out of good data. This is the binding constraint that most
+  discussions omit. Getting to 15T high-quality, deduplicated, filtered tokens is genuinely hard,
+  and once you have exhausted the available corpus, more epochs over the same data buy much less than
+  fresh tokens would. Data quality becomes the ceiling, and it is not one you can buy your way
+  through with more GPUs.
+
+
+Module 3 takeaways
+
+    * Chinchilla optimises training cost; production optimises training plus a very large inference bill.
+
+    * Decode cost scales with N, so a smaller over-trained model is permanently cheaper to serve.
+
+    * Llama 3 8B is ~1,875 tokens/parameter — roughly 94× Chinchilla.
+
+    * But Llama 3 405B was trained essentially at Meta's own predicted optimum. The slogan has a counterexample.
+
+    * Over-training costs compute, hits diminishing returns, and eventually runs into the data ceiling.
+
+
+------------------------------------------
+Module 4: Data, and the tokenizer decision
+------------------------------------------
+
+
+By the end of this module you will
+
+    * Know the pipeline that turns a web crawl into training tokens, and which stage matters most
+
+    * Understand why deduplication is the highest-leverage step and what it actually removes
+
+    * Know what the tokenizer decision locks in, and why vocabulary size is a real trade rather than a detail
+
+
+The pipeline
+------------
+
+
+Nobody trains on a raw web crawl. The distance between "Common Crawl" and "training data" is most
+of the work, and it is where the largest quality differences between labs live — which is
+precisely why it is the least published part of the stack. A representative pipeline:
+
+
+Stage	|	What it does	|	Why it matters
+Extraction	|	HTML to text, discarding boilerplate, navigation and markup.	|	Bad extraction poisons everything downstream and is invisible in aggregate statistics.
+Language ID	|	Classify and route or filter by language.	|	Determines the multilingual mix, which is a product decision made in a preprocessing script.
+Quality filtering	|	Heuristics and learned classifiers for "document-like" text.	|	Removes spam and machine-generated filler. Also the stage most likely to encode someone's unexamined taste.
+Deduplication	|	Exact and fuzzy (MinHash-style) removal of repeated documents.	|	The highest-leverage step. See below.
+Decontamination	|	Remove documents overlapping evaluation sets.	|	Without it your benchmark numbers are partly memorisation, and you will not know by how much.
+Mixing	|	Weight sources: web, code, books, maths, curated.	|	Tunable, consequential, and almost entirely undocumented across the industry.
+
+
+Why deduplication is the step that pays
+---------------------------------------
+
+
+The web is enormously redundant. The same article appears on dozens of aggregators, boilerplate
+licence text appears on millions of pages, and popular passages recur constantly. Left in, that
+redundancy does three bad things at once: it wastes compute re-learning things already learned, it
+increases verbatim memorisation of exactly the passages most likely to be sensitive or copyrighted,
+and it silently distorts the data distribution towards whatever happens to be most duplicated.
+
+The consistent finding across the deduplication literature is that removing duplicates lets you
+reach a given loss with fewer tokens and reduces memorised output. It is the rare intervention that
+improves quality, cost and legal exposure simultaneously, which is why it is universal.
+
+The claim to be careful with
+"Data quality matters more than data quantity" is repeated constantly and is too vague to be
+either true or false. What is well supported is narrower: deduplication and removing
+low-quality documents reliably help, and aggressive filtering can remove useful diversity
+and hurt. Where the optimum sits depends on the corpus and the target, and the labs that know
+have not published it.
+If someone tells you their data pipeline is the reason their model is better, they may well be
+right, and you have no way to check. Treat data-quality claims as unfalsifiable-in-practice unless
+the pipeline is open.
+
+
+The tokenizer is a decision you cannot revisit
+----------------------------------------
+
+
+Stage 1 covered what tokenization does. What matters here is that choosing it is
+irreversible: changing the tokenizer invalidates every trained weight, because the
+embedding table is indexed by token ID. It is fixed before the first step and lives for the life of
+the model.
+
+The main lever is vocabulary size, and it is a genuine trade:
+
+
+Larger vocabulary
+Fewer tokens per document, so a fixed context holds more text and each training step covers more
+material. Better compression for non-English scripts, which is a fairness and cost issue as much as
+a technical one.
+Costs: a bigger embedding and unembedding matrix, and a more expensive final softmax over V.
+Smaller vocabulary
+Cheaper embeddings and softmax, and more training signal per token type, so rare tokens are seen
+more often.
+Costs: more tokens per document, so more compute and context for the same text, and worse
+compression for anything unlike the fitting corpus.
+
+
+The industry moved decisively larger — GPT-2 used about 50K, Llama 3 uses 128,256 —
+because at modern model sizes the embedding matrix is a small fraction of parameters (you computed
+this in Stage 1: 3% for Llama 3 70B, 31% for GPT-2 small) while the per-document token saving applies
+to every training step and every inference call. When the embedding stops being expensive, buying
+compression with vocabulary is nearly free.
+
+Module 4 takeaways
+
+    * Extraction, language ID, quality filtering, dedup, decontamination and mixing — each stage is a product decision.
+
+    * Deduplication improves quality, cost and memorisation exposure at once. It is the step that pays.
+
+    * Decontamination is what stops your benchmarks from measuring memorisation.
+
+    * Data-quality claims are usually unfalsifiable from outside. Treat them accordingly.
+
+    * Vocabulary size trades embedding cost against tokens per document; large vocabularies won because embeddings stopped being expensive.
+
+
+-------------------------------------
+Module 5: What is actually on the GPU
+-------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to state the memory cost of training a model of size N, term by term
+
+    * Know why mixed precision needs an FP32 copy of the weights, and what breaks without it
+
+    * Understand what each ZeRO stage shards and what it costs in communication
+
+
+The accounting
+--------------
+
+
+People estimate training memory as "the model in BF16," which is off by a factor of eight. The
+standard mixed-precision Adam setup, as laid out in the ZeRO paper (Rajbhandari et al., 2019), costs:
+
+
+What	|	Precision	|	Bytes per parameter
+Weights, used for forward and backward	|	BF16	|	2
+Gradients	|	BF16	|	2
+Master copy of the weights	|	FP32	|	4
+Adam first moment (momentum)	|	FP32	|	4
+Adam second moment (variance)	|	FP32	|	4
+Total model states	|		|	16
+
+
+Sixteen bytes per parameter, before a single activation is stored. A 7B model needs about
+112 GB of model states — more than fits on an 80 GB H100, for a model whose weights are
+14 GB. The ZeRO paper's worked example uses 7.5B parameters and 120 GB for exactly this reason.
+
+Why the FP32 master copy is not optional
+It looks like waste and it is the thing that makes mixed precision work at all.
+Late in training, a weight of magnitude around 1 receives an update of magnitude around
+10−7. BF16 has roughly 8 bits of mantissa, so the smallest change it can represent
+near 1 is about 2−8 ≈ 0.004. The update is far below that threshold, so
+w + update == w exactly. The addition is discarded, silently, every step.
+Keeping an FP32 master copy — roughly 24 bits of mantissa — means the updates
+accumulate, and the BF16 copy used for the fast matrix multiplies is cast fresh from it each step.
+You get tensor-core throughput on the arithmetic and full precision on the accumulation.
+The failure mode without it is nasty because it is not a crash. Training simply stops improving,
+in a way that looks like a learning-rate schedule problem, at whatever point the updates fall below
+representable resolution.
+
+
+Activations, and the trade that buys them back
+----------------------------------------
+
+
+Model states are only half the bill. The backward pass needs the forward pass's intermediate
+activations, so they must be kept. Activation memory scales with batch size, sequence length, model
+dimension and depth — and at long context it is dominated by the attention terms you saw in the
+Stage 1 ledger.
+
+Gradient checkpointing (also called activation recomputation) is the standard
+answer: keep only a subset of activations, and recompute the rest during the backward pass. The usual
+arrangement stores one checkpoint per layer, which turns activation memory from linear in depth into
+roughly the cost of a single layer's activations plus the checkpoints, at the price of one extra
+forward pass — about 33% more compute.
+
+That is the trade to have at your fingertips: roughly a third more compute buys you a
+large multiple in activation memory, which usually converts directly into a larger batch,
+which usually converts into better hardware utilisation. It frequently makes the run faster
+in wall-clock terms despite doing more arithmetic, which is a good early lesson in why FLOPs are the
+wrong unit.
+
+
+ZeRO: stop storing the same thing on every device
+----------------------------------------
+
+
+In plain data parallelism every device holds a complete copy of all 16 bytes per parameter. Across
+64 devices that is 64 identical copies of the optimiser state, which is pure waste. ZeRO shards them.
+
+
+Stage	|	Shards	|	Memory per device	|	Communication cost
+ZeRO-1	|	Optimiser states (12 of the 16 bytes)	|	4 + 12/n	|	Unchanged from plain data parallel.
+ZeRO-2	|	+ gradients	|	2 + 14/n	|	Still unchanged — reduce-scatter replaces all-reduce.
+ZeRO-3	|	+ parameters	|	16/n	|	Roughly 1.5× — parameters must be gathered before each layer's use.
+
+
+ZeRO-3 — the same idea as PyTorch's FSDP — is the one that changes what is possible,
+because memory per device now falls linearly with device count. The cost is that every layer's
+weights are gathered from across the cluster immediately before use and released after, so you are
+trading memory for interconnect bandwidth. On a fast fabric that is an excellent trade. On a slow one
+it is a disaster, and this is the single most common reason a distributed run is inexplicably slow.
+
+Module 5 takeaways
+
+    * Mixed-precision Adam costs 16 bytes per parameter of model state. A 7B model needs ~112 GB before activations.
+
+    * The FP32 master copy exists because small updates vanish in BF16; without it training silently plateaus.
+
+    * Gradient checkpointing trades ~33% more compute for a large activation-memory saving, often netting faster.
+
+    * ZeRO-1/2/3 shard optimiser states, then gradients, then parameters; only ZeRO-3 changes the communication pattern.
+
+    * ZeRO-3 trades memory for interconnect bandwidth — excellent on fast fabric, ruinous on slow.
+
+
+-----------------------------------------------
+Module 6: Arithmetic intensity and the roofline
+-----------------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to compute the ridge point of any accelerator from two datasheet numbers
+
+    * Be able to classify any kernel as compute-bound or bandwidth-bound before running it
+
+    * Be able to explain FlashAttention in one sentence, and say why you could have predicted it
+
+
+Two numbers, one ratio
+----------------------
+
+
+An H100 SXM can do about 989 × 1012 dense BF16 FLOPs per second and can
+read from its HBM at 3.35 × 1012 bytes per second. Divide them:
+
+
+ridge point = 989e12 / 3.35e12 ≈ 295 FLOPs per byte
+
+
+Read that as a threshold. If a kernel performs more than about 295 floating-point
+operations for every byte it reads from memory, it can keep the arithmetic units busy and it is
+compute-bound — the good case, where you are getting what you paid for. If it
+performs fewer, the arithmetic units finish and wait for data: it is
+memory-bandwidth-bound, and buying a chip with more FLOPs changes nothing.
+
+That ratio — FLOPs performed per byte moved — is arithmetic intensity,
+and plotting achievable performance against it gives the roofline model: a diagonal bandwidth-limited
+region, a flat compute-limited ceiling, and a ridge where they meet.
+
+Where common operations actually sit
+
+    * Large dense matrix multiply (training, big batch) — intensity grows with the tile
+  dimensions, comfortably into the hundreds or thousands. Compute-bound. This is the case the
+  hardware was designed for and the only one that reaches advertised throughput.
+
+    * Elementwise operations — add, GELU, dropout, scaling. Read a number, do one or two
+  operations, write it back. Intensity below 1. Massively bandwidth-bound, which is why kernel
+  fusion is worth so much: three fused elementwise ops cost barely more than one.
+
+    * Normalisation — a reduction and a rescale over the feature dimension. Low
+  intensity. Bandwidth-bound, and this is exactly why RMSNorm's removal of the mean pass was
+  worth doing.
+
+    * Single-token decode — 2 FLOPs per parameter, 2 bytes read per parameter in BF16,
+  so intensity is about 1. Against a ridge of 295 that is a factor of ~300 off. This one
+  number is the whole of Stage 5, and it is why batching is the primary lever there.
+
+
+FlashAttention in one sentence
+------------------------------
+
+
+Naive attention materialises the full T×T score matrix in HBM: write the scores, read them
+back for the softmax, write the result, read it again for the value multiply. In the Stage 1 ledger
+you saw that tensor is (B, H, T, T) — at batch 4, 12 heads and 1,024 tokens it is
+96 MiB per layer, against a 6 MiB residual stream. It is shuttled to and from memory several
+times, per head, per layer, per step.
+
+FlashAttention (Dao,
+Fu, Ermon, Rudra and Ré, 2022) does not reduce the FLOPs at all. It tiles the
+computation so the score matrix is never written to HBM: blocks are built in on-chip SRAM, consumed
+immediately, and discarded, with an online-softmax formulation that keeps the normalisation correct
+without ever holding all the scores at once. Same arithmetic, far fewer memory round trips.
+
+The reported gains in the original paper are 15% end-to-end on BERT-large at sequence length 512,
+3× on GPT-2 at 1K, and 2.4× on long-range arena at 1K–4K. Note the pattern:
+the benefit grows with sequence length, because that is where the discarded tensor grows quadratically
+while the useful work does not.
+
+Why this is the module that changes how you read papers
+Once you hold arithmetic intensity, you could have predicted FlashAttention. The question "which
+part of this computation moves the most bytes per useful FLOP?" identifies the score matrix
+immediately, and "can we avoid materialising it?" is the obvious follow-up.
+The same question predicts most of the rest of the systems literature. Kernel fusion, mixed
+precision, FP8, KV-cache layout, MoE routing, gradient accumulation — nearly all of it is
+someone asking where the bytes are going. The paper's title says IO-awareness rather than
+attention for a reason, and the reason is the whole lesson.
+
+
+Module 6 takeaways
+
+    * Ridge point = peak FLOP/s ÷ memory bandwidth. For H100 SXM that is ~295 FLOPs per byte.
+
+    * Above the ridge you are compute-bound and getting value; below it the FLOPs sit idle.
+
+    * Big matmuls are compute-bound; elementwise ops, norms and single-token decode are not.
+
+    * Single-token decode has arithmetic intensity ~1 against a ridge of ~295. Remember that for Stage 5.
+
+    * FlashAttention removes memory traffic, not FLOPs. Ask "where are the bytes going" and you can derive it.
+
+
+-------------------------------
+Module 7: The four parallelisms
+-------------------------------
+
+
+By the end of this module you will
+
+    * Be able to name the four axes and say precisely what each splits
+
+    * Know which ones need a fast interconnect and which tolerate a slow one — and why
+
+    * Be able to lay out a plausible parallelism strategy for a given model and cluster
+
+
+The four axes
+-------------
+
+
+Kind	|	Splits	|	Buys	|	Costs
+Data	|	The batch. Every device holds the whole model.	|	Simplest, near-linear throughput scaling.	|	Nothing on memory — every device still needs everything. One gradient all-reduce per step, which overlaps well with the backward pass.
+Tensor	|	Individual weight matrices, within a layer.	|	Fits a layer too large for one device; reduces per-device memory and compute together.	|	Communication inside every forward and backward pass, twice per block. Needs NVLink-class bandwidth; degrades badly across nodes.
+Pipeline	|	Layers across devices.	|	Fits a very deep model with modest communication — only activations cross the boundary.	|	Bubbles. Devices idle waiting for the stage ahead. Micro-batching shrinks the bubble; it never removes it.
+Sequence / context	|	The sequence dimension.	|	Contexts whose attention memory would not otherwise fit.	|	Attention needs all positions, so keys and values must circulate — typically a ring exchange overlapped with compute.
+
+
+The rule of thumb, and the reason behind it
+----------------------------------------
+
+
+Real systems compose all four. The arrangement that keeps recurring is:
+
+Tensor parallelism inside a node. Pipeline parallelism between nodes. Data parallelism
+over everything. Sequence parallelism when the context demands it.
+
+The reason is a bandwidth hierarchy, and once you see it the rule stops being arbitrary. Inside a
+server, GPUs talk over NVLink at hundreds of gigabytes per second. Between servers they talk over
+InfiniBand or Ethernet at a small fraction of that. Tensor parallelism communicates twice per
+transformer block, so it must live where bandwidth is cheapest. Pipeline parallelism communicates
+once per stage boundary and only activations, so it tolerates the slow link. Data parallelism
+communicates once per optimiser step and overlaps with computation, so it tolerates the slowest link
+of all.
+
+Match the communication frequency to the bandwidth hierarchy. That is the whole
+principle, and it is enough to reconstruct the rule from first principles when you have forgotten
+it.
+
+The pipeline bubble, made concrete
+With P pipeline stages and M micro-batches, the fraction of time devices spend idle is
+approximately (P − 1) / (M + P − 1).
+Four stages and four micro-batches: 3/7, about 43% of your cluster idle. Four stages and
+thirty-two micro-batches: 3/35, under 9%. Same hardware, same model, a five-fold difference in
+waste from one scheduling parameter.
+Which is why the pipeline-heavy configurations you will read about always come with a large
+micro-batch count, and why raising the micro-batch count is the first thing to check when a
+pipelined run underperforms. It also explains why increasing pipeline depth without increasing
+micro-batches makes things worse, which is a mistake people make when they are chasing a memory
+problem and forget they have a throughput one.
+
+
+Module 7 takeaways
+
+    * Data splits the batch, tensor splits matrices, pipeline splits layers, sequence splits positions.
+
+    * Communication frequency dictates placement: tensor inside a node, pipeline between, data over everything.
+
+    * Pipeline bubble ≈ (P−1)/(M+P−1). Micro-batch count is the lever.
+
+    * Tensor parallelism across a slow interconnect is the classic self-inflicted wound.
+
+
+---------------------------------
+Module 8: When the run goes wrong
+---------------------------------
+
+
+By the end of this module you will
+
+    * Know the ranked candidate causes of a loss spike and the cheapest diagnostic for each
+
+    * Know the counterintuitive published result about what causes spikes
+
+    * Have a realistic expectation of hardware failure rate at scale, from real numbers
+
+
+The loss spikes at step 4,000 and does not recover
+----------------------------------------
+
+
+This is the interview question for this stage, and the reason it works is that people who have
+trained something have ranked opinions while people who have only read produce a memorised list.
+Here is a defensible ranking, cheapest diagnostic first.
+
+
+1. Numerical overflow, especially in attention logits
+Attention logits growing without bound is a known and specific instability. Diagnostic:
+log the max absolute attention logit and the max activation norm per layer — you will usually
+see them climbing for hundreds of steps before the loss moves.
+Fix: QK normalisation, logit soft-capping, or a lower learning rate on the affected layers.
+Cheapest to check, so check it first.
+
+2. Learning rate too high for the current phase
+Especially just after warm-up ends, or after a schedule change. Diagnostic: plot
+gradient norm against step. A spike is usually preceded by the gradient norm trending up.
+Fix: lower the peak, lengthen the warm-up, tighten gradient clipping. Note that clipping alone
+often does not prevent spikes — the PaLM run had clipping enabled throughout.
+
+3. A pathological batch interacting with the current parameters
+Not "bad data" on its own — see the box below, because the published evidence here
+is genuinely surprising. Diagnostic: identify the batches around the spike and inspect them,
+but also test whether they reproduce the spike from a different checkpoint.
+Fix: restart from an earlier checkpoint and skip that data window.
+
+4. Optimiser state corruption or a stale second moment
+Adam's second moment adapts slowly. A sudden distribution shift can leave it badly
+mismatched, producing enormous effective step sizes. Diagnostic: log the ratio of update
+magnitude to weight magnitude per layer. Fix: lower epsilon sensitivity, reset the moments,
+or use a shorter second-moment horizon.
+
+5. A hardware or communication fault producing silently wrong gradients
+Rare, expensive to find, and the one people forget. A single bad GPU can corrupt an
+all-reduce without raising an error. Diagnostic: checksum gradients across data-parallel
+replicas, or re-run one step deterministically on a subset. Fix: find and drain the node.
+Last on the list because
+it is expensive to check — but at 16,000 GPUs it is not rare in absolute terms.
+
+
+What the PaLM team actually found, and it is not what you would guess
+The PaLM paper
+reports spikes in the loss roughly 20 times during training of the 540B model, at highly
+irregular intervals, despite gradient clipping being enabled. Their mitigation was to
+restart from a checkpoint about 100 steps before the spike and skip roughly 200–500 data
+batches, which worked — the loss did not spike again at the same point.
+Here is the part worth remembering. They did not conclude the spikes were caused
+by bad data. They ran the ablation: take the batches surrounding the spike, train on those same
+batches from a different, earlier checkpoint, and see what happens. No spike.
+So the spike was not a property of the data and not a property of the parameters. It was a
+property of the interaction — a particular batch meeting a particular parameter state.
+That is an uncomfortable result, because it means "find the bad data" is often the wrong
+investigation, and it means these events are not fully reproducible even in principle from the data
+alone. Anyone who tells you loss spikes are simply a data-cleaning problem has not read this
+ablation.
+
+
+Hardware failure is a scheduled event, not an accident
+----------------------------------------
+
+
+At small scale a GPU failure is a bad day. At cluster scale it is a rate, and you engineer for it.
+Meta published the numbers for a 54-day snapshot of Llama 3 405B pre-training on up to 16,000 H100s:
+
+
+  466total job interruptions in 54 days
+  419unexpected — about one every 3 hours
+  78%of those confirmed hardware faults
+  >90%effective training time achieved anyway
+
+
+Roughly one unexpected interruption every three hours, sustained for two months, and they still
+kept the cluster productive more than 90% of the time. That is not luck. It is fast checkpointing,
+automated detection and node draining, and restart machinery treated as core infrastructure rather
+than as operations overhead.
+
+The practical consequence for anyone planning a run: checkpoint frequency is a function of
+your failure rate, not of your preferences. If you expect an interruption every three hours
+and you checkpoint every six, you are on average discarding an hour and a half of cluster time per
+failure — at 16,000 GPUs that is a genuinely large number, repeated hundreds of times.
+
+Module 8 takeaways
+
+    * Rank spike causes by diagnostic cost: attention logits, learning rate, data×state interaction, optimiser state, silent hardware fault.
+
+    * PaLM saw ~20 spikes at 540B despite gradient clipping.
+
+    * Their ablation showed the spikes were an interaction of batch and parameter state, not bad data alone.
+
+    * Llama 3: 419 unexpected interruptions in 54 days on 16K GPUs, 78% hardware, still >90% effective training time.
+
+    * Checkpoint interval should be derived from your failure rate, not chosen.
+
+
+------------------------------------------
+Module 9: MFU — the number that grades you
+------------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to compute MFU from a throughput measurement and a spec sheet
+
+    * Know the difference between MFU and HFU, and why quoting the wrong one flatters you
+
+    * Know what published frontier runs actually achieve, so you can calibrate your own
+
+
+The definition
+--------------
+
+
+MFU = ( 6 · N · tokens_per_second ) / ( n_gpus × peak_dense_FLOP/s )
+
+
+The numerator is the useful arithmetic your model requires, from Module 1. The denominator is what
+the hardware could theoretically do. The ratio is the fraction of your very expensive silicon that is
+doing work you actually needed.
+
+It is the right headline efficiency metric because it is hardware-independent in the numerator and
+model-independent in the denominator, so it compares across both. It was introduced in the PaLM paper
+(Chowdhery et al., 2022).
+
+MFU versus HFU — and which one to be suspicious of
+Model FLOPs utilisation counts only the FLOPs the model logically requires.
+Hardware FLOPs utilisation counts every FLOP actually executed, including
+recomputation from gradient checkpointing and redundant work in tensor parallelism.
+HFU is always the larger number. PaLM reported 46.2% MFU and 57.8% HFU for the same run
+— an eleven-point gap, and it is not noise: the gap is mostly the extra forward passes bought
+by activation recomputation, which is real work the hardware did and not work the model needed.
+Both are legitimate metrics for different questions. HFU tells you how well your kernels use the
+chip; MFU tells you how much you are paying per unit of useful training. If a vendor quotes a
+utilisation figure without saying which, assume HFU, and ask.
+
+
+Calibration — what good actually looks like
+----------------------------------------
+
+
+Run	|	Reported	|	Note
+PaLM 540B, 6,144 TPU v4 chips	|	46.2% MFU / 57.8% HFU	|	The paper that introduced the metric; it also notes prior systems struggled to exceed 30%.
+Llama 3 405B, 8,192 H100s	|	43% BF16 MFU	|	The higher of Meta's two reported configurations.
+Llama 3 405B, 16,384 H100s	|	41% BF16 MFU	|	Meta attributes the drop to a smaller per-replica batch needed to hold global batch size constant.
+
+
+That last row is the most instructive line in the table. Doubling the cluster cost two
+points of MFU — not because the engineering got worse, but because holding the global
+batch size fixed while doubling data-parallel width halves the per-replica batch, and smaller batches
+have lower arithmetic intensity. Scaling out is not free, the inefficiency is structural, and it is
+predictable from Module 6.
+
+Use these as your calibration. If you measure 15% MFU, you have a real problem worth a day of
+profiling. If you measure 40%, you are in the same band as published frontier runs and your time is
+better spent elsewhere. If you measure 85%, check your arithmetic — you have probably used the
+sparsity peak in the denominator.
+
+Module 9 takeaways
+
+    * MFU = useful model FLOPs ÷ theoretical peak. Introduced by the PaLM paper.
+
+    * HFU counts recomputation and redundancy too, so it is always higher. PaLM: 46.2% vs 57.8%.
+
+    * Frontier runs land around 40–46%. Below 20% means go profile; above 60% means check the denominator.
+
+    * Llama 3 lost two points of MFU by doubling the cluster — scaling out costs efficiency, predictably.
+
+
+-----------------------------------
+Module 10: The Training Run Planner
+-----------------------------------
+
+
+By the end of this module you will
+
+    * Have converted a real hardware budget into a compute-optimal model, unaided by anything but sliders
+
+    * Have seen the training-versus-serving trade-off quantified rather than described
+
+    * Know whether your instinct about what a given cluster can produce was anywhere near right
+
+
+Every formula in this tool appeared in Modules 1 through 9, and each output says which one
+produced it. The tool asks you to guess the compute-optimal model size before computing one,
+for the same reason as always: an answer you see first is one you will find reasons to have
+expected.
+
+
+
+    Interactive
+
+Training Run Planner
+--------------------
+
+
+    Stage 1 of 3
+
+
+
+
+
+      1Your budget
+        Open
+      A cluster, a calendar and an efficiency assumption. That is all a training run is.
+
+
+        Hardware
+
+
+
+
+
+        GPUs64
+
+
+
+
+
+        Days of training30
+
+
+
+
+        MFU you expect to achieve40%
+
+
+
+
+
+        Price per GPU-hour$3.00
+
+        Rental prices move constantly and vary by term, region and provider. The
+        $3/GPU-hour default is the figure nanochat's README uses for an 8×H100 node; treat it as
+        an anchor with a wide error bar, not a quote.
+
+
+
+        Before you look: how many parameters is the compute-optimal model for this budget?
+          1.0B
+
+        Module 2 gives you N = √(C/120). You have every number you need to do
+        this in your head to within a factor of two — which is the point of asking.
+
+
+
+
+        Your guess is recorded before the budget is evaluated.
+
+
+
+
+
+      2What the budget buys
+        Locked
+
+
+
+
+
+      3Spend it differently
+        Locked
+      Same compute, different allocation. Move the ratio and watch training quality
+      trade against serving cost — which is the entire argument of Module 3, as a number.
+
+        Tokens per parameter20
+
+
+
+
+        Serving batch size you expect to sustain64
+
+        Used for the inference estimate. Stage 5 explains why this number is the
+        largest single lever on a serving bill.
+
+
+
+
+
+
+
+
+What this tool is and is not
+Grounded: the FLOP model (C = 6ND) is checked against Llama 3's published compute to within
+0.3%. The peak-FLOPS and bandwidth figures are from vendor datasheets, using dense not
+sparsity numbers. The MFU calibration band comes from PaLM and Llama 3's published values. The memory
+accounting is the ZeRO paper's 16 bytes per parameter.
+Extrapolated from a single data point: the hardware-interruption estimate scales Meta's
+Llama 3 figure — 419 unexpected interruptions over 54 days on 16,000 H100s — linearly in
+GPU-days. That assumes your failure rate matches theirs, which depends on your hardware vintage, your
+data centre and your software stack. Treat it as an order of magnitude, and notice that it is the
+only number here derived from one observation.
+Rough: the serving cost model assumes decode is purely bandwidth-bound, weights are sharded
+across the minimum number of GPUs that fit them, and nothing else competes for memory. It ignores the
+KV cache entirely, which Stage 5 will show is usually what actually limits concurrency — so
+this figure is optimistic, and knowingly so. It is here to show the shape of the
+training-versus-serving trade, not to price a deployment.
+Absent: data acquisition and cleaning cost, salaries, failed runs, hyperparameter sweeps,
+and the several smaller models you train first. In a real programme these are frequently larger than
+the headline compute line.
+
+
+Clearing test — Stage 2
+Three artefacts and one diagnosis.
+
+    * A model you trained end to end, from raw text to a working chat interface, with the
+  wall-clock time and the dollar cost written down. nanochat is the cheapest honest route — its README
+  currently states a GPT-2-capability model for about $48 of 8×H100 time, roughly two
+  hours, against about $43,000 for the equivalent in 2019.
+
+    * A profile of that run in which you name the top three time-consuming kernels and say,
+  for each, whether it is compute-bound, memory-bandwidth-bound or communication-bound — and
+  what you would do about it. Then compute your MFU and compare it to the 40–46% band.
+
+    * A hand-written allocation memo: given 1022 FLOPs, your recommended
+  (parameters, tokens) pair, the Chinchilla answer, and a paragraph on why you would deviate for a
+  model you intend to serve at scale — including the counterexample from Module 3 that stops
+  it being a slogan.
+
+
+Then the diagnosis, which is the actual test: your loss spikes at step 4,000 and does not
+recover. Name five candidate causes, ranked, and the cheapest diagnostic for each. If you
+have trained something you will have opinions and they will be ordered by what you have actually
+checked at 2 a.m. If you have only read about training, you will produce a list.
+You have cleared Stage 2 when you can be handed a run that is behaving badly and have a next
+move — and when you can size a run from a budget without opening anything.
+Not the test: having run train.py to completion. The distinguishing
+capability at this stage is diagnosis, not execution.
+
+
+Where to go for the depth
+
+    * nanochat
+  — tokenizer, pretraining, midtraining, SFT, evaluation, inference and a web UI in one legible
+  repository. Run it, break it, change one thing. ~10 hours plus waiting.
+
+    * Karpathy,
+  Let's reproduce GPT-2 (124M) — four hours covering the whole training loop
+  including the unglamorous parts.
+
+    * CS336
+  lectures 4–9 — GPUs and TPUs, kernels and Triton, parallelism, scaling laws.
+  The systems core; the Triton lecture is where arithmetic intensity becomes concrete.
+
+    * CS336 Assignment 2 — FlashAttention-2 in Triton plus distributed training. Hard,
+  ~20 hours, and it is this stage's real work.
+
+    * GPU MODE
+  — 100+ lectures with code, actively maintained, free. The deep end for kernels and profiling.
+
+
+Module 10 takeaways
+
+    * A training run is a cluster, a calendar and an MFU assumption. Everything else follows.
+
+    * N = √(C/120) puts a compute-optimal model within reach of mental arithmetic.
+
+    * Moving off the Chinchilla ratio trades training quality for permanent serving cost — the tool prices both.
+
+    * At cluster scale, hardware interruptions are a budgeted rate, not an incident.
+
+
+  Stage 2 of five. Built 28 August 2026; every figure derived or cited the same day.
+
+    The path
+    Stage 1 — Mechanism
+    Stage 3 — Post-training
+    Stage 4 — Evals
+    Stage 5 — Inference
+
+
+    Chinchilla
+    Chinchilla replication
+    Llama 3
+    FlashAttention
+    ZeRO
+    PaLM
+    nanochat
+
+  Hardware specifications and rental prices are the
+  fastest-decaying figures here; the H100 numbers are from NVIDIA's published datasheet and the
+  $3/GPU-hour anchor is nanochat's, both as of August 2026. The interruption-rate extrapolation rests
+  on a single published observation and is labelled as such in the tool. If the Chinchilla ratio is
+  refitted again at larger scale, Module 2's 20:1 is the row to re-check.

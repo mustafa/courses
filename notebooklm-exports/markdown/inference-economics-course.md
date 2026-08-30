@@ -1,0 +1,595 @@
+# Inference Economics — Why Decode Is Bandwidth-Bound and What It Costs
+
+# Inference Economics
+
+Stage 5 of the path, and the other one the source list left out. Two phases with opposite bottlenecks, one derivation that tells you your arithmetic intensity *is* your batch size, and the reason the KV cache rather than the weights usually decides how many users a GPU can serve. Ends with the only cost model you need — and the ranking of levers, which is not the one that gets executive attention.
+
+10 modules
+
+~25 h stage budget
+
+~$20–40 compute
+
+1 interactive tool
+
+~85 min read
+
+28 Aug 2026 verified
+
+Stage 5 of five · prerequisite: [The Training Stack](training-stack-course.html) · the path is in [Intermediate to Advanced AI](ai-path-intermediate-to-advanced-course.html)
+
+How to read this course
+
+This stage has the highest ratio of money to understanding of the five. Nearly every serving optimisation is a consequence of **one fact** — that generating a single token requires reading every parameter from memory — and once you hold it you can usually derive the technique rather than memorise it. Module 2 is that fact, made quantitative.
+
+**Every number in the tool is derived from published hardware specifications and the model arithmetic from Stage 1.** Where the simulator makes a simplification that would flatter the result, it says so at that point rather than in a footnote.
+
+Two claims in wide circulation are corrected here: that quantization roughly doubles throughput (it halves the bytes, which is not the same thing), and that speculative decoding is a general-purpose speedup (it mostly evaporates at the batch sizes that make serving cheap).
+
+## Course Modules
+
+1.  [Two phases, opposite bottlenecksThe fact](#m1)
+2.  [Your arithmetic intensity is your batch sizeDerivation](#m2)
+3.  [The KV cache is the constraintNot the weights](#m3)
+4.  [Batching, and why it is the primary leverContinuous](#m4)
+5.  [PagedAttentionVirtual memory, borrowed](#m5)
+6.  [Prefix cachingThe free win](#m6)
+7.  [Speculative decodingAnd its limits](#m7)
+8.  [QuantizationWhat it actually buys](#m8)
+9.  [The cost modelRanked levers](#m9)
+10.  [The Serving SimulatorInteractive](#m10)
+
+## Module 1: Two phases, opposite bottlenecks
+
+By the end of this module you will
+
+-   Be able to say why prefill is compute-bound and decode is not, from the shapes alone
+-   Know the two latency metrics that matter and which phase controls each
+-   Understand why a single system serving both phases is making a compromise
+
+### The same weights, two completely different workloads
+
+Prefill — processing the prompt
+
+The whole prompt goes through the model at once. Every token is a column in a large matrix multiply, so each weight loaded from memory is used across hundreds or thousands of tokens.
+
+**High arithmetic intensity. Compute-bound. The GPU is genuinely busy.**
+
+Controls **time to first token** (TTFT).
+
+Decode — generating tokens
+
+One token at a time, each depending on the last. To produce a *single* token you must read *every parameter in the model* from memory.
+
+**Terrible arithmetic intensity. Memory-bandwidth-bound. The FLOPs sit idle.**
+
+Controls **time per output token** (TPOT).
+
+Sit with the decode case, because it is the one that costs money. A 70-billion-parameter model in BF16 is 141 GB of weights. Every generated token requires reading all 141 GB. At an H100's 3.35 TB/s that is **42 milliseconds of pure memory traffic per token** — set entirely by bandwidth, with the arithmetic units almost idle. Double the chip's FLOPs and nothing changes.
+
+In practice you shard those weights across several GPUs, and the read parallelises: on four H100s each device reads its own quarter, so the floor drops to about 10.5 ms. That is a real speedup and it does not change the character of the problem — you are still waiting on memory, just on four memory buses at once.
+
+The sentence that organises the rest of this course
+
+**Nearly every inference optimisation is an attempt to get more useful work out of each byte read from memory.**
+
+Batching: read the weights once, produce many tokens. Speculative decoding: read the weights once, produce several tokens. Quantization: make the bytes smaller. Prefix caching: skip reading tokens you already processed. PagedAttention: stop wasting the memory you would have used for more batch.
+
+Five techniques, one idea. Once you have it, you can usually derive the technique from the problem rather than remember it from a paper, and — more useful in practice — you can predict which one will help *your* deployment before you try it.
+
+### Why the two phases fight each other
+
+A server doing both phases at once is making a compromise it cannot escape. A long prefill occupies the GPU for tens or hundreds of milliseconds, during which every sequence in the decode batch stalls. Users see it as inter-token jitter: fluent output, then a pause, then fluent output.
+
+Two responses are standard, and it is worth knowing both because they represent different philosophies:
+
+-   **Chunked prefill.** Break a long prompt into pieces and interleave them with decode steps, so no single prefill monopolises the GPU. Smooths TPOT at a modest cost to TTFT. Simple, and available in mainstream serving stacks.
+-   **Disaggregated serving.** Run prefill and decode on *separate* pools of hardware, shipping the KV cache between them. Each pool is then tuned for one bottleneck — prefill wants FLOPs, decode wants bandwidth — instead of compromising for both. It costs a KV-cache transfer over the network per request, which is why it only pays at scale.
+
+Disaggregation is the more interesting of the two, because it is an admission that these are different machines' workloads wearing one model's name. If you internalise nothing else from this module, internalise that: **"LLM inference" is two jobs, and every design decision downstream depends on which one you are optimising.**
+
+Module 1 takeaways
+
+-   Prefill is compute-bound and sets TTFT; decode is bandwidth-bound and sets TPOT.
+-   Every generated token requires reading every parameter — 141 GB for a 70B model in BF16.
+-   At 3.35 TB/s that is a ~42 ms floor per token for a single sequence, set by bandwidth alone.
+-   Almost every optimisation is "more useful work per byte read."
+-   Chunked prefill smooths the interference; disaggregation separates the two workloads entirely.
+
+## Module 2: Your arithmetic intensity is your batch size
+
+By the end of this module you will
+
+-   Be able to compute your deployment's arithmetic intensity in your head
+-   Know the batch size at which decode becomes compute-bound on your hardware
+-   Know why long context prevents you from ever reaching it, which is the non-obvious part
+
+### The derivation
+
+Stage 2 established the ridge point: a kernel is compute-bound above a certain number of FLOPs per byte read, and that threshold is peak FLOP/s divided by memory bandwidth. For an H100 SXM at 989.5 dense BF16 TFLOPS and 3.35 TB/s, the ridge is about **295 FLOPs per byte**.
+
+Now compute decode's intensity. One decode step, batch size B, model with N parameters at *bp* bytes per parameter, ignoring the KV cache for a moment:
+
+FLOPs = 2 · N · B  \# two per parameter per token, from Stage 2
+bytes = N · bp      \# the weights, read exactly once for the whole batch
+**intensity = 2B / bp**  \# in BF16, bp = 2, so intensity = B
+
+That is the whole result, and it is worth stopping on. **In BF16, your arithmetic intensity during decode is numerically equal to your batch size.** N cancels — a bigger model does not change your position on the roofline at all, it just moves both terms together.
+
+What that gives you immediately
+
+The ridge on an H100 is 295. So **you need a batch of roughly 295 concurrent sequences before decode stops being bandwidth-bound.** Below that, the arithmetic units are idle in direct proportion to how far below you are.
+
+Batch 1 — a single user, a local model, an agent loop with no concurrency — runs at an intensity of 1 against a ridge of 295. **You are using roughly a third of one percent of the chip's arithmetic capability.** That is not a bug and not something to fix by writing better kernels: it is the shape of the problem, and the only fix is more sequences in flight.
+
+It also tells you why the local-model experience feels the way it does. Your GPU is not working hard. It is queuing at the memory bus.
+
+### And now the part that stops you reaching the ridge
+
+The derivation above ignored the KV cache, and at realistic context lengths the KV cache is where the bytes are. Put it back in:
+
+intensity = **2 · N · B** / ( N·bp  +  **B · S · kv\_per\_token** )
+
+where S is the average sequence length. Notice what happens as B grows: the numerator grows linearly and so does the second term in the denominator. **Intensity saturates.** Past the batch size at which KV traffic exceeds weight traffic, adding more sequences stops improving your efficiency — you are now reading more cache per step in exact proportion to the extra tokens you produce.
+
+Work it for a real deployment, because the number is startling
+
+Llama 3 70B in BF16 on four H100s. From Stage 1, its KV cache is **320 KiB per token**. Take 4,096-token sequences and the largest batch that fits — Module 3 works this out as about **125 sequences** once you leave room for activations.
+
+FLOPs    = 2 × 70.55e9 × 125          = 1.76 × 1013
+weights  = 141.1 GB                       = 1.41 × 1011 bytes
+KV read  = 125 × 4096 × 327,680    = 1.68 × 1011 bytes
+**intensity = 1.76e13 / 3.09e11 = 57**  \# against a ridge of 295
+
+Two things fall out, and both are worth carrying. First, **the KV cache is reading more bytes than the weights are** — 168 GB against 141 GB per step. Everyone knows the KV cache occupies memory; far fewer people notice it also consumes *bandwidth*, which is the scarcer resource.
+
+Second, this deployment is at maximum batch and still **more than five times below the ridge**. It cannot become compute-bound at this context length, at any batch size, because the thing that would let it — more sequences — brings its own bandwidth cost. **Long context does not merely consume memory; it caps your achievable efficiency.**
+
+Module 2 takeaways
+
+-   Ignoring KV, decode intensity = 2B/bp, which in BF16 is exactly the batch size. N cancels.
+-   You need ~295 concurrent sequences on an H100 before decode stops being bandwidth-bound.
+-   Batch 1 runs at ~0.3% of the chip's arithmetic capability. That is the shape of the problem.
+-   Including KV, intensity saturates — more batch buys less and less.
+-   A maxed-out 70B deployment at 4K context sits at intensity ~57 and reads more KV bytes than weight bytes.
+
+## Module 3: The KV cache is the constraint
+
+By the end of this module you will
+
+-   Be able to compute maximum concurrency for any model, hardware and context length
+-   Understand why advertised context length and concurrency are in direct competition
+-   Know the three architectural choices that shrink the cache and what each costs
+
+### Why it exists and what it costs
+
+Generating token *t*+1 requires attention over all previous positions. Recomputing every key and value from scratch at every step would make decoding quadratic in output length, so you cache them. That is what makes generation tractable at all.
+
+From Stage 1, the size is fully determined by the config:
+
+kv\_bytes\_per\_token = **2** × layers × kv\_heads × head\_dim × bytes\_per\_element \# the 2 is K and V
+
+For Llama 3 70B in BF16: 2 × 80 × 8 × 128 × 2 = **327,680 bytes**, or 320 KiB, per token. Every token of every sequence in flight.
+
+### The concurrency calculation, which is the whole module
+
+usable\_KV\_memory = (GPUs × HBM) − weights − activation\_headroom
+**max\_concurrent = usable\_KV\_memory / ( kv\_per\_token × avg\_sequence\_length )**
+
+Four H100s, **320 GiB** total. Weights take 131.4 GiB (141 GB in decimal units — the simulator in Module 10 reports binary, so the figures here are stated in GiB to match). Leave 32 GiB for activations and workspace and you have about **157 GiB** for KV cache.
+
+| Average sequence length | KV per sequence | Max concurrent sequences |
+| --- | --- | --- |
+| 1,024 tokens | 0.31 GiB | ~501 |
+| 4,096 tokens | 1.25 GiB | ~125 |
+| 32,768 tokens | 10.0 GiB | ~15 |
+| 131,072 tokens (advertised max) | 40.0 GiB | 3 |
+
+The thing the marketing page does not say
+
+Advertised context length and achievable concurrency are competing for the same memory, and the exchange rate is fixed by a number printed in a public JSON file.
+
+A model advertised at 128K context, served on four H100s, can hold **three** such sequences at once. Not three hundred. Three. Your per-user cost at full context is therefore roughly a hundred and seventy times your per-user cost at 1K context, for the same model on the same hardware — and that ratio is arithmetic, not an implementation detail you can engineer away.
+
+This is the calculation to run before agreeing to a long-context product commitment. It takes ninety seconds and it is frequently the difference between a feature and a business.
+
+### The three ways to make it smaller
+
+| Technique | Mechanism | Saving | Cost |
+| --- | --- | --- | --- |
+| Grouped-query attention | Query heads share key-value heads. | Exactly the sharing ratio — 8× for Llama 3 70B's 64:8. | A small, generally accepted quality cost. Decided before training; not available to you afterwards. |
+| KV cache quantization | Store K and V in FP8 or INT8 instead of BF16. | 2× for 8-bit. | Available at serving time and cheap. Quality impact is usually small but is workload-dependent — measure it on your traffic rather than trusting a benchmark. |
+| Eviction / sliding window | Drop or compress cache entries for distant positions. | Unbounded in principle. | You are discarding information the model could have attended to. Sometimes free, sometimes silently destructive on tasks needing long-range recall. Needs its own eval. |
+
+Note that the first is an architecture decision made before training, which is why Stage 1 flagged grouped-query attention as an inference-cost choice baked into the model. The second is the one available to you today at the lowest risk. The third is where the research is and where the unexamined quality regressions live.
+
+Module 3 takeaways
+
+-   KV per token = 2 × layers × kv\_heads × head\_dim × element\_bytes. Llama 3 70B: 320 KiB.
+-   Max concurrency = leftover memory ÷ (KV per token × sequence length).
+-   Four H100s serving Llama 3 70B: ~501 sequences at 1K context, three at 128K.
+-   Advertised context and concurrency compete directly, at a rate you can compute from the config.
+-   GQA is decided before training; KV quantization is your cheapest lever; eviction needs its own eval.
+
+## Module 4: Batching, and why it is the primary lever
+
+By the end of this module you will
+
+-   Know why batching is nearly free during decode and expensive during prefill
+-   Understand continuous batching and be able to quantify what naive batching wastes
+-   Know the latency cost of batching and how to reason about the trade
+
+### Why it is nearly free
+
+Reading 141 GB of weights to produce one token costs you a full memory sweep per token. Reading the same 141 GB to advance 64 sequences costs the same sweep and produces 64 tokens. You have divided the dominant cost by 64, and the extra arithmetic was going to sit idle anyway.
+
+This is why batching is the first lever and the largest, and why a serving system running at low batch occupancy is burning money in a way that no amount of kernel optimisation will recover. It is also why the intensity result in Module 2 matters: batching is not one optimisation among many, it *is* the movement along the roofline.
+
+### Continuous batching
+
+Naive batching runs a batch to completion. Requests arrive at different times and finish at different lengths, so a batch of 32 in which 31 sequences finish early runs at 1/32 utilisation until the straggler finishes — and new arrivals queue behind it even though the hardware is nearly idle.
+
+**Continuous batching** schedules at token granularity. When a sequence emits its stop token, its slot is freed and a queued request takes it on the very next step. Same hardware, several times the throughput, no change to the model.
+
+Where it comes from, and what it is really called
+
+The idea is [Orca](https://www.usenix.org/conference/osdi22/presentation/yu) (Yu et al., OSDI 2022), which named it **iteration-level scheduling**: the scheduler invokes the engine to run a single iteration on the batch rather than a whole request to completion, so the batch can be adjusted between iterations. It pairs with *selective batching*, because not every operation in a transformer can be batched across sequences of different lengths — attention cannot, the rest can.
+
+"Continuous batching" is the name the idea acquired in industry. Knowing the original terms is useful when reading the literature, and the paper is short.
+
+### What batching costs, since it is not actually free
+
+Two real costs, and being clear about them is what separates a serving decision from a slogan.
+
+-   **Latency for the individual user.** Each decode step now does more work, so time-per-output-token rises with batch size — slowly while you are bandwidth-bound, then linearly once the KV traffic or the arithmetic starts to bind. Your users experience throughput as *slower* generation. This is a genuine trade between cost per token and speed per user, and it should be made deliberately with a stated TPOT budget rather than by maximising batch.
+-   **Memory.** More sequences means more KV cache, and Module 3 showed that is the binding constraint. You cannot batch beyond what the cache allows, which is why PagedAttention — a memory technique — is really a throughput technique.
+
+Module 4 takeaways
+
+-   Batching amortises the weight read across sequences; the extra arithmetic was idle anyway.
+-   Naive batching runs to completion and wastes slots on stragglers.
+-   Continuous batching — Orca's iteration-level scheduling — refills slots every step.
+-   Batching raises per-user TPOT. Set a latency budget, then maximise batch under it.
+-   KV memory caps your batch, which is why memory efficiency is a throughput lever.
+
+## Module 5: PagedAttention
+
+By the end of this module you will
+
+-   Know the three kinds of waste in a naive KV allocator and how much memory they cost
+-   Understand block tables as virtual memory, and why sharing follows for free
+-   Be able to recognise this pattern when it appears in another guise
+
+### The problem: three kinds of waste
+
+The naive implementation allocates a contiguous chunk of KV cache per request, sized for the request's *maximum possible* sequence length — because the cache must be contiguous and you do not know in advance how long the output will be. The [PagedAttention paper](https://arxiv.org/abs/2309.06180) (Kwon et al., 2023) identifies three distinct wastes in that scheme:
+
+-   **Reserved slots** for tokens not yet generated. This memory does eventually get used, but it is held for the request's whole lifetime, so other requests cannot use it in the meantime.
+-   **Internal fragmentation** from over-provisioning to the maximum length. A request that could have run to 2,048 tokens and stopped at 100 has wasted the other 1,948 slots, and you only learn this after it finishes.
+-   **External fragmentation** from the allocator, since pre-allocated chunk sizes differ between requests. This memory is never usable, and that is knowable before the request even starts.
+
+How much this costs, from the paper's own profiling
+
+The paper's Figure 2 profiling of existing systems — Orca and FasterTransformer — found that **only 20.4% to 38.2% of KV cache memory was being used to store actual token states**, and that effective memory "can be as low as 20.4%."
+
+Read that against Module 3. KV cache capacity sets your maximum concurrency, and up to four fifths of it was being thrown away by an allocation strategy. This was not a small optimisation available to a tuned system; it was the dominant inefficiency in production LLM serving, and it was a memory management problem rather than a machine learning one.
+
+### The solution, which you already know
+
+Do exactly what an operating system does for process memory. Allocate the KV cache in small fixed-size **blocks**. Keep a per-sequence **block table** mapping logical positions to physical blocks. Hand out blocks on demand as the sequence grows.
+
+Three consequences follow immediately:
+
+-   **No external fragmentation**, because every block is the same size.
+-   **Internal waste bounded by one partial block per sequence**, instead of by the gap between actual and maximum length. The paper reports near-zero waste as a result.
+-   **Sharing becomes trivial.** Two sequences with a common prefix can point their block tables at the *same physical blocks*. Nothing is copied. This is the mechanism behind prompt caching and behind cheap parallel sampling from one prompt, and it was not designed in — it fell out of the indirection.
+
+The reported result is 2–4× throughput at the same latency against FasterTransformer and Orca, with larger gains for longer sequences and larger models — which is what you would predict, since those are the cases where the wasted cache was largest.
+
+The pattern, which is the transferable part
+
+Variable-length objects with unknown lifetimes, allocated contiguously in a fixed pool, causing fragmentation. Solved by indirection: fixed-size blocks plus a translation table, which additionally enables sharing.
+
+That is virtual memory, and it was solved in the 1960s. The contribution of PagedAttention is not inventing paging; it is *recognising the shape of the problem*. This is the clearest recent example in ML systems of a large win coming from knowing what an adjacent field already solved, and the reason to internalise it as a pattern rather than a technique is that the next such win will look different and rhyme.
+
+Module 5 takeaways
+
+-   Naive KV allocation wastes memory three ways: reservation, internal and external fragmentation.
+-   The paper measured only 20.4–38.2% of KV memory holding real token state in prior systems.
+-   Fixed-size blocks plus a per-sequence block table removes external fragmentation and bounds internal waste to one block.
+-   Prefix sharing falls out of the indirection for free — it is what makes prompt caching cheap.
+-   Reported 2–4× throughput at equal latency, more on longer sequences.
+
+## Module 6: Prefix caching
+
+By the end of this module you will
+
+-   Know exactly what prefix caching does and does not save
+-   Be able to identify the workloads where it is transformative rather than marginal
+-   Know the one prompt-design rule that determines whether you get the benefit at all
+
+### What it saves
+
+If two requests share a prefix — the same system prompt, the same few-shot examples, the same retrieved document, the same conversation so far — then the keys and values for that prefix are *identical*. They depend only on the tokens and their positions, both of which match.
+
+So compute them once and reuse them. Thanks to PagedAttention's block tables, "reuse" means pointing a second sequence's block table at the same physical blocks. Nothing is copied and no extra memory is consumed.
+
+Be precise about the saving, because it is often overstated. **Prefix caching eliminates prefill work for the shared portion. It does nothing for decode.** If your workload is a 2,000-token system prompt and a 500-token answer, prefill was a meaningful fraction of the cost and you have just removed most of it. If it is a 100-token prompt and a 2,000-token answer, you have saved almost nothing, because decode was always the bill.
+
+Where it is transformative
+
+-   **Multi-turn conversation.** Turn *n* shares the entire history with turn *n*−1. Without caching, a 20-turn conversation re-processes the whole transcript on every turn — quadratic total prefill in the number of turns. With caching it is linear. This is the single largest structural saving available in chat.
+-   **Agent loops.** Same system prompt, same tool definitions, same scratchpad, on every step of a long trajectory. Agents are the workload prefix caching was made for, and an agent framework without it is paying for its own instructions dozens of times per task.
+-   **Any large fixed system prompt.** Long instructions and few-shot examples, identical across every user, on every request.
+-   **Batch classification.** One long rubric plus a short item, repeated thousands of times.
+
+The one rule that decides whether you get any of this
+
+Matching is on the **token prefix**. It is a literal prefix match, from position zero. Anything that varies must come *after* everything that is shared.
+
+Which means a timestamp, a request ID, a user's name or an A/B flag placed near the top of the system prompt **destroys the cache for every request**. Nothing errors, nothing is logged, and your prefill cost silently reverts to uncached. This is a genuinely common and expensive mistake, and it is invisible unless you are watching your cache hit rate.
+
+**Order your prompt: fixed content first, then slowly-varying content, then per-request content, then user input.** That single ordering rule is worth more than most prompt engineering, and it is the sort of thing that never appears in a prompting guide because it is a systems consideration wearing a prompting costume.
+
+Module 6 takeaways
+
+-   Shared prefixes have identical keys and values, so they can be computed once and shared by pointer.
+-   It eliminates prefill for the shared portion and does nothing for decode.
+-   Multi-turn chat and agent loops are where it turns quadratic prefill into linear.
+-   Matching is a literal token prefix from position zero.
+-   A timestamp at the top of your system prompt silently disables it. Order: fixed, slow, per-request, user.
+
+## Module 7: Speculative decoding
+
+By the end of this module you will
+
+-   Understand the mechanism and why the output distribution is provably unchanged
+-   Be able to compute the expected speedup from an acceptance rate
+-   Know the condition under which it stops helping, which is the part usually omitted
+
+### The mechanism
+
+A small, cheap draft model proposes the next *k* tokens. The large target model then verifies all *k* in a *single* forward pass — because verification is a prefill-shaped operation: you are scoring a known sequence, not generating one. Accepted prefixes are kept; at the first rejection you resample that position from a corrected distribution and discard the rest.
+
+You have paid **one** read of the large model's weights and received up to *k*+1 tokens instead of one. Another bandwidth trade, and the cleanest one in the catalogue.
+
+The output distribution is provably unchanged — that is the whole trick
+
+This is not an approximation and it is worth understanding why. The acceptance test uses a modified rejection-sampling scheme: accept a drafted token with probability min(1, p\_target/p\_draft), and on rejection sample from a specific residual distribution. The construction guarantees the resulting samples are drawn from exactly the target model's distribution.
+
+[Leviathan, Kalman and Matias (ICML 2023)](https://arxiv.org/abs/2211.17192) report 2×–3× acceleration on T5-XXL with, in their words, identical outputs. **A speedup with no quality cost is rare enough to be worth being suspicious of, and in this case the suspicion does not survive the proof.** The draft model's quality affects only *how often* you accept, never *what* you produce.
+
+### The arithmetic of the speedup
+
+With acceptance rate α and a draft of *k* tokens, the expected number of tokens accepted per verification pass is the geometric sum
+
+E\[tokens\] = (1 − αk+1) / (1 − α)
+
+At α = 0.7 and *k* = 4 that is about **2.8 tokens per verification**. Subtract the draft model's cost — typically a few percent of the target's per token — and you have a roughly 2.3× speedup for a single sequence.
+
+The acceptance rate is where the engineering is. It rises with draft-model quality and with how predictable the text is — boilerplate, code with strong conventions and formatting are drafted well; genuinely novel reasoning is not. This is also why self-speculative approaches, n-gram lookup against the prompt, and Medusa-style extra heads all exist: they are different bets about where cheap predictability lives.
+
+And here is why it may do nothing for your production deployment
+
+Speculative decoding converts **idle FLOPs** into tokens. Verifying *k*+1 tokens per sequence costs roughly (*k*+1) times the arithmetic of a normal decode step, while costing about the same bandwidth. That is a wonderful trade when the arithmetic units are idle.
+
+**Module 2 told you exactly when they stop being idle: at a batch size approaching the ridge point.** A high-throughput server already running at large batch is much closer to compute-bound, and multiplying its arithmetic by (*k*+1) makes compute the binding constraint. The speedup shrinks, and at sufficiently large batch it inverts — you are now doing five times the arithmetic for 2.8 times the tokens.
+
+So the honest summary: **speculative decoding is a latency technique for low-concurrency serving, not a throughput technique for high-concurrency serving.** It is superb for a single user on local hardware, for interactive coding assistants, for latency-sensitive agent loops. It is often close to worthless on a busy multi-tenant endpoint that is already batching well — which is precisely the deployment whose bill you were trying to reduce.
+
+The simulator in Module 10 lets you watch the speedup collapse as you raise the batch size. It is the most counterintuitive result in the tool and the one most worth generating yourself.
+
+Module 7 takeaways
+
+-   A draft model proposes k tokens; the target verifies them in one forward pass.
+-   The rejection-sampling scheme provably preserves the target's output distribution.
+-   E\[tokens per verify\] = (1−αk+1)/(1−α) — about 2.8 at α=0.7, k=4.
+-   It spends idle FLOPs, so it helps most at low batch and fades as you approach the ridge.
+-   A latency technique for low concurrency, not a throughput technique for high concurrency.
+
+## Module 8: Quantization
+
+By the end of this module you will
+
+-   Know why quantization helps decode far more than prefill, from the roofline
+-   Know what the independent evidence says about quality at each precision
+-   Be able to correct the most common overstatement about what it buys
+
+### The mechanism, from Module 2's formula
+
+Decode is bandwidth-bound and the dominant traffic is the weights. Halve the bytes per parameter and you halve the bytes read per token, so you halve the decode bandwidth floor. Recall the intensity formula: **intensity = 2B/bp**. Dropping from BF16 to FP8 doubles your arithmetic intensity at the same batch size, moving you along the roofline for free.
+
+Two consequences follow immediately, and the second is the one people get wrong:
+
+-   **Weights take half the memory**, which leaves more for KV cache, which raises maximum concurrency, which raises throughput again. Quantization's second-order effect through the memory budget is frequently larger than its first-order effect on bandwidth, and it is almost never the one quoted.
+-   **Prefill barely improves.** Prefill was compute-bound, and quantizing weights does not reduce the FLOPs. On hardware with native low-precision arithmetic — H100 does FP8 matrix multiply at roughly twice its BF16 rate — prefill does speed up, but through a different mechanism that requires the *activations* to be quantized too, not just the weights.
+
+Correcting a claim in wide circulation
+
+You will read that FP8 "roughly doubles throughput." That does not follow from the mechanism and it is usually an overstatement.
+
+Halving the bytes halves the *weight-read* term. But at any useful batch size the KV cache is also consuming bandwidth (Module 2: 180 GB against 141 GB in the worked example), and quantizing the weights does nothing for it unless you quantize the KV cache too. Meanwhile prefill, scheduling overhead and the sampling step do not shrink at all. **End-to-end throughput gains are real and typically well below 2×**, with the exact figure depending on your prompt-to-output ratio and your batch size.
+
+Three cases, and conflating them is where the overstatement comes from:
+
+-   **Weights only, KV left at 16-bit** (the W4A16 case, and many W8A8 deployments): you halve or quarter one of two decode-bandwidth terms. At the batch sizes where the KV cache dominates — which Module 2 showed is most of them — the gain is well under 2×.
+-   **Weights *and* KV cache** at FP8, on a purely decode-bandwidth-bound deployment: every byte halves, so decode throughput really can approach 2×. The simulator's FP8 setting is this case, and it will show you a number close to 2 for exactly that reason.
+-   **End to end**, counting prefill, scheduling and sampling: less again, because those terms did not shrink.
+
+The right way to state it: *FP8 halves the bytes you quantize, and separately frees memory that raises your batch ceiling.* Whether that reaches 2× depends on whether you quantized the KV cache too and on how decode-dominated your workload is — both of which you can check in the simulator rather than assume.
+
+### What the quality evidence actually says
+
+Quantization quality claims are usually made by whoever is selling the throughput, so the independent work matters. The largest public study is ["Give Me BF16 or Give Me Death"? Accuracy-Performance Trade-Offs in LLM Quantization](https://arxiv.org/abs/2411.02355), which evaluated the whole Llama-3.1 family across more than 500,000 evaluations on academic benchmarks and real-world tasks. Its findings:
+
+| Format | Reported quality | What it buys |
+| --- | --- | --- |
+| FP8 (W8A8-FP) | "Effectively lossless across all model scales." | Half the weight bytes; native FP8 matmul on H100-class hardware. |
+| INT8 (W8A8-INT) | Well-tuned INT8 shows 1–3% accuracy degradation. | Half the weight bytes on hardware without FP8 support. |
+| INT4 weights (W4A16) | Competitive with the 8-bit approaches. | Quarter the weight bytes. Activations stay 16-bit, so compute does not speed up. |
+
+The practical reading: **FP8 is close to a free lunch on hardware that supports it and should probably be your default.** INT4 weight-only is the right choice when memory is the binding constraint — fitting a larger model on fewer GPUs, or freeing memory for KV cache — and note that it does not accelerate compute, so it helps decode and not prefill.
+
+One caveat the study's framing invites and does not remove: benchmark-average quality is not your quality. If your task is unusual, or safety-critical, or has a long tail that benchmarks do not probe, run your own eval — which is Stage 4, and this is one of the cleanest cases for why Stage 4 comes before Stage 5 in the path.
+
+Module 8 takeaways
+
+-   Halving bytes per parameter halves the weight-read term and doubles decode arithmetic intensity.
+-   The second-order effect — freed memory raising your batch ceiling — is often the larger one.
+-   Prefill barely improves unless activations are quantized too and the hardware has native support.
+-   "FP8 doubles throughput" holds only when you quantize the KV cache too and decode dominates; weight-only quantization gains much less.
+-   Independent evidence: FP8 effectively lossless, well-tuned INT8 within 1–3%, W4A16 competitive.
+
+## Module 9: The cost model
+
+By the end of this module you will
+
+-   Have a cost model you can write on a napkin
+-   Know the rough magnitude of each lever and why the ordering is what it is
+-   Know which lever is gated on Stage 4, and why that dependency is the real curriculum argument
+
+### The model
+
+cost ≈ ( tokens\_generated × model\_size ) / batch\_efficiency
+
+Every serving optimisation moves one of those three terms. Being explicit about which one, and by how much, is what turns a list of techniques into a decision.
+
+1 **Batch efficiency** *Continuous batching, admission control, prefix caching for shared prompts, right-sized parallelism. Mostly a scheduling and configuration problem rather than a research one.* 5–10×
+
+2 **Model size — routing** *Send easy requests to a small model, hard ones to a large one. Gated on Stage 4: you cannot route safely without an eval that tells you when the small model was sufficient.* 3–5×
+
+3 **Tokens generated** *Shorter outputs, tighter prompts, not re-sending context you could cache. Unglamorous, and usually available immediately.* ~2×
+
+4 **Switching vendor for a lower per-token price** *The one that gets executive attention and generates the most meetings.* 10–20%
+
+**The ordering is the point.** The largest lever is a scheduling decision. The second-largest is gated on your eval quality. The one that reliably gets a meeting is the smallest by an order of magnitude.
+
+Why lever 2 is the argument for the whole path's ordering
+
+Routing is where inference economics and evals meet, and it is the cleanest justification for why this course is Stage 5 and evals are Stage 4.
+
+To route, you must decide per request whether the cheap model is good enough. That is a classifier, and it has the same two error rates as any other. Route too aggressively and quality falls in ways your users notice and your dashboard does not. Route too conservatively and you have built a complicated system that saves nothing.
+
+The width of that safe operating band *is* the quality of your eval. A team with a validated judge and a corrected quality number can find the routing threshold empirically and defend it. A team without one is guessing, and will either give the saving back or damage the product. **You cannot capture the second-largest lever in inference economics without having done Stage 4.**
+
+### Two caveats on the magnitudes
+
+These figures are order-of-magnitude guidance rather than measurements, and the honest framing matters. The **5–10×** for batch efficiency is what you see moving from a naive implementation to a well-configured modern serving stack — and it is consistent with the published numbers behind it: 2–4× from PagedAttention alone against systems that already did continuous batching, on top of what continuous batching bought over naive batching. If you are already running a well-tuned vLLM-class stack, most of that has been collected and your remaining headroom is much smaller.
+
+The **3–5×** for routing depends entirely on your traffic mix. If 80% of requests are easy, routing is transformative. If your traffic is uniformly hard, it is worth nothing, and no amount of engineering changes that. **Measure your mix before planning around this number** — which, again, requires Stage 4.
+
+Module 9 takeaways
+
+-   cost ≈ tokens × model\_size ÷ batch\_efficiency. Every technique moves one term.
+-   Batch efficiency 5–10×; routing 3–5×; token reduction ~2×; vendor switching 10–20%.
+-   The biggest lever is scheduling; the smallest gets the most executive attention.
+-   Routing is gated on eval quality — you cannot capture lever 2 without Stage 4.
+-   If you already run a tuned modern stack, most of lever 1 is already collected.
+
+## Module 10: The Serving Simulator
+
+By the end of this module you will
+
+-   Have predicted a deployment's bottleneck and been graded on it
+-   Have seen speculative decoding's speedup collapse as batch size rises
+-   Know the cost per million tokens for a configuration you chose, and why it is that number
+
+Commit to a prediction before the simulator runs. That is the clearing test for this stage — being right *for the right reason*, before you measure — and this is a cheap place to practise it.
+
+Interactive
+
+### Serving Simulator
+
+Stage 1 of 3
+
+1
+
+The deployment
+
+Open
+
+Model
+
+Hardware
+
+GPUs in the tensor-parallel group4
+
+Average prompt length2,048
+
+Average output length512
+
+Weight precision
+
+Before you look: which lever will help this deployment most?
+
+Pick a lever you think will win.
+
+2
+
+Where this deployment sits
+
+Locked
+
+3
+
+Turn the knobs
+
+Locked
+
+Concurrent sequences—
+
+Fraction of the prompt that is a shared prefix0%
+
+Speculative decoding — acceptance rate αoff
+
+Zero disables it. Draft length is fixed at k = 4 and the draft model is charged at 5% of the target's arithmetic per token.
+
+What this simulator is and is not
+
+**Derived, not fitted:** parameter counts and KV-cache sizes come from the published configs and reproduce the model cards. Peak FLOPS are the *dense* datasheet figures, not the sparsity numbers. Decode time is max(bandwidth time, compute time) with both terms computed explicitly, which is what produces the compute-bound transition at high batch rather than assuming it.
+
+**Optimistic:** it assumes perfect batching with no queueing delay, perfect tensor-parallel scaling with no communication cost, and a fixed MFU that does not degrade at small batch. Real systems are worse than this on every axis. Treat the absolute numbers as a floor and the *ratios* — which lever wins, by how much — as the useful output.
+
+**Not modelled:** request arrival variance and the queueing that follows, preemption, chunked prefill interleaving, MoE routing (which changes decode economics substantially, since only the active experts are read but all of them must be resident), and the cost of the draft model's own KV cache under speculative decoding.
+
+**Prices:** the $3/GPU-hour used for cost figures is nanochat's stated anchor. Rental prices move constantly; scale the cost line accordingly.
+
+Clearing test — Stage 5
+
+**Build a toy serving loop with a block-based KV cache and continuous batching** — a few hundred lines, no vLLM. Measure tokens per second against a naive implementation that pre-allocates a contiguous cache sized to the maximum length and batches to completion. Report the throughput difference *and* the memory-utilisation difference, and say which of the two changes produced most of the gain.
+
+Then the diagnosis, which is the real test:
+
+**Given a deployment — model size, average prompt length, average completion length, concurrency, hardware — say whether it is prefill-bound or decode-bound, predict which of batching, prefix caching, quantization or speculative decoding will help most and by roughly how much. Then run it and check.**
+
+**You have cleared Stage 5 when you are right for the right reason.** Being right because you tried everything is not the capability. The specific things you should be able to answer unaided:
+
+-   What is your deployment's arithmetic intensity, and how far is it from your hardware's ridge?
+-   What sets your maximum concurrency — and can you compute it from the config?
+-   At your batch size, does speculative decoding help? Why or why not?
+-   What is your cost per million output tokens, and which single change would move it most?
+
+**Not the test:** deploying vLLM successfully. vLLM is excellent and it is very good at hiding exactly the mechanics this stage is about — a virtue in production and a problem for learning. Build the bad version first, so the good version means something.
+
+Where to go for the depth
+
+-   [**CS336 Lecture 10 (Inference)**](https://stanford-cs336.github.io/spring2025/) — the best single hour on this at the right altitude, free.
+-   [**vLLM documentation**](https://docs.vllm.ai/) read as an architecture text, plus [the PagedAttention paper](https://arxiv.org/abs/2309.06180) — short, and the idea is clean. ~6 hours.
+-   [**GPU MODE**](https://github.com/gpu-mode/lectures) — profiling, quantization and speculative decoding lectures with code. Actively maintained, free, and the deep end.
+-   **Chip Huyen, *AI Engineering*** — the inference optimisation chapter, in the form you would present to a leadership audience.
+-   **Serve something yourself and load-test it.** Non-negotiable, ~8 hours. Numbers you measured beat numbers you read, including all of the ones on this page.
+
+Module 10 takeaways
+
+-   Which lever wins is computable in advance from the shape of your workload.
+-   Speculative decoding's gain collapses as batch rises — generate that result yourself.
+-   KV cache sets concurrency; concurrency sets intensity; intensity sets your cost per token.
+-   Be right for the right reason. That is the whole clearing test.
+
+Stage 5 of five — the last stage of the path. Built 28 August 2026; every figure derived or cited the same day.
+
+[The path](ai-path-intermediate-to-advanced-course.html) [Stage 1 — Mechanism](transformer-mechanism-course.html) [Stage 2 — Training stack](training-stack-course.html) [Stage 3 — Post-training](post-training-course.html) [Stage 4 — Evals](llm-evals-error-analysis-course.html)
+
+[PagedAttention](https://arxiv.org/abs/2309.06180) [Orca](https://www.usenix.org/conference/osdi22/presentation/yu) [Speculative decoding](https://arxiv.org/abs/2211.17192) [Quantization trade-offs](https://arxiv.org/abs/2411.02355) [GPU MODE](https://github.com/gpu-mode/lectures)
+
+Hardware specifications and rental prices are the fastest-decaying figures here. The structural results — that decode intensity equals batch size, that KV cache sets concurrency, that speculative decoding fades at high batch — are arithmetic and will outlast the hardware. Mixture-of-experts models change the decode economics materially and are noted as out of scope in the simulator rather than approximated.

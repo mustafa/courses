@@ -1,0 +1,1151 @@
+EVALS — ERROR ANALYSIS FIRST, AND JUDGES YOU HAVE VALIDATED
+===========================================================
+
+=====
+EVALS
+=====
+
+
+  Stage 4 of the path, and one of the two the source list left out entirely. The
+  bottleneck discipline: read the data before you choose a metric, treat your LLM judge as the
+  unvalidated classifier it is, and learn the one piece of arithmetic that turns a judge's pass rate
+  into a number you can defend — along with what it costs you in uncertainty when the judge is
+  mediocre.
+
+    10 modules
+    ~25 h stage budget
+    ~$20 compute
+    1 interactive tool
+    ~85 min read
+    28 Aug 2026 verified
+
+  Stage 4 of five · prerequisite: a system with real traffic ·
+  the path is in Intermediate to Advanced AI
+
+
+  How to read this course
+  This stage is different from the other four. There is no architecture to learn and no paper to
+  reimplement. There is a practice, and it is mostly a practice of doing an
+  unglamorous thing first — reading your own failures one at a time — before doing the
+  thing that feels like work.
+  Module 5 is the technical core and it is one equation. It is not new: it is a
+  1978 result from epidemiology that applies to your judge for the same reason it applies to a
+  diagnostic test. Most teams shipping LLM features have never seen it, which is why so many
+  dashboards report numbers that are wrong by ten points in a knowable direction.
+  Module 7 includes an example of a claim this course could not verify, left in
+  deliberately, because a course about measurement that hides its own failed checks would be teaching
+  the opposite of its subject.
+
+
+
+--------------
+Course Modules
+--------------
+
+
+
+      1. A benchmark is not an evalDifferent questions
+
+      2. Error analysis, in the order it worksThe workflow
+
+      3. The golden setBuilding it
+
+      4. Your judge is an unvalidated classifierValidate it
+
+      5. Correcting the numberThe equation
+
+      6. Binary beats LikertAnd it is not close
+
+      7. Why benchmark numbers misleadEvidence
+
+      8. The statistics you actually needSample size
+
+      9. Closing the loopThe capability
+
+      10. The Judge CalibratorInteractive
+
+
+
+
+------------------------------------
+Module 1: A benchmark is not an eval
+------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to state precisely what question each one answers
+
+    * Know why an eval measures a system rather than a model, and what follows from that
+
+    * Understand why swapping to a better-benchmarked model routinely makes your product worse
+
+
+Two different questions
+-----------------------
+
+
+Benchmark
+How does this model rank against other models on someone else's
+distribution? MMLU, SWE-bench, GPQA, an arena leaderboard.
+Genuinely useful for procurement and for research. Nearly worthless for deciding whether your
+feature ships, because your traffic does not look like the benchmark and your failure modes are not
+its failure modes.
+Eval
+Does my system do my job on my traffic?
+Almost all of the value is here. Almost all of the published material is on the other side, which
+is how teams arrive at production with a confident opinion about which model is best and no way to
+tell whether their thing works.
+
+
+An eval measures the system, not the model
+----------------------------------------
+
+
+This is the distinction that has practical teeth. Your output is produced by a pipeline: a prompt,
+retrieval, tool calls, an output parser, a retry policy, a fallback, and somewhere in the middle, a
+model. All of it contributes to whether the answer is good.
+
+So the object under measurement is the whole pipeline. And that has an immediate consequence that
+surprises people every time it happens:
+
+Why a better model makes your product worse
+Your prompt was tuned against the old model. It contains phrasings that worked, formatting
+instructions that were necessary because the old model got the format wrong, few-shot examples chosen
+because they fixed specific old failures, and a parser written around the old model's output quirks.
+A new model is better on average and different in particular. It does not need half your
+instructions, is confused by another quarter, and produces output your parser was not written for.
+The model improved and the system regressed, and both statements are true at once.
+This is not an argument against upgrading. It is an argument that "we swapped the model"
+is a change that requires the same evaluation as any other change — and that if your
+eval cannot detect the regression, you are measuring the wrong object. Teams that treat model
+upgrades as free are the ones who discover this in production.
+
+
+What benchmarks are still good for
+----------------------------------
+
+
+Being clear about this stops the module from being a straw man. Benchmarks are the right tool for
+shortlisting — narrowing thirty models to three worth evaluating properly.
+They are the right tool for tracking the frontier, if you read them with the
+caveats in Module 7. And they are the only practical tool for capability research,
+where the question genuinely is about models rather than systems.
+
+What they cannot do is tell you whether to ship. That decision needs your traffic, your failure
+modes, and a number you built.
+
+Module 1 takeaways
+
+    * A benchmark ranks models on someone else's distribution; an eval asks whether your system does your job.
+
+    * An eval measures the whole pipeline — prompt, retrieval, tools, parser, fallbacks, model.
+
+    * A better model can make a worse system, because the prompt was fitted to the old one.
+
+    * Benchmarks are for shortlisting and tracking the frontier. They are not a ship decision.
+
+
+-----------------------------------------------
+Module 2: Error analysis, in the order it works
+-----------------------------------------------
+
+
+By the end of this module you will
+
+    * Know the six-step workflow and why the order is the whole thing
+
+    * Be able to explain open coding and axial coding, and where they come from
+
+    * Understand exactly why teams skip step one and what it costs them
+
+
+The workflow
+------------
+
+
+Most teams start by choosing metrics. That is the error, and inverting it is most of what this
+stage teaches.
+
+
+    11. Look at data. Read 100 real traces end to end. Not summaries, not aggregates
+  — the actual interactions, with what the user asked, what the system retrieved, what it did,
+  and what came out.
+
+    12. Open-code the failures. For every trace that went wrong, write one plain
+  sentence describing what went wrong. Do not categorise yet. Do not reach for someone else's
+  taxonomy. Just describe, in your own words, one line per failure.
+
+    13. Axial-code into a taxonomy. Now group your sentences into categories. The
+  categories emerge from your data rather than from a blog post, which is the entire point —
+  you will find failure modes specific to your domain that no generic rubric contains.
+
+    14. Count. Frequency per category. This is usually where the project changes
+  direction, because the thing everyone was arguing about turns out to be 3% of failures and the
+  thing nobody mentioned is 40%.
+
+    15. Build one targeted eval for the biggest bucket. Now, and only now, do you
+  write a metric. It measures one specific failure mode you have evidence matters.
+
+    16. Fix, re-measure, repeat.
+
+
+The vocabulary is borrowed, deliberately. Open coding and axial coding come from
+grounded theory in qualitative social science, where the method is precisely: derive your categories
+from the data rather than imposing them. It is the right borrowing, because the failure being
+prevented is identical — imposing a framework before you have looked, and then only ever seeing
+what the framework can express.
+
+Why teams skip step 1, stated without judgement
+Reading 100 traces takes a focused afternoon and feels like not-working. It produces no artefact,
+cannot be delegated meaningfully, and does not survive a status update. Choosing metrics feels like
+working: it produces a document, it can be assigned, and it makes a good slide.
+So the standard path is to adopt a generic rubric — helpfulness, harmlessness, groundedness,
+each scored 1–5 by a judge — and instrument it before anyone has read the failures. Six
+weeks later there is a dashboard with three numbers hovering around 3.8 that nobody can act on,
+because a rubric written before you looked at your data measures the failure modes of a
+generic system, and yours is not generic.
+The 100 traces are not preparation for the work. They are the work. Everything
+downstream — which metric, which judge, which fix — is determined by what you find, and
+you cannot shortcut to the output of a process whose input you have not gathered.
+
+
+What to write down while reading
+--------------------------------
+
+
+The mechanics matter more than they sound. Three practices that make the difference between an
+afternoon that pays and an afternoon that does not:
+
+
+    * One sentence, in your own words, per failure. The moment you write
+  "hallucination" you have stopped looking. Write "cited a policy section number that does not exist
+  in the retrieved document" — that is a different bug from "summarised the retrieved document
+  accurately but answered a question the user did not ask," and a taxonomy that calls both
+  hallucination will send you to fix the wrong one.
+
+    * Note where in the pipeline it went wrong. Retrieval returned nothing useful?
+  Retrieval was fine and the model ignored it? The parser dropped a field? A surprising share of what
+  gets called a model failure is a retrieval or plumbing failure, and you can only see that by
+  reading the trace rather than the output.
+
+    * Do not fix anything yet. The urge to stop and fix the first bug is strong and
+  it is the thing that turns error analysis into anecdote. You are sampling a distribution; stopping
+  at the first observation means you never learn the distribution.
+
+
+A rough sanity check on the number 100
+Why a hundred? It is not magic, and it is worth knowing the reasoning rather than the ritual.
+You are estimating category frequencies. With 100 traces at maybe a 30% failure rate you have
+about 30 failures, so a category that is 20% of failures shows up roughly six times — enough to
+recognise as a pattern, not enough to size precisely. That is the right resolution for step 4, whose
+job is ranking categories rather than measuring them.
+If two categories come out close and the choice between them matters, that is your signal to read
+another hundred rather than to argue. And if your failure rate is 5% rather than 30%, 100 traces
+gives you five failures, which is anecdote — sample failures preferentially instead.
+
+
+Module 2 takeaways
+
+    * Look, open-code, axial-code, count, build one metric, fix and re-measure. The order is the method.
+
+    * Open and axial coding come from grounded theory: categories emerge from data, not from a rubric.
+
+    * Write specific sentences. "Hallucination" is where looking stops.
+
+    * Note the pipeline stage — much of what is blamed on the model is retrieval or plumbing.
+
+    * 100 traces is sized for ranking categories, not measuring them. Adjust for your failure rate.
+
+
+------------------------
+Module 3: The golden set
+------------------------
+
+
+By the end of this module you will
+
+    * Know what belongs in a golden set and what does not
+
+    * Understand why stratified sampling beats random sampling here, decisively
+
+    * Know the three failure modes: contamination, staleness, and the single-labeller problem
+
+
+What it is
+----------
+
+
+A golden set is a collection of inputs with known-correct outputs or known-correct judgements,
+labelled by someone who owns the definition of "good." It is the ground truth against which
+everything else — your judge, your metric, your dashboard — is calibrated. Every number
+you eventually defend traces back to it.
+
+Which means the golden set is the one artefact where cutting corners invalidates everything
+downstream, silently. A wrong model can be swapped. A wrong golden set makes every measurement you
+have ever taken meaningless without producing a single error message.
+
+
+Stratify. Do not sample uniformly.
+----------------------------------
+
+
+The instinct is a uniform random draw from traffic, on the grounds that it is representative. For
+a golden set that is the wrong objective, for a specific reason.
+
+Your traffic is mostly easy. If 80% of requests are trivially handled, a uniform sample of 200
+spends 160 labels confirming that easy things are easy. The information about where your system
+actually stands lives in the hard and borderline cases, and a uniform sample under-represents exactly
+those.
+
+Deliberately over-sample the hard, the borderline and the adversarial, and record
+the strata so you can reweight to traffic proportions when you need a population estimate. You get
+far more information per label, and — this matters for Module 5 — you get roughly equal
+numbers of good and bad examples, which is what lets you measure both of your judge's error rates
+with similar precision.
+
+Three ways golden sets go wrong
+1. Contamination. Someone uses the golden set to iterate — tweaking prompts
+until the number goes up. Now it is a training set wearing a test set's name, and your number
+measures how well you fitted it. Keep a held-out portion that is opened rarely and by rule, not by
+inclination. This is the same failure as benchmark contamination in Module 7, at a smaller scale and
+entirely within your control, which makes it more embarrassing.
+2. Staleness. Traffic drifts. Users learn what your product does and ask
+different things; you ship features that change the distribution. A golden set assembled at launch is
+measuring a product that no longer exists. Re-sample on a schedule, and check the drift by comparing
+category frequencies between old and new samples.
+3. The single-labeller problem. One person labels everything, so "correct" means
+"what that person thought on that day." You cannot detect it from inside — agreement with
+yourself is always high. The fix is to have a second person independently label an overlapping subset
+and measure agreement, corrected for chance (Cohen's kappa is the standard). If two competent people
+disagree substantially, your definition of good is not yet well specified, and no judge can
+be more consistent than the definition it is imitating. That is a finding about your
+product, not about your labellers, and it is better to discover it here than in a review.
+
+
+Module 3 takeaways
+
+    * The golden set is what every downstream number is calibrated against; corrupting it fails silently.
+
+    * Stratify towards hard and borderline cases; record strata so you can reweight to traffic.
+
+    * Roughly balanced good and bad examples give you both judge error rates at similar precision.
+
+    * Watch for contamination, staleness and the single-labeller problem.
+
+    * Low inter-annotator agreement means your definition of good is underspecified — fix that first.
+
+
+-------------------------------------------------
+Module 4: Your judge is an unvalidated classifier
+-------------------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to name the two error rates that matter and say why "agreement" hides both
+
+    * Know the specific biases LLM judges exhibit and which are documented
+
+    * Know when to re-validate, which is more often than teams do
+
+
+The framing that fixes this
+---------------------------
+
+
+Using a model to grade outputs is the only way to evaluate open-ended generation at volume, and it
+is fine. What is not fine is treating the judge's output as ground truth.
+
+A judge is a classifier. It takes an input and emits a label. You would not ship
+a classifier into a decision-making pipeline without measuring its error rates on held-out data, and
+there is no reason this one is exempt. The fact that it is implemented as a prompt rather than as a
+trained model changes nothing about what it is.
+
+
+Measure both error rates. Separately.
+-------------------------------------
+
+
+The single number people report is agreement: how often does the judge's label match
+mine? It is nearly useless, and worse than useless when classes are imbalanced.
+
+If 85% of your outputs are good, a judge that says "good" unconditionally scores 85% agreement
+while providing exactly zero information. That is not a contrived example — it is close to what
+a lenient judge on healthy traffic actually does.
+
+
+  Judge says goodJudge says bad
+  You labelled good
+  TPTrue positive rate = TP/(TP+FN), also called sensitivity or recall. Of the outputs that are genuinely good, what fraction does the judge accept?
+  FNGood work the judge rejected. Annoying but visible — someone investigates.
+  You labelled bad
+  FPBad output the judge passed. The dangerous cell. Nobody investigates a pass.
+  TNTrue negative rate = TN/(TN+FP), also called specificity. Of the outputs that are genuinely bad, what fraction does the judge catch?
+
+
+Report both rates as separate numbers, always. And expect them to be asymmetric, because
+judges are systematically lenient: they pass things they should fail. That shows up
+catastrophically in the true negative rate and barely at all in overall agreement, which is precisely
+why the single number is the one that gets reported.
+
+
+The documented biases
+---------------------
+
+
+Zheng et al. (2023)
+— the MT-Bench and Chatbot Arena paper — examined LLM judges directly and named the
+failure modes: position bias (which response is shown first affects which is
+picked), verbosity bias (longer is judged better), self-enhancement
+bias (a judge favours outputs from its own model family), and limited reasoning ability on
+tasks the judge cannot itself do.
+
+The 80% number, and how it is usually misread
+The same paper reports that strong judges like GPT-4 achieve over 80% agreement with human
+preferences — and, crucially, that this is the same level of agreement humans reach with
+each other.
+That second clause is the part that gets dropped, and it cuts both ways. Optimistically: the judge
+is about as good as another person, which is genuinely useful. Pessimistically: human-human
+agreement is a ceiling, so a judge cannot be more consistent than your task definition
+allows, and if you need better than 80% you need a sharper definition of "good," not a better judge.
+And the practical caution: that number is for their task on their data. It is
+not transferable evidence about your judge on your traffic, which is the only thing that determines
+whether your dashboard means anything. It tells you the approach can work. It tells you nothing about
+whether yours does.
+
+
+Practical mitigations, in order of value
+----------------------------------------
+
+
+    * Swap the order and check. For pairwise judging, run each comparison twice with
+  positions swapped. If the verdict flips, that pair is a coin toss and should be recorded as a tie
+  rather than a win. This is cheap and it removes a documented bias — do it before anything
+  more elaborate.
+
+    * Report length alongside every result. The verbosity bias means a win rate that
+  moved together with response length has told you very little.
+
+    * Do not judge with the model you are evaluating where you can avoid it, given
+  self-enhancement bias. Where you cannot, at least know it is there.
+
+    * Re-validate whenever anything changes. New judge model, new judge prompt,
+  drifted traffic, new product surface — your measured rates are stale, and so is every number
+  computed from them. This is the discipline that lapses first, and the failure is invisible: the
+  dashboard keeps producing numbers.
+
+
+Module 4 takeaways
+
+    * A judge is a classifier. Measure its error rates on held-out labelled data, or you have not validated it.
+
+    * Report TPR and TNR separately. Agreement hides leniency, especially under class imbalance.
+
+    * Documented biases: position, verbosity, self-enhancement, limited reasoning.
+
+    * The 80% agreement figure is roughly human-human agreement — a ceiling, and not transferable to your task.
+
+    * Swap positions and re-run; report length; re-validate whenever anything changes.
+
+
+-------------------------------
+Module 5: Correcting the number
+-------------------------------
+
+
+By the end of this module you will
+
+    * Be able to derive the correction in three lines and apply it unaided
+
+    * Know why a mediocre judge inflates your uncertainty as well as biasing your estimate
+
+    * Know the two edge cases where the estimator misbehaves, and what they mean
+
+
+The problem, stated exactly
+---------------------------
+
+
+Your judge passes 80% of production traffic. What is your actual quality rate?
+
+It is not 80%. Your judge makes two kinds of mistake at two different rates, and both distort the
+observed number. The good news is that the distortion is completely predictable once you have
+measured the rates, and the correction is arithmetic.
+
+
+Derive it
+---------
+
+
+Let π be the true fraction of good outputs, Se your judge's true positive rate
+and Sp its true negative rate. The judge passes an output in exactly two ways: it is genuinely
+good and the judge correctly accepts it, or it is genuinely bad and the judge wrongly accepts it.
+
+
+pobs = π · Se  +  (1 − π) · (1 − Sp)
+
+
+That is the whole model. Now solve for π:
+
+
+pobs = π·Se + 1 − Sp − π + π·Sp
+pobs + Sp − 1 = π(Se + Sp − 1)
+π̂ = ( pobs + Sp − 1 ) / ( Se + Sp − 1 )
+
+
+This is the Rogan-Gladen estimator, published in the American Journal of
+Epidemiology in 1978 for correcting disease-prevalence estimates measured with an imperfect
+diagnostic test. Your judge is an imperfect diagnostic test. The mathematics does not care what the
+test is made of.
+
+Work the example
+Judge passes 80% of traffic. You measured Se = 0.95 and Sp = 0.70 against your
+own labels on a stratified sample.
+π̂ = (0.80 + 0.70 − 1) / (0.95 + 0.70 − 1) = 0.50 / 0.65 = 0.769
+Your true quality rate is about 77%, not 80%. Three points is not dramatic — and note
+which direction it went, because it is the direction that matters. A lenient judge inflates
+your number, and leniency is the judge failure mode you should expect by default.
+Push the specificity down to a still-plausible Sp = 0.55 and the same 80% pass rate becomes
+π̂ = 0.35/0.50 = 70%. Ten points, in the flattering direction, from a judge that most
+teams would have called acceptable on an agreement score.
+
+
+The part that is not about bias: your uncertainty grows too
+----------------------------------------
+
+
+Correcting the point estimate is the well-known half. The half that changes how you plan is what
+the correction does to your error bars.
+
+Look at the denominator: J = Se + Sp − 1. This is Youden's index, and it measures how
+informative the judge is — 1 for a perfect judge, 0 for one that is no better than a coin.
+Propagating the sampling error in pobs through the correction:
+
+
+SE(π̂) ≈ √( pobs(1−pobs) / n ) / J
+
+
+Every point of judge quality you give up multiplies your confidence interval by
+1/J. At Se = 0.95 and Sp = 0.70, J = 0.65 and your interval is 1.54× wider than
+if you had labelled by hand. At Se = 0.85, Sp = 0.55, J = 0.40 and it is 2.5× wider.
+
+Read that as an exchange rate, because it is one. A mediocre judge does not merely shift your
+number, it costs you statistical power, and power is what lets you tell whether a change
+helped. Improving the judge and collecting more samples are substitutes, and the tool in Module 10
+lets you price the trade.
+
+Two edge cases, and what they are telling you
+The estimate can fall outside [0, 1]. If pobs = 0.25 with Sp = 0.70,
+you get (0.25 + 0.70 − 1)/J = a negative number. This is not a bug in the estimator; it is
+the estimator saying your observed pass rate is lower than the false-positive rate alone would
+produce, which is impossible under this model. Something is wrong: your rates are stale, your
+traffic has shifted, or the labelled sample was not representative. Clamping the number and moving
+on is the mistake. Go and find out why.
+As J approaches zero the estimate explodes. A judge with Se + Sp near 1 carries
+no information — it is a coin weighted by its own leniency — and dividing by nearly zero
+tells you so, loudly. If your J is below about 0.3, the honest report is "we cannot currently
+measure this", and the fix is a better judge or human labelling, not a wider error bar.
+
+
+The sentence that goes in the review
+------------------------------------
+
+
+What makes this stage's clearing test different from an exercise is that you can say this out loud
+and defend it:
+
+"Our judge passes 80% of traffic. Validated against 200 human labels, it has a 95% true
+positive rate and a 70% true negative rate, so the corrected quality estimate is 77%, with a 95%
+interval of roughly plus or minus 4 points. The raw 80% is not our success rate, because our judge is
+lenient and passes about three in ten bad outputs."
+
+Nearly nobody in the field can currently produce that sentence about their own system. It takes an
+afternoon of labelling and one division.
+
+Module 5 takeaways
+
+    * pobs = π·Se + (1−π)(1−Sp). Solve for π. That is the whole derivation.
+
+    * π̂ = (pobs + Sp − 1)/(Se + Sp − 1) — Rogan-Gladen, 1978.
+
+    * A lenient judge inflates your number, and leniency is the default failure mode.
+
+    * J = Se + Sp − 1 divides your standard error: a worse judge costs statistical power, not just accuracy.
+
+    * Estimates outside [0,1] or a J below ~0.3 are findings, not numbers to clamp.
+
+
+-----------------------------
+Module 6: Binary beats Likert
+-----------------------------
+
+
+By the end of this module you will
+
+    * Know the three arguments against asking a judge for a 1–5 score
+
+    * Be able to convert a vague rubric into several specific binary questions
+
+    * Know the one case where a scale is genuinely the right choice
+
+
+The instinct, and why to resist it
+----------------------------------
+
+
+The natural design is to ask the judge for a quality score out of five. It feels more informative
+than a yes/no. It is less informative, for three reasons.
+
+
+    * Reliability. The boundary between 3 and 4 is not stable — not across
+  runs of the same judge, not across judges, and not between two of your own human labellers. Most of
+  the variance in the number is noise about where an unstated threshold sits, and noise does not
+  average away into signal.
+
+    * Validation. Everything in Module 5 requires a binary confusion matrix. There
+  is no clean true positive rate for a five-point scale, so you cannot correct a Likert
+  average. You have chosen a metric that cannot be de-biased, which means you have chosen a
+  metric you cannot defend.
+
+    * Actionability. "Groundedness went from 3.6 to 3.8" tells you nothing you can
+  act on. Nobody can name the change that would move it, and nobody can tell you whether the move is
+  real. It is a number that survives a status update and produces no decisions.
+
+
+What to do instead
+------------------
+
+
+Replace the scale with several specific binary questions, each naming a failure mode from
+your taxonomy — the one you built in Module 2, from your own data.
+
+
+Instead of
+"Rate the groundedness of this response from 1 to 5."
+Unvalidatable, uncorrectable, unactionable. Averages
+to 3.7 forever.
+Ask
+Did it cite a source that exists in the retrieved context?
+Did every factual claim appear in the retrieved context?
+Did it answer the question that was asked?
+Did it refuse a request it should have handled?
+Each individually validatable, individually
+correctable, individually fixable.
+
+
+A dashboard of eight validated binaries is worth more than any composite, and it has a property
+composites lack: when one moves, you know what changed and who owns it. The composite's
+appeal is that it fits in one cell of a table. That is not a measurement argument.
+
+The one case where a scale is right
+Not never. When the quantity genuinely is continuous and you have a defined anchor for each point
+— a rubric where "3" has a written definition that two labellers apply consistently — a
+scale carries real information, and human graders in education have done this well for decades.
+The test is simple: can two of your own people, given only the rubric, assign the same
+score to the same output most of the time? If yes, use the scale and validate it against
+their labels. If no — and for a rubric written in an afternoon the answer is almost always no
+— you are asking the judge to be more consistent than your definition is, and it will oblige by
+producing consistent noise.
+
+
+Module 6 takeaways
+
+    * Likert boundaries are unstable across runs, judges and human labellers.
+
+    * You cannot compute a true positive rate for a five-point scale, so you cannot correct it.
+
+    * "3.6 to 3.8" names no change and licenses no decision.
+
+    * Several specific binaries from your own taxonomy beat any composite.
+
+    * Use a scale only when two of your own people apply the rubric consistently.
+
+
+---------------------------------------
+Module 7: Why benchmark numbers mislead
+---------------------------------------
+
+
+By the end of this module you will
+
+    * Know four distinct mechanisms by which a benchmark number overstates capability
+
+    * Have specific, checkable evidence for each rather than a general suspicion
+
+    * See what it looks like to fail to verify a claim and say so
+
+
+1. The labels are wrong more often than you think
+----------------------------------------
+
+
+Gema et al., "Are We Done
+with MMLU?" (NAACL 2025) manually re-annotated MMLU and found ground-truth errors throughout. In
+the Virology subset, 57% of the analysed questions contained errors. Across
+the re-annotated sample they estimate 6.49% of MMLU questions contain errors.
+
+The consequence is not merely that scores are a few points off. Errors put a ceiling on
+achievable accuracy, and above that ceiling you are measuring agreement with mistakes. The paper
+reports rank changes when scoring on the cleaned subset — a model ranked 16th on all Virology
+instances ranked first when only the correct instances were used. The ordering, not just the
+magnitude, was an artefact of the errors.
+
+
+2. The tasks may be unsolvable as stated
+----------------------------------------
+
+
+SWE-bench is the cleanest documented case. When OpenAI worked with the benchmark's authors to
+produce SWE-bench Verified in August 2024, expert software engineers reviewed 1,699
+problems, three independently per problem. The findings: 38.3% of samples had underspecified
+problem statements and 61.1% had unit tests that could unfairly mark valid solutions
+incorrect. In total 68.3% of samples were filtered out, leaving 500.
+
+So for two years, every reported SWE-bench score was partly a measurement of how well a model
+guessed which of several valid readings the hidden tests happened to encode. Not entirely —
+but partly, and by an amount nobody could quantify at the time.
+
+
+3. Contamination
+----------------
+
+
+Benchmarks are published on the internet. Training corpora are scraped from the internet. Unless a
+lab decontaminates specifically and reports how, a benchmark score partly measures memorisation
+— and decontamination is hard to do well, because near-duplicates, translations, and
+discussions of the questions all leak.
+
+The tell is a model that is excellent on a benchmark and unremarkable on trivially rephrased
+versions of the same questions. If you care about a benchmark number, perturbing the questions is the
+cheapest available check, and it is one you can run yourself.
+
+A claim this course could not verify — left in on purpose
+While researching this module, search results attributed to an OpenAI post titled "Why we no
+longer evaluate SWE-bench Verified" reported specific figures: that roughly 138 problems were
+audited (about 27.6% of the 500), that nearly 60% of the problems its models failed had fundamentally
+broken tests, and that several named frontier models had been trained on benchmark solutions.
+The primary source returned HTTP 403 and could not be read. A secondary article
+that appeared to discuss it turned out, on inspection, to paraphrase without any of the figures. So
+those numbers reached me only through a search summary, which is precisely the chain of custody this
+course tells you not to trust.
+What I am willing to state: a post with that title exists and argues that improvements on
+SWE-bench Verified increasingly reflect benchmark exposure at training time rather than real
+capability. That claim is consistent across every source and is the load-bearing point.
+The specific percentages are not repeated here, because I could not check them.
+This is left in the course because it is the behaviour the course is asking of you. The temptation
+to include vivid unverified numbers is strong — they make the argument better. The rule that
+prevents you from ever being badly wrong in public is that you cite what you have read, not what you
+have been told about.
+
+
+4. Saturation and the metric that stops discriminating
+----------------------------------------
+
+
+When the top models cluster within a couple of points at the top of a benchmark, the remaining gap
+is mostly label noise and idiosyncrasy. A one-point lead on a saturated benchmark carries almost no
+information about capability, and it carries a great deal of information about marketing.
+
+The practical rule when reading a leaderboard: look at the spread, not the ordering.
+If the top five are within the benchmark's own error rate of each other, the ordering is noise, and
+the fact that the ordering changes with each release is evidence for exactly that.
+
+What to do with all this
+Not "ignore benchmarks." They remain the only way to compare models you have not deployed. The
+disciplines that make them usable:
+
+    * Read the spread. Differences smaller than the benchmark's known error rate are not
+  differences.
+
+    * Prefer benchmarks with a published validation process, and read what it found —
+  SWE-bench Verified is more trustworthy than SWE-bench because its authors published how
+  bad the original was.
+
+    * Perturb before believing. Rephrase a sample of questions and see whether the score
+  holds.
+
+    * Then build your own eval anyway, because none of this addresses Module 1: the benchmark
+  is not measuring your system.
+
+
+Module 7 takeaways
+
+    * MMLU: 57% of analysed Virology questions had errors; ~6.49% overall. Rankings changed on the cleaned subset.
+
+    * SWE-bench: 68.3% of samples filtered out for underspecification or unfair tests, leaving 500 Verified.
+
+    * Contamination is structural. Perturbing questions is the cheap check you can run yourself.
+
+    * On a saturated benchmark, read the spread rather than the ordering.
+
+    * Cite what you have read, not what you have been told about. Module 7 contains a worked example of the difference.
+
+
+------------------------------------------
+Module 8: The statistics you actually need
+------------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to put an honest interval on a pass rate
+
+    * Be able to compute, before running an experiment, the smallest improvement it could detect
+
+    * Know why judge bias mostly cancels in an A/B comparison but noise amplification does not
+
+
+Interval on a proportion
+------------------------
+
+
+You measured 80% on 200 samples. The standard error is
+
+SE = √( p(1−p) / n ) = √( 0.8 × 0.2 / 200 ) = 0.028
+
+So a 95% interval is roughly 80% ± 5.5 points: 74.5% to 85.5%. Worth internalising
+the shape of this — at n = 100 the interval is about ±8 points, at n = 400 about
+±4, at n = 1,000 about ±2.5. Halving the interval costs four times the
+samples. Nearly every "our score went from 78 to 81" claim on a few hundred samples is
+inside its own noise.
+
+
+Minimum detectable effect — compute this before you run the experiment
+----------------------------------------
+
+
+The most useful formula in this module, because it is the one that prevents wasted work. Comparing
+two arms of n samples each, at 80% power and 5% significance:
+
+
+MDE ≈ 2.8 × √( 2 · p(1−p) / n )
+
+
+At p = 0.8 and n = 200 per arm, MDE ≈ 11 percentage points. If the change you are
+testing plausibly moves quality by three points, this experiment cannot see it, and running
+it will produce a number that is noise regardless of which way it lands. Better to know that before
+spending the week.
+
+And now put the judge back in
+Two effects, and they point in opposite directions, which is why this is worth working through
+rather than memorising.
+The bias mostly cancels. If you compare before and after with the same
+unchanged judge, both measurements are distorted the same way, and the distortion largely
+subtracts out. The significance test on the difference is unaffected by Se and Sp entirely —
+the J in the numerator and the J in the denominator cancel exactly. So you do not need a
+well-calibrated judge to detect that something changed.
+The effect size does not cancel. Your estimate of how much it changed is
+the observed difference divided by J. At J = 0.65, an observed 3-point improvement corresponds to a
+true improvement of 4.6 points. A lenient judge compresses real differences, so you
+systematically understate your wins in absolute terms while overstating your absolute quality.
+And the MDE does not cancel. Expressed in true-quality points, your minimum
+detectable effect is MDE/J — so at J = 0.65 you need 1.54× the true improvement to
+see anything, or 2.4× the samples to compensate. That is the exchange rate between judge
+quality and sample size, and the tool in Module 10 prices it.
+The summary worth carrying: a mediocre judge is adequate for detecting change and inadequate
+for stating level. Most dashboards do the second while only being entitled to the first.
+
+
+Two habits worth more than any formula
+--------------------------------------
+
+
+    * Report the interval, always. A point estimate with no interval invites a
+  decision the data does not support, and the person making that decision will not know.
+
+    * Decide the sample size and the success threshold before you look. Otherwise
+  you will stop when the number is favourable, which is a real and well-documented way to be
+  confidently wrong. Pre-registration is not academic ceremony; it is the only defence against your
+  own optimism, and it costs one sentence written in advance.
+
+
+Module 8 takeaways
+
+    * SE = √(p(1−p)/n). At n=200, p=0.8, the 95% interval is about ±5.5 points.
+
+    * MDE ≈ 2.8√(2p(1−p)/n). At n=200 per arm that is ~11 points — most changes are invisible.
+
+    * Judge bias cancels in a same-judge A/B; the significance test is unaffected by Se and Sp.
+
+    * Effect size and MDE both scale by 1/J, so a lenient judge understates your wins and costs you power.
+
+    * A mediocre judge can detect change and cannot state level. Know which claim you are making.
+
+
+--------------------------
+Module 9: Closing the loop
+--------------------------
+
+
+By the end of this module you will
+
+    * Know why an eval with no attached decision is worse than none
+
+    * Know what to run in CI, what to run nightly, and what to run before a launch
+
+    * Know the three signs an eval programme has quietly stopped working
+
+
+An eval with no lever attached is overhead
+----------------------------------------
+
+
+The failure that ends eval programmes is not a bad metric. It is a good metric that nothing acts
+on. Someone builds a dashboard, it goes amber, and there is no defined owner and no defined response,
+so the amber becomes normal. Six months later the dashboard is a cost centre that everybody has
+learned to ignore.
+
+Before you build a metric, write down what you will do when it moves. If the
+answer is "investigate," name who. If the answer is "block the deploy," wire it in. If the honest
+answer is "nothing," do not build the metric — you have found something more useful than a
+number, which is that this question does not matter to you as much as you assumed.
+
+
+The three tiers
+---------------
+
+
+Tier	|	What	|	Size	|	Response
+CI, every commit	|	Deterministic assertions: schema validity, required fields present, no forbidden content, latency budget.	|	Tens of cases, seconds	|	Block the merge. No judgement, no judge.
+Nightly	|	Your validated binaries on the golden set. This is the eval proper.	|	Hundreds of cases	|	Alert an owner on a move outside the interval.
+Pre-launch	|	Full golden set plus adversarial and long-tail cases, with human review of a sample.	|	Thousands, and hours	|	A go/no-go decision by a named person.
+
+
+Getting the tiers wrong is the common operational error, in both directions. Judge-based evals in
+CI make the build slow, flaky and expensive, so people disable them. Only running the full suite
+pre-launch means regressions are found weeks after the commit that caused them, when the context is
+gone. Deterministic checks are cheap and belong in CI; judge-based evals are expensive and
+belong on a schedule.
+
+Three signs the programme has quietly stopped working
+1. Nobody has read a trace this month. The dashboard is running, the numbers are
+being produced, and no human has looked at an actual failure since the taxonomy was built. Traffic
+drifts; your categories are now a description of last quarter. Put a recurring hour in the calendar
+for reading traces, treat it as maintenance, and expect to find something every time.
+2. The judge has not been re-validated since it was written. Its prompt has been
+edited three times, the underlying model has been upgraded twice, and the Se and Sp on the dashboard
+are from March. Every corrected number since then has been computed with stale constants.
+3. The number only ever goes up. Real measurement of a changing system produces
+regressions. A metric that has never gone down is either not sensitive enough to detect anything, or
+it is being optimised against directly — in which case, per Module 3, it has become a training
+set and stopped being a measurement.
+
+
+Module 9 takeaways
+
+    * Write down the response before you build the metric. If the answer is "nothing," that is the finding.
+
+    * Deterministic checks in CI; judge-based evals nightly; the full suite plus human review pre-launch.
+
+    * Nobody reading traces, a stale judge validation, and a number that never falls are the three decay signals.
+
+    * Closing the loop — measure, change, re-measure, know it is real — is the capability. The dashboard is not.
+
+
+-------------------------------
+Module 10: The Judge Calibrator
+-------------------------------
+
+
+By the end of this module you will
+
+    * Have corrected a headline number and seen how far it moved
+
+    * Have seen a plausible-looking improvement fail to clear its own noise floor
+
+    * Know the exchange rate between judge quality and sample size for your situation
+
+
+Guess your true quality rate before the correction runs. If your guess is close to the raw pass
+rate, that is the intuition this module exists to break.
+
+
+
+    Interactive
+
+Judge Calibrator
+----------------
+
+
+    Stage 1 of 3
+
+
+
+
+
+      1What you measured
+        Open
+      Four numbers you can get from an afternoon of labelling and a day of traffic.
+
+
+        Start from
+
+
+
+
+
+        Your judge passes this fraction of traffic
+          80%
+
+
+
+
+        Traffic samples the judge scored
+          500
+
+
+
+
+        True positive rate — Se  (of good outputs, the fraction the judge passes)
+          0.95
+
+
+
+
+        True negative rate — Sp  (of bad outputs, the fraction the judge catches)
+          0.70
+
+
+
+
+
+        Examples you labelled by hand to measure Se and Sp
+          200
+
+        Assumed stratified — half genuinely good, half genuinely bad — which is what
+        Module 3 tells you to do and what gives both rates similar precision.
+
+
+
+        Before you look: what is your true quality rate?
+          80%
+
+
+
+
+
+        Your guess is locked before the estimator runs.
+
+
+
+
+
+      2The corrected number
+        Locked
+
+
+
+
+
+      3You shipped a change. Did it work?
+        Locked
+      Same judge, same golden set, after a fix. This is the question the clearing
+      test is really about.
+
+        New observed pass rate84%
+
+
+
+
+
+
+
+
+
+What this tool is and is not
+Exact: the point estimate is the Rogan-Gladen estimator, derived in Module 5 and unchanged
+since 1978. The confidence interval uses the standard delta-method variance that propagates
+uncertainty from all three measured quantities — the observed pass rate and the two
+judge rates, which are themselves estimates from a finite labelled sample. Many treatments omit the
+last two terms; leaving them out makes your interval look narrower than it is.
+Assumed: that Se and Sp are constant across the traffic you apply them to. They are not, in
+general — a judge is typically more accurate on clear-cut cases than on the borderline ones,
+and if your traffic mix shifts towards borderline cases, your rates are stale in a direction you
+cannot see. This is the main way a corrected number can still be wrong, and re-validating is the only
+defence.
+Not modelled: label error in your own hand labels; correlations between traffic samples;
+any drift between when you validated and when you measured. All three widen the real interval beyond
+what is shown.
+
+
+Clearing test — Stage 4
+Take a real LLM feature with real traffic — yours or a colleague's — and
+produce four things.
+
+    * A failure taxonomy derived from at least 100 traces you coded yourself, with counts per
+  category. Not a rubric you found; categories that came out of your data.
+
+    * A validated judge for your largest category, with its true positive and true negative
+  rates measured against your own labels on a stratified sample.
+
+    * A single headline number, corrected using those rates, that you would defend to a board
+  — including the sentence explaining why the raw judge pass rate is not that number, and an
+  interval computed with the judge's own uncertainty included.
+
+    * A shipped change, and the same number measured afterwards, moved — with a
+  statement of whether the movement clears the minimum detectable effect for your sample size.
+
+
+The fourth is what makes this a clearing test rather than an exercise. Anyone can build a
+measurement. The capability is closing the loop: measure, change, re-measure, and know the
+movement is real rather than noise.
+You have cleared Stage 4 when you can state your judge's false-negative rate from memory, and
+when you have moved a corrected number and can defend that the move was real.
+Not the test: a dashboard. An eval suite with no attached decision. A judge you
+did not validate. A Likert average. If you cannot state your judge's false-negative rate, you do not
+have an eval — you have a vibe with a number attached, and the number is flattering you in a
+direction you could have calculated.
+
+
+Where to go for the depth
+
+    * Hamel
+  Husain's evals FAQ and the surrounding blog — free, and carries most of the
+  intellectual content of the error-analysis-first practice. Start here before paying for anything.
+
+    * Inspect
+  (UK AI Safety Institute) — build one real eval in the framework frontier labs actually use.
+  Sandboxing matters as soon as you evaluate agents. ~8 hours.
+
+    * Chip Huyen, AI Engineering — the evaluation chapters, and the best version
+  of this material for framing to a leadership audience.
+
+    * Zheng et al.,
+  Judging LLM-as-a-Judge — the primary source for the judge biases in Module 4.
+
+    * Gema et al., Are We
+  Done with MMLU? — read it as a template for auditing any benchmark you depend on.
+
+
+Module 10 takeaways
+
+    * The correction moves the number in a knowable direction: a lenient judge flatters you.
+
+    * Judge quality divides your standard error by J — it costs power, not just accuracy.
+
+    * A same-judge A/B cancels the bias but not the noise amplification or the effect-size compression.
+
+    * Compute the MDE before running the experiment, not after being disappointed by it.
+
+
+  Stage 4 of five. Built 28 August 2026; every figure derived or cited the same day.
+
+    The path
+    Stage 1 — Mechanism
+    Stage 2 — Training stack
+    Stage 3 — Post-training
+    Stage 5 — Inference
+
+
+    Evals FAQ
+    LLM-as-a-Judge
+    Are We Done with MMLU?
+    SWE-bench Verified
+    Inspect
+
+  The benchmark evidence in Module 7 is a snapshot and
+  benchmarks decay fast — treat those figures as of August 2026 and re-check before quoting
+  them. Module 5's estimator does not decay; it is a 1978 result about imperfect tests and will
+  outlast every model named here. Module 7 also documents one claim this course could not verify and
+  therefore does not repeat.

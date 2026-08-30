@@ -1,0 +1,1051 @@
+POST-TRAINING — HOW A DOCUMENT COMPLETER BECOMES AN ASSISTANT
+=============================================================
+
+=============
+POST-TRAINING
+=============
+
+
+  Stage 3 of the path. How a document completer becomes an assistant — SFT,
+  RLHF, and the derivation of DPO's closed form done properly rather than asserted. Then the part
+  that gets skipped: exactly where that closed form bites, why the probability of the response you
+  preferred can fall during training, and why reward moving from taste to verification is
+  what actually unlocked reasoning models.
+
+    9 modules
+    ~30 h stage budget
+    ~$20–60 compute
+    2 interactive tools
+    ~80 min read
+    28 Aug 2026 verified
+
+  Stage 3 of five · prerequisite:
+  The Training Stack ·
+  the path is in Intermediate to Advanced AI
+
+
+  How to read this course
+  Post-training is where the most confident wrong beliefs in applied AI live, and one of them
+  — that fine-tuning teaches a model facts — costs enterprises more money than any other
+  single misconception in the field. Module 3 is about that specifically.
+  The DPO derivation in Module 5 is done in full. Most explanations assert that
+  the reward model "cancels out." It does, for a specific reason, in a specific step, and you should
+  be able to point at that step. Module 6 then does the thing most treatments skip entirely: what the
+  closed form costs you, with a mechanism you can watch happen in the interactive tool.
+  Where a result is contested — and the superficial-alignment claim in Module 2 genuinely is
+  — this course says so rather than picking the tidier side.
+
+
+
+--------------
+Course Modules
+--------------
+
+
+
+      1. The problem post-training solvesDocument completer
+
+      2. SFT teaches format, not factsAnd the contested claim
+
+      3. Fine-tuning does not add knowledgeThe expensive belief
+
+      4. RLHF, classicReward model + PPO
+
+      5. DPO — the derivationIn full
+
+      6. Where the closed form bitesDisplacement
+
+      7. Verified reward and GRPOWhat unlocked reasoning
+
+      8. Choosing a recipeDecision table
+
+      9. The Post-Training BenchInteractive
+
+
+
+
+------------------------------------------
+Module 1: The problem post-training solves
+------------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to explain base-model behaviour as correct behaviour under the pretraining objective
+
+    * Know the three post-training moves and what each one can and cannot buy
+
+    * Have the result that shows how much of a model's usefulness is post-training rather than scale
+
+
+Why the base model answers a question with another question
+----------------------------------------
+
+
+Stage 1 established that pretraining optimises one thing: the average negative log probability of
+the next token. Take that literally and base-model behaviour stops being strange.
+
+Ask a faithful next-token predictor "What is the capital of France?" and a reasonable
+continuation is "What is the capital of Germany?" — because across a very large
+corpus, that string appears most often inside lists of quiz questions. The model is not confused, not
+broken and not failing. It is doing exactly what it was optimised to do, correctly.
+
+Post-training is everything that converts that object into something that answers. It is
+conventionally three moves, and being precise about what each buys is most of the value of this
+stage.
+
+
+Stage	|	Teaches	|	Data	|	Cannot do
+Instruction tuning (SFT)	|	Format and task shape: when you see a question, produce an answer.	|	Thousands to low hundreds of thousands of demonstrations.	|	Add knowledge. If it was not in pretraining, SFT teaches confident statement, not knowing.
+Preference optimisation	|	Ranking among acceptable answers: which of two good replies is better.	|	Pairwise comparisons, human or model-generated.	|	Create a capability the base model lacks. It reweights what already exists.
+RL with verifiable reward	|	Reaching a checkable right answer, and the search behaviour that finds it.	|	Problems with automatic verifiers — maths, code, tests, constraint satisfaction.	|	Work where correctness cannot be checked by a program.
+
+
+How much is post-training worth? A number.
+The InstructGPT paper
+(Ouyang et al., 2022) reports that in human evaluations on their prompt distribution, outputs from
+the 1.3B-parameter InstructGPT model were preferred to outputs from the 175B GPT-3 —
+a model with 100× more parameters.
+Read that carefully, because it is easy to over-read. It does not say the small model knows more.
+It says that on this prompt distribution, judged by these labellers, a well
+post-trained small model produces more preferred outputs than a much larger base model. Knowledge did
+not move; usability did. That gap — between what a model contains and what you can get out of
+it — is the entire territory of this stage.
+
+
+Module 1 takeaways
+
+    * Base-model behaviour is correct under the pretraining objective, not broken.
+
+    * SFT teaches format, preference optimisation teaches ranking, RL teaches reaching a checkable answer.
+
+    * A 1.3B InstructGPT beat 175B GPT-3 on human preference — usability, not knowledge.
+
+
+---------------------------------------
+Module 2: SFT teaches format, not facts
+---------------------------------------
+
+
+By the end of this module you will
+
+    * Know exactly how SFT differs from pretraining — it is one line of code
+
+    * Understand loss masking and why getting it wrong quietly degrades the model
+
+    * Be able to state the superficial alignment hypothesis, its evidence, and why it is not settled
+
+
+Mechanically, it is pretraining with two changes
+----------------------------------------
+
+
+SFT is the same next-token cross-entropy loss on a different corpus, plus one thing that is easy
+to get wrong.
+
+The corpus is demonstrations: a prompt and a good response, formatted with whatever chat template
+the model will use at inference. The change is loss masking — you compute the
+loss only over the response tokens, not over the prompt tokens.
+
+
+# tokens:  [ <user> what is 2+2 ? <assistant> ][ four . ]
+# mask:    [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 ][ 1 1 1 ]
+loss = cross_entropy(logits[mask], targets[mask])
+
+
+If you do not mask, you are also training the model to generate prompts — to predict
+what a user would say. That is not a crash and not obviously visible in the loss curve. It is a
+diffuse, quiet degradation: capacity spent modelling a distribution you will never sample from, and a
+model slightly more inclined to continue conversations on the user's behalf. It is one of the most
+common bugs in hand-rolled SFT implementations precisely because nothing complains.
+
+
+Quantity, quality, and the diversity that actually matters
+----------------------------------------
+
+
+SFT is dramatically cheaper than people expect. A useful instruction-following model can be
+produced from thousands of examples, not millions, and past a certain point additional data of the
+same shape adds very little.
+
+What matters more than count is coverage of the task distribution you will actually see.
+Ten thousand examples that all look like the same three tasks will produce a model that is excellent
+at those three and no better than the base model elsewhere. This is the practical form of the
+"quality over quantity" advice, and it is more actionable than the slogan: diversity of task
+shape is what you are buying, not prose polish.
+
+The superficial alignment hypothesis — stated fairly, including that it is contested
+LIMA (Zhou et al.,
+2023) trained on 1,000 carefully curated examples and reported strong instruction-following,
+motivating the superficial alignment hypothesis: a model's knowledge and capabilities are
+learned almost entirely in pretraining, and alignment mainly teaches it which sub-distribution of
+formats to use when talking to a user.
+Evidence for. Token-distribution analyses — notably Lin et al. (2023) —
+find that a base model and its aligned version produce nearly identical distributions at most token
+positions, with the divergence concentrated on stylistic and discourse tokens: hedges, politeness
+markers, safety disclaimers, formatting. That is a real, specific, measured result and it points the
+same way.
+Where it is over-read. "Alignment is superficial" gets used to mean post-training barely
+matters, which is not what the evidence supports. The token-distribution result is measured on
+particular models and prompt sets; it does not extend cleanly to safety behaviour under adversarial
+pressure, to multi-turn agentic use, or — most importantly — to the reasoning models of
+Module 7, where RL demonstrably produces behaviour that was not present in the base model's output
+distribution in any meaningful sense.
+The defensible position: for instruction-following style, alignment does look largely
+superficial. For capabilities elicited by large-scale RL, it does not. Anyone stating the
+strong version flatly in 2026 is behind the evidence.
+
+
+Module 2 takeaways
+
+    * SFT is pretraining's loss on demonstrations, with the loss masked to response tokens only.
+
+    * Unmasked loss trains the model to generate prompts — a silent, diffuse degradation.
+
+    * Task-shape diversity buys more than example count past a few thousand.
+
+    * The superficial alignment hypothesis has real token-level support for style, and does not extend to RL-elicited reasoning.
+
+
+--------------------------------------------
+Module 3: Fine-tuning does not add knowledge
+--------------------------------------------
+
+
+By the end of this module you will
+
+    * Be able to derive this from the objective, without appealing to empirical results
+
+    * Know exactly what fine-tuning does buy, so the answer is not simply "no"
+
+    * Have the sentence to say in the meeting where someone proposes it
+
+
+The project that gets proposed everywhere
+----------------------------------------
+
+
+It goes like this. "Let's fine-tune the model on our documentation so it knows our
+business." It is proposed constantly, it is funded regularly, and it produces the same outcome
+every time: a model that has learned the register of your documents and now
+hallucinates in your house style, with more confidence than before, because it has learned that
+text which sounds like your documents is what it should produce.
+
+
+Why, from the objective alone
+-----------------------------
+
+
+You do not need an experiment for this. You have the loss function from Stage 1.
+
+Fine-tuning minimises next-token cross-entropy on your corpus. That objective rewards
+producing text with the statistics of your documents. It contains no term for factual
+accuracy, no term for retrieval, and no mechanism by which a specific fact seen a handful of times
+becomes reliably recoverable from a specific query phrasing months later.
+
+What gradient descent actually does with a rare fact seen three times in a 50,000-example
+fine-tuning set is nudge a very large number of parameters by a very small amount in a direction that
+makes those particular token sequences slightly more likely in that particular context. What it does
+much more strongly — because the signal is far denser — is learn your formatting, your
+vocabulary, your sentence rhythm and your typical topics. Style is dense in the data;
+individual facts are sparse. Gradient descent goes where the signal is.
+
+What fine-tuning is genuinely good at
+The answer is not "never fine-tune." It is that fine-tuning is a behaviour instrument,
+and it is very good at it:
+
+    * Output format. Reliable JSON, a specific schema, a house citation style. Enormously
+  effective, and often cheaper than prompt engineering plus retries.
+
+    * Tone and register. Making the model sound like your organisation.
+
+    * Task shape. Teaching a specific input-to-output transformation the model can already
+  perform but does not reliably choose to.
+
+    * Refusal boundaries. Adjusting what it declines and what it attempts.
+
+    * Latency and cost. Distilling a long, expensive prompt into weights so you stop paying
+  for it on every call — frequently the most valuable use of all, and the least discussed.
+
+
+Every item on that list is behaviour. None of them is knowledge.
+
+
+Where knowledge actually comes from
+-----------------------------------
+
+
+Two places, and only two. Pretraining — expensive, and almost certainly not
+yours to do. Or context at inference time — retrieval, tool calls, long
+context, a database query. That is what retrieval-augmented generation is for, and it is why RAG did
+not lose to long context: putting the fact in the context window is the mechanism, and how it gets
+there is an engineering choice.
+
+The sentence to say in the meeting
+When someone proposes fine-tuning to fix a factual problem, the useful move is not to say no. It
+is to ask a question that makes the mechanism visible:
+"What do you expect the gradient to be teaching? If the answer is a format or a tone, this is
+the right tool. If the answer is a fact, the loss function has no term for that — and the
+failure mode is that we get a model that states our facts confidently whether or not it has them."
+That reframes it from a disagreement about tooling into a question about the objective, which is
+both more persuasive and more likely to be right. Occasionally the answer is a format
+problem wearing a knowledge costume, and then you should fine-tune.
+
+
+Module 3 takeaways
+
+    * The objective rewards producing text like your corpus. It has no term for knowing what is in it.
+
+    * Style is dense in the data and facts are sparse; gradient descent follows the dense signal.
+
+    * Fine-tuning is excellent for format, tone, task shape, refusal boundaries and prompt distillation.
+
+    * Knowledge enters through pretraining or through context. There is no third door.
+
+    * Ask what the gradient is meant to be teaching. It is the question that resolves the argument.
+
+
+-----------------------
+Module 4: RLHF, classic
+-----------------------
+
+
+By the end of this module you will
+
+    * Know the three-step recipe and why comparisons rather than ratings are collected
+
+    * Understand exactly what the KL penalty is preventing, and what happens as it goes to zero
+
+    * Be able to explain reward hacking as a structural consequence rather than an implementation bug
+
+
+The recipe
+----------
+
+
+    10. Collect comparisons. Sample two responses to the same prompt, ask a human
+  which is better.
+
+    11. Train a reward model. A network that maps a response to a scalar, trained so
+  that preferred responses score higher. Usually initialised from the policy with the unembedding
+  replaced by a scalar head.
+
+    12. Optimise the policy against it with reinforcement learning, classically PPO,
+  subject to a KL penalty against the original model.
+
+
+Step 1 is a deliberate design choice worth pausing on. Humans are bad at absolute ratings
+and good at comparisons. Ask ten people to score a response out of ten and you get ten
+different calibrations, drifting within each person over a session. Ask which of two is better and
+you get a far more consistent signal. Every method in this course inherits that decision, including
+DPO.
+
+
+The objective, and what the KL term is doing
+----------------------------------------
+
+
+maxπ   Ex~D, y~π [ r(x,y) ]  −  β · KL( π(y|x)  ||  πref(y|x) )
+
+
+Maximise reward, but stay close to where you started. The second term is not regularisation in the
+usual sense. It is a leash, and what it is restraining is specific.
+
+Take β to zero and watch what happens
+The reward model is a neural network trained on a finite sample of human comparisons. It is
+therefore an approximation of human preference, accurate in the region where it saw data and
+arbitrary outside it.
+The policy is an optimiser, and it is very good. Given free rein it will find the inputs on which
+the reward model is most wrong — regions of output space no human ever rated, where the reward
+model confidently returns a high score for text a person would find worthless. This is
+reward hacking, and the outputs are often not subtle: degenerate repetition, weird
+formatting tics, or fluent nonsense with the surface features the reward model learned to like.
+The KL penalty prevents this by making the policy pay for straying from the reference
+distribution, which is roughly the region where the reward model has evidence. So β is not a
+tuning knob for output quality — it is a trust parameter for your reward model.
+Lower it and you are asserting your reward model is accurate further out than it was.
+The important part: this is structural, not a bug. Any learned proxy optimised
+hard enough will be exploited — it is Goodhart's law with a gradient. Which means the ceiling on
+classic RLHF is set by reward-model accuracy, and no amount of engineering removes it. Module 7 is
+about the field's answer, which was to stop learning the reward.
+
+
+Why it is a nuisance to run
+---------------------------
+
+
+Three models resident at once — policy, reward model, frozen reference. An online loop that
+must sample from the policy at every step, so generation is inside the training loop. And enough
+hyperparameter sensitivity that reproducing somebody else's published result is a project rather than
+an afternoon.
+
+It works, and it produced the first genuinely useful assistants. It is also exactly the kind of
+apparatus that invites someone to ask whether all of it is necessary. Somebody did.
+
+Module 4 takeaways
+
+    * Comparisons are collected instead of ratings because humans are consistent at the former and not the latter.
+
+    * The objective is reward minus β times KL from the reference policy.
+
+    * β is a trust parameter for the reward model, not a quality knob.
+
+    * Reward hacking is structural: optimise any learned proxy hard enough and it gets exploited.
+
+    * The apparatus is three models plus an online sampling loop, which is what DPO set out to remove.
+
+
+------------------------------
+Module 5: DPO — the derivation
+------------------------------
+
+
+By the end of this module you will
+
+    * Be able to derive the DPO loss from the RLHF objective in four steps, on a whiteboard
+
+    * Be able to point at the exact step where the reward model disappears and say why
+
+    * Know what the "implicit reward" is and why "where is the reward model?" is a trick question
+
+
+The claim, in two sentences
+---------------------------
+
+
+Here is the summary worth being able to give verbatim, before the derivation makes it earned:
+
+The two-sentence version
+For the KL-constrained reward objective that RLHF optimises, the optimal policy has a
+closed form — it is the reference policy reweighted by the exponentiated reward. You can
+therefore invert that relation to express the reward as a function of the policy, substitute it into
+the preference likelihood, and optimise the policy directly on preference pairs with no reward model
+and no sampling loop.
+
+
+The four steps
+--------------
+
+
+the objective has a known optimum
+The RLHF objective from Module 4 is not an arbitrary loss — it is a KL-regularised
+expectation, and that family has a closed-form maximiser. For every prompt x:
+π*(y|x) = (1 / Z(x)) · πref(y|x) · exp( r(x,y) / β )
+In words: the optimal policy is the reference policy, reweighted by the exponentiated reward, then
+renormalised. High-reward responses get their probability multiplied up; low-reward ones down; the
+reference distribution supplies the shape. Z(x) is the normalising constant that makes it sum
+to one, and it involves a sum over every possible response — so it is completely intractable to
+compute. Remember that; it is the crux.
+
+
+invert it, so reward is written in terms of policy
+Take logs and rearrange for r. Nothing subtle here, just algebra:
+r(x,y) = β · log ( π*(y|x) / πref(y|x) )  +  β · log Z(x)
+Read this as a statement about what a reward function is. Any reward function corresponds
+to some optimal policy, and any policy implicitly defines a reward — the log-ratio of its
+probability to the reference model's, scaled by β. The reward and the policy are two
+descriptions of the same object.
+The intractable β log Z(x) is still sitting there, which is why this
+step alone is not enough.
+
+
+substitute into the preference model — and Z cancels
+The Bradley-Terry model says the probability a human prefers yw to yl is a
+sigmoid of the difference of their rewards:
+P(yw ≻ yl | x) = σ( r(x,yw) − r(x,yl) )
+This is the step. Substitute the expression from step 2 for both rewards. The
+term β log Z(x) depends only on x, and both responses share the
+same x — so it appears identically in both and cancels in the
+subtraction. The intractable quantity vanishes not because it was approximated or bounded,
+but because we only ever needed a difference.
+P = σ( β log(πw/πref,w) − β log(πl/πref,l) )
+If someone asks you where DPO's reward model went, this is the line to point at.
+
+
+maximise the likelihood of the observed preferences
+You now have the probability of a preference expressed purely in terms of the policy you are
+training and a frozen reference. Fit the policy by maximum likelihood over your preference dataset:
+
+LDPO = −E(x,yw,yl) [ log σ( β log(πθ(yw|x)/πref(yw|x)) − β log(πθ(yl|x)/πref(yl|x)) ) ]
+
+That is a plain binary classification loss over pairs. Two forward passes through the policy and
+two through the frozen reference per example. No reward model, no rollouts, no third trainable
+network, no RL loop. You can implement it in an afternoon and it will work.
+
+
+The implicit reward, and why "where is the reward model?" is a trick
+----------------------------------------
+
+
+The quantity in bold is worth naming. β log(πθ/πref)
+is the implicit reward — DPO's reward function, expressed through the policy's own
+weights. The reward model was not removed from the problem. It was reparameterised into the
+policy, which is a different and stronger claim than "eliminated."
+
+This is why the clearing-test question "where is the reward model in your DPO
+implementation?" is a trick. The wrong answer is "there isn't one." The right answer is that it
+is the log-ratio between your policy and the reference, and that the trick was noticing this quantity
+is exactly what Bradley-Terry needs.
+
+It also has a practical payoff: you can compute that log-ratio at any time to see how your policy
+scores its own outputs, which gives you a reward signal for monitoring without ever having trained
+one.
+
+The paper is Rafailov,
+Sharma, Mitchell, Ermon, Manning and Finn (2023), and its abstract's central claim is that DPO
+matches or improves on PPO-based RLHF for sentiment control, summarisation and single-turn dialogue
+while being substantially simpler to implement and train. Note the scope of that comparison —
+it is the next module's subject.
+
+Module 5 takeaways
+
+    * The KL-constrained optimum is the reference policy reweighted by exp(reward/β).
+
+    * Inverting gives reward = β log(π/πref) + β log Z(x).
+
+    * Bradley-Terry needs only a reward difference, so the intractable log Z(x) cancels exactly.
+
+    * What remains is a binary classification loss over preference pairs. Two models, no sampling.
+
+    * The reward model was reparameterised into the policy, not eliminated. The log-ratio is the implicit reward.
+
+
+-------------------------------------
+Module 6: Where the closed form bites
+-------------------------------------
+
+
+By the end of this module you will
+
+    * Know the three assumptions DPO's derivation buys its simplicity with
+
+    * Understand likelihood displacement mechanically, not as an anecdote
+
+    * Know what the successor methods each fix, and which problem yours has
+
+
+Cost one: it is off-policy
+--------------------------
+
+
+PPO samples from the current policy, scores those samples, and updates. DPO optimises
+against a fixed dataset of pairs generated by something else — usually an earlier
+model or a different one entirely.
+
+That matters because as training proceeds, your policy drifts away from the distribution that
+produced the data, and you are increasingly optimising preferences over responses your model would
+never actually generate. You are answering the question "which of these two things somebody else said
+is better" when the useful question is "of the things I am about to say, which is better."
+
+This is the main reason on-policy methods retain an advantage on the hardest problems, and it is
+why the strong practical recipes iterate: generate with the current policy, get preferences on
+those samples, train, repeat. Iterative DPO recovers much of the gap at the cost of the
+simplicity that was the whole point.
+
+
+Cost two: Bradley-Terry might not describe your preferences
+----------------------------------------
+
+
+Step 3 of the derivation assumed a specific model of human preference: that there exists a scalar
+reward per response, and that preference probability is a sigmoid of the difference. That is a real
+assumption, and it fails in ordinary ways.
+
+Preferences that are intransitive (A over B, B over C, C over A — common
+with multiple annotators or multiple criteria) have no consistent scalar reward. Preferences that are
+near-deterministic — where one response is simply always better — push
+the sigmoid towards saturation, and since the only way to increase a saturating sigmoid is to
+increase the margin without bound, the optimiser will happily drive the policy arbitrarily far from
+the reference. IPO
+(Azar et al., 2023) was designed for exactly this failure.
+
+
+Cost three: likelihood displacement
+-----------------------------------
+
+
+This is the one that surprises people, and it is worth understanding mechanically because it
+changes how you build preference data.
+
+The probability of the response you preferred goes down
+DPO's loss increases the margin between chosen and rejected. Nothing in it requires the
+chosen response's absolute probability to rise. In practice both frequently fall, with the rejected
+falling faster — the margin improves exactly as the loss demands, while the model becomes less
+likely to produce either.
+Razin et al. (2024)
+named this likelihood displacement and showed it can be catastrophic rather than
+cosmetic: probability mass shifts not into a neutral background but into responses of
+opposite meaning. Their example is the one to remember — training a model to
+prefer "No" over "Never" can sharply increase the probability of "Yes."
+The mechanism follows from the gradient. The DPO update moves parameters along
+∇logπ(yw) − ∇logπ(yl) — the
+difference of two gradients. When chosen and rejected are semantically similar, those
+gradients are nearly parallel, so their difference is small and points somewhere unrelated to either.
+Take a step along it and the probability mass you removed from the rejected response does not
+reliably land on the chosen one. It lands wherever that difference direction happens to point.
+The practical consequence is concrete and actionable: preference pairs whose two responses
+are very similar are actively dangerous, not merely low-signal. If your rejected responses
+are minimally edited versions of your chosen ones — which is exactly what you get from a
+"generate then lightly corrupt" data pipeline — you are constructing the failure case. The
+interactive tool in Module 9 lets you watch this happen and find the boundary.
+
+
+The successor methods, and which problem each one solves
+----------------------------------------
+
+
+Method	|	Fixes	|	Cost
+IPO (Azar et al., 2023)	|	Saturation under near-deterministic preferences, by replacing the sigmoid objective with a bounded one.	|	Another hyperparameter; less widely used in practice.
+KTO (Ethayarajh et al., 2024)	|	The requirement for pairs. Learns from unpaired good/bad labels, which is what production feedback actually looks like.	|	Discards the ranking information a pair carries.
+ORPO (Hong et al., 2024)	|	The reference model, using an odds-ratio penalty folded into the SFT loss. Halves memory and merges two stages into one.	|	Loses the KL leash that the reference model provided.
+SimPO (Meng et al., 2024)	|	Length bias and the reference model, using length-normalised average log-probability as the implicit reward.	|	Also gives up the reference anchor; more sensitive to its margin term.
+Iterative / online DPO	|	The off-policy problem, by regenerating preferences from the current policy each round.	|	Reintroduces a generation loop — the thing DPO removed.
+
+
+And the failure mode that survives all of them: length
+Human annotators prefer longer responses, at a rate that is substantially independent of whether
+the extra length adds anything. That bias is in your preference data, so it is in your implicit
+reward, so it is in your policy. Every preference-optimised model drifts verbose, and the drift is
+not a bug in the algorithm — it is a faithful reproduction of the signal you gave it.
+Two practical consequences. Always report response length alongside your win rate, because
+a win rate that moved together with a length increase has told you nothing you can act on. And when
+comparing methods, check whether the comparison controlled for length; a great many published
+improvements are partly length effects, which is why SimPO's length normalisation exists.
+
+
+Module 6 takeaways
+
+    * DPO is off-policy: it optimises preferences over responses the current model would not produce.
+
+    * The derivation assumes Bradley-Terry, which fails on intransitive and near-deterministic preferences.
+
+    * Likelihood displacement: the chosen response's probability can fall, and mass can move to opposite meanings.
+
+    * Similar chosen/rejected pairs make displacement worse — near-duplicate pairs are dangerous, not just weak.
+
+    * Length bias is in the data, therefore in the implicit reward. Report length with every win rate.
+
+
+----------------------------------
+Module 7: Verified reward and GRPO
+----------------------------------
+
+
+By the end of this module you will
+
+    * Understand why a verifier removes the ceiling that a learned reward model imposes
+
+    * Know what GRPO drops from PPO and why the substitution is sound
+
+    * Have the predictive heuristic: which capabilities will improve next, and why
+
+
+Learned taste versus program checking
+-------------------------------------
+
+
+Learned reward — RLHF, 2022–2023
+A neural network predicts what humans prefer. It approximates taste, and like any approximation it
+can be gamed: the policy finds where the reward model is wrong and exploits it.
+This puts a hard ceiling on how far you can optimise, and Module 4 showed the ceiling is
+structural rather than fixable.
+Verified reward — RLVR, 2024–
+A program checks the answer. Did the arithmetic come out right? Do the tests pass? Does the proof
+check?
+There is nothing to hack, because the reward is not a model — it is a fact. You can
+optimise hard and long without the signal degrading.
+
+
+The term reinforcement learning with verifiable rewards was introduced in Tülu 3 (Lambert et al.,
+Allen Institute for AI, 2024), which replaced the reward model in the standard RLHF objective with a
+verification function; the underlying idea also appears in DeepSeekMath's work from the same period.
+The change is small to describe and it removed the binding constraint on the entire approach.
+
+
+What that bought: behaviour nobody demonstrated
+----------------------------------------
+
+
+Once the reward is a verifier rather than a critic, you can afford enormous numbers of rollouts,
+and the model can discover strategies that raise the probability of passing the check. What emerged
+— checking work, backtracking, trying a second approach, allocating more tokens to harder
+problems — was not in anyone's demonstration set.
+
+DeepSeek-R1 (2025) is
+the cleanest public account. R1-Zero was trained with large-scale RL directly on the
+base model, with no SFT stage at all, and developed strong reasoning behaviour including what the
+authors describe as an "aha moment" — the model spontaneously learning to pause and re-evaluate
+its own approach.
+
+And the part of the R1 story that gets dropped
+R1-Zero also came out with poor readability and language mixing — the
+authors note the base model was trained on multiple languages, especially English and Chinese, and
+the RL-trained model would switch between them mid-reasoning. Optimising purely for a verifier
+optimises purely for the verifier: nothing in "is the final answer correct" rewards the trace being
+legible to a human.
+That is why the shipped R1 is not R1-Zero. It adds a cold-start SFT stage on
+readable, well-formatted reasoning data before RL, then further rounds of rejection sampling and RL.
+Verified reward gave the capability; supervised data made it usable. Anyone telling
+you post-training is now just RL has skipped the stage that made the product shippable, and it is the
+same lesson as Module 6's length bias: you get precisely what you measured.
+
+
+GRPO: drop the value network
+----------------------------
+
+
+PPO needs a learned value network to estimate a baseline — the advantage is "how much better
+was this than expected," and something has to supply the expectation. That is a second network the
+size of the policy, trained alongside it.
+
+GRPO (from DeepSeekMath, Shao et al., 2024) removes it with a substitution that
+suits the setting exactly. Sample a group of completions for the same prompt. Score them all
+with the verifier. Use the group's mean score as the baseline. Advantage becomes "how much better
+than my siblings was this attempt."
+
+The reason this works here and not everywhere: you are already sampling many completions per
+prompt, because that is how RL with a verifier operates. The baseline is therefore free — it is
+a statistic over samples you had to generate anyway. One fewer network to hold, train and debug, and
+a variance-reduction story that is easy to reason about.
+
+The heuristic to carry into a product conversation
+A capability is amenable to RL exactly to the degree that you can write a checker for
+it.
+That is a sharper predictor of what models will get good at next than any parameter count.
+Domains with cheap, reliable verifiers — competition mathematics, code with tests, formal
+proofs, constraint satisfaction, anything with a compiler or an interpreter — race ahead.
+Domains where quality is a matter of judgement — taste, strategy, interpersonal nuance, most
+writing — move at the pace of preference data, which is slow and expensive.
+Two cautions before you use this as a roadmap. Verifiers can be gamed too when they are weaker
+than they look: reward-hack a unit-test suite and you get code that passes tests and does not work,
+which is reward hacking with extra steps. And "we'll just write a verifier" is easy to say about
+domains where a good one is a research project in itself.
+
+
+Module 7 takeaways
+
+    * Learned reward models impose a structural ceiling; verifiers remove it because there is no model to exploit.
+
+    * RLVR was named in Tülu 3 (Lambert et al., 2024) and is the key change of the 2024–25 generation.
+
+    * R1-Zero got reasoning from pure RL and also got language mixing and poor readability.
+
+    * Shipped R1 adds cold-start SFT for readability. RL gave capability; supervision gave usability.
+
+    * GRPO replaces PPO's value network with the mean score of a sampled group — free, because you were sampling anyway.
+
+    * Predictive heuristic: capability follows checkability. Watch out for verifiers that are weaker than they look.
+
+
+---------------------------
+Module 8: Choosing a recipe
+---------------------------
+
+
+By the end of this module you will
+
+    * Have a sequence of questions that narrows a post-training problem to one or two methods
+
+    * Know which failures post-training cannot fix, so you stop before spending
+
+    * Know roughly what data volume each method needs
+
+
+Two questions first, because they eliminate most options
+----------------------------------------
+
+
+Question one: is this a knowledge problem? If the model does not know something,
+stop. Module 3 applies and nothing in this stage will help. Go to retrieval, tools or context.
+Answering this question honestly saves more money than every other decision here combined.
+
+Question two: can you write a program that checks the answer? If yes, you are in
+the RLVR regime and you have the strongest option available. If no, you are in the preference regime
+and your ceiling is the quality of your preference data.
+
+Those two questions eliminate most of the decision space. What remains:
+
+
+Symptom	|	Reach for	|	Roughly	|	Watch for
+Ignores instructions; wrong output shape; won't produce valid JSON	|	SFT	|	1K–50K demonstrations	|	Loss masking. Task-shape diversity, not example count.
+Answers are acceptable but not good; tone or judgement is off	|	DPO or a successor	|	5K–100K pairs	|	Length drift. Near-duplicate pairs causing displacement.
+You have thumbs-up/down from production, not pairs	|	KTO	|	Whatever you have	|	Selection bias — who bothers to click.
+Fails a task where correctness is checkable	|	RLVR with GRPO	|	1K–100K problems with verifiers	|	Verifier gaming. Readability of the trace.
+Memory-constrained, want SFT and preference in one pass	|	ORPO	|	Pairs, plus SFT data	|	No reference model, so no KL leash.
+Prompt is long, expensive and repeated every call	|	SFT (distillation)	|	10K+ input/output pairs from the long-prompt system	|	Nothing — this is often the highest-ROI fine-tune available and it is rarely the one proposed.
+
+
+The order matters, and skipping SFT is the common mistake
+Preference optimisation reweights among responses the model already produces. If the model does
+not produce good responses at all yet, there is nothing to reweight, and DPO on a base model gives
+you a base model with a slightly different distribution over documents.
+SFT first, always, then preference optimisation. R1's own pipeline is the
+argument: even with RL strong enough to produce novel reasoning, they still put a supervised
+cold-start stage in front of it, because the RL had nothing to say about being readable.
+The one legitimate exception is R1-Zero-style pure RL as a research result —
+demonstrating that RL alone can elicit reasoning. It is not the recipe for a product, and its authors
+did not ship it as one.
+
+
+Module 8 takeaways
+
+    * Is it a knowledge problem? If yes, stop — post-training is the wrong tool.
+
+    * Can you write a checker? If yes, RLVR. If no, your ceiling is preference-data quality.
+
+    * SFT before preference optimisation, always. There is nothing to reweight otherwise.
+
+    * Distilling an expensive prompt into weights is the most under-proposed high-ROI fine-tune.
+
+
+---------------------------------
+Module 9: The Post-Training Bench
+---------------------------------
+
+
+By the end of this module you will
+
+    * Have run a real post-training problem through the decision procedure and been told, possibly, not to bother
+
+    * Have found the boundary at which likelihood displacement starts, by moving one slider
+
+    * Understand why "similar pairs are weak signal" understates the problem
+
+
+Tool A — Recipe diagnosis
+-------------------------
+
+
+Describe a real problem. Commit to the method you think it needs before the tool says. The most
+useful outcome is the one where the tool tells you post-training cannot help, because that is the
+verdict that saves the quarter.
+
+
+
+    Interactive A
+
+Recipe Diagnosis
+----------------
+
+
+    Stage 1 of 2
+
+
+
+
+      1The problem
+        Open
+
+
+        What is actually wrong with the model's output?
+
+
+
+
+        Can a program check whether a given answer is correct?
+
+
+
+
+        Demonstrations you have (prompt → good response)
+          2,000
+
+
+
+
+        Preference pairs you have (A better than B)
+          0
+
+
+
+
+        How similar are your rejected responses to your chosen ones?
+          Moderate
+
+
+
+
+
+        Before you look: what do you think this needs?
+
+
+
+
+
+        Pick a symptom, a verifiability answer and a guess.
+
+
+
+
+      2Diagnosis
+        Locked
+
+
+
+
+
+
+
+Tool B — Likelihood displacement
+--------------------------------
+
+
+Module 6 claimed that DPO can reduce the probability of the response you preferred, and that
+similarity between chosen and rejected is what drives it. This is that claim, running.
+
+
+
+    Interactive B
+
+Displacement Simulator
+----------------------
+
+
+    Toy model — three outcomes
+
+
+
+
+      A deliberately minimal model: three possible responses —
+      chosen, rejected, and one other response the model could give.
+      DPO steps along ∇logπ(chosen) − ∇logπ(rejected); the
+      sliders set how those gradients relate. Presets first, then move things.
+
+
+        Scenario
+
+
+
+
+
+        Similarity between chosen and rejected  (cosine of their gradients)
+          0.20
+
+
+
+
+
+        How much the other response is aligned with the update direction
+          0.10
+
+        Positive means the "push chosen up, push rejected down" direction also pushes
+        this third response up. That is the case Razin et al. describe when preferring "No" over
+        "Never" raises "Yes" — the difference between two negations points towards affirmation.
+
+
+
+        β0.10
+
+        The DPO temperature. Larger β means a larger implicit reward for the same
+        log-ratio, so the sigmoid saturates sooner and the gradient shuts off earlier.
+
+
+
+        Training steps200
+
+
+
+
+
+
+
+
+
+What Tool B is and is not
+It is a toy. Three outcomes, not a vocabulary; one scalar similarity, not a real gradient
+geometry; a fixed step size instead of an optimiser. It cannot predict what your run will do.
+What it is faithful to is the mechanism. The update direction really is
+∇logπ(yw) − ∇logπ(yl); the log-probability
+of the chosen response really does change by its own logit's movement minus the probability-weighted
+average movement of every outcome; and the condition under which the chosen response's probability
+falls really does come out as a competition between (1−s) — how much useful signal
+survives the subtraction — and pother · α — how much mass
+the third response absorbs. Displacement in real models is this, in many more dimensions.
+The prediction the toy makes that is worth taking seriously: as similarity approaches 1, the
+useful signal vanishes faster than the leakage does. That is why near-duplicate preference pairs are
+a data-construction hazard rather than merely a weak signal, and it is checkable in your own runs by
+logging logπ(yw) rather than only the margin.
+
+
+Clearing test — Stage 3
+Take a small base model and make it measurably better, twice, by two different
+mechanisms. First write your own SFT loop — not TRL's — and produce an
+instruction-following version. Then write your own DPO loss from the paper and improve it further on
+a preference set you constructed, with a held-out split you never trained on.
+Report a number with an honest error bar and the mean response length alongside it. Then answer
+these unaided:
+
+    * Why does the KL penalty exist, and what specifically happens as β goes to zero?
+
+    * Where is the reward model in your DPO implementation, and why is that question a trick?
+
+    * Point at the step in the derivation where the intractable normalising constant cancels, and say
+  what property of the Bradley-Terry model makes it cancel.
+
+    * Did the log-probability of your chosen responses go up or down during training? If you did not
+  log it, you cannot answer, and that is itself the finding.
+
+    * Name a capability in your product domain that is amenable to verified reward and one
+  that is not, and say precisely what makes the difference.
+
+
+You have cleared Stage 3 when you have written the DPO loss by hand, watched it move a real
+model, and can defend the derivation at a whiteboard.
+Not the test: running a TRL example script. TRL is excellent and you should use
+it in production. The point of writing the loss once is that when a run misbehaves you are debugging
+code you understand rather than a library you trust — and Module 6 is a catalogue of the ways
+these runs misbehave while the loss curve looks fine.
+
+
+Where to go for the depth
+
+    * The RLHF Book —
+  Nathan Lambert, free on the web. The reference text for this stage, from instruction tuning through
+  direct alignment. ~10 hours.
+
+    * HF smol course,
+  units on instruction tuning, evaluation and preference alignment — the hands-on complement.
+
+    * CS336
+  Assignment 5 — SFT plus RL for mathematical reasoning, with an optional DPO section.
+  The rigorous version, ~15 hours.
+
+    * The three papers that define the arc, in order:
+  InstructGPT (learned
+  reward), DPO (no
+  reward model), DeepSeek-R1
+  (verified reward). Then Razin et al. on likelihood displacement as the corrective.
+
+
+Module 9 takeaways
+
+    * The most valuable diagnosis is often "post-training is the wrong tool." Ask that first.
+
+    * Displacement is a competition between surviving signal (1−s) and mass absorbed elsewhere (p·α).
+
+    * Log the absolute log-probability of chosen responses, not only the margin. The margin can improve while both fall.
+
+    * Write the loss once by hand, so that when it misbehaves you are debugging something you understand.
+
+
+  Stage 3 of five. Built 28 August 2026; every claim derived or cited the same day.
+
+    The path
+    Stage 1 — Mechanism
+    Stage 2 — Training stack
+    Stage 4 — Evals
+    Stage 5 — Inference
+
+
+    InstructGPT
+    DPO
+    Likelihood displacement
+    Tülu 3 / RLVR
+    DeepSeek-R1
+    RLHF Book
+
+  This is the fastest-moving stage of the five. The
+  method table in Module 6 is a snapshot of an active area and new direct-alignment objectives appear
+  regularly; the derivation in Module 5 and the displacement mechanism in Module 6 are the parts that
+  will still be true. The superficial-alignment discussion in Module 2 is the claim most likely to be
+  revised, which is why it is stated as contested rather than settled.
