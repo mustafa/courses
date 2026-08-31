@@ -4,7 +4,7 @@
 
 Learning from the people building it. A curated course built around 15 must-follow X accounts across Anthropic, OpenAI, Google AI, Cursor, and xAI — who they are, what they've taught us, and what they're saying right now.
 
-Last updated: August 24, 2026 • ~1.5–2 hours reading • 6 Modules
+Last updated: August 31, 2026 • ~1.5–2 hours reading • 6 Modules
 
 0 / 6 complete
 
@@ -13,6 +13,13 @@ Last updated: August 24, 2026 • ~1.5–2 hours reading • 6 Modules
 ## Module ★: Latest from the Feed
 
 *A running log of what these 15 accounts have been sharing. Newest first; entries older than 8 weeks are pruned. Updated weekly by an automated task.*
+
+### Week of August 31, 2026
+
+-   **@mntruell (Cursor):** The week's biggest story. OpenAI [notified SpaceX on August 28 that it will stop supplying models to Cursor on November 12](https://the-decoder.com/openai-cuts-off-cursor-after-spacex-acquisition-citing-musks-history-of-breaking-contracts/) — and is withholding future models immediately — citing Elon Musk's history of breaking contracts. Truell responded on X that OpenAI models serve roughly 5% of Cursor traffic and that the teams are in talks. Two weeks after the $60B deal closed, the first real cost of being a SpaceX subsidiary arrived.
+-   **@jxnlco (OpenAI):** A dense infrastructure week for Codex: [August 24 deprecated the `codex mcp-server` command](https://releasebot.io/updates/openai/codex) in favor of the app server, and August 28 added configurable MCP discovery grace periods, extension hooks to inspect or replace MCP tool results, and tighter sandbox and permission enforcement. The browser side widened too — the extension now runs in Edge, Brave, Opera and Vivaldi, with cloud browser sign-in for eligible plans.
+-   **@ammaar (Google AI):** Introduced [Gemini 3.5 Transcribe on August 26](https://x.com/ammaar/status/2092662017517600823) — a speech-to-text model covering 85+ languages with smart correction and custom vocabulary — and, true to form, vibe-coded a Wispr Flow-style dictation app on top of it and open-sourced the demo alongside the launch.
+-   **@bcherny (Anthropic):** Pricing housekeeping worth a calendar note: [Claude Sonnet 5's promotional $2/$10 per Mtok ends August 31](https://releasebot.io/updates/anthropic), with standard $3/$15 from September 1, and the +50% Claude Code weekly-limits promo is winding down in favor of a permanent 25% raise. Meanwhile the desktop app's built-in browser began rolling out in beta to Pro, Max and Team on macOS, Windows and Linux.
 
 ### Week of August 24, 2026
 
@@ -369,4 +376,4 @@ The frontier moves through people before it moves through papers or products. Th
 
 AI Frontier Voices — Learning from the People Building It
 
-Updated weekly by an automated research task. Last updated August 24, 2026.
+Updated weekly by an automated research task. Last updated August 31, 2026.
