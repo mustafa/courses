@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI in a HIPAA Engineering Org — Included Health Special Projects Prep</title>
+<link rel="stylesheet" href="course-framework.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;
+  --bg2:#0d1424;
+  --bg3:#111827;
+  --code-bg:#131a2b;
+  --accent:#4ea8de;
+  --accent2:#6c63ff;
+  --accent-dim:rgba(78,168,222,0.12);
+  --text:#c9d1d9;
+  --text-bright:#f0f6fc;
+  --text-dim:#8b949e;
+  --border:#1e2d40;
+  --border-light:#2a3f5a;
+  --green:#98c379;
+  --purple:#c678dd;
+  --blue:#61afef;
+  --orange:#d19a66;
+  --red:#e06c75;
+  --yellow:#e5c07b;
+  --mono:'SF Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:16px;line-height:1.7;min-height:100vh;
+}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+
+/* NAV */
+#top-nav{position:sticky;top:0;z-index:100;background:rgba(10,15,26,0.95);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:1rem;
+  height:56px;overflow-x:auto;white-space:nowrap}
+.nav-title{font-weight:700;font-size:0.9rem;color:var(--accent);flex-shrink:0}
+.nav-links{display:flex;gap:0.15rem;align-items:center;margin-left:auto}
+.nav-links a{color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:6px;background:var(--bg3);transition:all 0.15s}
+.nav-links a:hover{color:var(--bg);background:var(--accent)}
+.nav-links a.done{background:var(--green);color:var(--bg)}
+.nav-prog{font-size:0.75rem;color:var(--text-dim);flex-shrink:0;margin-left:0.75rem}
+#progress-bar-container{background:var(--border);height:3px}
+#progress-bar{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  width:0%;transition:width 0.4s ease}
+
+.container{max-width:900px;margin:0 auto;padding:2rem 1.25rem 6rem}
+
+/* HERO */
+.hero{text-align:center;padding:3.5rem 1rem 2.5rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.9rem,5vw,3rem);font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  margin-bottom:1rem;line-height:1.2}
+.hero .sub{color:var(--text-dim);font-size:1.05rem;max-width:660px;margin:0 auto 1.5rem}
+.hero-meta{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap}
+.hero-badge{background:var(--bg2);border:1px solid var(--border);padding:0.35rem 0.9rem;
+  border-radius:20px;font-size:0.8rem;color:var(--text-dim)}
+.hero-badge span{color:var(--accent);font-weight:600}
+.source-line{margin-top:1.5rem;font-size:0.85rem;color:var(--text-dim)}
+.source-line a{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}
+
+/* TOC */
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:2.5rem}
+.toc h2{color:var(--accent);font-size:1rem;margin-bottom:1.1rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.06em}
+.toc ol{list-style:none;counter-reset:toc}
+.toc li{counter-increment:toc;margin-bottom:0.35rem}
+.toc a{color:var(--text);text-decoration:none;display:flex;gap:0.75rem;align-items:baseline;
+  padding:0.4rem 0.5rem;border-radius:6px;transition:background 0.15s}
+.toc a:hover{background:var(--bg3);color:var(--accent)}
+.toc a::before{content:counter(toc);color:var(--accent);font-weight:700;font-size:0.8rem;
+  font-family:var(--mono);min-width:1.4rem}
+.toc .tag{margin-left:auto;font-size:0.7rem;color:var(--text-dim);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.05em}
+
+/* MODULES */
+.module{background:var(--bg2);border:1px solid var(--border);border-radius:12px;
+  margin-bottom:2rem;overflow:hidden}
+.module-header{display:flex;align-items:center;gap:1rem;padding:1.4rem 1.6rem;
+  background:var(--bg3);border-bottom:1px solid var(--border)}
+.module-header .num{background:var(--accent);color:var(--bg);font-size:13px;font-weight:800;
+  width:32px;height:32px;border-radius:8px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.module-header h2{font-size:1.2rem;color:var(--text-bright);font-weight:700;line-height:1.3}
+.module-header .mt{font-size:0.82rem;color:var(--text-dim);font-weight:400;margin-top:0.15rem}
+.module-body{padding:1.6rem}
+.module-body h3{color:var(--accent);font-size:1.05rem;margin:1.8rem 0 0.7rem;font-weight:700}
+.module-body h3:first-child{margin-top:0}
+.module-body h4{color:var(--text-bright);font-size:0.95rem;margin:1.3rem 0 0.5rem;font-weight:700}
+.module-body p{margin-bottom:0.9rem}
+.module-body ul,.module-body ol{margin:0 0 1rem 1.3rem}
+.module-body li{margin-bottom:0.45rem}
+.module-body strong{color:var(--text-bright);font-weight:650}
+.module-body a{color:var(--accent);text-decoration:none;border-bottom:1px dotted rgba(78,168,222,0.4)}
+.module-body a:hover{border-bottom-style:solid}
+code{font-family:var(--mono);font-size:0.87em;background:var(--code-bg);
+  padding:0.12em 0.4em;border-radius:4px;color:var(--orange)}
+
+/* OBJECTIVES */
+.objectives{background:rgba(78,168,222,0.06);border:1px solid rgba(78,168,222,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-bottom:1.5rem}
+.objectives .t{font-size:0.72rem;font-weight:800;color:var(--accent);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem}
+.objectives ul{margin:0 0 0 1.1rem}
+.objectives li{margin-bottom:0.25rem;font-size:0.92rem}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:1.1rem 1.3rem;margin:1.3rem 0;border:1px solid;
+  border-left-width:3px}
+.callout .lbl{font-size:0.7rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.5rem;display:block}
+.callout p,.callout ul,.callout ol,.callout blockquote{margin-bottom:0.9rem}
+.callout ul,.callout ol{margin-left:1.2rem}
+.callout li{margin-bottom:0.35rem}
+.callout p:last-child,.callout ul:last-child,.callout ol:last-child{margin-bottom:0}
+.c-steel{background:rgba(108,99,255,0.07);border-color:rgba(108,99,255,0.3);border-left-color:var(--accent2)}
+.c-steel .lbl{color:var(--accent2)}
+.c-dissent{background:rgba(224,108,117,0.06);border-color:rgba(224,108,117,0.25);border-left-color:var(--red)}
+.c-dissent .lbl{color:var(--red)}
+.c-fact{background:rgba(152,195,121,0.06);border-color:rgba(152,195,121,0.22);border-left-color:var(--green)}
+.c-fact .lbl{color:var(--green)}
+.c-warn{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.25);border-left-color:var(--yellow)}
+.c-warn .lbl{color:var(--yellow)}
+blockquote{border-left:3px solid var(--border-light);padding:0.2rem 0 0.2rem 1.1rem;
+  margin:1rem 0;color:var(--text-dim);font-style:italic}
+blockquote strong{color:var(--text);font-style:normal}
+.attrib{font-size:0.8rem;color:var(--text-dim);font-style:normal;margin-top:0.4rem;display:block}
+
+/* SPLIT */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.split>div{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:1rem 1.1rem}
+.split .h{font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.5rem}
+.split .l .h{color:var(--accent2)}
+.split .r .h{color:var(--orange)}
+.split p{font-size:0.9rem;margin-bottom:0.5rem}
+.split p:last-child{margin-bottom:0}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:1.2rem 0;border:1px solid var(--border);border-radius:9px}
+table{width:100%;border-collapse:collapse;font-size:0.87rem}
+th{background:var(--bg3);color:var(--text-bright);text-align:left;padding:0.65rem 0.85rem;
+  font-weight:700;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+  border-bottom:1px solid var(--border)}
+td{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(78,168,222,0.03)}
+
+/* TAKEAWAYS */
+.takeaways{background:rgba(152,195,121,0.05);border:1px solid rgba(152,195,121,0.2);
+  border-radius:10px;padding:1.1rem 1.3rem;margin-top:1.8rem}
+.takeaways .t{font-size:0.72rem;font-weight:800;color:var(--green);text-transform:uppercase;
+  letter-spacing:0.08em;margin-bottom:0.6rem}
+.takeaways ul{margin:0 0 0 1.1rem}
+.takeaways li{margin-bottom:0.35rem;font-size:0.92rem}
+
+/* REVEAL */
+details.reveal{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1.1rem;margin:1.2rem 0}
+details.reveal summary{cursor:pointer;font-weight:650;color:var(--yellow);font-size:0.92rem;
+  list-style:none;outline:none}
+details.reveal summary::-webkit-details-marker{display:none}
+details.reveal summary::before{content:'▸ ';color:var(--yellow)}
+details.reveal[open] summary::before{content:'▾ '}
+details.reveal[open] summary{margin-bottom:0.7rem;padding-bottom:0.7rem;border-bottom:1px solid var(--border)}
+details.reveal p:last-child{margin-bottom:0}
+
+/* PROVENANCE TIER CHIPS */
+.tier{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem}
+.t-ver{background:rgba(152,195,121,0.16);color:var(--green);border:1px solid rgba(152,195,121,0.35)}
+.t-rep{background:rgba(78,168,222,0.14);color:var(--accent);border:1px solid rgba(78,168,222,0.3)}
+.t-asm{background:rgba(229,192,123,0.13);color:var(--yellow);border:1px solid rgba(229,192,123,0.3)}
+.t-op{background:rgba(198,120,221,0.13);color:var(--purple);border:1px solid rgba(198,120,221,0.3)}
+.t-uns{background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.3)}
+
+/* SIDE-BY-SIDE QUOTE COMPARISON */
+.qcmp{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin:1.3rem 0}
+.qcmp>div{border-radius:9px;padding:1rem 1.1rem;border:1px solid;font-size:0.89rem;line-height:1.65}
+.qcmp .qa{background:rgba(229,192,123,0.06);border-color:rgba(229,192,123,0.3)}
+.qcmp .qb{background:rgba(78,168,222,0.06);border-color:rgba(78,168,222,0.3)}
+.qcmp .qh{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:0.55rem;display:block}
+.qcmp .qa .qh{color:var(--yellow)}
+.qcmp .qb .qh{color:var(--accent)}
+.qcmp mark{background:rgba(224,108,117,0.25);color:var(--text-bright);padding:0.05em 0.2em;border-radius:3px}
+.qcmp .qsrc{font-size:0.75rem;color:var(--text-dim);margin-top:0.6rem;display:block;font-style:normal}
+@media(max-width:700px){.qcmp{grid-template-columns:1fr}}
+
+/* SCORE LEDGER ROWS */
+.ledger{margin:1.3rem 0}
+.lrow{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.85rem 1rem;margin-bottom:0.6rem;border-left:3px solid var(--border-light)}
+.lrow.v{border-left-color:var(--green)}
+.lrow.r{border-left-color:var(--accent)}
+.lrow.a{border-left-color:var(--yellow)}
+.lrow.o{border-left-color:var(--purple)}
+.lrow.u{border-left-color:var(--red)}
+.lrow .lc{font-size:0.9rem;color:var(--text-bright);font-weight:600;margin-bottom:0.4rem}
+.lrow .lv{font-size:0.85rem;color:var(--text-dim);line-height:1.6}
+.lrow .lv b{color:var(--text)}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--border);margin-top:3rem;padding:2rem 1rem;text-align:center;
+  color:var(--text-dim);font-size:0.85rem}
+.footer a{color:var(--accent);text-decoration:none;margin:0 0.6rem}
+
+/* ============ DECISION TOOL (LAB) ============ */
+#lab{background:linear-gradient(180deg,#0c1322,#0a0f1a);border:1px solid var(--accent2);
+  border-radius:14px;margin:1.5rem 0;overflow:hidden;box-shadow:0 0 0 1px rgba(108,99,255,0.08)}
+.lab-top{background:rgba(108,99,255,0.1);border-bottom:1px solid var(--border);
+  padding:0.9rem 1.3rem;display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap}
+.lab-top h3{color:var(--text-bright)!important;font-size:1rem;margin:0!important;font-weight:800}
+.lab-pill{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  padding:0.22rem 0.6rem;border-radius:20px;background:var(--accent2);color:#fff}
+.lab-step{margin-left:auto;font-family:var(--mono);font-size:0.75rem;color:var(--text-dim)}
+.lab-body{padding:1.3rem}
+
+.stage{border:1px solid var(--border);border-radius:10px;padding:1.1rem 1.2rem;margin-bottom:1rem;
+  background:var(--bg3);transition:opacity 0.25s}
+.stage.locked{opacity:0.4;pointer-events:none;filter:saturate(0.3)}
+.stage-h{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.85rem}
+.stage-h .n{width:22px;height:22px;border-radius:6px;background:var(--accent2);color:#fff;
+  font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.stage-h .ttl{font-weight:750;color:var(--text-bright);font-size:0.95rem}
+.stage-h .st{margin-left:auto;font-size:0.68rem;font-family:var(--mono);color:var(--text-dim);
+  text-transform:uppercase;letter-spacing:0.05em}
+.stage-h .st.ok{color:var(--green)}
+.stage p.hint{font-size:0.86rem;color:var(--text-dim);margin-bottom:0.9rem}
+
+.ctrl{margin-bottom:1.05rem}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .cl{display:flex;justify-content:space-between;align-items:baseline;gap:0.8rem;
+  margin-bottom:0.35rem;flex-wrap:wrap}
+.ctrl .cn{font-size:0.87rem;color:var(--text);font-weight:600}
+.ctrl .cv{font-family:var(--mono);font-size:0.95rem;color:var(--accent);font-weight:700;
+  background:var(--code-bg);padding:0.1rem 0.55rem;border-radius:5px;white-space:nowrap}
+.ctrl .cd{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;
+  background:var(--border);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;
+  border-radius:50%;background:var(--accent2);cursor:pointer;border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:var(--accent2);
+  cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent2)}
+input[type=range]:disabled::-webkit-slider-thumb{background:var(--border-light);box-shadow:none}
+
+.why-wrap{margin-top:0.9rem}
+.why-wrap label{display:block;font-size:0.8rem;color:var(--text-dim);margin-bottom:0.4rem}
+.why-wrap textarea{width:100%;background:var(--code-bg);border:1px solid var(--border);
+  border-radius:7px;padding:0.55rem 0.8rem;color:var(--text);font-family:inherit;font-size:0.87rem;
+  min-height:52px;resize:vertical}
+.why-wrap textarea:focus{outline:none;border-color:var(--accent)}
+
+.lab-btns{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;margin-top:0.4rem}
+.act{background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:0.6rem 1.15rem;
+  font-size:0.88rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.act:hover:not(:disabled){filter:brightness(1.15)}
+.act:disabled{background:var(--border);color:var(--text-dim);cursor:not-allowed}
+.act.ghost{background:transparent;border:1px solid var(--border-light);color:var(--text-dim)}
+.act.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.gate-msg{font-size:0.78rem;color:var(--text-dim)}
+.hid{display:none!important}
+
+/* prior commitment picker */
+.priors{display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;margin-bottom:0.4rem}
+.prior{background:var(--code-bg);border:1px solid var(--border);border-radius:9px;
+  padding:0.8rem 0.9rem;cursor:pointer;text-align:left;font-family:inherit;transition:all 0.15s}
+.prior:hover{border-color:var(--accent)}
+.prior.sel{border-color:var(--accent2);background:rgba(108,99,255,0.12)}
+.prior b{display:block;font-size:0.9rem;color:var(--text-bright);font-weight:750;margin-bottom:0.2rem}
+.prior span{font-size:0.75rem;color:var(--text-dim);line-height:1.45;display:block}
+@media(max-width:640px){.priors{grid-template-columns:1fr}}
+
+/* result bars */
+.rbars{margin:1rem 0}
+.rbar{margin-bottom:0.75rem}
+.rbar .rl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.3rem}
+.rbar .rn{font-size:0.9rem;font-weight:700;color:var(--text-bright)}
+.rbar .rs{font-family:var(--mono);font-size:0.9rem;font-weight:800;color:var(--text-bright)}
+.rbar .rt{height:9px;background:var(--code-bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)}
+.rbar .rf{height:100%;border-radius:5px;transition:width 0.6s ease}
+.rbar.win .rn{color:var(--green)}
+.rbar.win .rf{background:linear-gradient(90deg,var(--green),#7fb069)}
+.rbar.mid .rf{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.rbar.low .rf{background:var(--border-light)}
+.rbar .rw{font-size:0.78rem;color:var(--text-dim);margin-top:0.3rem;line-height:1.5}
+
+.verdict{border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.9rem;
+  border:1px solid;border-left-width:3px}
+.verdict.v-hit{background:rgba(152,195,121,0.07);border-color:rgba(152,195,121,0.3);
+  border-left-color:var(--green)}
+.verdict.v-miss{background:rgba(229,192,123,0.07);border-color:rgba(229,192,123,0.3);
+  border-left-color:var(--yellow)}
+.verdict .vl{font-size:0.7rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;
+  display:block;margin-bottom:0.4rem}
+.verdict.v-hit .vl{color:var(--green)}
+.verdict.v-miss .vl{color:var(--yellow)}
+.verdict p{margin-bottom:0.7rem}
+.verdict p:last-child{margin-bottom:0}
+
+.field{background:rgba(78,168,222,0.05);border:1px solid rgba(78,168,222,0.2);border-left:3px solid var(--accent);
+  border-radius:9px;padding:0.95rem 1.15rem;margin-top:0.9rem;font-size:0.88rem}
+.field .lbl{font-size:0.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;
+  letter-spacing:0.07em;display:block;margin-bottom:0.45rem}
+.field p{margin-bottom:0.7rem}
+.field p:last-child{margin-bottom:0}
+
+/* scorecard */
+.sc-item{border:1px solid var(--border);border-radius:9px;padding:0.8rem 0.95rem;
+  margin-bottom:0.6rem;background:var(--bg2)}
+.sc-item .sq{font-size:0.88rem;color:var(--text);margin-bottom:0.55rem;line-height:1.6}
+.sc-item .sq b{color:var(--text-bright)}
+.sc-opts{display:flex;gap:0.35rem;flex-wrap:wrap}
+.sc-opt{font-size:0.72rem;font-weight:700;padding:0.3rem 0.7rem;border-radius:6px;cursor:pointer;
+  background:var(--code-bg);border:1px solid var(--border);color:var(--text-dim);font-family:inherit;
+  transition:all 0.15s}
+.sc-opt:hover{border-color:var(--accent);color:var(--accent)}
+.sc-opt.sel-y{background:rgba(152,195,121,0.2);border-color:var(--green);color:var(--green)}
+.sc-opt.sel-p{background:rgba(229,192,123,0.2);border-color:var(--yellow);color:var(--yellow)}
+.sc-opt.sel-n{background:rgba(224,108,117,0.2);border-color:var(--red);color:var(--red)}
+.sc-why{font-size:0.78rem;color:var(--text-dim);margin-top:0.5rem;padding-top:0.5rem;
+  border-top:1px solid var(--border);line-height:1.6}
+
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.6rem;margin:1rem 0}
+.mcell{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0.7rem 0.85rem}
+.mcell b{display:block;font-family:var(--mono);font-size:1.15rem;font-weight:800;
+  color:var(--text-bright);line-height:1.25}
+.mcell span{font-size:0.72rem;color:var(--text-dim);display:block;margin-top:0.2rem;line-height:1.4}
+.mcell.good b{color:var(--green)}
+.mcell.warn b{color:var(--yellow)}
+.mcell.bad b{color:var(--red)}
+
+@media(max-width:640px){
+  .lab-body{padding:1rem}
+  .mgrid{grid-template-columns:repeat(auto-fit,minmax(100px,1fr))}
+}
+</style><style>
+/* course-specific additions */
+.phi{display:inline-block;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+  letter-spacing:0.06em;padding:0.14rem 0.5rem;border-radius:4px;vertical-align:middle;
+  font-family:var(--mono);margin-right:0.4rem;
+  background:rgba(224,108,117,0.13);color:var(--red);border:1px solid rgba(224,108,117,0.35)}
+.vocab{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:0.9rem 1.1rem;margin-bottom:0.7rem;border-left:3px solid var(--accent2)}
+.vocab .vt{font-weight:750;color:var(--text-bright);font-size:0.95rem;margin-bottom:0.3rem}
+.vocab .vd{font-size:0.88rem;color:var(--text-dim);line-height:1.62}
+.vocab .vd b{color:var(--text)}
+.vocab .vsay{font-size:0.83rem;color:var(--green);margin-top:0.45rem;padding-top:0.45rem;
+  border-top:1px solid var(--border);line-height:1.6}
+.vocab .vsay b{color:var(--green)}
+.vocab.contested{border-left-color:var(--yellow)}
+.vocab.contested .vt::after{content:' — contested';color:var(--yellow);font-size:0.75rem;font-weight:600}
+.drill{background:var(--bg3);border:1px solid var(--border);border-radius:10px;
+  padding:1rem 1.15rem;margin-bottom:0.75rem}
+.drill .dq{font-size:0.93rem;color:var(--text-bright);font-weight:650;margin-bottom:0.6rem}
+.drill .dq::before{content:'Q ';color:var(--accent2);font-family:var(--mono);font-weight:800}
+</style>
+</head>
+<body>
+
+<nav id="top-nav">
+  <div class="nav-inner">
+    <div class="nav-title">AI Under HIPAA</div>
+    <div class="nav-prog" id="nav-prog">0 / 9</div>
+    <div class="nav-links" id="nav-links"></div>
+  </div>
+</nav>
+<div id="progress-bar-container"><div id="progress-bar"></div></div>
+
+<div class="container">
+
+<div class="hero">
+  <h1>Making an Engineering Org AI-Native</h1>
+  <p class="sub">When every log line might be protected health information. A working course for the
+  Included Health &ldquo;Special Projects&rdquo; interview &mdash; the current AI tooling landscape, the honest
+  evidence on whether any of it makes engineers faster, and the compliance constraint that quietly
+  rewrites all three goals the role names.</p>
+  <div class="hero-meta">
+    <div class="hero-badge"><span>9</span> modules</div>
+    <div class="hero-badge"><span>2</span> interactive tools</div>
+    <div class="hero-badge"><span>~80</span> min</div>
+    <div class="hero-badge">Built for <span>Zeesha</span></div>
+    <div class="hero-badge"><span>31 Aug 2026</span> verified</div>
+  </div>
+  <p class="source-line">Primary sources checked:
+  <a href="https://privacy.claude.com/en/articles/8114513-business-associate-agreements-baa-for-commercial-customers" target="_blank" rel="noopener">Anthropic BAA coverage</a> &middot;
+  <a href="https://aws.amazon.com/compliance/hipaa-eligible-services-reference/" target="_blank" rel="noopener">AWS HIPAA Eligible Services</a> &middot;
+  <a href="https://cursor.com/docs/enterprise/baa" target="_blank" rel="noopener">Cursor BAA docs</a> &middot;
+  <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/" target="_blank" rel="noopener">METR RCT</a> &middot;
+  <a href="https://dora.dev/ai/roi/report/" target="_blank" rel="noopener">DORA ROI report</a> &middot;
+  <a href="https://includedhealth.com/newsroom/" target="_blank" rel="noopener">Included Health newsroom</a></p>
+</div>
+
+<div class="callout c-warn">
+  <span class="lbl">How to read this course</span>
+  <p>You are technically strong, so this does not explain what an API is. It assumes you can read
+  code and reason about systems, and spends its budget on two things instead: <strong>what is
+  actually true right now</strong>, and <strong>the vocabulary to say it out loud without sounding
+  like you read a vendor deck</strong>.</p>
+  <p>Every factual claim carries a provenance chip, because half the writing on this topic is
+  marketing and some of it is wrong.
+  <span class="tier t-ver">Verified</span> means I fetched a primary source and read it.
+  <span class="tier t-rep">Reported</span> means credible secondary coverage that I could not check
+  against a primary document.
+  <span class="tier t-asm">Modelled</span> means a number produced by someone's calculator or
+  assumptions, not measured in the world.
+  <span class="tier t-op">Opinion</span> means my judgement, offered as judgement.
+  <span class="tier t-uns">Unconfirmed</span> means it is commonly asserted and I could <em>not</em>
+  stand it up &mdash; in one case the primary source contradicts the claim outright.</p>
+  <p>Anything touching protected health information is additionally marked <span class="phi">PHI</span>.
+  That is the thread the whole course hangs on.</p>
+  <p><strong>Short on time?</strong> Do <a href="#m3">Module&nbsp;3</a> (which vendors will sign a BAA,
+  and what it actually covers). It is the module that makes you sound like someone who has done this
+  before rather than someone who has read about it.</p>
+</div>
+
+<div class="toc">
+  <h2>Course Modules</h2>
+  <ol>
+    <li><a href="#m1">The company you are walking into<span class="tag">Context</span></a></li>
+    <li><a href="#m2">PHI: the constraint that reframes the job<span class="tag">Foundation</span></a></li>
+    <li><a href="#m3">Who signs a BAA &mdash; and what it covers<span class="tag">Start here</span></a></li>
+    <li><a href="#m4">Goal 1: engineers authoring code with AI<span class="tag">Role goal</span></a></li>
+    <li><a href="#m5">Goal 2: operational debugging agents<span class="tag">Role goal</span></a></li>
+    <li><a href="#m6">Goal 3: AI for Jira triage<span class="tag">Role goal</span></a></li>
+    <li><a href="#m7">Speaking the language<span class="tag">Vocabulary</span></a></li>
+    <li><a href="#m8">The rollout playbook<span class="tag">Practice</span></a></li>
+    <li><a href="#m9">Tools: risk assessor + interview drill<span class="tag">Interactive</span></a></li>
+  </ol>
+</div>
+<section class="module" id="m1">
+<div class="module-header"><div class="num">1</div><div>
+  <h2>The company you are walking into</h2>
+  <div class="mt">Included Health is further along on clinical AI than most interviewers expect you to know</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to describe what Included Health does in two sentences, accurately</li>
+  <li>Know their published AI position &mdash; including a peer-reviewed paper most candidates will not have read</li>
+  <li>Understand why &ldquo;Special Projects&rdquo; sits where it does, and what that implies about the role</li>
+</ul></div>
+
+<h3>What the company is</h3>
+
+<p><span class="tier t-ver">Verified</span> Included Health delivers <strong>healthcare navigation and
+virtual care</strong> for employers and health plans &mdash; it helps members find the right provider,
+delivers virtual visits, and coordinates care across the system. It was formed in a
+<strong>2021 merger</strong> combining Grand Rounds Health (expert medical opinions) and Doctor On
+Demand (virtual visits), together with a navigation service. It partners with
+<strong>300+ employers, health plans and public sector groups</strong> and serves members across all
+50 states.</p>
+
+<p>The two-sentence version for the room: <em>&ldquo;They sit between the member and a fragmented
+health system &mdash; navigation plus virtual care, delivered as a benefit through employers and
+plans. Which means they hold clinical data, claims data and member data, and almost everything
+interesting they want to do with AI runs straight into that.&rdquo;</em></p>
+
+<h3>What they have already said about AI &mdash; read this before the interview</h3>
+
+<p>This is the part that separates a prepared candidate from an unprepared one. Included Health has
+not just deployed AI; they have <strong>published a peer-reviewed account of how they govern it</strong>.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Date</th><th>What</th><th>Why it matters to you</th></tr></thead>
+<tbody>
+<tr><td><b>11 Dec 2025</b></td><td><span class="tier t-ver">Verified</span> Launched <b>Dot</b>, an AI personal health assistant, as part of an
+  <b>&ldquo;AI-driven, clinician-in-the-loop&rdquo;</b> platform expansion</td>
+  <td>&ldquo;Clinician-in-the-loop&rdquo; is <em>their</em> phrase. Use it.</td></tr>
+<tr><td><b>12 May 2026</b></td><td><span class="tier t-rep">Reported</span> <b>Provider Connect</b> &mdash; a match engine steering members to
+  high-quality in-network providers, described as analysing billions of clinical, cost and quality
+  data points</td>
+  <td>Their ML is already load-bearing in a member-facing product, not a lab experiment</td></tr>
+<tr><td><b>17 Jun 2026</b></td><td><span class="tier t-ver">Verified</span> Published <b>&ldquo;Blueprint for Safety: Implementing a Clinically
+  Governed AI Digital Assistant for Patient Guidance&rdquo;</b> in <i>NEJM Catalyst Innovations in Care
+  Delivery</i> (July 2026 issue)</td>
+  <td><b>Read the abstract.</b> Almost no candidate will have.</td></tr>
+<tr><td><b>28 Jul 2026</b></td><td><span class="tier t-rep">Reported</span> Signed agreement to acquire <b>Firefly Health</b>, a virtual-first
+  primary care provider with an integrated health plan; expected to close in Q3</td>
+  <td>An acquisition mid-integration is exactly where &ldquo;special projects&rdquo; work appears</td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">The single best detail to have in your pocket</span>
+<p><span class="tier t-rep">Reported</span> In the pilot described in the NEJM Catalyst paper,
+<strong>every single clinical interaction was manually reviewed by clinicians, daily</strong> &mdash;
+both to ensure immediate patient safety and to generate data for improving the system.</p>
+<p>Why this is the detail: it tells you exactly what this company's bar for &ldquo;safe enough to
+ship&rdquo; looks like, and it is far higher than the industry norm. If you walk in proposing an
+autonomous agent that touches anything clinical, you are proposing something their own published
+methodology does not do. If instead you say <em>&ldquo;I read the Blueprint paper &mdash; you
+manually reviewed 100% of clinical interactions daily in the pilot. I would want the internal
+engineering equivalent of that review discipline before any agent gets write access to
+production&rdquo;</em>, you have just demonstrated that you understand their culture rather than
+your own.</p>
+</div>
+
+<h3>Why &ldquo;Special Projects&rdquo;, and what it tells you</h3>
+
+<p><span class="tier t-op">Opinion</span> A &ldquo;Special Projects&rdquo; function whose stated
+brief is helping the engineering org adopt AI is almost always one of two things: a
+<strong>horizontal enablement role</strong> that has no direct authority and must win by
+demonstration, or a <strong>swat team</strong> that ships the first version of things nobody else
+has capacity to own. The brief you were given &mdash; coding tools, debugging agents, Jira triage
+&mdash; reads like the first with licence to do the second.</p>
+
+<p>That shapes how you should answer almost every question. You will not be able to mandate
+anything. Your leverage is: pick the use case where the value is legible and the compliance surface
+is smallest, ship it, measure it honestly, and use that as the wedge. Modules 4&ndash;6 are ranked
+in exactly that order, and it is <em>not</em> the order the role description lists them in.</p>
+
+<div class="callout c-steel"><span class="lbl">Things to verify yourself before the interview</span>
+<p>I could not confirm these from public sources, and you should not assert them:</p>
+<ul>
+  <li><b>Engineering headcount and structure.</b> Nothing reliable is public. Ask in the interview &mdash; it is a good question, not a gap.</li>
+  <li><b>Their cloud provider.</b> Materially changes the vendor answer in Module 3. Ask.</li>
+  <li><b>Whether they are a covered entity, a business associate, or both.</b> Almost certainly business associate for employer clients, plausibly both. This determines who owns the BAA obligations. Ask.</li>
+  <li><b>Which AI coding tools are already in use.</b> There is almost always shadow adoption already. Ask what people are using without telling anyone.</li>
+</ul>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li>Navigation + virtual care for employers and plans; 2021 merger of Grand Rounds and Doctor On Demand; 300+ clients</li>
+  <li>They shipped <b>Dot</b>, published a <b>clinical AI governance framework in NEJM Catalyst</b>, and are mid-acquisition of Firefly Health</li>
+  <li>Their published bar: 100% daily clinician review of clinical interactions in pilot</li>
+  <li>&ldquo;Clinician-in-the-loop&rdquo; is their language &mdash; borrow it, and propose the engineering analogue</li>
+</ul></div>
+
+</div>
+</section>
+
+<section class="module" id="m2">
+<div class="module-header"><div class="num">2</div><div>
+  <h2>PHI: the constraint that reframes the job</h2>
+  <div class="mt">Why &ldquo;roll out the coding assistant&rdquo; is a different question here</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know precisely what PHI is, and why it shows up in places engineers do not expect</li>
+  <li>Be able to explain what a BAA does and &mdash; more importantly &mdash; what it does not do</li>
+  <li>Understand &ldquo;minimum necessary&rdquo; and why it is the principle that kills most naive agent designs</li>
+</ul></div>
+
+<h3>The three-sentence version</h3>
+
+<p><strong>PHI</strong> is individually identifiable health information held or transmitted by a
+covered entity or business associate. <strong>A covered entity</strong> is a provider, plan or
+clearinghouse. <strong>A business associate</strong> is a vendor that handles PHI on a covered
+entity's behalf &mdash; and a business associate's own vendors are subcontractors who need their own
+agreements, which is how the chain reaches your AI provider.</p>
+
+<div class="callout c-warn"><span class="lbl">The reframe &mdash; say this one out loud until it is natural</span>
+<p>At a normal software company, the question &ldquo;should we roll out an AI coding assistant?&rdquo;
+is a question about <em>productivity and cost</em>.</p>
+<p>At Included Health it is a question about <strong>whether a third party is about to become an
+unauthorised recipient of protected health information</strong> &mdash; because the repository may
+contain PHI in test fixtures, the logs almost certainly contain it, the Jira tickets contain it in
+the reproduction steps, and the engineer debugging a production incident at 2am is going to paste a
+payload into something.</p>
+<p>Same tool. Completely different question. That reframe <em>is</em> the interview.</p>
+</div>
+
+<h3>Where PHI actually hides in an engineering org</h3>
+
+<p>The formal identifier list matters less than knowing where it leaks in practice. Ranked by how
+often engineers are surprised:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Surface</th><th>How PHI gets there</th><th>Risk</th></tr></thead>
+<tbody>
+<tr><td><b>Production logs</b></td><td>Request/response bodies logged on error; stack traces carrying
+  patient objects; debug logging left on; correlation IDs joined to member records</td><td><span class="phi">Highest</span></td></tr>
+<tr><td><b>Jira / ticket bodies</b></td><td>Support escalations pasted verbatim: member name, DOB,
+  the actual clinical complaint, screenshots</td><td><span class="phi">High</span></td></tr>
+<tr><td><b>Test fixtures &amp; seed data</b></td><td>Someone sampled production &ldquo;just to get realistic
+  data&rdquo; three years ago and it is still in the repo</td><td><span class="phi">High</span></td></tr>
+<tr><td><b>Analytics / notebooks</b></td><td>Ad-hoc queries against warehouse tables, cached results in
+  notebook outputs committed to git</td><td><span class="phi">High</span></td></tr>
+<tr><td><b>Error tracking (Sentry etc.)</b></td><td>Breadcrumbs and local variable capture on exception</td><td><span class="phi">Medium-high</span></td></tr>
+<tr><td><b>Source code</b></td><td>Usually clean; occasionally a hardcoded example, a fixture, or a
+  comment quoting a real case</td><td>Medium</td></tr>
+<tr><td><b>Schema and column names</b></td><td>Not PHI, but reveals structure. Rarely the actual problem.</td><td>Low</td></tr>
+</tbody></table></div>
+
+<p><span class="tier t-op">Opinion</span> Note the ordering. The instinct is to worry about source
+code, because that is what a coding assistant reads. The actual exposure is concentrated in
+<strong>logs and tickets</strong> &mdash; which is precisely where the role's other two goals
+(debugging agents, Jira triage) point. The role brief has, without necessarily meaning to, named the
+two highest-PHI-risk surfaces in the company as target use cases. Noticing that out loud is a strong
+move.</p>
+
+<h3>What a BAA does &mdash; and what it does not</h3>
+
+<div class="split">
+  <div class="l"><div class="h">A BAA does</div>
+    <p>Contractually bind the vendor to HIPAA's safeguard, breach-notification and use-limitation
+    requirements.</p>
+    <p>Make it <em>lawful</em> to disclose PHI to that vendor for permitted purposes.</p>
+    <p>Flow obligations down to their subcontractors.</p>
+    <p>Give you contractual recourse and audit rights.</p>
+  </div>
+  <div class="r"><div class="h">A BAA does not</div>
+    <p>Cover every product the vendor sells. <strong>Coverage is per-service, and often
+    per-feature.</strong> This is the single most misunderstood point.</p>
+    <p>Make the deployment secure. It is paper, not a control.</p>
+    <p>Relieve you of &ldquo;minimum necessary.&rdquo;</p>
+    <p>Automatically extend to integrations, plugins, MCP servers or third-party tools the vendor
+    connects to.</p>
+  </div>
+</div>
+
+<div class="callout c-dissent"><span class="lbl">The sentence that will land in the room</span>
+<p><em>&ldquo;A signed BAA is necessary and nowhere near sufficient. Coverage is per-feature, not
+per-vendor &mdash; the same vendor will cover their chat API and explicitly exclude their batch
+endpoint, their file storage, and half their agent surface. So the question is never &lsquo;do we
+have a BAA with them,&rsquo; it is &lsquo;is the specific feature we are about to use on the covered
+list, in the configuration we are about to use it in.&rsquo;&rdquo;</em></p>
+<p>Module 3 shows you three vendors where exactly this distinction bites.</p>
+</div>
+
+<h3>Minimum necessary &mdash; the principle that kills naive agent design</h3>
+
+<p>HIPAA requires that uses and disclosures of PHI be limited to the <strong>minimum necessary</strong>
+to accomplish the purpose. This is the principle that makes broad, ambient AI access
+architecturally wrong rather than merely risky.</p>
+
+<p>Concretely: an agent that can query the whole logging backend to debug one incident is not
+minimum-necessary, even with a BAA in place, even if it is technically authorised. An agent scoped
+to one service's logs, in one time window, with identifiers already tokenised, is a defensible
+design. <strong>Same capability, different blast radius, different conversation with your privacy
+office.</strong> Module 5 builds this out properly.</p>
+
+<div class="callout c-steel"><span class="lbl">Two more things worth knowing, stated carefully</span>
+<p><span class="tier t-op">Opinion</span> <b>De-identification is a higher bar than engineers think.</b>
+HIPAA recognises two routes: removing a defined set of identifiers (the &ldquo;Safe Harbor&rdquo;
+method), or a qualified expert determining re-identification risk is very small (the
+&ldquo;Expert Determination&rdquo; method). Regex-scrubbing names out of a log is neither of those,
+and calling scrubbed data &ldquo;de-identified&rdquo; in front of a privacy officer will cost you
+credibility. Call it <b>redacted</b> or <b>masked</b> and treat it as still-sensitive. That
+vocabulary distinction is small and it signals a lot.</p>
+<p><b>The state-law layer exists.</b> HIPAA is a floor, not a ceiling; state privacy laws can be
+stricter, and a national virtual-care operation touches many of them. You do not need to know the
+details. You need to not claim HIPAA compliance is the whole answer.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li>The exposure is concentrated in <b>logs and tickets</b>, not source code &mdash; which is exactly where two of the three role goals point</li>
+  <li>BAA coverage is <b>per-feature, not per-vendor</b>. Ask which feature, in which configuration</li>
+  <li><b>Minimum necessary</b> is why scoped access beats ambient access architecturally, not just prudentially</li>
+  <li>Say <b>redacted</b> or <b>masked</b>, not <b>de-identified</b>, unless Safe Harbor or Expert Determination was actually done</li>
+</ul></div>
+
+</div>
+</section>
+<section class="module" id="m3">
+<div class="module-header"><div class="num">3</div><div>
+  <h2>Who signs a BAA &mdash; and what it actually covers</h2>
+  <div class="mt">The module that makes you sound like you have done this before</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know, per vendor, what is covered and what is explicitly excluded &mdash; from primary sources</li>
+  <li>Be able to explain the zero-data-retention paradox, which almost nobody outside this problem knows about</li>
+  <li>Know which commonly-repeated vendor claims are wrong, and how to check one yourself in 90 seconds</li>
+</ul></div>
+
+<div class="callout c-warn"><span class="lbl">Read this before you quote any of it</span>
+<p>Vendor compliance posture changes frequently, and this page is a snapshot taken
+<strong>31 August 2026</strong>. Everything below is sourced, and I have marked exactly how well.
+But in an interview the correct register is <em>&ldquo;as of when I checked, here is the shape of
+it, and here is how I would verify before committing&rdquo;</em> &mdash; not
+<em>&ldquo;X does not sign BAAs.&rdquo;</em> The shape is durable. The specifics decay.</p>
+</div>
+
+<h3>The zero-data-retention paradox</h3>
+
+<p>This is the sharpest thing in this course, and it is genuinely counterintuitive. It concerns
+Anthropic, but the pattern generalises.</p>
+
+<p>Intuitively, <strong>zero data retention</strong> (the vendor keeps nothing after serving the
+request) should be the <em>most</em> compliant configuration. And for Claude Code, it is required:</p>
+
+<blockquote><span class="tier t-ver">Verified</span> &ldquo;Claude Code is covered under your BAA
+only with zero data retention (ZDR) enabled, and only on qualified accounts. Without ZDR, Claude
+Code remains available to use but isn't covered.&rdquo;
+<span class="attrib">Anthropic Help Center, HIPAA-ready Enterprise plans</span></blockquote>
+
+<p>But Anthropic also designates certain newer frontier models as <strong>Covered Models</strong>,
+which carry a safety-driven retention requirement that runs the other way:</p>
+
+<blockquote><span class="tier t-ver">Verified</span> Covered Models &ldquo;require 30-day data
+retention on every platform where they're offered, as part of our safety work&rdquo; and
+&ldquo;can't be accessed from organizations or workspaces with zero data retention (ZDR)
+enabled.&rdquo;
+<span class="attrib">Anthropic Help Center, Covered Models under a BAA</span></blockquote>
+
+<div class="callout c-dissent"><span class="lbl">The collision</span>
+<p><span class="tier t-ver">Verified</span> Anthropic states it directly:
+<strong>&ldquo;There's currently no configuration that allows BAA-covered access to Covered Models
+in Claude Code or Cowork.&rdquo;</strong></p>
+<p>Read that twice. Claude Code needs ZDR to be BAA-covered. Covered Models refuse to run under ZDR.
+Therefore <strong>the newest models and BAA-covered Claude Code are mutually exclusive</strong>. Per
+Anthropic, only Chat on HIPAA-ready Enterprise plans and the HIPAA-ready API support BAA coverage
+and Covered Model access simultaneously. In a ZDR org, requests to a Covered Model return an
+error.</p>
+</div>
+
+<p><span class="tier t-op">Opinion</span> Why this is such a good thing to know: it is a real,
+current, non-obvious constraint that you can only know by having read the documentation rather than
+the marketing. It also demonstrates the general principle better than any abstraction &mdash;
+<strong>safety retention requirements and privacy retention requirements can point in opposite
+directions</strong>, and a healthcare org can get caught in the gap. If you say this in the room,
+say it as a shape, not a gotcha: <em>&ldquo;the newest models often carry retention obligations for
+safety monitoring, which can conflict with the zero-retention posture you want for PHI. So
+&lsquo;we'll just use the best model' is not always available to us.&rdquo;</em></p>
+
+<h3>Anthropic &mdash; what is on the list</h3>
+
+<p><span class="tier t-ver">Verified</span> from Anthropic's published BAA documentation. Only two
+Anthropic offerings are HIPAA-eligible at all: the <strong>HIPAA-ready first-party API</strong> and
+<strong>HIPAA-ready Claude Enterprise</strong>. Free, Pro, Max and Team cannot enable HIPAA.</p>
+
+<div class="split">
+  <div class="l"><div class="h">Covered — 1P API</div>
+    <p>Messages API (including prompt caching, structured outputs, memory, web search, bash tool,
+    text editor tool)</p>
+    <p>Token Counting API &middot; Models API &middot; Org Management API &middot; Compliance API</p>
+  </div>
+  <div class="r"><div class="h">Explicitly not covered</div>
+    <p><b>Enterprise:</b> Batch API, Files API, Skills API, Code Execution, Computer Use, Web Fetch</p>
+    <p><b>Cowork</b> &mdash; &ldquo;not covered under Anthropic's BAA&rdquo;</p>
+    <p><b>Beta surfaces:</b> Claude Design, Claude Code in Web, Claude Code in Desktop (remote mode),
+    Claude Code Review, Claude Code Security, Claude Code Computer Use</p>
+    <p><b>Third-party integrations</b> (MCP servers, Enterprise Search, Claude in Chrome): data flows
+    &ldquo;not covered by Anthropic BAA&rdquo;</p>
+  </div>
+</div>
+
+<div class="callout c-steel"><span class="lbl">On Managed Agents &mdash; being precise about what I could and could not confirm</span>
+<p>It is often stated that Anthropic's <strong>Managed Agents</strong> is not HIPAA-eligible and has
+no BAA. I could not confirm that as written, and I am not going to assert it.</p>
+<p>What I <em>can</em> confirm <span class="tier t-ver">Verified</span>: Anthropic's published BAA
+documentation enumerates the covered first-party API surfaces as Messages, Token Counting, Models,
+Org Management and Compliance. <strong>Managed Agents, the Agents API, Sessions and Environments do
+not appear anywhere in that document</strong> &mdash; not as covered, and not as excluded.</p>
+<p>What I could not check <span class="tier t-uns">Unconfirmed</span>: Anthropic points to an
+&ldquo;Implementation Guide for HIPAA Entities&rdquo; on their Trust Center as the authoritative
+per-feature list. It is access-gated, so I could not read it.</p>
+<p><strong>The honest formulation for the room:</strong> <em>&ldquo;Managed Agents is not on the
+enumerated list of BAA-covered API surfaces in the public documentation. Whether that means excluded
+or merely not-yet-addressed, I would confirm against their Implementation Guide before designing
+anything around it &mdash; and I would want it in writing.&rdquo;</em> That answer is stronger than a
+confident wrong one, and it models exactly the behaviour you want from an AI enablement lead.</p>
+</div>
+
+<h3>The rest of the field</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Vendor</th><th>Signs a BAA?</th><th>The catch</th><th>Source quality</th></tr></thead>
+<tbody>
+<tr><td><b>AWS Bedrock</b></td>
+  <td>Yes &mdash; under the standard AWS BAA, self-service via AWS Artifact</td>
+  <td>Amazon Bedrock <i>and</i> Bedrock AgentCore both appear on the HIPAA Eligible Services list with
+  no model-level exclusions stated on that page. Note <b>Kiro is listed &ldquo;excluding Kiro Web&rdquo;</b> &mdash;
+  a good example of how granular these carve-outs get.</td>
+  <td><span class="tier t-ver">Verified</span> AWS primary page</td></tr>
+<tr><td><b>Google Vertex AI</b></td>
+  <td>Yes &mdash; Google Cloud BAA covers Vertex AI</td>
+  <td>BAA must be in place at the <b>organisation</b> level, and the regulated-data setting enabled at
+  <b>project</b> level for PHI workloads. Easy to get wrong.</td>
+  <td><span class="tier t-rep">Reported</span></td></tr>
+<tr><td><b>OpenAI</b></td>
+  <td>Yes, at enterprise tier with ZDR</td>
+  <td>Reported that chat completions and responses are the endpoints usable for patient data under the
+  BAA; Assistants, Threads, Vector Stores, Files, Batch and Fine-tuning <b>retain application state
+  until you delete it, and ZDR does not change that</b>. Live web search reported as not HIPAA-eligible.</td>
+  <td><span class="tier t-rep">Reported</span> &mdash; verify on their Trust Portal</td></tr>
+<tr><td><b>Cursor</b></td>
+  <td>Yes &mdash; <b>Enterprise plan only</b></td>
+  <td>Four prerequisites, all required: signed Enterprise agreement <i>and</i> BAA; review the Trust
+  Center HIPAA guide; <b>Privacy Mode enabled and locked organisation-wide</b>; users trained to submit
+  PHI only through eligible services. And: &ldquo;Third-party services and integrations are not
+  automatically covered by Cursor's BAA.&rdquo; Teams plan cannot get one.</td>
+  <td><span class="tier t-ver">Verified</span> Cursor primary docs</td></tr>
+<tr><td><b>GitHub Copilot</b></td>
+  <td><b>Contested &mdash; do not assert either way</b></td>
+  <td>Multiple secondary sources state GitHub and Copilot are not on Microsoft's HIPAA-covered services
+  list, and that GitHub's Data Protection Agreement prohibits submitting PHI absent prior written
+  consent. At least one other source claims Copilot Business can be covered by a BAA from GitHub.
+  These cannot both be right. All are secondary.</td>
+  <td><span class="tier t-uns">Unconfirmed</span> &mdash; get it in writing from your account team</td></tr>
+</tbody></table></div>
+
+<div class="callout c-dissent"><span class="lbl">A worked example of why you check primary sources</span>
+<p>While researching this module I found a confident secondary claim that AWS's HIPAA Eligible
+Services reference lists Amazon Bedrock with an explicit exclusion for certain frontier model
+families.</p>
+<p>I fetched the actual AWS page. <strong>It does not.</strong> Bedrock and Bedrock AgentCore are
+listed with no model-specific exclusions noted. The only carve-out of that kind visible on the page
+is Kiro's exclusion of Kiro Web.</p>
+<p>The secondary source was wrong, and it was wrong in the direction that made the writer's point
+more dramatic. <span class="tier t-op">Opinion</span> This is the normal failure mode of AI
+compliance content: it is written fast, for SEO, by people who did not open the primary document.
+<strong>The 90-second habit that protects you: before you repeat a vendor compliance claim, open
+the vendor's own compliance page and use your browser's find function.</strong> If the claim is not
+on the vendor's page, it is not a fact you own yet.</p>
+<p>Being able to tell this story in an interview is worth more than any individual fact in the
+table &mdash; it demonstrates the discipline, not just the answer.</p>
+</div>
+
+<h3>The tiering model &mdash; how to turn all this into a decision</h3>
+
+<p>The practical output of this module is not a vendor list. It is a <strong>data-sensitivity
+tiering</strong> that lets you move fast on most things and slow on the few that matter. This is the
+recommendation to bring to the interview:</p>
+
+<div class="tw"><table>
+<thead><tr><th>Tier</th><th>Data</th><th>Posture</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><b>T0 &mdash; Green</b></td><td>No PHI possible. Public docs, OSS deps, greenfield code, design discussion</td>
+  <td>Any reviewed tool. Move fast, minimal process.</td><td>Scaffolding a new service; writing tests for a pure function</td></tr>
+<tr><td><b>T1 &mdash; Amber</b></td><td>Repo code that <i>could</i> incidentally contain PHI in fixtures</td>
+  <td>BAA-covered tool, ZDR where available, secret- and PHI-scanning in CI</td><td>Day-to-day coding assistance in the main monorepo</td></tr>
+<tr><td><b>T2 &mdash; Red</b></td><td>Logs, tickets, support transcripts, anything from production <span class="phi">PHI</span></td>
+  <td>BAA-covered <i>and</i> redaction at the boundary <i>and</i> scoped, minimum-necessary access <i>and</i> full audit</td>
+  <td>Debugging agents (Module 5); Jira triage (Module 6)</td></tr>
+<tr><td><b>T3 &mdash; Black</b></td><td>Clinical decision support, anything member-facing</td>
+  <td>Their existing clinical AI governance framework owns this. Not your lane.</td><td>Dot</td></tr>
+</tbody></table></div>
+
+<p><span class="tier t-op">Opinion</span> The reason to lead with tiering rather than with a vendor
+recommendation: it gives the security and privacy teams a framework they can reason about once,
+instead of a fresh argument per tool. It also makes you the person who reduced their workload rather
+than the person who added to it &mdash; which is, in practice, how enablement roles actually
+succeed.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li><b>The ZDR paradox:</b> Claude Code needs ZDR for BAA coverage; Covered Models refuse ZDR; Anthropic states there is currently no configuration giving BAA-covered access to Covered Models in Claude Code</li>
+  <li>Anthropic's covered 1P surface is enumerated and narrow; Batch, Files, Skills, Code Execution, Computer Use and Web Fetch are explicitly out</li>
+  <li><b>Cursor:</b> Enterprise only, Privacy Mode locked org-wide, integrations not covered. <b>GitHub Copilot:</b> contested — get it in writing</li>
+  <li>AWS Bedrock and Vertex are the low-drama paths because the BAA you already have may cover them</li>
+  <li>Lead with <b>tiering</b>, not with a vendor pick</li>
+</ul></div>
+
+</div>
+</section>
+<section class="module" id="m4">
+<div class="module-header"><div class="num">4</div><div>
+  <h2>Goal 1 &mdash; engineers authoring code with AI</h2>
+  <div class="mt">The landscape, and the genuinely awkward evidence on whether it works</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the current tool categories and what distinguishes them architecturally</li>
+  <li>Be able to cite the strongest evidence <i>against</i> AI coding productivity, accurately and fairly</li>
+  <li>Know why lines-of-code and acceptance-rate metrics mislead, and what to measure instead</li>
+</ul></div>
+
+<h3>The landscape, by architecture rather than brand</h3>
+
+<p>Tools sort into three shapes. Knowing the shapes matters more than knowing the logos, because the
+shape determines the security surface.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Shape</th><th>What it is</th><th>Examples</th><th>Security surface</th></tr></thead>
+<tbody>
+<tr><td><b>Completion / assistant</b></td><td>Plugin in your existing editor. Suggests as you type,
+  answers in a side panel.</td><td>GitHub Copilot</td><td>Narrow: the open file plus some context.
+  Easiest to reason about.</td></tr>
+<tr><td><b>AI-native IDE</b></td><td>The editor rebuilt around the model. Whole-repo indexing,
+  multi-file edits.</td><td>Cursor</td><td>Wider: it indexes the repo. Whatever PHI is in fixtures is
+  now in an index.</td></tr>
+<tr><td><b>Terminal / agentic</b></td><td>Runs as an agent with tool access &mdash; reads files, runs
+  commands, edits, iterates.</td><td>Claude Code, Codex</td><td>Widest: it can run commands. If it
+  can run <code>kubectl logs</code>, it can reach production PHI.</td></tr>
+</tbody></table></div>
+
+<p><span class="tier t-rep">Reported</span> On adoption: JetBrains' Developer Ecosystem Survey,
+fielded May&ndash;July 2026 across more than 15,000 professional developers, reports
+<strong>90% using AI coding agents at work at least weekly and 68% daily</strong>, with Claude Code
+described as the most widely adopted AI coding tool at work.</p>
+
+<p><span class="tier t-op">Opinion</span> The operational consequence of that number is the one
+worth saying: <strong>at 90% weekly usage industry-wide, you are not deciding whether to adopt AI
+coding tools. You are deciding whether the ones already in use are the sanctioned ones.</strong> In
+a HIPAA org, unsanctioned adoption is not a productivity question, it is an unreported disclosure.
+The first deliverable of an enablement role is usually not a rollout &mdash; it is an amnesty and an
+inventory.</p>
+
+<h3>The evidence, told honestly</h3>
+
+<p>This is where most candidates either over-claim or have not read anything. Do neither.</p>
+
+<div class="callout c-fact"><span class="lbl">The METR randomised controlled trial &mdash; state it precisely</span>
+<p><span class="tier t-ver">Verified</span> METR ran an RCT with <strong>16 experienced open-source
+developers</strong> across <strong>246 real tasks</strong> in repositories they already maintained.
+Issues were randomly assigned to allow or disallow AI tooling.</p>
+<p><strong>Result: developers took 19% longer when allowed to use AI tools.</strong></p>
+<p>The perception gap is the part that matters most. Beforehand, developers forecast AI would make
+them <strong>24% faster</strong>. Afterwards &mdash; having actually been slowed down &mdash; they
+still believed AI had made them <strong>20% faster</strong>.</p>
+</div>
+
+<div class="callout c-warn"><span class="lbl">Now state the caveats, because they are the authors' own</span>
+<p>Being fair to this study is as important as citing it, and the authors are unusually careful.
+They explicitly state their work does <em>not</em> show that AI fails to speed up most developers.
+Their stated limitations include:</p>
+<ul>
+  <li><b>16 developers</b>, all working in <b>large, mature repositories they knew deeply</b> (high context, high quality bar) &mdash; close to the hardest case for an assistant</li>
+  <li>Findings are not claimed to generalise beyond software development</li>
+  <li>The tooling was <b>early-2025 frontier</b> &mdash; primarily Cursor Pro with Claude 3.5/3.7 Sonnet. Tools have moved substantially since</li>
+  <li>They do not rule out that better prompting, scaffolding or training could produce speedup</li>
+  <li>Possible sampling bias: developers who felt AI already helped them may have declined to participate</li>
+</ul>
+<p><span class="tier t-op">Opinion</span> Anyone who cites the 19% as proof that AI coding tools do
+not work is misusing it. The robust reading is narrower and more useful: <strong>expert developers in
+codebases they know well are poor judges of their own speedup, and the direction of the error is
+consistently optimistic.</strong> That claim survives all the caveats, and it is the one that should
+change how you measure.</p>
+</div>
+
+<h3>What DORA found, and where its numbers come from</h3>
+
+<p><span class="tier t-ver">Verified</span> DORA's central framing in its 2025 State of AI-assisted
+Software Development report: <strong>&ldquo;AI's primary role is as an amplifier, magnifying an
+organization's existing strengths and weaknesses,&rdquo;</strong> with the greatest returns coming
+&ldquo;not from the tools themselves, but from a strategic focus on the underlying organizational
+system.&rdquo;</p>
+
+<p><span class="tier t-ver">Verified</span> DORA published a follow-up, <i>ROI of AI-assisted
+Software Development</i> (updated 22 April 2026), which addresses what its own page calls
+&ldquo;the initial &lsquo;productivity dip&rsquo; of a new rollout.&rdquo;</p>
+
+<p><span class="tier t-rep">Reported</span> Via InfoQ's coverage of that report, three concepts worth
+having in your vocabulary:</p>
+
+<div class="vocab"><div class="vt">The J-curve</div><div class="vd">Value from an AI rollout gets
+worse before it gets better. The dip is attributed to learning curves, the verification tax, and
+downstream processes not yet adapted to higher code volume. The report reportedly calls this
+<b>&ldquo;the tuition cost of transformation.&rdquo;</b></div>
+<div class="vsay"><b>Why you want this:</b> it lets you pre-commit leadership to a dip instead of
+being surprised by one. A rollout that dips and was predicted to dip is on track. The same rollout
+unpredicted is a failure.</div></div>
+
+<div class="vocab"><div class="vt">The verification tax</div><div class="vd">The additional effort of
+checking whether AI-generated code is correct, secure and architecturally coherent. It does not go
+away with better models; it moves from writing to reviewing.</div>
+<div class="vsay"><b>Why you want this:</b> it explains the METR result mechanically. Generation got
+cheap; verification did not.</div></div>
+
+<div class="vocab"><div class="vt">Tokenmaxxing</div><div class="vd">Tracking and rewarding raw AI
+token consumption &mdash; internal leaderboards for who used the most AI. Reported as an emerging
+trend and a trap: it can nudge hesitant developers to try the tools, but treating token spend as a
+performance indicator is optimising the input and calling it the output.</div>
+<div class="vsay"><b>Why you want this:</b> someone will propose exactly this. Having a name for it
+and a reason it fails is worth a great deal in that meeting.</div></div>
+
+<div class="callout c-dissent"><span class="lbl">Be careful with DORA's ROI numbers &mdash; they are modelled, not measured</span>
+<p><span class="tier t-asm">Modelled</span> Coverage of the ROI report cites figures like roughly
+39% first-year ROI for a 500-person organisation, about $11.6M return against $8.4M investment, and
+an eight-month payback. These are outputs of <strong>the report's sample ROI calculator under stated
+assumptions</strong> &mdash; a worked example, not an observed outcome across real companies.</p>
+<p><span class="tier t-uns">Unconfirmed</span> A figure of &ldquo;727% ROI over three years&rdquo;
+also circulates attached to this topic. That is a vendor-commissioned Google Cloud AI figure, not a
+DORA research finding, and it should not be presented as one.</p>
+<p><strong>If you quote a number in the interview, quote METR's 19%</strong> &mdash; it is measured,
+primary, and it makes you sound sceptical rather than sold. Use DORA for the <em>concepts</em>
+(amplifier, J-curve, verification tax), which is where its value is anyway.</p>
+</div>
+
+<h3>Why the obvious metrics mislead</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Metric</th><th>Why it is tempting</th><th>Why it misleads</th></tr></thead>
+<tbody>
+<tr><td>Lines of code generated</td><td>Easy, big, goes up</td><td>Measures volume, not value. AI reliably
+  increases volume. Volume is a cost.</td></tr>
+<tr><td>Suggestion acceptance rate</td><td>The vendor dashboard shows it</td><td>Measures whether the tool
+  guessed the next token, not whether the change shipped or was correct. Optimisable by accepting more junk.</td></tr>
+<tr><td>Self-reported time saved</td><td>Cheap to collect</td><td><b>METR is a direct measurement of this
+  being wrong</b> &mdash; and wrong optimistically, by roughly 39 percentage points between belief and reality.</td></tr>
+<tr><td>Seats provisioned / licences active</td><td>Procurement wants it</td><td>Measures spend, not outcome.
+  The tokenmaxxing failure in a different costume.</td></tr>
+<tr><td>PRs merged per engineer</td><td>Feels like throughput</td><td>Closer, but degrades under Goodhart and
+  ignores the instability side of DORA's finding.</td></tr>
+</tbody></table></div>
+
+<h4>What to measure instead</h4>
+
+<p><strong>DORA's four keys</strong> &mdash; deployment frequency, lead time for changes, change
+failure rate, time to restore &mdash; give you throughput <em>and</em> stability. That pairing is the
+point: DORA's 2025 finding is that AI adoption can raise throughput while raising instability, so
+measuring only the first half will make a rollout look like a success while it is degrading
+reliability.</p>
+
+<p><strong>SPACE</strong> <span class="tier t-ver">Verified</span> (Forsgren, Storey and colleagues,
+2021) adds the dimensions delivery metrics cannot see:
+<b>S</b>atisfaction and well-being, <b>P</b>erformance, <b>A</b>ctivity,
+<b>C</b>ommunication and collaboration, <b>E</b>fficiency and flow. Its central claim is that
+productivity is not capturable in a single metric and must be read across dimensions
+simultaneously.</p>
+
+<div class="callout c-steel"><span class="lbl">The answer to &ldquo;how would you measure success?&rdquo;</span>
+<p><em>&ldquo;Four keys for the delivery system, SPACE for the human system, and one honest
+qualitative signal &mdash; would you be annoyed if we took this away? I would deliberately not report
+acceptance rate or lines generated, because both go up when the tool is doing badly. And I would
+pre-commit to a J-curve so that the first eight weeks looking worse is a prediction rather than a
+crisis.&rdquo;</em></p>
+<p>That answer does four things at once: it names the standard frameworks, it rejects the vendor
+metrics, it shows you know throughput and stability trade off, and it inoculates against the dip.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li>Three shapes &mdash; completion, AI-native IDE, terminal agent &mdash; with widening security surfaces. The shape determines the PHI question</li>
+  <li>METR: 16 devs, 246 tasks, <b>19% slower</b>, forecast 24% faster, still believed 20% faster afterwards. Cite it <i>with</i> the authors' caveats</li>
+  <li>DORA: AI is an <b>amplifier</b>; expect a <b>J-curve</b> and a <b>verification tax</b>. Use DORA's concepts, not its modelled ROI figures</li>
+  <li>Measure four keys + SPACE. Never acceptance rate, never lines, never self-reported time saved</li>
+  <li>At ~90% industry usage, your first job is an inventory and an amnesty, not a rollout</li>
+</ul></div>
+
+</div>
+</section>
+<section class="module" id="m5">
+<div class="module-header"><div class="num">5</div><div>
+  <h2>Goal 2 &mdash; operational debugging agents</h2>
+  <div class="mt">The sharpest version of the problem: logs are where the PHI lives</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to describe what an incident-triage agent actually does, step by step</li>
+  <li>Know exactly what access it needs and why each grant is dangerous here</li>
+  <li>Have a concrete safety envelope you can propose in the interview</li>
+</ul></div>
+
+<div class="callout c-warn"><span class="lbl">Why this is the hard one</span>
+<p>Of the three goals in the role brief, this is the one where the compliance constraint is most
+severe and least appreciated. An operational debugging agent is, by definition, a system that
+<strong>reads production logs and telemetry</strong>. In a healthcare company, production logs are
+among the most PHI-dense artefacts in the building &mdash; and unlike a database, nobody curates
+them, nobody schema-controls them, and their contents change every time an engineer adds a debug
+line.</p>
+<p><span class="tier t-op">Opinion</span> If you say only one thing about this use case, say this:
+<em>&ldquo;Logs are the last place I would point an unvetted model, and the first place everyone
+wants to.&rdquo;</em></p>
+</div>
+
+<h3>What the agent actually does</h3>
+
+<p>Stripped of marketing, an incident-triage agent is a loop over the work a human on-call engineer
+does in the first fifteen minutes:</p>
+
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Step</th><th>What it needs</th><th>PHI risk</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Detect &mdash; ingest the alert, page, or error-rate spike</td><td>Read: alerting system</td><td>Low</td></tr>
+<tr><td>2</td><td>Gather &mdash; pull recent logs, traces, metrics for the affected service and window</td><td>Read: logging, tracing, metrics</td><td><span class="phi">Severe</span></td></tr>
+<tr><td>3</td><td>Correlate &mdash; what deployed recently? what else is alerting? is this a known issue?</td><td>Read: deploy history, incident history, tickets</td><td><span class="phi">Moderate</span></td></tr>
+<tr><td>4</td><td>Hypothesise &mdash; propose a likely cause with the evidence for it</td><td>Model inference</td><td>Inherits step 2</td></tr>
+<tr><td>5</td><td>Summarise &mdash; post a structured triage note to the incident channel</td><td>Write: chat / incident tool</td><td><span class="phi">Severe &mdash; exfiltration path</span></td></tr>
+<tr><td>6</td><td>Remediate &mdash; roll back, scale, restart, toggle a flag</td><td>Write: production control plane</td><td>Different risk class entirely</td></tr>
+</tbody></table></div>
+
+<div class="callout c-dissent"><span class="lbl">The step everyone under-thinks: step 5</span>
+<p>Steps 2 and 6 get all the attention &mdash; reading production data and touching production. But
+<strong>step 5 is the quiet exfiltration path</strong>. An agent that reads PHI-bearing logs and then
+writes a summary into a Slack channel has just moved PHI from a controlled, access-audited,
+retention-managed store into a chat tool with different retention, broader membership, and probably
+a different BAA posture.</p>
+<p>And it will do it <em>helpfully</em>. &ldquo;The failing requests all share member ID 4417 and
+date of birth 1984-03-02&rdquo; is a genuinely useful triage note and a reportable disclosure.</p>
+<p><span class="tier t-op">Opinion</span> This observation is the single best thing you can bring to
+a discussion of this use case, because it shows you are reasoning about the whole data path rather
+than the model call.</p>
+</div>
+
+<h3>Where these agents break, independent of compliance</h3>
+
+<p>Worth knowing so you are not selling a fantasy:</p>
+
+<ul>
+  <li><b>Confident wrong causes.</b> The agent finds <em>a</em> correlation and narrates it as
+  <em>the</em> cause. During an incident, a plausible wrong hypothesis is worse than no hypothesis,
+  because humans anchor on it under time pressure.</li>
+  <li><b>Novel incidents are the ones that matter.</b> Agents do well on incidents resembling past
+  incidents &mdash; which are the ones a runbook already covers. The genuinely novel outage is where
+  you need help most and where retrieval helps least.</li>
+  <li><b>Context window versus log volume.</b> A busy service produces more log volume in the
+  relevant window than fits in any context. So something must select &mdash; and the selector is now
+  the most important and least examined component in the system.</li>
+  <li><b>Alert fatigue, transposed.</b> An agent that comments on every alert becomes noise that
+  people learn to scroll past, taking real signal with it.</li>
+  <li><b>Cascading automation.</b> An agent with remediation rights that misdiagnoses can turn a
+  degradation into an outage. Rollback is not always safe; a rollback across a migration boundary
+  can be worse than the bug.</li>
+</ul>
+
+<h3>The safety envelope &mdash; the concrete proposal</h3>
+
+<p>This is what to sketch on the whiteboard if they ask you to design it. Four layers, in order.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Layer</th><th>Control</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td><b>1. Redact at the boundary</b></td>
+  <td>PHI detection and tokenisation <b>before</b> the data leaves your trust boundary &mdash; not in a
+  prompt instruction. Replace identifiers with stable tokens (<code>MEMBER_A17</code>) so the agent can still
+  correlate &ldquo;same member across these five log lines&rdquo; without ever seeing who they are.</td>
+  <td>Preserves the analytical signal the agent needs while removing the identifiers it does not.
+  <b>Stable tokenisation is the key trick</b> &mdash; naive redaction to <code>[REDACTED]</code> destroys
+  the correlation that makes triage work.</td></tr>
+<tr><td><b>2. Scope the grant</b></td>
+  <td>One service, one time window, read-only, per incident. Not standing access to the logging platform.</td>
+  <td>This is <b>minimum necessary</b> implemented as architecture rather than policy.</td></tr>
+<tr><td><b>3. Constrain the output path</b></td>
+  <td>The agent writes to the incident record, not to a general channel. Output passes the same redaction
+  filter on the way out as the input did on the way in.</td>
+  <td>Closes the step-5 exfiltration path above.</td></tr>
+<tr><td><b>4. Read-only first, for a long time</b></td>
+  <td>No remediation rights in v1. Earn write access per action type, with an approval step, after you have
+  measured hypothesis accuracy against what the incident actually turned out to be.</td>
+  <td>You cannot justify autonomous production action until you have data on how often it is right.
+  Collect that data in shadow mode.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">The strongest version of the proposal &mdash; and it borrows their own language</span>
+<p><em>&ldquo;I would run it in shadow mode against closed incidents first. It produces a hypothesis,
+nobody sees it during the incident, and afterwards we score it against the actual root cause. That
+gives us a real accuracy number before anyone trusts it, and it gives us the redaction pipeline
+exercised on production data with zero blast radius.</em></p>
+<p><em>It is the same discipline as the clinician-in-the-loop review in your Blueprint paper &mdash;
+100% human review while the system earns its confidence interval. I would want an engineer-in-the-loop
+equivalent before it posts anything into a live incident.&rdquo;</em></p>
+<p><span class="tier t-op">Opinion</span> Shadow mode is the answer to almost every &ldquo;how would
+you de-risk this?&rdquo; question, and it is genuinely the right answer here: it produces the
+evidence and the pipeline hardening simultaneously, at zero risk.</p>
+</div>
+
+<div class="callout c-steel"><span class="lbl">The better first project, honestly</span>
+<p><span class="tier t-op">Opinion</span> If asked what you would actually do first, consider saying
+this: <em>the highest-value early work here may not be the agent at all. It may be fixing the
+logs.</em></p>
+<p>A PHI-redaction layer at the logging boundary is valuable on its own compliance merits, is
+probably already on someone's roadmap, needs no model, and is the hard prerequisite for every
+subsequent AI use case that touches operational data. Ship that, and the debugging agent becomes a
+comparatively easy follow-on. Lead with the agent, and you will spend six months in privacy review
+with nothing shipped.</p>
+<p>That answer signals sequencing judgement, which is the actual competence being hired for.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li>Six steps; steps 2 and 5 are the PHI-severe ones. <b>Step 5 &mdash; the summary write-out &mdash; is the underrated exfiltration path</b></li>
+  <li>Failure modes: confident wrong causes, weakness on novel incidents, the unexamined log selector, alert fatigue, cascading automation</li>
+  <li>Envelope: <b>tokenise at the boundary</b> (stable tokens, not <code>[REDACTED]</code>) &rarr; scope per incident &rarr; constrain output path &rarr; read-only for a long time</li>
+  <li><b>Shadow mode against closed incidents</b> is the de-risking answer, and it echoes their own clinician-review methodology</li>
+  <li>The best first project may be the redaction layer, not the agent</li>
+</ul></div>
+
+</div>
+</section>
+
+<section class="module" id="m6">
+<div class="module-header"><div class="num">6</div><div>
+  <h2>Goal 3 &mdash; AI for Jira triage</h2>
+  <div class="mt">The boring one. Start here anyway.</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Know the four distinct jobs hiding inside &ldquo;triage&rdquo; and which is worth doing first</li>
+  <li>Be able to say concretely what good looks like, with numbers</li>
+  <li>Know the PHI catch that makes this less trivial than it sounds</li>
+</ul></div>
+
+<h3>Why the boring one goes first</h3>
+
+<p><span class="tier t-op">Opinion</span> Ticket triage is unglamorous, and it is the strongest
+opening move of the three. The reasons compound:</p>
+
+<ul>
+  <li><b>The ground truth already exists.</b> Every historical ticket has a final component, priority
+  and assignee. You have a labelled dataset for free and can measure accuracy before shipping
+  anything &mdash; which is not true of the other two goals.</li>
+  <li><b>The failure mode is cheap.</b> A misrouted ticket costs one hop. A wrong incident hypothesis
+  costs an outage.</li>
+  <li><b>The value is legible to non-engineers.</b> &ldquo;Time to first correct assignee&rdquo; is a
+  number a VP understands without a framework.</li>
+  <li><b>It builds the compliance scaffolding you need later.</b> Redaction, BAA-covered inference,
+  audit logging &mdash; all get exercised on a low-stakes workload, so the hard use cases inherit a
+  proven pipeline.</li>
+</ul>
+
+<h3>The four jobs inside &ldquo;triage&rdquo;</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Job</th><th>What it does</th><th>Measurable as</th><th>Difficulty</th></tr></thead>
+<tbody>
+<tr><td><b>Classification</b></td><td>Component, type, severity, affected product area</td>
+  <td>Accuracy vs. the final human-assigned value</td><td><span class="tier t-ver">Easiest</span></td></tr>
+<tr><td><b>Routing</b></td><td>Which team or individual</td><td>Reassignment rate; time to first correct owner</td><td>Easy</td></tr>
+<tr><td><b>Deduplication</b></td><td>Is this the same as an existing ticket?</td>
+  <td>Duplicate pairs caught; false-merge rate</td><td>Moderate &mdash; embeddings plus a threshold</td></tr>
+<tr><td><b>Summarisation</b></td><td>Compress a 40-comment thread into a state-of-play</td>
+  <td>Hard to score automatically; use human preference</td><td>Moderate, and the least valuable of the four</td></tr>
+</tbody></table></div>
+
+<p><span class="tier t-op">Opinion</span> Start with <strong>classification and routing</strong>.
+They are the two with clean ground truth, and together they produce the metric everyone cares about:
+how long until the ticket reaches someone who can act on it. Deduplication is the sleeper &mdash;
+often the largest real time saving, because duplicate incident tickets during a live issue are pure
+waste &mdash; but the false-merge failure is annoying enough that it should follow, not lead.
+Summarisation demos best and delivers least.</p>
+
+<h3>What good actually looks like</h3>
+
+<div class="mgrid">
+  <div class="mcell good"><b>&gt;85%</b><span>routing accuracy vs. final human assignee, before you ship</span></div>
+  <div class="mcell good"><b>&lt;2</b><span>median reassignment hops, down from whatever the baseline is</span></div>
+  <div class="mcell warn"><b>&lt;1%</b><span>false-merge rate on dedup &mdash; the metric that kills trust</span></div>
+  <div class="mcell"><b>100%</b><span>of suggestions reversible in one click, with the reason shown</span></div>
+</div>
+
+<div class="callout c-fact"><span class="lbl">The design principle that decides whether people keep it</span>
+<p><strong>Suggest, do not assign &mdash; and always show the reason.</strong> A ticket that arrives
+pre-tagged with &ldquo;Billing / P2 &mdash; matched on 'claim rejected' + 'EOB', similar to
+PROJ-4471&rdquo; and a one-click override is a gift. A ticket that was silently reassigned to the
+wrong team and sat there for two days is why the team turns the feature off in week three.</p>
+<p><span class="tier t-op">Opinion</span> This is the same principle as the debugging agent's
+read-only stance and the same principle as clinician-in-the-loop. Notice the pattern &mdash;
+<strong>every safe AI deployment in this company is going to be shaped like &ldquo;the system
+proposes, a human disposes, and the proposal is auditable.&rdquo;</strong> If you can articulate that
+as a general design stance, you have the thesis of the whole role in one sentence.</p>
+</div>
+
+<h3>The PHI catch</h3>
+
+<div class="callout c-warn"><span class="lbl">Support-originated tickets are not clean</span>
+<p><span class="phi">PHI</span> An internal engineering ticket is usually low-risk. A ticket
+escalated from member support is frequently <strong>full</strong> of PHI: the member's name, DOB,
+the clinical reason they called, a screenshot of their record, a pasted chat transcript.</p>
+<p>So triage inherits the same boundary problem as the debugging agent, with a wrinkle:
+<strong>the classification signal and the PHI are often the same words.</strong> &ldquo;Member could
+not book an oncology follow-up&rdquo; is both the routing signal and a clinical disclosure.</p>
+<p>Practical answer: redact identifiers (name, DOB, MRN, contact details) and preserve clinical
+category terms, since the category is what routes the ticket and is far less identifying on its own.
+Then confirm that judgement with the privacy team rather than assuming it &mdash;
+<em>&ldquo;I would want to check that with privacy&rdquo;</em> is a strong thing to say, not a weak
+one.</p>
+</div>
+
+<div class="callout c-steel"><span class="lbl">A cheap architectural point worth making</span>
+<p>Classification and routing do not need a frontier model. A small model, or even embeddings plus a
+classifier trained on your own historical tickets, will often beat a large general model on
+<em>your</em> taxonomy &mdash; because your taxonomy is idiosyncratic and your history encodes it.</p>
+<p>Two consequences that matter here: it is dramatically cheaper per ticket, and a smaller model is
+easier to run inside your own trust boundary, which shrinks the compliance surface to nearly
+nothing. <span class="tier t-op">Opinion</span> &ldquo;This one probably should not use an external
+frontier model at all&rdquo; is a sophisticated thing to be able to say in an AI enablement
+interview, precisely because it is not the expected answer.</p>
+</div>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li>Four jobs: classification, routing, dedup, summarisation. <b>Start with classification + routing</b> &mdash; clean ground truth, legible metric</li>
+  <li>Ground truth is free: every historical ticket has its final component, priority and assignee</li>
+  <li><b>Suggest, do not assign. Always show the reason. One-click override.</b></li>
+  <li>Support-escalated tickets are PHI-dense, and the routing signal and the PHI are often the same words</li>
+  <li>Frequently the right answer is a small in-house model, not a frontier API &mdash; cheaper and almost no compliance surface</li>
+</ul></div>
+
+</div>
+</section>
+<section class="module" id="m7">
+<div class="module-header"><div class="num">7</div><div>
+  <h2>Speaking the language</h2>
+  <div class="mt">The distinctions that matter, and the ones that are marketing</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Be able to use the current vocabulary precisely, including where terms are genuinely contested</li>
+  <li>Know which distinctions are real engineering and which are vendor positioning</li>
+  <li>Have a defensible answer on fine-tuning vs. retrieval vs. prompting</li>
+</ul></div>
+
+<div class="callout c-warn"><span class="lbl">The meta-skill</span>
+<p>Fluency is not knowing more words. It is knowing <strong>which words are load-bearing and which
+are contested</strong>. Someone who says &ldquo;agent&rdquo; as though it has one settled meaning
+sounds less expert than someone who says &ldquo;agent, in the sense of a model with tool access and
+a control loop &mdash; people also use it for a scripted workflow with one model call, so it is
+worth pinning down which we mean.&rdquo;</p>
+<p>Terms below marked <span style="color:var(--yellow)">contested</span> have no settled definition.
+Saying so is a signal of expertise, not uncertainty.</p>
+</div>
+
+<h3>The core vocabulary</h3>
+
+<div class="vocab contested"><div class="vt">Agent</div><div class="vd">Working definition: a model
+given <b>tools</b>, run in a <b>loop</b>, with some <b>autonomy over which action comes next</b>. The
+loop and the autonomy are what distinguish it from a single model call.
+<b>Why it is contested:</b> vendors apply it to everything from a scripted two-step chain to a system
+that runs unsupervised for hours. The useful discriminator is not the label but two questions:
+<i>what tools can it call, and who decides when it stops?</i></div>
+<div class="vsay"><b>Say:</b> &ldquo;When I say agent I mean tool access plus a control loop. The
+security question is entirely about the tool surface &mdash; the model is the least interesting
+part.&rdquo;</div></div>
+
+<div class="vocab"><div class="vt">Tool use / function calling</div><div class="vd">The model emits a
+structured request to call a named function with typed arguments; your code executes it and returns
+the result. <b>The model never executes anything itself</b> &mdash; it asks, your harness decides. That
+distinction is the entire basis of agent security: every real control lives in the harness, not in
+the prompt.</div>
+<div class="vsay"><b>Say:</b> &ldquo;The model requests; the harness decides. So permissioning belongs
+in the tool layer, not in prompt instructions &mdash; prompts are not a security boundary.&rdquo;</div></div>
+
+<div class="vocab"><div class="vt">MCP (Model Context Protocol)</div><div class="vd">An open protocol
+standardising how models connect to tools and data sources &mdash; roughly, a common interface so every
+tool integration is not bespoke per vendor. Practically: a growing ecosystem of servers exposing
+systems to models.
+<b>The part that matters here:</b> an MCP server is a <b>data egress path</b>. Anthropic's BAA
+documentation states that third-party integration data flows, MCP included, are not covered by their
+BAA. So MCP is an architecture question and a compliance question simultaneously.</div>
+<div class="vsay"><b>Say:</b> &ldquo;MCP standardises the connection, it does not standardise the
+trust. Every server is a new egress path that needs its own review.&rdquo;</div></div>
+
+<div class="vocab contested"><div class="vt">RAG vs. long context</div><div class="vd">
+<b>RAG</b> retrieves relevant chunks and puts them in the prompt. <b>Long context</b> puts the whole
+corpus in and lets attention find it. Frontier context windows now reach ~1M tokens, which has led to
+&ldquo;RAG is dead&rdquo; claims.
+<b>Why that is wrong, and the reason is not what people usually say:</b> the good arguments for
+retrieval in a healthcare org are <i>cost</i> (you pay per token, every call), <i>latency</i>, and
+above all <b>access control</b> &mdash; retrieval is where you enforce that this user may see these
+documents. Stuffing everything into context means every query carries the whole corpus past the
+permission boundary. In a PHI environment, retrieval is a security control that happens to also help
+accuracy.</div>
+<div class="vsay"><b>Say:</b> &ldquo;Long context reduced how much retrieval we need for quality. It
+did not remove the need for retrieval as an access-control point &mdash; which is the reason we would
+keep it here regardless.&rdquo;</div></div>
+
+<div class="vocab contested"><div class="vt">Context engineering</div><div class="vd">The discipline
+of deciding what goes into the model's context window and in what form: system instructions, retrieved
+documents, tool definitions, conversation history, and what to evict when it fills.
+<b>Why it is contested:</b> it is partly a genuine rebranding of a real discipline that outgrew
+&ldquo;prompt engineering,&rdquo; and partly a way to make prompt-writing sound like architecture.
+<span class="tier t-op">Opinion</span> The substance is real &mdash; context is a scarce, expensive,
+attention-limited resource and managing it is most of the work in a production agent. The term is
+also doing marketing work. Both can be true.</div>
+<div class="vsay"><b>Say:</b> &ldquo;Context is a budget. Most agent quality problems I have seen are
+context problems, not model problems.&rdquo;</div></div>
+
+<div class="vocab"><div class="vt">Evals</div><div class="vd">Systematic measurement of output quality
+against a fixed dataset &mdash; the test suite of AI systems. Because outputs are non-deterministic,
+you measure distributions, not assertions. Types: exact-match on labelled data (cheap, needs ground
+truth), LLM-as-judge (scalable, needs its own validation against human judgement), and human review
+(expensive, the ground truth everything else is calibrated against).
+<b>The healthcare-specific point:</b> your eval set is itself a PHI artefact if built from production
+data. This is the strongest use case for <b>synthetic data</b> &mdash; generate realistic non-real
+tickets, logs and cases so the eval set can live outside the PHI boundary and be shared freely with
+vendors.</div>
+<div class="vsay"><b>Say:</b> &ldquo;No evals, no deployment. And in our case the eval set should be
+synthetic so it is not itself a compliance artefact.&rdquo;</div></div>
+
+<div class="vocab"><div class="vt">Inference cost</div><div class="vd">You pay per token, split into
+input and output, with output typically several times the input price. Levers, roughly in order of
+free-ness: <b>prompt caching</b> (reuse a stable prefix across calls &mdash; often the largest single
+saving and costs you nothing in quality), <b>trimming input</b>, <b>capping output</b>,
+<b>batch processing</b> for non-urgent work, then the quality trade-offs: <b>reasoning effort</b>
+settings, and finally <b>model choice</b>.
+<b>The counterintuitive bit:</b> judge cost <i>per completed task</i>, not per request. A cheaper
+model that needs three attempts and a human fix is not cheaper.</div>
+<div class="vsay"><b>Say:</b> &ldquo;Caching first, model choice last. And measure cost per completed
+task, not per call &mdash; otherwise you optimise into a cheaper model that costs more.&rdquo;</div></div>
+
+<h3>Fine-tuning vs. retrieval vs. prompting</h3>
+
+<p>A standard interview question. The wrong answer treats them as competing options on one axis.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Approach</th><th>Changes</th><th>Use when</th><th>Cost / risk here</th></tr></thead>
+<tbody>
+<tr><td><b>Prompting</b></td><td>Instructions only</td><td>Always first. Behaviour, format, tone, task framing</td>
+  <td>Near zero. Iterate in minutes.</td></tr>
+<tr><td><b>Retrieval (RAG)</b></td><td>What the model knows <i>right now</i></td>
+  <td>The model needs facts it was not trained on: your runbooks, your ticket history, your schemas.
+  Facts change.</td>
+  <td>Moderate. <b>And it is where access control lives.</b></td></tr>
+<tr><td><b>Fine-tuning</b></td><td>The model's learned behaviour</td>
+  <td>Consistent format or style at scale; a narrow classification task where you have a lot of
+  labels; latency or cost pressure that a smaller tuned model solves</td>
+  <td><span class="phi">High here.</span> Training on PHI creates a <b>model artefact derived from
+  PHI</b> &mdash; a governance object with its own storage, access, retention and deletion questions,
+  and a memorisation risk. Ask whether the vendor will even train under a BAA.</td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">The answer to give</span>
+<p><em>&ldquo;They solve different problems. Prompting changes behaviour, retrieval changes available
+knowledge, fine-tuning changes learned behaviour. The order is prompt, then retrieve, then fine-tune
+&mdash; and you should have an eval in place before you do the third, or you cannot tell whether it
+helped.</em></p>
+<p><em>In a HIPAA context there is an extra reason to defer fine-tuning: a model fine-tuned on PHI is
+itself a PHI-derived artefact. That is a governance object with retention and deletion obligations,
+and you need to answer 'what happens when a member exercises a deletion right' before you create
+one, not after.&rdquo;</em></p>
+</div>
+
+<h3>Terms to use carefully</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Term</th><th>The problem</th><th>Better</th></tr></thead>
+<tbody>
+<tr><td>&ldquo;Hallucination&rdquo;</td><td>Anthropomorphises and implies a malfunction. The model is doing exactly
+  what it does; it has no truth oracle.</td><td>&ldquo;Confabulation&rdquo;, or plainly: &ldquo;confidently wrong output&rdquo;</td></tr>
+<tr><td>&ldquo;The model decided&rdquo;</td><td>Obscures that your harness executed it. Matters enormously in an
+  incident review.</td><td>&ldquo;The model requested X and our harness executed it&rdquo;</td></tr>
+<tr><td>&ldquo;De-identified&rdquo;</td><td>Has a specific HIPAA meaning &mdash; Safe Harbor or Expert Determination.
+  Regex scrubbing is neither.</td><td>&ldquo;Redacted&rdquo; / &ldquo;masked&rdquo; / &ldquo;tokenised&rdquo;</td></tr>
+<tr><td>&ldquo;HIPAA compliant&rdquo; (of a tool)</td><td>Tools are not compliant; <b>deployments</b> are. A tool can be
+  HIPAA-<i>eligible</i>.</td><td>&ldquo;HIPAA-eligible, and covered under our BAA for these specific features&rdquo;</td></tr>
+<tr><td>&ldquo;Autonomous&rdquo;</td><td>Almost always means &ldquo;autonomous within a tool surface someone chose.&rdquo;</td>
+  <td>Name the actual authority: &ldquo;can open a PR, cannot merge&rdquo;</td></tr>
+</tbody></table></div>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li>Agent = tools + loop + autonomy. The <b>tool surface</b> is the security question, not the model</li>
+  <li>The model requests, the harness decides. <b>Prompts are not a security boundary</b></li>
+  <li>Retrieval survives long context because it is where <b>access control</b> lives &mdash; a security argument, not just a quality one</li>
+  <li>Order: prompt &rarr; retrieve &rarr; fine-tune. Fine-tuning on PHI creates a PHI-derived governance artefact</li>
+  <li>Evals should be <b>synthetic</b> here, so the eval set is not itself a compliance object</li>
+  <li>Tools are HIPAA-<i>eligible</i>; deployments are compliant</li>
+</ul></div>
+
+</div>
+</section>
+<section class="module" id="m8">
+<div class="module-header"><div class="num">8</div><div>
+  <h2>The rollout playbook</h2>
+  <div class="mt">Pilots, champions, procurement, and what to say when leadership wants a number you cannot honestly produce</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">By the end of this module you will</div>
+<ul>
+  <li>Have a defensible 90-day sequence you can describe from memory</li>
+  <li>Know how to run security review as a partnership rather than a gate</li>
+  <li>Have a genuine answer to the productivity-number question &mdash; the hardest question in this interview</li>
+</ul></div>
+
+<h3>Pilot or org-wide?</h3>
+
+<div class="split">
+  <div class="l"><div class="h">Pilot first when</div>
+    <p>The compliance surface is unresolved &mdash; which here it is.</p>
+    <p>You need evidence to win an argument you have not won yet.</p>
+    <p>The failure mode is expensive or hard to reverse.</p>
+    <p>You do not yet know which teams have the appetite.</p>
+  </div>
+  <div class="r"><div class="h">Go broad when</div>
+    <p>Shadow adoption is already widespread &mdash; a pilot is theatre if 60% of engineers already use it.</p>
+    <p>The tool is low-risk and per-seat cost is the only variable.</p>
+    <p>A narrow pilot would create a have/have-not dynamic that poisons the rollout.</p>
+  </div>
+</div>
+
+<p><span class="tier t-op">Opinion</span> The nuance worth voicing: <strong>for AI coding tools in
+2026, the pilot-versus-rollout framing is often already obsolete.</strong> At ~90% industry-wide
+weekly usage, the realistic starting position is that people are using something, possibly personal
+accounts, possibly with company code in it. In a HIPAA org that is an open compliance question, not
+a productivity opportunity. So the honest first move is: <strong>find out what is already happening,
+without punishing anyone for telling you.</strong> Then sanction the good paths quickly, because the
+alternative to a sanctioned tool is not no tool.</p>
+
+<h3>A 90-day sequence</h3>
+
+<div class="tw"><table>
+<thead><tr><th>Window</th><th>Do</th><th>Deliverable</th></tr></thead>
+<tbody>
+<tr><td><b>Days 1&ndash;15</b></td><td>Inventory and amnesty. What is in use, on whose account, touching what
+  data? Explicitly no-blame. In parallel, read their clinical AI governance framework and find out who owns it.</td>
+  <td>An honest map, and a relationship with privacy/security started <i>before</i> you need something from them</td></tr>
+<tr><td><b>Days 15&ndash;30</b></td><td>Agree the data-sensitivity tiers (Module 3) with security and privacy.
+  Not a tool decision &mdash; a framework decision.</td>
+  <td>A tiering doc they co-own. This is the single highest-leverage artefact of the whole plan.</td></tr>
+<tr><td><b>Days 30&ndash;60</b></td><td>Ship the T0/T1 coding-tool path properly: one BAA-covered tool,
+  correctly configured, with the settings actually enforced. Simultaneously start the Jira triage
+  classifier against historical data &mdash; offline, measurable, no production access.</td>
+  <td>One sanctioned path in real use; one accuracy number from real data</td></tr>
+<tr><td><b>Days 60&ndash;90</b></td><td>Baseline four keys + SPACE. Put the triage classifier in
+  suggest-only mode. Scope the log-redaction work that unlocks Module 5.</td>
+  <td>A measurement baseline and a credible sequencing argument for the harder work</td></tr>
+</tbody></table></div>
+
+<div class="callout c-steel"><span class="lbl">Why this order, if asked</span>
+<p>Each step buys permission for the next. The inventory buys credibility with security. The tiering
+buys a repeatable decision process instead of per-tool arguments. The coding rollout buys visible
+value. The triage classifier buys a real number. And only then do you ask for access to production
+logs &mdash; with a track record, a co-owned framework, and a redaction pipeline already proven on a
+low-stakes workload.</p>
+<p><span class="tier t-op">Opinion</span> Doing it in the order the role brief lists them &mdash;
+coding, debugging agents, Jira &mdash; would put the hardest compliance ask second, before you have
+any credibility to spend. Saying so, politely, is a good interview moment.</p>
+</div>
+
+<h3>Champions</h3>
+
+<ul>
+  <li><b>Recruit sceptics, not enthusiasts.</b> Enthusiasts convert nobody &mdash; their endorsement is
+  priced in. A respected sceptic who says &ldquo;I tried it properly for three weeks and it earns its
+  place on this kind of task, not that kind&rdquo; moves an entire org.</li>
+  <li><b>One per team, and give them real air cover:</b> time budgeted, a direct line to you, early
+  access, and their name on the outcome.</li>
+  <li><b>Make them the reporting channel for failures.</b> If your champions only bring you wins, you
+  have advocates, not instrumentation.</li>
+  <li><b>Beware the demo trap.</b> The engineer who makes the best demo is often not the one whose
+  judgement about production usage you should trust.</li>
+</ul>
+
+<h3>Procurement and security review</h3>
+
+<p>The instinct is to treat security review as a gate to get through. That is the mistake, and in
+this company it is an expensive one &mdash; because their published position is that AI safety
+governance is a differentiator they write papers about.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Do</th><th>Instead of</th></tr></thead>
+<tbody>
+<tr><td>Bring the tiering framework first and let security shape it</td><td>Bringing a chosen tool and asking for approval</td></tr>
+<tr><td>Arrive with the vendor's BAA coverage list, feature by feature, already read</td><td>Asking security to work out what is covered</td></tr>
+<tr><td>Name the data path end to end, including the <b>output</b> path</td><td>Describing the model call and stopping there</td></tr>
+<tr><td>Propose the monitoring you will run, and who reads it</td><td>Proposing controls with no detection</td></tr>
+<tr><td>Say plainly what you could not confirm</td><td>Presenting an uncertain claim confidently</td></tr>
+</tbody></table></div>
+
+<div class="callout c-fact"><span class="lbl">The framing that makes security an ally</span>
+<p><em>&ldquo;My job is not to get tools past you. It is to make sure that when engineers use AI
+&mdash; which they already are &mdash; they do it on a path we chose together and can audit. The
+risk I am managing is not that we adopt too slowly. It is that we adopt invisibly.&rdquo;</em></p>
+<p>This is true, it is the actual risk, and it reframes you from supplicant to co-owner.</p>
+</div>
+
+<h3>The hardest question: &ldquo;what is the productivity gain?&rdquo;</h3>
+
+<p>Leadership will want a number. Early on, an honest one does not exist. Three ways to answer, in
+ascending order of quality:</p>
+
+<div class="ledger">
+  <div class="lrow u"><div class="lc">Bad: make one up from vendor material</div>
+    <div class="lv">&ldquo;Studies show 30&ndash;50% productivity gains.&rdquo; The METR RCT measured
+    <b>19% slower</b> in a rigorous setting. If anyone in the room knows that, your credibility is
+    gone &mdash; and in a company that publishes peer-reviewed methodology papers, assume someone
+    does.</div></div>
+  <div class="lrow a"><div class="lc">Weak: refuse</div>
+    <div class="lv">&ldquo;You can't measure developer productivity.&rdquo; True-ish, and it reads as
+    evasion. It also leaves leadership with no way to decide, so they will decide with someone
+    else's number instead of yours.</div></div>
+  <div class="lrow v"><div class="lc">Good: reframe to a decision, commit to a date</div>
+    <div class="lv">Give them what a number is <i>for</i> &mdash; a decision &mdash; plus a specific
+    commitment about when a real one arrives.</div></div>
+</div>
+
+<div class="callout c-fact"><span class="lbl">The answer, close to verbatim</span>
+<p><em>&ldquo;I can give you a number in 90 days that I would defend, and I can tell you right now
+what it will not be.</em></p>
+<p><em>It will not be a percentage productivity gain, because the best evidence we have says
+engineers mis-estimate their own AI speedup by a wide margin, and optimistically &mdash; there is a
+randomised trial where developers were 19% slower and still believed they had been 20% faster. So
+any number built on self-report or on lines generated is worse than no number.</em></p>
+<p><em>What I will give you is: change failure rate and time to restore before and after, so we know
+we did not trade throughput for stability; time to first correct assignee on tickets, which is a
+directly measured saving; and retention of usage &mdash; who is still using this in week twelve
+without being asked. And I would ask for one thing in return: agree now that the first six to eight
+weeks will look flat or slightly worse. That dip is well documented, it is a real cost of the
+transition, and if we have not agreed on it in advance it will get read as failure right at the
+point where we should be holding our nerve.&rdquo;</em></p>
+</div>
+
+<p><span class="tier t-op">Opinion</span> That answer works because it does four things a
+vendor-number answer cannot: it demonstrates you have read the literature, it refuses to be
+dishonest, it still gives leadership a decision-useful commitment, and it pre-negotiates the J-curve.
+Pre-negotiating the dip is the highest-leverage sentence in the whole answer &mdash; most AI
+initiatives are cancelled during the dip, by people who were never told it was coming.</p>
+
+<div class="takeaways"><div class="t">Takeaways</div>
+<ul>
+  <li>Start with <b>inventory and amnesty</b> &mdash; shadow adoption is the real starting position</li>
+  <li>The <b>tiering framework co-owned with security</b> is the highest-leverage artefact you produce</li>
+  <li>Sequence buys permission: inventory &rarr; tiering &rarr; coding rollout &rarr; triage number &rarr; <i>then</i> ask for logs</li>
+  <li>Recruit <b>sceptics</b> as champions; make them your failure-reporting channel</li>
+  <li>On the number: refuse the fake one, commit to a real one with a date, and <b>pre-negotiate the dip</b></li>
+</ul></div>
+
+</div>
+</section>
+<section class="module" id="m9">
+<div class="module-header"><div class="num">9</div><div>
+  <h2>Two tools for the night before</h2>
+  <div class="mt">A use-case risk assessor, and a question drill with model answers</div>
+</div></div>
+<div class="module-body">
+
+<div class="objectives"><div class="t">Use these differently</div>
+<ul>
+  <li>The <b>assessor</b> is for building the reflex &mdash; run three or four use cases through it until the questions come automatically</li>
+  <li>The <b>drill</b> is for the night before &mdash; answer out loud first, then open the model answer</li>
+</ul></div>
+
+<div id="lab">
+  <div class="lab-top">
+    <h3>PHI Exposure &amp; Rollout Risk Assessor</h3>
+    <span class="lab-pill">Tool 1</span>
+    <span class="lab-step" id="lab-step">Step 1 of 3</span>
+  </div>
+  <div class="lab-body">
+
+    <div class="stage" id="s1">
+      <div class="stage-h"><div class="n">1</div><div class="ttl">Pick a use case</div>
+        <div class="st" id="s1st">Choose one</div></div>
+      <p class="hint">Start with one of the three the role names. &ldquo;Custom&rdquo; lets you model
+      anything else &mdash; try it on something from your own experience.</p>
+      <div class="priors" id="priors">
+        <button class="prior" data-k="coding"><b>Coding assistant</b><span>Engineers using an AI tool to author code in the main repo</span></button>
+        <button class="prior" data-k="debug"><b>Debugging agent</b><span>An agent reading production logs to triage incidents</span></button>
+        <button class="prior" data-k="jira"><b>Jira triage</b><span>Classifying and routing tickets, including support escalations</span></button>
+        <button class="prior" data-k="custom"><b>Custom</b><span>Something else &mdash; set every dimension yourself</span></button>
+      </div>
+    </div>
+
+    <div class="stage locked" id="s2">
+      <div class="stage-h"><div class="n">2</div><div class="ttl">Set the five dimensions</div>
+        <div class="st" id="s2st">0 of 5 set</div></div>
+      <p class="hint">Pre-filled with my read for the use case you picked. <b>Change anything you
+      disagree with</b> &mdash; arguing with the defaults is the point of the exercise.</p>
+      <div id="dims"></div>
+      <div class="why-wrap">
+        <label for="why">Before you compute: in one line, what do you think the biggest risk is? (Commit first — it is worth more than reading the answer cold.)</label>
+        <textarea id="why" placeholder="The thing most likely to go wrong is..."></textarea>
+      </div>
+      <div class="lab-btns">
+        <button class="act" id="run" disabled>Assess</button>
+        <button class="act ghost" id="reset">Reset</button>
+        <span class="gate-msg" id="gate">Set all five dimensions to continue</span>
+      </div>
+    </div>
+
+    <div class="stage locked" id="s3">
+      <div class="stage-h"><div class="n">3</div><div class="ttl">Assessment</div>
+        <div class="st" id="s3st">Not run</div></div>
+      <div id="out"></div>
+    </div>
+
+  </div>
+</div>
+
+<h3>Tool 2 &mdash; interview drill</h3>
+
+<p>Answer each out loud before opening the model answer. The model answers are deliberately written
+the way you would actually say them, not the way you would write them down.</p>
+
+<div class="drill">
+  <div class="dq">&ldquo;How would you get our engineers using AI coding tools?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>&ldquo;My first assumption is that they already are &mdash; industry surveys this year put weekly
+  usage around 90%, and I would be surprised if you were an exception. So the first two weeks are an
+  inventory and an amnesty: what is actually in use, on whose account, touching what data, with
+  nobody punished for answering honestly.</p>
+  <p>That matters more here than at a normal software company, because unsanctioned usage in a HIPAA
+  environment is not a productivity gap, it is a potential unreported disclosure. Once I know the real
+  starting position, the job is to make the sanctioned path <em>better</em> than the shadow path
+  &mdash; properly configured, BAA-covered, and fast to get access to. The alternative to a sanctioned
+  tool is never no tool.&rdquo;</p>
+  </details>
+</div>
+
+<div class="drill">
+  <div class="dq">&ldquo;What is the risk of an agent that reads our production logs?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>&ldquo;Logs are probably the most PHI-dense uncontrolled artefact you have &mdash; request bodies
+  on error, stack traces carrying member objects, debug lines someone left on. So the read side is the
+  obvious risk.</p>
+  <p>But the one I would flag is the <em>write</em> side. An agent that reads those logs and then posts
+  a helpful triage summary into an incident channel has just moved PHI out of an access-audited,
+  retention-managed store into a chat tool with different retention and broader membership. And it will
+  do it helpfully &mdash; &lsquo;all the failing requests share this member ID and DOB&rsquo; is a
+  genuinely useful triage note and a disclosure.</p>
+  <p>So: tokenise at the boundary with stable tokens, so it can still correlate 'same member' without
+  knowing who; scope access to one service and one window per incident rather than standing access;
+  run the output through the same filter as the input; and keep it read-only far longer than feels
+  necessary. I would run it in shadow mode against closed incidents first so we get a real accuracy
+  number before anyone trusts it during a live one.&rdquo;</p>
+  </details>
+</div>
+
+<div class="drill">
+  <div class="dq">&ldquo;Which AI vendor should we use?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>&ldquo;I would not answer that as a vendor question first, because the answer changes per use
+  case and it changes every quarter. I would want a data-sensitivity tiering that we agree once with
+  security &mdash; green for no-PHI-possible work, amber for repo code that could contain PHI in
+  fixtures, red for anything touching logs or tickets &mdash; and then the vendor question becomes a
+  lookup instead of an argument each time.</p>
+  <p>What I would bring to that conversation is that BAA coverage is <em>per-feature</em>, not
+  per-vendor. As a concrete example: Anthropic covers their Messages API under a BAA but explicitly
+  excludes the Batch API, Files API, Code Execution and Computer Use. And there is a real trap in
+  there &mdash; Claude Code is only BAA-covered with zero data retention enabled, but their newest
+  models require 30-day retention for safety monitoring and refuse to run under ZDR. So those two
+  things are currently mutually exclusive. That is the kind of detail that decides an architecture,
+  and you only find it by reading the coverage docs rather than the marketing.</p>
+  <p>Practically, if you are already on AWS or GCP, the lowest-drama path for anything red is
+  inference through Bedrock or Vertex under the cloud BAA you already have.&rdquo;</p>
+  </details>
+</div>
+
+<div class="drill">
+  <div class="dq">&ldquo;Leadership wants to know the productivity gain. What do you tell them?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>See the near-verbatim version in <a href="#m8">Module 8</a> &mdash; but the shape is: refuse the
+  fake number, name why self-report is specifically unreliable (the METR trial: 19% slower, and
+  participants still believed they were 20% faster), commit to specific measured metrics on a date,
+  and pre-negotiate the J-curve so the initial dip reads as a prediction rather than a failure.</p>
+  <p>The pre-negotiation is the part most people miss, and it is the part that actually saves the
+  programme.&rdquo;</p>
+  </details>
+</div>
+
+<div class="drill">
+  <div class="dq">&ldquo;An engineer wants to paste a production error into ChatGPT to debug it faster. What do you do?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>&ldquo;In the moment: no, if it is a personal account and the payload could contain PHI &mdash;
+  that is a disclosure to a vendor we have no BAA with, and it is reportable.</p>
+  <p>But I would treat that request as a bug report about my own work rather than a policy violation
+  to enforce. That engineer had a real need and the sanctioned path was either too slow or did not
+  exist. If the answer is only 'no', they will do it anyway and stop telling me.</p>
+  <p>So the real fix is a sanctioned path that is genuinely fast: a BAA-covered endpoint, reachable
+  from where they already are, with redaction at the boundary so the paste is safe by construction
+  rather than by the engineer's judgement at 2am during an incident. Judgement is the wrong control
+  to rely on at 2am.&rdquo;</p>
+  </details>
+</div>
+
+<div class="drill">
+  <div class="dq">&ldquo;What would you ship first?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>&ldquo;Jira triage &mdash; classification and routing &mdash; and I would argue for it over the
+  more exciting options.</p>
+  <p>Every historical ticket already has its final component, priority and assignee, so I have a
+  labelled dataset for free and can measure accuracy offline before anything touches production. The
+  failure mode is one extra routing hop rather than an outage. The metric &mdash; time to first correct
+  assignee &mdash; is legible to people who do not care about AI. And it exercises the compliance
+  scaffolding I will need later, redaction and audit and BAA-covered inference, on a low-stakes
+  workload.</p>
+  <p>Then the harder ones inherit a proven pipeline and I have a track record when I ask for access to
+  production logs. Doing it in the other order means making the biggest compliance ask before I have
+  any credibility to spend. There is also a decent chance triage should not use a frontier model at
+  all &mdash; embeddings plus a classifier on your own ticket history will often beat a general model
+  on your own taxonomy, cost far less, and run inside your boundary.&rdquo;</p>
+  </details>
+</div>
+
+<div class="drill">
+  <div class="dq">&ldquo;How do you know it is working?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>&ldquo;DORA's four keys for the delivery system &mdash; deployment frequency, lead time, change
+  failure rate, time to restore &mdash; because DORA's own finding is that AI adoption can lift
+  throughput while raising instability, so measuring only speed will make a rollout look successful
+  while reliability degrades. SPACE for the human dimensions delivery metrics cannot see.</p>
+  <p>And deliberately <em>not</em>: suggestion acceptance rate, lines generated, or self-reported time
+  saved. All three go up when the tool is doing badly, and the third is the one the METR trial
+  directly measured as wrong.</p>
+  <p>Plus one qualitative signal I trust more than it deserves: at week twelve, who is still using it
+  without being asked, and who would be annoyed if we took it away.&rdquo;</p>
+  </details>
+</div>
+
+<div class="drill">
+  <div class="dq">&ldquo;What is your biggest worry about all this?&rdquo;</div>
+  <details class="reveal"><summary>Model answer</summary>
+  <p>&ldquo;That we optimise the visible half. Generation got cheap and verification did not &mdash;
+  DORA calls that the verification tax &mdash; so the risk is that we ship more code faster, feel
+  successful, and quietly push the cost into review, testing and incident load where nobody attributes
+  it back to the AI programme.</p>
+  <p>The compliance version of the same worry is worse: the failure would not be a dramatic breach, it
+  would be a slow accumulation of PHI in places nobody catalogued &mdash; a vendor's logs, a chat
+  channel, an eval set someone built from production data. That is why I would rather spend the first
+  month on an inventory and a tiering framework than on a tool rollout. It is the less impressive
+  answer and I think it is the right one.&rdquo;</p>
+  </details>
+</div>
+
+<div class="callout c-fact"><span class="lbl">One thing to remember if you remember nothing else</span>
+<p>Every safe AI deployment in this company has the same shape:
+<strong>the system proposes, a human disposes, and the proposal is auditable.</strong></p>
+<p>Clinician-in-the-loop for their patient-facing assistant. Engineer-in-the-loop for a debugging
+agent. Suggest-don't-assign for ticket triage. It is one idea wearing three hats, it matches the
+methodology they published themselves, and if you can name it as a general design stance you have
+articulated the thesis of the entire role.</p>
+</div>
+
+</div>
+</section>
+
+<div class="footer">
+  <p>Built for Zeesha &middot; 31 August 2026 &middot; Included Health &mdash; Special Projects</p>
+  <p style="margin-top:0.5rem">All vendor compliance claims are snapshots. Verify against the vendor's own
+  documentation before committing to anything.</p>
+  <p style="margin-top:0.75rem">
+    <a href="index.html">All courses</a>
+    <a href="https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/" target="_blank" rel="noopener">METR study</a>
+    <a href="https://dora.dev/ai/roi/report/" target="_blank" rel="noopener">DORA ROI report</a>
+    <a href="https://includedhealth.com/newsroom/" target="_blank" rel="noopener">Included Health newsroom</a>
+  </p>
+</div>
+
+</div><!-- /container -->
+<script>
+/* ═══════════ NAV + PROGRESS ═══════════ */
+(function(){
+'use strict';
+var mods = Array.prototype.slice.call(document.querySelectorAll('section.module'));
+var nl = document.getElementById('nav-links');
+mods.forEach(function(m,i){
+  var a = document.createElement('a');
+  a.href = '#' + m.id; a.textContent = (i+1); a.setAttribute('data-mid', m.id);
+  a.title = (m.querySelector('h2') ? m.querySelector('h2').textContent : 'Module ' + (i+1));
+  nl.appendChild(a);
+});
+var bar = document.getElementById('progress-bar');
+var prog = document.getElementById('nav-prog');
+var seen = {};
+function tick(){
+  var vh = window.innerHeight;
+  mods.forEach(function(m){
+    var r = m.getBoundingClientRect();
+    if (r.top < vh * 0.5) seen[m.id] = true;
+  });
+  var n = 0;
+  mods.forEach(function(m){
+    if (seen[m.id]) { n++; var a = nl.querySelector('a[data-mid="'+m.id+'"]'); if (a) a.classList.add('done'); }
+  });
+  prog.textContent = n + ' / ' + mods.length;
+  var doc = document.documentElement;
+  var max = doc.scrollHeight - vh;
+  bar.style.width = (max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0) + '%';
+}
+window.addEventListener('scroll', tick, {passive:true});
+window.addEventListener('resize', tick, {passive:true});
+tick();
+})();
+
+/* ═══════════ TOOL 1 — PHI EXPOSURE & ROLLOUT RISK ASSESSOR ═══════════ */
+(function(){
+'use strict';
+function $(i){ return document.getElementById(i); }
+if (!$('lab')) return;
+
+var DIMS = [
+  { k:'data', n:'What data can it reach?',
+    o:[ {v:0, l:'No PHI possible',      d:'Public docs, OSS dependencies, greenfield code, design discussion.'},
+        {v:2, l:'Repo code',            d:'Source it could index. PHI only if fixtures or seed data contain it — which they often do.'},
+        {v:4, l:'Tickets',              d:'Including support escalations, which routinely carry names, DOB and clinical detail.'},
+        {v:6, l:'Production logs',      d:'The densest uncontrolled PHI surface you have. Nobody schema-controls logs.'} ] },
+  { k:'shape', n:'What shape is the tool?',
+    o:[ {v:0, l:'API call',             d:'Your code calls a model. You control exactly what goes in the request.'},
+        {v:1, l:'Completion assistant', d:'Editor plugin. Sees the open file and some context. Narrow, predictable.'},
+        {v:3, l:'AI-native IDE',        d:'Indexes the repo. Whatever is in fixtures is now in an index somewhere.'},
+        {v:5, l:'Terminal agent',       d:'Can run commands. If it can run kubectl logs, it can reach production PHI.'} ] },
+  { k:'baa', n:'BAA status of this exact feature?',
+    o:[ {v:0,  l:'Covered, verified',   d:'You read the vendor’s coverage list and this specific feature is on it.'},
+        {v:3,  l:'Vendor covered, feature unchecked', d:'The BAA exists. You have not confirmed this feature is in scope. This is the common trap.'},
+        {v:8,  l:'Not covered',         d:'Feature is excluded, or the plan tier cannot get a BAA.'},
+        {v:10, l:'Unknown',             d:'Nobody has checked. Treat as not covered until proven otherwise.'} ] },
+  { k:'out', n:'Where does the output go?',
+    o:[ {v:0, l:'Back to one user',     d:'Stays with the person who asked. Smallest surface.'},
+        {v:2, l:'Into the same system', d:'Written back to the record it came from. Same trust boundary.'},
+        {v:5, l:'Chat / Slack channel', d:'The underrated exfiltration path — different retention, broader membership.'},
+        {v:7, l:'External system',      d:'Crosses a boundary into a tool with its own BAA question.'} ] },
+  { k:'auto', n:'How much autonomy?',
+    o:[ {v:0, l:'Suggests only',        d:'A human accepts or rejects every action. The safe default.'},
+        {v:3, l:'Acts with approval',   d:'Proposes an action, a human approves, then it executes.'},
+        {v:7, l:'Acts autonomously',    d:'Takes action without a human in the path.'} ] }
+];
+
+var PRESETS = {
+  coding: { data:1, shape:2, baa:1, out:0, auto:0,
+            note:'Defaults assume an AI-native IDE on the main monorepo with a BAA in place but the specific feature unverified — the most common real-world configuration, and the one that quietly fails review.' },
+  debug:  { data:3, shape:3, baa:1, out:2, auto:0,
+            note:'Defaults assume a terminal agent reading production logs, posting to an incident channel, suggest-only. Note how much of the score comes from the output path rather than the read.' },
+  jira:   { data:2, shape:0, baa:0, out:1, auto:0,
+            note:'Defaults assume an API call over ticket data, writing back to the ticket, suggest-only, with BAA coverage verified. This is roughly the safest useful thing you can ship first.' },
+  custom: { data:0, shape:0, baa:3, out:0, auto:0,
+            note:'Everything set to the safest option except BAA, which starts at Unknown — because that is where every real project starts.' }
+};
+
+var sel = {}, useCase = null, ran = false;
+
+function buildDims(){
+  var host = $('dims'); host.innerHTML = '';
+  DIMS.forEach(function(d){
+    var wrap = document.createElement('div'); wrap.className = 'sc-item';
+    var q = document.createElement('div'); q.className = 'sq';
+    q.innerHTML = '<b>' + d.n + '</b>';
+    wrap.appendChild(q);
+    var opts = document.createElement('div'); opts.className = 'sc-opts';
+    d.o.forEach(function(o, idx){
+      var b = document.createElement('button');
+      b.className = 'sc-opt'; b.type = 'button'; b.textContent = o.l;
+      b.addEventListener('click', function(){
+        sel[d.k] = idx;
+        Array.prototype.forEach.call(opts.children, function(c){ c.className = 'sc-opt'; });
+        b.className = 'sc-opt ' + (o.v === 0 ? 'sel-y' : (o.v <= 3 ? 'sel-p' : 'sel-n'));
+        why.textContent = o.d;
+        gate();
+      });
+      opts.appendChild(b);
+    });
+    wrap.appendChild(opts);
+    var why = document.createElement('div'); why.className = 'sc-why';
+    why.textContent = 'Pick one.';
+    wrap.appendChild(why);
+    wrap.setAttribute('data-k', d.k);
+    host.appendChild(wrap);
+  });
+}
+
+function applyPreset(k){
+  var p = PRESETS[k];
+  DIMS.forEach(function(d){
+    var idx = p[d.k];
+    sel[d.k] = idx;
+    var wrap = $('dims').querySelector('[data-k="'+d.k+'"]');
+    var opts = wrap.querySelector('.sc-opts');
+    Array.prototype.forEach.call(opts.children, function(c){ c.className = 'sc-opt'; });
+    var btn = opts.children[idx];
+    var o = d.o[idx];
+    btn.className = 'sc-opt ' + (o.v === 0 ? 'sel-y' : (o.v <= 3 ? 'sel-p' : 'sel-n'));
+    wrap.querySelector('.sc-why').textContent = o.d;
+  });
+  var n = $('dims').querySelector('.preset-note');
+  if (n) n.remove();
+  var note = document.createElement('div');
+  note.className = 'field preset-note';
+  note.innerHTML = '<span class="lbl">Why these defaults</span><p>' + p.note + '</p>';
+  $('dims').insertBefore(note, $('dims').firstChild);
+  gate();
+}
+
+function gate(){
+  var n = 0;
+  DIMS.forEach(function(d){ if (sel[d.k] !== undefined) n++; });
+  $('s2st').textContent = n + ' of 5 set';
+  var ok = (n === 5);
+  $('run').disabled = !ok;
+  $('gate').textContent = ok ? 'Ready.' : 'Set all five dimensions to continue';
+  return ok;
+}
+
+function score(){
+  var t = 0;
+  DIMS.forEach(function(d){ t += d.o[sel[d.k]].v; });
+  return t;
+}
+
+function tierFor(s){
+  if (s <= 4)  return { t:'T0/T1 — Green to Amber', c:'win',  v:'v-hit',
+    m:'Low exposure. This is the kind of thing you ship in the first 30 days to build credibility. Configure it properly, document the decision, and move on.' };
+  if (s <= 12) return { t:'T1/T2 — Amber', c:'mid', v:'v-hit',
+    m:'Real but manageable exposure. Shippable with controls, and worth shipping — but not without confirming the specific gaps flagged below first.' };
+  if (s <= 20) return { t:'T2 — Red', c:'mid', v:'v-miss',
+    m:'This needs a redaction boundary and a scoped, minimum-necessary grant before it goes anywhere near production. Not a no. A not-yet, with a specific list of prerequisites.' };
+  return { t:'T2/T3 — Red to Black', c:'low', v:'v-miss',
+    m:'As configured, this is very hard to defend in a privacy review. Reduce the surface before you argue for it — usually by cutting autonomy, constraining the output path, or redacting at the boundary.' };
+}
+
+function flags(){
+  var f = [];
+  var d = DIMS[0].o[sel.data], sh = DIMS[1].o[sel.shape], b = DIMS[2].o[sel.baa],
+      o = DIMS[3].o[sel.out], a = DIMS[4].o[sel.auto];
+
+  if (b.v >= 8) f.push(['Stop here until the BAA question is answered',
+    'Everything else is secondary. If the specific feature is not covered, no amount of good architecture makes this lawful. Get the vendor’s per-feature coverage list in writing.']);
+  if (b.v === 3) f.push(['Verify the feature, not just the vendor',
+    'Having a BAA with a vendor is not the same as that feature being covered. Vendors routinely cover a chat API and exclude batch, file storage, code execution and agent surfaces. Open their coverage page and find your feature by name.']);
+  if (d.v >= 4 && o.v >= 5) f.push(['The output path is your biggest exposure — bigger than the read',
+    'This reads PHI-bearing data and writes somewhere with different retention and broader membership. That is a disclosure, and it will happen helpfully. Run the output through the same redaction filter as the input, and prefer writing back into the originating system.']);
+  if (d.v >= 6) f.push(['Tokenise at the boundary, with stable tokens',
+    'Redact before data leaves your trust boundary — not via prompt instruction. Use stable tokens (MEMBER_A17) rather than [REDACTED] so correlation survives. Naive redaction destroys the exact signal that makes triage work.']);
+  if (sh.v >= 5) f.push(['Enumerate the tool surface explicitly',
+    'A terminal agent is bounded by its tools, not its prompt. Write down every command it can run. If it can reach the logging backend or the production control plane, that is the real permission grant — not whatever the system prompt says.']);
+  if (sh.v >= 3 && d.v >= 2) f.push(['Scan the repo before you index it',
+    'Repo-indexing tools ingest whatever is there. Run a PHI scan over fixtures, seed data and committed notebook outputs first. Assume something was sampled from production years ago and forgotten.']);
+  if (a.v >= 7) f.push(['Autonomy is the easiest thing to give up and the hardest to justify',
+    'Drop to suggest-only or approval-gated for v1. You cannot justify autonomous action before you have measured how often it is right — and shadow mode gets you that number at zero risk.']);
+  if (a.v >= 3 && d.v >= 4) f.push(['Minimum necessary is an architecture requirement, not a policy one',
+    'Scope the grant per task and per time window rather than granting standing access. "It only looks at what it needs" enforced by a prompt is not a control; enforced by the credential is.']);
+  if (d.v >= 4) f.push(['Your eval set will become a PHI artefact',
+    'If you build evals from real tickets or logs, the eval set inherits the same obligations. Generate synthetic cases instead so it can live outside the boundary and be shared with vendors freely.']);
+  if (f.length === 0) f.push(['Nothing structural to flag',
+    'Low exposure across every dimension. Document the configuration so the decision is reproducible, and use this one to build the muscle for the harder cases.']);
+  return f;
+}
+
+function render(){
+  var s = score();
+  var max = 0; DIMS.forEach(function(d){ max += Math.max.apply(null, d.o.map(function(o){return o.v;})); });
+  var tier = tierFor(s);
+  var out = $('out');
+  var html = '';
+
+  html += '<div class="mgrid">';
+  html += '<div class="mcell ' + (s <= 4 ? 'good' : (s <= 12 ? '' : (s <= 20 ? 'warn' : 'bad'))) + '"><b>' + s + ' / ' + max + '</b><span>exposure score</span></div>';
+  html += '<div class="mcell"><b>' + tier.t.split(' — ')[0] + '</b><span>tier</span></div>';
+  html += '<div class="mcell ' + (DIMS[2].o[sel.baa].v === 0 ? 'good' : 'bad') + '"><b>' + (DIMS[2].o[sel.baa].v === 0 ? 'Yes' : 'No') + '</b><span>BAA confirmed for this feature</span></div>';
+  html += '</div>';
+
+  html += '<div class="rbars">';
+  DIMS.forEach(function(d){
+    var o = d.o[sel[d.k]];
+    var dmax = Math.max.apply(null, d.o.map(function(x){return x.v;}));
+    var pct = dmax > 0 ? Math.round((o.v / dmax) * 100) : 0;
+    var cls = o.v === 0 ? 'win' : (o.v <= 3 ? 'mid' : 'low');
+    html += '<div class="rbar ' + cls + '"><div class="rl"><span class="rn">' + d.n + '</span>' +
+            '<span class="rs">' + o.l + '</span></div>' +
+            '<div class="rt"><div class="rf" style="width:' + pct + '%"></div></div></div>';
+  });
+  html += '</div>';
+
+  html += '<div class="verdict ' + tier.v + '"><span class="vl">' + tier.t + '</span><p>' + tier.m + '</p></div>';
+
+  var w = $('why').value.trim();
+  if (w) {
+    html += '<div class="field"><span class="lbl">You said the biggest risk was</span><p><em>&ldquo;' +
+            w.replace(/[<>&]/g, function(c){ return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c]; }) +
+            '&rdquo;</em></p><p>Compare that against the flags below. If your answer is not in the list, either you spotted something this model does not encode &mdash; which is worth trusting &mdash; or the model is weighting something you have not considered yet. Both are useful.</p></div>';
+  }
+
+  html += '<h4 style="margin-top:1.3rem">What to resolve, in order</h4>';
+  flags().forEach(function(f, i){
+    html += '<div class="lrow ' + (i === 0 ? 'u' : 'a') + '"><div class="lc">' + (i+1) + '. ' + f[0] + '</div><div class="lv">' + f[1] + '</div></div>';
+  });
+
+  html += '<div class="field"><span class="lbl">Questions to take into the room</span><p>' +
+    'Regardless of score, these four make you sound like you have done this before: ' +
+    '<b>(1)</b> Is this specific feature on the vendor’s BAA coverage list, in the configuration we are using? ' +
+    '<b>(2)</b> Where does the output go, and does it cross a trust boundary? ' +
+    '<b>(3)</b> What is the smallest grant that still makes this useful? ' +
+    '<b>(4)</b> How will we know it is wrong &mdash; and can we run it in shadow mode first?</p></div>';
+
+  out.innerHTML = html;
+  $('s3st').textContent = 'Complete'; $('s3st').className = 'st ok';
+  $('lab-step').textContent = 'Step 3 of 3';
+}
+
+buildDims();
+
+Array.prototype.forEach.call($('priors').children, function(b){
+  b.addEventListener('click', function(){
+    Array.prototype.forEach.call($('priors').children, function(c){ c.classList.remove('sel'); });
+    b.classList.add('sel');
+    useCase = b.getAttribute('data-k');
+    $('s1st').textContent = 'Selected'; $('s1st').className = 'st ok';
+    $('s2').classList.remove('locked');
+    $('lab-step').textContent = 'Step 2 of 3';
+    applyPreset(useCase);
+  });
+});
+
+$('run').addEventListener('click', function(){
+  if (!gate()) return;
+  ran = true;
+  $('s3').classList.remove('locked');
+  render();
+  $('s3').scrollIntoView({behavior:'smooth', block:'nearest'});
+});
+
+$('reset').addEventListener('click', function(){
+  sel = {}; useCase = null; ran = false;
+  Array.prototype.forEach.call($('priors').children, function(c){ c.classList.remove('sel'); });
+  buildDims();
+  $('why').value = '';
+  $('out').innerHTML = '';
+  $('s1st').textContent = 'Choose one'; $('s1st').className = 'st';
+  $('s3st').textContent = 'Not run'; $('s3st').className = 'st';
+  $('s2').classList.add('locked'); $('s3').classList.add('locked');
+  $('lab-step').textContent = 'Step 1 of 3';
+  gate();
+});
+
+gate();
+})();
+</script>
+<script src="course-framework.js"></script>
+</body>
+</html>
